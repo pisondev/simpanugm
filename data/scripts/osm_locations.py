@@ -119,7 +119,15 @@ def review_rows(document: dict[str, Any]) -> list[dict[str, str]]:
 def overpass_query(bbox: tuple[float, float, float, float]) -> str:
     south, west, north, east = bbox
     box = f"{south},{west},{north},{east}"
-    return f"[out:json][timeout:25];nwr[\"name\"]({box});out center tags;"
+    return (
+        f"[out:json][timeout:25];("
+        f"nwr[\"name\"][\"building\"]({box});"
+        f"nwr[\"name\"][\"amenity\"]({box});"
+        f"nwr[\"name\"][\"leisure\"]({box});"
+        f"nwr[\"name\"][\"public_transport\"]({box});"
+        f"nwr[\"name\"][\"highway\"~\"bus_stop|platform\"]({box});"
+        f");out center tags;"
+    )
 
 
 def parse_bbox(value: str) -> tuple[float, float, float, float]:

@@ -4,7 +4,7 @@ import tempfile
 from pathlib import Path
 
 from check import flatten_categories, validate_seed_dir
-from osm_locations import REVIEW_FIELDS, review_rows, write_rows
+from osm_locations import REVIEW_FIELDS, overpass_query, review_rows, write_rows
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -79,6 +79,13 @@ class OsmLocationTests(unittest.TestCase):
             "tags": {"name": "Parkir Utara", "amenity": "parking"},
         }
         self.assertEqual(len(review_rows({"elements": [element, json.loads(json.dumps(element))]})), 1)
+
+    def test_overpass_query_limits_results_to_location_features(self) -> None:
+        query = overpass_query((-7.79, 110.36, -7.75, 110.405))
+        self.assertIn('nwr["name"]["building"]', query)
+        self.assertIn('nwr["name"]["amenity"]', query)
+        self.assertIn('nwr["name"]["highway"~"bus_stop|platform"]', query)
+        self.assertNotIn('nwr["name"](-7.79', query)
 
 
 if __name__ == "__main__":
