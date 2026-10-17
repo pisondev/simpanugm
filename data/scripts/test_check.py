@@ -11,6 +11,7 @@ from check import flatten_categories, validate_seed_dir
 from check_trial import FIELDS, validate_trial
 from osm_locations import (
     REVIEW_FIELDS,
+    classify_kind,
     fetch_overpass,
     overpass_query,
     parse_bbox,
@@ -76,6 +77,11 @@ class OsmLocationTests(unittest.TestCase):
         self.assertEqual(rows[0]["kind"], "facility")
         self.assertEqual(rows[0]["zone_slug"], "")
         self.assertEqual(rows[0]["review_status"], "needs_review")
+
+    def test_classify_named_public_amenities_as_facilities(self) -> None:
+        self.assertEqual(classify_kind({"amenity": "restaurant"}), "facility")
+        self.assertEqual(classify_kind({"amenity": "place_of_worship"}), "facility")
+        self.assertEqual(classify_kind({"building": "university"}), "facility")
 
     def test_review_csv_has_stable_columns(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

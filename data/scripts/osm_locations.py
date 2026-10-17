@@ -58,7 +58,23 @@ def classify_kind(tags: dict[str, str]) -> str:
         return "transport"
     if tags.get("leisure") in {"park", "pitch", "playground", "sports_centre"}:
         return "outdoor"
-    if tags.get("amenity") in {"library", "school", "university", "college", "clinic", "hospital"}:
+    if tags.get("amenity") in {
+        "bank",
+        "cafe",
+        "clinic",
+        "college",
+        "dentist",
+        "fast_food",
+        "hospital",
+        "kindergarten",
+        "library",
+        "pharmacy",
+        "place_of_worship",
+        "restaurant",
+        "research_institute",
+        "school",
+        "university",
+    } or tags.get("building") in {"college", "hospital", "research_institute", "school", "university"}:
         return "facility"
     return "building"
 

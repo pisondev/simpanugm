@@ -75,3 +75,5 @@
   client errors fail-fast.
 - Restricted generated location-review candidates to the requested bbox, including when
   processing a saved raw response.
+- Classified named public amenities and institutional buildings as `facility` in the
+  review CSV instead of leaving them as generic `building` rows.
