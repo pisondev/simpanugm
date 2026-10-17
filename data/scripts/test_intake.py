@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from check_manifest import check_manifest
 from intake import IntakeError, intake_dataset
@@ -94,6 +94,22 @@ class IntakeTests(unittest.TestCase):
             intake_dataset(source, output, "trial-1")
             errors = check_manifest(output)
             self.assertTrue(any("duplicate image content" in error for error in errors))
+
+    def test_manifest_rejects_cross_item_near_duplicate_content(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            first = Image.new("RGB", (1080, 1080), "white")
+            ImageDraw.Draw(first).rectangle((200, 200, 700, 700), fill="blue")
+            first.save(source / "images" / "I001" / "Finder-01.JPG")
+            second_item = source / "images" / "I002"
+            second_item.mkdir()
+            second = Image.new("RGB", (1080, 1080), "white")
+            ImageDraw.Draw(second).rectangle((201, 200, 701, 700), fill="blue")
+            second.save(second_item / "finder_1.jpg")
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            errors = check_manifest(output)
+            self.assertTrue(any("near-duplicate image content" in error for error in errors))
 
     def test_intake_failure_does_not_leave_partial_output(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

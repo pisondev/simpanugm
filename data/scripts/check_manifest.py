@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import sys
 from pathlib import Path
+from statistics import median
 from typing import Any
 
 from intake import IMAGE_RE, ITEM_RE, METADATA_FILES, canonical_image_path, sha256_file
@@ -21,6 +23,46 @@ except ModuleNotFoundError:  # pragma: no cover - exercised by the CLI error pat
 ALLOWED_KINDS = {"metadata", "image"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 MIN_IMAGE_SHORT_SIDE = 1080
+PHASH_GRID_SIZE = 32
+PHASH_LOW_FREQUENCY = 8
+PHASH_DISTANCE_THRESHOLD = 4
+DCT_BASIS = tuple(
+    tuple(
+        math.cos((2 * position + 1) * frequency * math.pi / (2 * PHASH_GRID_SIZE))
+        for position in range(PHASH_GRID_SIZE)
+    )
+    for frequency in range(PHASH_LOW_FREQUENCY)
+)
+
+
+def perceptual_hash(image: Any) -> int:
+    """Return a compact DCT perceptual hash for cross-item near-duplicate checks."""
+    resized = image.convert("L").resize(
+        (PHASH_GRID_SIZE, PHASH_GRID_SIZE),
+        resample=Image.Resampling.LANCZOS,
+    )
+    pixels = [
+        [resized.getpixel((x, y)) for x in range(PHASH_GRID_SIZE)]
+        for y in range(PHASH_GRID_SIZE)
+    ]
+    coefficients: list[float] = []
+    for vertical in range(PHASH_LOW_FREQUENCY):
+        for horizontal in range(PHASH_LOW_FREQUENCY):
+            total = sum(
+                pixels[y][x] * DCT_BASIS[vertical][y] * DCT_BASIS[horizontal][x]
+                for y in range(PHASH_GRID_SIZE)
+                for x in range(PHASH_GRID_SIZE)
+            )
+            vertical_scale = 1 / math.sqrt(2) if vertical == 0 else 1
+            horizontal_scale = 1 / math.sqrt(2) if horizontal == 0 else 1
+            coefficients.append(0.25 * vertical_scale * horizontal_scale * total)
+
+    threshold = median(coefficients[1:])
+    return sum(
+        1 << index
+        for index, coefficient in enumerate(coefficients[1:])
+        if coefficient > threshold
+    )
 
 
 def check_manifest(dataset_dir: Path) -> list[str]:
@@ -53,6 +95,7 @@ def check_manifest(dataset_dir: Path) -> list[str]:
 
     listed: set[str] = set()
     image_hashes: dict[str, str] = {}
+    image_phashes: dict[str, int] = {}
     for entry in entries:
         if not isinstance(entry, dict):
             errors.append("manifest.files entries must be objects")
@@ -132,8 +175,25 @@ def check_manifest(dataset_dir: Path) -> list[str]:
                         )
                     if image.getexif():
                         errors.append(f"EXIF metadata remains: {relative}")
+                    image_phashes[relative] = perceptual_hash(image)
             except OSError as exc:
                 errors.append(f"cannot open image {relative}: {exc}")
+
+    image_paths = sorted(image_phashes)
+    for index, first_path in enumerate(image_paths):
+        first_record = Path(first_path).parts[1] if len(Path(first_path).parts) > 1 else first_path
+        for second_path in image_paths[index + 1 :]:
+            second_record = (
+                Path(second_path).parts[1] if len(Path(second_path).parts) > 1 else second_path
+            )
+            if first_record == second_record:
+                continue
+            distance = (image_phashes[first_path] ^ image_phashes[second_path]).bit_count()
+            if distance <= PHASH_DISTANCE_THRESHOLD:
+                errors.append(
+                    f"near-duplicate image content: {first_path} and {second_path} "
+                    f"(perceptual hash distance {distance} <= {PHASH_DISTANCE_THRESHOLD})"
+                )
 
     actual: set[str] = set()
     for path in dataset_dir.rglob("*"):

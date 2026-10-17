@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from check_dataset import validate_dataset
 from intake import intake_dataset
@@ -99,7 +99,13 @@ class DatasetQualityTests(unittest.TestCase):
             "I002": ("finder_1.jpg", "finder_2.jpg"),
         }.items():
             for name, colour in zip(names, image_colours[item_id]):
-                Image.new("RGB", (1080, 1080), colour).save(source / "images" / item_id / name)
+                image = Image.new("RGB", (1080, 1080), "white")
+                draw = ImageDraw.Draw(image)
+                if item_id == "I001":
+                    draw.rectangle((180, 180, 720, 720), fill=colour)
+                else:
+                    draw.ellipse((180, 180, 720, 720), fill=colour)
+                image.save(source / "images" / item_id / name)
         return source
 
     def test_quality_gate_accepts_complete_two_item_fixture(self) -> None:

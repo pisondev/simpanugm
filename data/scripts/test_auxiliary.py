@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from check_auxiliary import validate_auxiliary
 from intake import intake_dataset
@@ -95,9 +95,13 @@ class AuxiliaryCheckTests(unittest.TestCase):
                 )
             )
         for distractor_id, colour in (("D001", "blue"), ("D002", "red")):
-            Image.new("RGB", (1080, 1080), colour).save(
-                source / "images" / distractor_id / "finder_1.jpg"
-            )
+            image = Image.new("RGB", (1080, 1080), "white")
+            draw = ImageDraw.Draw(image)
+            if distractor_id == "D001":
+                draw.rectangle((180, 180, 720, 720), fill=colour)
+            else:
+                draw.ellipse((180, 180, 720, 720), fill=colour)
+            image.save(source / "images" / distractor_id / "finder_1.jpg")
         return source
 
     def test_auxiliary_metadata_passes(self) -> None:

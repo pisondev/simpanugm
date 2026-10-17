@@ -54,8 +54,8 @@ The repository data workflow runs the seed check, fixture check, and complete da
 test suite on every change under `data/`. Private manifest verification still runs after
 intake in the protected dataset workspace, because the manifest and its files are not in
 Git before the v1 freeze. The manifest checker also rejects images whose short side is
-under 1080 px or whose exact SHA-256 content is reused by another image. Once the private
-dataset is approved, use
+under 1080 px, whose exact SHA-256 content is reused, or whose perceptual hash is within
+four bits of an image from another item. Once the private dataset is approved, use
 `data/scripts/publish_manifest.py` to copy only the validated manifest into `data/eval/`.
 
 Reference analytics views are documented in [`analytics/README.md`](analytics/README.md)

@@ -81,3 +81,5 @@
   copying candidate names into the repository.
 - Extended private manifest quality checks to reject images below the 1080 px short-side
   minimum and exact duplicate image content before dataset freeze.
+- Added a cross-item perceptual-hash gate that flags visually near-identical images within
+  four bits before dataset freeze.
