@@ -31,6 +31,15 @@ placeholders and do not include participant data.
     --output /private/simpanugm-locations/locations-review.csv
   ```
 
+- [ ] Verify the generated CSV against the saved source before editing it:
+
+  ```text
+  python3 data/scripts/check_location_review.py \
+    --raw /private/simpanugm-locations/overpass.json \
+    --review /private/simpanugm-locations/locations-review.csv \
+    --bbox SOUTH,WEST,NORTH,EAST
+  ```
+
 - [ ] For every promoted row, confirm the official name, student aliases, zone, kind,
   main-entrance coordinate, and `review_status=approved` by hand.
 - [ ] Promote only the approved rows inside the agreed campus bounding box:

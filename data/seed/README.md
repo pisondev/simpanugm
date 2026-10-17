@@ -28,6 +28,10 @@ python3 data/scripts/promote_locations.py \
   --bbox SOUTH,WEST,NORTH,EAST
 ```
 
+Run `data/scripts/check_location_review.py` against the saved response and generated CSV
+before starting the manual review. It rejects changed source fields and any premature
+zone, alias, or approval values.
+
 The promotion command skips explicitly rejected rows and refuses any row still marked
 `needs_review`, outside the bbox, or assigned to an unknown zone. Posts need the
 security-unit pilot list, and model versions must match the inference service lock file.

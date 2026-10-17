@@ -83,6 +83,15 @@ python3 data/scripts/osm_locations.py \
 The download mode saves the raw response and review CSV atomically. Generated rows have
 empty `zone_slug` and `aliases`, and carry
 `review_status=needs_review`. They are review material, not production seed data.
+Before a human starts editing the review, verify that the CSV still matches its raw
+response:
+
+```text
+python3 data/scripts/check_location_review.py \
+  --raw /private/simpanugm-locations/overpass.json \
+  --review /private/simpanugm-locations/locations-review.csv \
+  --bbox SOUTH,WEST,NORTH,EAST
+```
 
 After the private labels pass the dataset quality gate, create the reproducible,
 item-grouped `val`/`test` assignment:
