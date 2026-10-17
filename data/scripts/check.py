@@ -457,6 +457,13 @@ def validate_seed_dir(
                 errors.append("complete-seed validation requires --bbox")
             else:
                 errors.extend(validate_complete_seed_dir(seed_dir, campus_bbox))
+    else:
+        present = [filename for filename in COMPLETE_FILES if (seed_dir / filename).is_file()]
+        if present:
+            errors.append(
+                "complete-seed files are present; rerun with --require-complete and --bbox: "
+                + ", ".join(present)
+            )
     return errors
 
 

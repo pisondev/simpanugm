@@ -37,6 +37,10 @@ python3 data/scripts/check.py \
   --bbox SOUTH,WEST,NORTH,EAST
 ```
 
+The foundation check also fails if any deferred seed file appears by itself. This prevents
+CI from accepting a partial location, post, or model-version seed without the complete-mode
+review and campus bbox.
+
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 
 Shared contract fixtures are now available in [`fixtures/`](fixtures/). They contain only

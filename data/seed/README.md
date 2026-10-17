@@ -50,6 +50,10 @@ one-active-version-per-component rule instead of checking file presence only.
 The complete handoff sequence and evidence checklist is in
 [`data/protocol/seed-review-checklist.md`](../protocol/seed-review-checklist.md).
 
+The foundation check rejects a partial addition of any deferred file. Once the first
+reviewed complete-seed file is available, run the complete check with all four files and
+the agreed campus bbox; do not rely on foundation mode for an incomplete handoff.
+
 Run the foundation check from the repository root:
 
 ```text

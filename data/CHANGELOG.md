@@ -107,3 +107,5 @@
   the repository dataset card.
 - Hardened manifest publishing and private fetches so their output cannot be placed inside
   the source dataset directory.
+- Made foundation seed checks reject partial additions of deferred complete-seed files
+  until the explicit complete-mode bbox gate is used.

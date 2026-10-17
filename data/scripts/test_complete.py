@@ -113,6 +113,22 @@ class CompleteSeedTests(unittest.TestCase):
                 ["complete-seed validation requires --bbox"],
             )
 
+    def test_foundation_mode_rejects_partial_complete_seed_files(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = Path(directory) / "seed"
+            shutil.copytree(SEED_DIR, seed)
+            (seed / "zones.csv").write_text("partial\n", encoding="utf-8")
+
+            errors = validate_seed_dir(seed)
+
+            self.assertEqual(
+                errors,
+                [
+                    "complete-seed files are present; rerun with --require-complete and --bbox: "
+                    "zones.csv"
+                ],
+            )
+
     def test_complete_seed_rejects_unknown_references(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             seed = self.write_complete_seed(directory)

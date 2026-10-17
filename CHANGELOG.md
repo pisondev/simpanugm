@@ -55,3 +55,5 @@ All notable changes to this project are recorded here. The format follows
   them from a private dataset sync or mount.
 - Prevented manifest publication and evaluation fetch output from being written inside a
   private source dataset directory.
+- Made seed foundation checks reject partial deferred seed files before complete-mode
+  validation is explicitly requested.
