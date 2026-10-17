@@ -37,3 +37,15 @@ python3 data/scripts/check_manifest.py \
 
 The intake requires Pillow from `data/scripts/requirements.txt`. It refuses to write into
 a non-empty destination and never deletes an existing dataset.
+
+Run the quality gate after manifest verification:
+
+```text
+python3 data/scripts/check_dataset.py \
+  --dataset-dir /private/simpanugm-eval/v1 \
+  --expected-count 20
+```
+
+It checks metadata completeness, image coverage, owner-photo labels, and duplicate
+descriptions. It does not decide whether an object is safe to photograph; that remains a
+manual consent and privacy review.

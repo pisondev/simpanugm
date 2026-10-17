@@ -14,3 +14,5 @@
   20-item label template, and trial-label validator.
 - Added private-dataset intake and manifest verification with EXIF stripping, filename
   normalization, SHA-256 hashes, and tamper detection.
+- Added dataset quality gates for metadata completeness, photo coverage, owner-photo
+  consistency, and duplicate descriptions.

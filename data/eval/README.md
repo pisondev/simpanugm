@@ -24,6 +24,10 @@ size, SHA-256, and kind. It strips EXIF metadata and normalizes accepted image n
 before hashing. Run `data/scripts/check_manifest.py` after intake and before a dataset
 freeze.
 
+The quality gate also verifies that each item has at least two finder photos, that the
+owner-photo label agrees with the presence of an owner photo, and that descriptions are
+not duplicated across items. It is run on the private prepared directory, not on git.
+
 ## Contents at freeze
 
 | Part | Target |
