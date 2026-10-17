@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -50,6 +51,36 @@ def blank_rows(prefix: str, count: int, fields: tuple[str, ...]) -> list[dict[st
     return rows
 
 
+def materialize_templates(
+    output: Path,
+    templates: dict[str, tuple[tuple[str, ...], list[dict[str, str]]]],
+) -> list[Path]:
+    if output.is_symlink():
+        raise TemplateError(f"output must not be a symlink: {output}")
+    if output.exists():
+        if not output.is_dir():
+            raise TemplateError(f"output must be a directory or absent: {output}")
+        if any(output.iterdir()):
+            raise TemplateError(f"output must be empty or absent: {output}")
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix=f".{output.name}.templates-", dir=output.parent
+    ) as staging_name:
+        staging = Path(staging_name)
+        for filename, (fields, rows) in templates.items():
+            write_template(staging / filename, fields, rows)
+        (staging / "images").mkdir()
+
+        if output.exists():
+            for child in staging.iterdir():
+                child.rename(output / child.name)
+        else:
+            staging.rename(output)
+
+    return [output / filename for filename in templates]
+
+
 def create_templates(
     output: Path,
     item_count: int = 150,
@@ -65,10 +96,6 @@ def create_templates(
     }
     if any(count < 1 for count in counts.values()):
         raise TemplateError("all template counts must be positive")
-    if output.exists() and any(output.iterdir()):
-        raise TemplateError(f"output must be empty or absent: {output}")
-    output.mkdir(parents=True, exist_ok=True)
-
     templates = {
         "items.csv": (ITEM_FIELDS, blank_rows("I", item_count, ITEM_FIELDS)),
         "labels.csv": (LABEL_FIELDS, blank_rows("I", item_count, LABEL_FIELDS)),
@@ -76,32 +103,17 @@ def create_templates(
         "duplicates.csv": (DUPLICATE_FIELDS, blank_rows("P", duplicate_count, DUPLICATE_FIELDS)),
         "queries.csv": (QUERY_FIELDS, blank_rows("Q", query_count, QUERY_FIELDS)),
     }
-    created: list[Path] = []
-    for filename, (fields, rows) in templates.items():
-        path = output / filename
-        write_template(path, fields, rows)
-        created.append(path)
-    (output / "images").mkdir()
-    return created
+    return materialize_templates(output, templates)
 
 
 def create_trial_templates(output: Path, item_count: int = 20) -> list[Path]:
     if item_count < 1:
         raise TemplateError("trial item count must be positive")
-    if output.exists() and any(output.iterdir()):
-        raise TemplateError(f"output must be empty or absent: {output}")
-    output.mkdir(parents=True, exist_ok=True)
     templates = {
         "items.csv": (ITEM_FIELDS, blank_rows("I", item_count, ITEM_FIELDS)),
         "labels.csv": (LABEL_FIELDS, blank_rows("I", item_count, LABEL_FIELDS)),
     }
-    created: list[Path] = []
-    for filename, (fields, rows) in templates.items():
-        path = output / filename
-        write_template(path, fields, rows)
-        created.append(path)
-    (output / "images").mkdir()
-    return created
+    return materialize_templates(output, templates)
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

@@ -42,3 +42,5 @@
   finder roles as well as across items.
 - Restricted evaluation splitting to the stable one-based item and distractor ID formats.
 - Hardened auxiliary metadata checks for one-based IDs and duplicate label references.
+- Made full and trial template generation atomic so failed writes do not leave partial
+  private collection layouts.

@@ -71,7 +71,8 @@ one-based IDs and label-ID uniqueness so it is safe to run independently.
 
 Use `data/scripts/create_eval_templates.py` to create the blank raw collection layout
 before data entry. It produces all five metadata files with stable IDs and refuses to
-overwrite an existing non-empty directory.
+overwrite an existing non-empty directory. Generation is staged first, so an interrupted
+or failed write does not leave a partial raw layout.
 
 ## Contents at freeze
 

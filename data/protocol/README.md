@@ -36,8 +36,9 @@ python3 data/scripts/create_eval_templates.py \
 
 This creates templates for 150 items, 400 distractors, 40 duplicate pairs, and 50
 paraphrase queries, plus an `images/` directory. The generator refuses to write into a
-non-empty directory. Fill the CSVs and photos privately, then run `intake.py`; none of
-these filled files belong in git.
+non-empty directory and stages the output so a failed generation leaves no partial
+templates. Fill the CSVs and photos privately, then run `intake.py`; none of these filled
+files belong in git.
 
 To prepare the trial workspace itself, use the trial profile:
 
