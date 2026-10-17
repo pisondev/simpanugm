@@ -69,6 +69,7 @@ def promote_rows(
     errors: list[str] = []
     output: list[dict[str, str]] = []
     seen_slugs: set[str] = set()
+    seen_osm_keys: set[tuple[str, str]] = set()
     for row in rows:
         status = row["review_status"].strip().casefold()
         slug = row["slug"].strip()
@@ -80,6 +81,9 @@ def promote_rows(
         name = " ".join(row["name"].split())
         zone_slug = row["zone_slug"].strip()
         kind = row["kind"].strip()
+        osm_type = row["osm_type"].strip()
+        osm_id = row["osm_id"].strip()
+        osm_key = (osm_type, osm_id)
         try:
             lat = parse_coordinate(row["lat"], f"{slug}.lat")
             lng = parse_coordinate(row["lng"], f"{slug}.lng")
@@ -91,6 +95,11 @@ def promote_rows(
         if slug in seen_slugs:
             errors.append(f"{slug}: duplicate slug")
         seen_slugs.add(slug)
+        if not osm_type or not osm_id:
+            errors.append(f"{slug or '<blank>'}: OSM provenance cannot be blank")
+        elif osm_key in seen_osm_keys:
+            errors.append(f"{slug or '<blank>'}: duplicate OSM element {osm_type}/{osm_id}")
+        seen_osm_keys.add(osm_key)
         if not name:
             errors.append(f"{slug or '<blank>'}: name cannot be blank")
         if zone_slug not in zones:

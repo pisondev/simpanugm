@@ -46,3 +46,5 @@
   private collection layouts.
 - Extended private intake and manifest checks to reject symlink directories as well as
   symlink files.
+- Hardened location review promotion against non-finite bboxes and duplicate OSM
+  provenance rows.

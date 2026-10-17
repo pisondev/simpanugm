@@ -68,6 +68,14 @@ class LocationPromotionTests(unittest.TestCase):
         self.assertTrue(any("unknown zone_slug" in error for error in errors))
         self.assertTrue(any("outside the campus bbox" in error for error in errors))
 
+    def test_rejects_duplicate_osm_provenance(self) -> None:
+        rows = self.approved_rows()
+        rows[1]["osm_type"] = "way"
+        rows[1]["osm_id"] = "12"
+        promoted, errors = promote_rows(rows, self.ZONES, self.BBOX)
+        self.assertEqual(promoted, [])
+        self.assertTrue(any("duplicate OSM element way/12" in error for error in errors))
+
     def test_output_has_seed_columns(self) -> None:
         promoted, errors = promote_rows(self.approved_rows(), self.ZONES, self.BBOX)
         self.assertEqual(errors, [])

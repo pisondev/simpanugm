@@ -1,12 +1,13 @@
-import unittest
-import json
 import csv
+import json
 import tempfile
+import unittest
+from argparse import ArgumentTypeError
 from pathlib import Path
 
 from check import flatten_categories, validate_seed_dir
 from check_trial import FIELDS, validate_trial
-from osm_locations import REVIEW_FIELDS, overpass_query, review_rows, write_rows
+from osm_locations import REVIEW_FIELDS, overpass_query, parse_bbox, review_rows, write_rows
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -88,6 +89,10 @@ class OsmLocationTests(unittest.TestCase):
         self.assertIn('nwr["name"]["amenity"]', query)
         self.assertIn('nwr["name"]["highway"~"bus_stop|platform"]', query)
         self.assertNotIn('nwr["name"](-7.79', query)
+
+    def test_bbox_rejects_non_finite_values(self) -> None:
+        with self.assertRaises(ArgumentTypeError):
+            parse_bbox("-inf,110.36,-7.75,110.405")
 
 
 class TrialCheckTests(unittest.TestCase):

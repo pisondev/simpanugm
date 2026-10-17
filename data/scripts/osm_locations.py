@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import re
 import sys
 import unicodedata
@@ -135,7 +136,12 @@ def parse_bbox(value: str) -> tuple[float, float, float, float]:
         values = tuple(float(part.strip()) for part in value.split(","))
     except ValueError as exc:
         raise argparse.ArgumentTypeError("bbox must be south,west,north,east") from exc
-    if len(values) != 4 or not values[0] < values[2] or not values[1] < values[3]:
+    if (
+        len(values) != 4
+        or any(not math.isfinite(number) for number in values)
+        or not values[0] < values[2]
+        or not values[1] < values[3]
+    ):
         raise argparse.ArgumentTypeError("bbox must be south,west,north,east with min values first")
     return values  # type: ignore[return-value]
 
