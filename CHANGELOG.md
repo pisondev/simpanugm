@@ -27,6 +27,8 @@ All notable changes to this project are recorded here. The format follows
 - Added a CI check that detects drift in generated fixture image bytes.
 - Added an intake privacy regression test using the shared synthetic GPS fixture.
 - Added a checker for blank full and trial evaluation-template scaffolds before collection.
+- Clarified the root status so it reflects the implemented data foundation without implying
+  that the other services have started.
 - Added a dedicated data CI workflow for seed, fixture, and data-script validation.
 - Added a safe freeze step that publishes only a validated private evaluation manifest.
 - Added an auditable raw-response option for the OpenStreetMap location review flow.

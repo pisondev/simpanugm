@@ -7,9 +7,10 @@ AI matching engine ranks the most likely pairs from photos, descriptions, locati
 time, and campus security officers verify ownership before anything is handed back. The
 AI ranks, people decide.
 
-> Status: **planning complete, implementation not started.** This repository currently
-> holds the full product and engineering specification. Code lands from Sprint 1
-> (24 October 2026). See [docs/project/project-plan.md](docs/project/project-plan.md).
+> Status: **planning complete; data foundation in progress.** The `data/` area already
+> contains the seed foundation, collection pipeline, shared fixtures, analytics reference
+> SQL, and CI checks. The `api`, `web`, `ml`, and `deploy` implementations remain planned
+> for Sprint 1 onward. See [docs/project/project-plan.md](docs/project/project-plan.md).
 
 ## What it does
 
