@@ -34,3 +34,5 @@
   suppression delegated to the API query layer.
 - Added a no-placeholder handoff checklist for the deferred zone, location, security
   post, and model-version seed files.
+- Made private dataset intake atomic so invalid source files cannot leave a partial
+  prepared dataset directory.

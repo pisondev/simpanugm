@@ -10,6 +10,7 @@ import json
 import re
 import shutil
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -126,27 +127,40 @@ def intake_dataset(source: Path, destination: Path, version: str) -> Path:
         raise IntakeError(f"source directory does not exist: {source}")
     if destination == source or source in destination.parents:
         raise IntakeError("destination must not be inside the source directory")
-    if destination.exists() and any(destination.iterdir()):
-        raise IntakeError(f"destination must be empty or absent: {destination}")
-    destination.mkdir(parents=True, exist_ok=True)
+    if destination.exists():
+        if not destination.is_dir():
+            raise IntakeError(f"destination must be a directory or absent: {destination}")
+        if any(destination.iterdir()):
+            raise IntakeError(f"destination must be empty or absent: {destination}")
 
-    metadata = copy_metadata(source, destination)
-    images = copy_images(source, destination)
-    entries = [manifest_entry(path, destination, "metadata") for path in metadata]
-    entries.extend(manifest_entry(path, destination, "image") for path in images)
-    entries.sort(key=lambda entry: entry["path"])
-    manifest = {
-        "dataset": "simpanugm-eval",
-        "version": version,
-        "generator": "data-intake/1",
-        "policy": {"exif_stripped": True, "image_names_normalized": True},
-        "files": entries,
-    }
-    manifest_path = destination / "manifest.json"
-    manifest_path.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
-    return manifest_path
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix=f".{destination.name}.intake-", dir=destination.parent
+    ) as staging_name:
+        staging = Path(staging_name)
+        metadata = copy_metadata(source, staging)
+        images = copy_images(source, staging)
+        entries = [manifest_entry(path, staging, "metadata") for path in metadata]
+        entries.extend(manifest_entry(path, staging, "image") for path in images)
+        entries.sort(key=lambda entry: entry["path"])
+        manifest = {
+            "dataset": "simpanugm-eval",
+            "version": version,
+            "generator": "data-intake/1",
+            "policy": {"exif_stripped": True, "image_names_normalized": True},
+            "files": entries,
+        }
+        (staging / "manifest.json").write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+
+        if destination.exists():
+            for child in staging.iterdir():
+                child.rename(destination / child.name)
+        else:
+            staging.rename(destination)
+
+    return destination / "manifest.json"
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

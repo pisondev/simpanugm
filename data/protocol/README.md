@@ -63,7 +63,8 @@ python3 data/scripts/check_manifest.py \
 ```
 
 The intake requires Pillow from `data/scripts/requirements.txt`. It refuses to write into
-a non-empty destination and never deletes an existing dataset.
+a non-empty destination and never deletes an existing dataset. Intake writes to a private
+staging directory first, so an invalid image or filename leaves no partial output.
 
 Run the quality gate after manifest verification:
 

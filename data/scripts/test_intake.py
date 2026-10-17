@@ -52,6 +52,25 @@ class IntakeTests(unittest.TestCase):
             with self.assertRaises(IntakeError):
                 intake_dataset(source, output, "trial-1")
 
+    def test_intake_failure_does_not_leave_partial_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            (source / "images" / "I001" / "unsupported.gif").write_bytes(b"not an accepted image")
+            output = Path(directory) / "prepared"
+            with self.assertRaises(IntakeError):
+                intake_dataset(source, output, "trial-1")
+            self.assertFalse(output.exists())
+
+    def test_intake_failure_preserves_existing_empty_destination(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            (source / "images" / "I001" / "unsupported.gif").write_bytes(b"not an accepted image")
+            output = Path(directory) / "prepared"
+            output.mkdir()
+            with self.assertRaises(IntakeError):
+                intake_dataset(source, output, "trial-1")
+            self.assertEqual(list(output.iterdir()), [])
+
     def test_manifest_detects_tampered_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = self.create_source(directory)

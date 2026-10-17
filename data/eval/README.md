@@ -21,7 +21,8 @@ and are never committed to git.
 
 The intake pipeline writes `manifest.json` with each prepared file's relative path, byte
 size, SHA-256, and kind. It strips EXIF metadata and normalizes accepted image names
-before hashing. Run `data/scripts/check_manifest.py` after intake and before a dataset
+before hashing. It stages the output first, so a failed intake does not leave a partial
+dataset directory. Run `data/scripts/check_manifest.py` after intake and before a dataset
 freeze.
 
 The quality gate also verifies that each item has at least two finder photos, that the
