@@ -41,6 +41,15 @@ placeholders and do not include participant data.
     --bbox SOUTH,WEST,NORTH,EAST
   ```
 
+- [ ] Generate a private counts-only summary to plan the review; do not commit the
+  summary or candidate names:
+
+  ```text
+  python3 data/scripts/summarize_location_review.py \
+    --review /private/simpanugm-locations/locations-review.csv \
+    --output /private/simpanugm-locations/review-summary.md
+  ```
+
 - [ ] For every promoted row, confirm the official name, student aliases, zone, kind,
   main-entrance coordinate, and `review_status=approved` by hand.
 - [ ] Promote only the approved rows inside the agreed campus bounding box:

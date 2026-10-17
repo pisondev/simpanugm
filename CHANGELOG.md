@@ -36,3 +36,4 @@ All notable changes to this project are recorded here. The format follows
 - Added bounded retry handling for transient OpenStreetMap extraction failures.
 - Ensured location-review extraction excludes candidates outside the requested bbox.
 - Improved OpenStreetMap location-kind classification for public amenities and institutions.
+- Added a private counts-only summary for planning the manual location review.

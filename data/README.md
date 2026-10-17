@@ -98,6 +98,15 @@ python3 data/scripts/check_location_review.py \
   --bbox SOUTH,WEST,NORTH,EAST
 ```
 
+Create a private counts-only summary to plan the manual review without copying candidate
+names into Git:
+
+```text
+python3 data/scripts/summarize_location_review.py \
+  --review /private/simpanugm-locations/locations-review.csv \
+  --output /private/simpanugm-locations/review-summary.md
+```
+
 After the private labels pass the dataset quality gate, create the reproducible,
 item-grouped `val`/`test` assignment:
 
