@@ -32,8 +32,22 @@ class FixtureImageTests(unittest.TestCase):
             self.assertEqual([path.name for path in created], list(ASSET_NAMES))
             self.assertEqual(sorted(path.name for path in output.iterdir()), sorted(ASSET_NAMES))
 
-    def test_committed_images_match_deterministic_generator(self) -> None:
+    def test_committed_images_match_reviewed_hashes(self) -> None:
         self.assertEqual(check_fixture_images(FIXTURE_DIR), [])
+
+    def test_reviewed_hashes_reject_changed_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            for name in ASSET_NAMES:
+                (output / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+            changed = bytearray((output / "swatch-biru.png").read_bytes())
+            changed[-1] ^= 1
+            (output / "swatch-biru.png").write_bytes(changed)
+
+            errors = check_fixture_images(output)
+
+        self.assertEqual(len(errors), 1)
+        self.assertIn("swatch-biru.png", errors[0])
 
 
 if __name__ == "__main__":

@@ -47,8 +47,8 @@ python3 data/scripts/check_fixtures.py
 
 Synthetic image fixtures are available in `fixtures/images/` and can be recreated with
 `python3 data/scripts/create_fixture_images.py`. CI also runs its `--check` mode to
-compare committed bytes with deterministic output. They contain no people, real
-documents, or participant data.
+compare committed bytes with their reviewed SHA-256 hashes, independent of local image
+codecs. They contain no people, real documents, or participant data.
 
 The repository data workflow runs the seed check, fixture check, and complete data-script
 test suite on every change under `data/`. Private manifest verification still runs after
@@ -157,6 +157,19 @@ Verification rechecks the expected `val` quota for every parent-category and
 distinctiveness group, so manual edits cannot silently change the stratification. It can
 verify both existing assignments with `--verify` and `--verify-distractors`. The
 split files stay private with the dataset; only the script and its tests are committed.
+
+Before publishing a manifest, run the read-only freeze gate so the relevant trial or full
+profile checks cannot be skipped:
+
+```text
+python3 data/scripts/check_freeze.py \
+  --profile trial \
+  --dataset-dir /private/simpanugm-eval/trial-20/prepared \
+  --review-workspace /private/simpanugm-eval/trial-20/review
+```
+
+For the full dataset, add `--split`, `--distractor-split`, and `--val-count 60`; the
+command validates but does not publish or copy any private files.
 
 Once the full private dataset has its auxiliary reports, run the additional metadata
 check:

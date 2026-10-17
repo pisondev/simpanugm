@@ -24,7 +24,7 @@ All notable changes to this project are recorded here. The format follows
 - Shared synthetic data fixtures for matching fusion, privacy masking, and fuzzy name
   matching, including a validator used before service contract tests consume them.
 - Added deterministic synthetic image fixtures for colour, EXIF, OCR, and masking tests.
-- Added a CI check that detects drift in generated fixture image bytes.
+- Added a CI check that detects drift in reviewed fixture image bytes with SHA-256 hashes.
 - Added an intake privacy regression test using the shared synthetic GPS fixture.
 - Added a checker for blank full and trial evaluation-template scaffolds before collection.
 - Clarified the root status so it reflects the implemented data foundation without implying
@@ -47,3 +47,5 @@ All notable changes to this project are recorded here. The format follows
 - Added an atomic generator for the private trial-review workspace and annotation sheets.
 - Added a final private trial-review gate for completed collection records.
 - Bound trial completion to a current agreement report generated from both annotation sheets.
+- Added a read-only private evaluation freeze gate that aggregates the required checks.
+- Stabilized synthetic fixture image CI validation with reviewed SHA-256 integrity hashes.

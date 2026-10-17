@@ -44,6 +44,8 @@ Independent category and distinctiveness sheets can be checked with
 Cohen's kappa, so both sheets and the report stay in the private review workspace.
 The completed trial review workspace is then checked with
 `data/scripts/check_trial_review.py` before its prepared dataset is accepted.
+For a final handoff, use the read-only `data/scripts/check_freeze.py` profile gate before
+`publish_manifest.py`; the full profile also requires both private split files.
 
 After labels pass the quality gate, create and verify the grouped split:
 

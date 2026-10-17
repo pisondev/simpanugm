@@ -55,8 +55,8 @@
   rapidfuzz token-set name matching, with a dependency-light validator and test coverage.
 - Added deterministic synthetic image fixtures for colour extraction, EXIF removal, OCR,
   and masking while keeping participant media outside the repository.
-- Added a deterministic byte-level check for committed synthetic image fixtures and wired
-  it into the data CI workflow.
+- Added a reviewed SHA-256 integrity check for committed synthetic image fixtures and wired
+  it into the data CI workflow without relying on runner-specific image codecs.
 - Added an intake integration test proving the shared GPS-tagged fixture is stripped before
   it reaches a prepared private dataset.
 - Added a private template checker for stable IDs, exact columns, blank pre-entry fields,
@@ -97,3 +97,5 @@
   fields, and the recorded private Drive path.
 - Bound the final trial gate to the generated agreement report so stale or missing kappa
   results cannot pass review.
+- Added a read-only freeze orchestrator that runs the trial/full dataset, auxiliary, split,
+  and review gates before manifest publication.

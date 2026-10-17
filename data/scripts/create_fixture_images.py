@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import sys
 import tempfile
@@ -13,6 +14,13 @@ from PIL import Image, ImageDraw
 
 
 ASSET_NAMES = ("swatch-biru.png", "swatch-merah.png", "desk-gps.jpg", "mock-card.png")
+
+EXPECTED_SHA256 = {
+    "swatch-biru.png": "0e2d08ea439102af9a98f96f2e96d44bf11c1fbeca6e143c91ae79bb99de7112",
+    "swatch-merah.png": "f3e26572a7bce62546f17139c4e891d9465f2b19c46a70014a43b6984cba44e5",
+    "desk-gps.jpg": "1b4c3b86f4b8d9c1336785f6caf19811b6f40fc7fa5cf63f767b176663e21e1a",
+    "mock-card.png": "5d012f65934450a713849f0b3bb6a288412d1adeccd650023f8d6bd0e52d9283",
+}
 
 
 def _draw_desk() -> Image.Image:
@@ -73,17 +81,20 @@ def create_fixture_images(output: Path) -> list[Path]:
 
 
 def check_fixture_images(output: Path) -> list[str]:
-    """Compare committed assets with a fresh deterministic generation."""
+    """Compare committed assets with their reviewed integrity hashes."""
     errors: list[str] = []
-    with tempfile.TemporaryDirectory(prefix=".fixture-images-check-") as temporary_name:
-        generated = {path.name: path for path in create_fixture_images(Path(temporary_name))}
-        for name in ASSET_NAMES:
-            committed = output / name
-            if not committed.is_file():
-                errors.append(f"missing fixture image: {committed}")
-                continue
-            if committed.read_bytes() != generated[name].read_bytes():
-                errors.append(f"fixture image differs from generator output: {committed}")
+    for name in ASSET_NAMES:
+        committed = output / name
+        if not committed.is_file():
+            errors.append(f"missing fixture image: {committed}")
+            continue
+        actual = hashlib.sha256(committed.read_bytes()).hexdigest()
+        expected = EXPECTED_SHA256[name]
+        if actual != expected:
+            errors.append(
+                f"fixture image hash differs from reviewed asset: {committed} "
+                f"(expected {expected}, got {actual})"
+            )
     return errors
 
 
@@ -95,7 +106,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         default=Path(__file__).resolve().parents[1] / "fixtures" / "images",
         help="fixture image directory",
     )
-    parser.add_argument("--check", action="store_true", help="verify committed assets match deterministic output")
+    parser.add_argument("--check", action="store_true", help="verify committed assets match reviewed hashes")
     return parser.parse_args(argv)
 
 

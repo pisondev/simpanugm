@@ -18,7 +18,9 @@ Recreate the assets after a deliberate fixture update with:
 python3 data/scripts/create_fixture_images.py
 ```
 
-CI verifies that the committed bytes still match the generator:
+CI verifies that the committed bytes still match the reviewed SHA-256 hashes. This avoids
+codec-version differences between local machines and the runner while still rejecting any
+unreviewed image change:
 
 ```text
 python3 data/scripts/create_fixture_images.py --check

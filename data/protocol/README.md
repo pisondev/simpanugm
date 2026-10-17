@@ -57,6 +57,9 @@ After the trial is complete, run `data/scripts/check_trial_review.py` on this pr
 workspace. It verifies both annotation sheets, every final review status, the disagreement
 fields, and the recorded private Drive path; it does not inspect or copy photographs.
 
+Run `data/scripts/check_freeze.py --profile trial` with the prepared dataset and this
+review workspace before publishing its manifest. The freeze gate is read-only.
+
 ## Full collection templates
 
 When the 20-item trial is accepted, create blank private templates for the full target:

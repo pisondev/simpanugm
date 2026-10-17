@@ -37,7 +37,7 @@ jobs:
       - name: Validate shared fixtures
         run: python data/scripts/check_fixtures.py
 
-      - name: Verify generated fixture images
+      - name: Verify fixture image integrity
         run: python data/scripts/create_fixture_images.py --check
 
       - name: Run data tests
