@@ -51,3 +51,5 @@ All notable changes to this project are recorded here. The format follows
 - Stabilized synthetic fixture image CI validation with reviewed SHA-256 integrity hashes.
 - Added an explicit campus-bbox check for complete location seeds.
 - Made evaluation image intake convert accepted inputs to canonical JPEG files.
+- Added a safe local evaluation fetcher that verifies manifest-listed files before copying
+  them from a private dataset sync or mount.

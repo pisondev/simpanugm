@@ -30,6 +30,21 @@ and cross-item perceptual-hash distance greater than four bits. It also rejects 
 including symlink directories. Run
 `data/scripts/check_manifest.py` after intake and before a dataset freeze.
 
+After the reviewed manifest is published, fetch the private files from a locally synced
+or mounted copy of the team Drive. The fetcher copies only manifest-listed files, verifies
+their size and SHA-256, rejects symlinks and stale unlisted files, preserves this README,
+and never deletes existing files:
+
+```text
+python3 data/scripts/fetch.py \
+  --manifest data/eval/manifest.json \
+  --source /private/simpanugm-eval/v1 \
+  --output data/eval
+```
+
+Use a fresh output directory when switching dataset versions. The command is intentionally
+local-only; Drive authentication and synchronization remain outside the repository.
+
 After the private review and v1 freeze, publish only that validated manifest with
 `data/scripts/publish_manifest.py`. The command copies no images, descriptions, or other
 private files into the repository and refuses to replace an existing manifest unless

@@ -11,7 +11,7 @@ Sprints 0 to 2.
 | `seed/` | campus master data loaded by `simpan seed` | yes |
 | `fixtures/` | small test inputs and expected outputs used by both `api` and `ml` | yes |
 | `eval/` | the evaluation dataset card and, after private freeze, its manifest | `README.md` now; `manifest.json` is added at freeze |
-| `scripts/` | intake, quality checks, download, OpenStreetMap extraction | yes |
+| `scripts/` | intake, quality checks, manifest fetch, OpenStreetMap extraction | yes |
 | `analytics/` | reference SQL for the analytics views | yes |
 
 How the evaluation dataset is collected: [docs/ai/dataset-collection.md](../docs/ai/dataset-collection.md).

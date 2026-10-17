@@ -102,3 +102,6 @@
 - Extended complete seed validation to require the reviewed campus bbox and reject locations
   outside it.
 - Made private image intake canonicalize accepted image inputs to JPEG before hashing.
+- Added a local-only evaluation fetcher that copies manifest-listed files from a private
+  Drive sync or mount, verifies hashes, rejects symlinks and stale files, and preserves
+  the repository dataset card.
