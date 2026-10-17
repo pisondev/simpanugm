@@ -1,5 +1,6 @@
 import csv
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -41,6 +42,25 @@ class IntakeTests(unittest.TestCase):
             self.assertEqual(document["version"], "trial-1")
             self.assertEqual(check_manifest(output), [])
             with Image.open(image_path) as image:
+                self.assertFalse(image.getexif())
+
+    def test_shared_gps_fixture_is_stripped_by_intake(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "raw"
+            image_dir = source / "images" / "I001"
+            image_dir.mkdir(parents=True)
+            with (source / "items.csv").open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.writer(handle)
+                writer.writerow(["item_id", "item_name"])
+                writer.writerow(["I001", "desk fixture"])
+            fixture = Path(__file__).resolve().parents[1] / "fixtures" / "images" / "desk-gps.jpg"
+            with Image.open(fixture) as image:
+                self.assertTrue(image.getexif())
+            shutil.copyfile(fixture, image_dir / "finder_1.jpg")
+
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "fixture-1")
+            with Image.open(output / "images" / "I001" / "finder_1.jpg") as image:
                 self.assertFalse(image.getexif())
 
     def test_intake_rejects_non_empty_destination(self) -> None:

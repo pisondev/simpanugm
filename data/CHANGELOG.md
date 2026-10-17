@@ -57,6 +57,8 @@
   and masking while keeping participant media outside the repository.
 - Added a deterministic byte-level check for committed synthetic image fixtures and wired
   it into the data CI workflow.
+- Added an intake integration test proving the shared GPS-tagged fixture is stripped before
+  it reaches a prepared private dataset.
 - Added a private template checker for stable IDs, exact columns, blank pre-entry fields,
   and empty image directories in the full and trial collection scaffolds.
 - Clarified that the private evaluation manifest is committed only after the real intake

@@ -25,6 +25,7 @@ All notable changes to this project are recorded here. The format follows
   matching, including a validator used before service contract tests consume them.
 - Added deterministic synthetic image fixtures for colour, EXIF, OCR, and masking tests.
 - Added a CI check that detects drift in generated fixture image bytes.
+- Added an intake privacy regression test using the shared synthetic GPS fixture.
 - Added a checker for blank full and trial evaluation-template scaffolds before collection.
 - Added a dedicated data CI workflow for seed, fixture, and data-script validation.
 - Added a safe freeze step that publishes only a validated private evaluation manifest.
