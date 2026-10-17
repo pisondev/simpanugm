@@ -1,0 +1,28 @@
+auth:
+  allowed_email_domains:
+    - mail.ugm.ac.id
+    - ugm.ac.id
+lost:
+  stale_days: 60
+  expiry_grace_days: 14
+  reopen_days: 30
+found:
+  with_finder_max_hours: 48
+custody:
+  retention_days:
+    normal: 30
+    valuable: 60
+    identity: 30
+claim:
+  max_open: 3
+  reject_flag_count: 3
+  reject_flag_window_days: 30
+  info_timeout_days: 7
+  approved_timeout_days: 7
+notify:
+  match_throttle_hours: 6
+  email_quiet_hours:
+    from: "22:00"
+    to: "06:00"
+analytics:
+  min_cell_count: 3

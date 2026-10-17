@@ -1,0 +1,531 @@
+# Master categories for the first SimpanUGM seed.
+# Names and verification questions are Indonesian; CLIP prompts stay in English.
+parents:
+  - slug: identitas
+    name: Identitas dan Kartu
+    sort_order: 1
+    children:
+      - slug: ktm
+        name: KTM
+        sensitivity: identity
+        clip_prompts:
+          - a photo of a university student identity card
+          - a UGM student card
+          - a plastic campus identity card
+        verification_questions:
+          - key: identity_name_nim
+            question: Sebutkan nama dan NIM yang tercetak pada kartu.
+            required: true
+            check_hint: Nama dan NIM pada kartu sesuai identitas pengklaim.
+      - slug: ktp
+        name: KTP
+        sensitivity: identity
+        clip_prompts:
+          - a photo of an Indonesian identity card
+          - a plastic national identity card
+          - an Indonesian KTP card
+        verification_questions:
+          - key: identity_name_number
+            question: Sebutkan nama dan empat digit terakhir nomor identitas.
+            required: true
+            check_hint: Nama pada kartu sesuai identitas pengklaim.
+      - slug: sim
+        name: SIM
+        sensitivity: identity
+        clip_prompts:
+          - a photo of an Indonesian driving licence
+          - a plastic driving licence card
+          - an Indonesian SIM card
+        verification_questions:
+          - key: driving_name_number
+            question: Sebutkan nama dan jenis kendaraan yang tercantum.
+            required: true
+            check_hint: Nama pada kartu sesuai identitas pengklaim.
+      - slug: kartu-atm
+        name: Kartu ATM
+        sensitivity: identity
+        clip_prompts:
+          - a photo of a bank card
+          - a plastic ATM card
+          - a debit card with a bank logo
+        verification_questions:
+          - key: bank_name_last_four
+            question: Sebutkan nama bank dan empat digit terakhir nomor kartu.
+            required: true
+            check_hint: Nama bank dan empat digit terakhir sesuai bukti pengklaim.
+      - slug: kartu-lain
+        name: Kartu Lain
+        sensitivity: identity
+        clip_prompts:
+          - a photo of a membership or access card
+          - a plastic access card
+          - a generic printed card
+        verification_questions:
+          - key: card_name_purpose
+            question: Sebutkan nama atau fungsi kartu dan ciri khususnya.
+            required: true
+            check_hint: Jawaban cocok dengan kartu yang disimpan.
+
+  - slug: dompet-tas-kecil
+    name: Dompet dan Tas Kecil
+    sort_order: 2
+    children:
+      - slug: dompet
+        name: Dompet
+        sensitivity: valuable
+        clip_prompts:
+          - a photo of a wallet
+          - a folded leather wallet
+          - a small personal wallet
+        verification_questions:
+          - key: wallet_contents
+            question: Sebutkan isi dompet yang tidak terlihat dari luar.
+            required: true
+            check_hint: Isi yang disebut sesuai pemeriksaan petugas.
+          - key: wallet_private_mark
+            question: Sebutkan ciri khusus di bagian luar atau dalam dompet.
+            required: true
+            check_hint: Ciri yang disebut terlihat pada barang.
+      - slug: tempat-kartu
+        name: Tempat Kartu
+        sensitivity: valuable
+        clip_prompts:
+          - a photo of a card holder
+          - a slim card wallet
+          - a small leather card case
+        verification_questions:
+          - key: card_holder_contents
+            question: Sebutkan kartu atau isi yang tersimpan di dalamnya.
+            required: true
+            check_hint: Isi yang disebut cocok dengan pemeriksaan petugas.
+          - key: card_holder_mark
+            question: Sebutkan warna, bahan, dan ciri khusus tempat kartu.
+            required: true
+            check_hint: Ciri yang disebut terlihat pada barang.
+      - slug: pouch
+        name: Pouch
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a small pouch
+          - a zippered personal pouch
+          - a fabric pencil or toiletry pouch
+        verification_questions:
+          - key: pouch_contents
+            question: Sebutkan isi atau benda yang biasanya disimpan di dalamnya.
+            required: true
+            check_hint: Isi yang disebut cocok dengan pemeriksaan petugas.
+          - key: pouch_mark
+            question: Sebutkan ciri khusus pada resleting, kain, atau bagian dalam.
+            required: true
+            check_hint: Ciri yang disebut terlihat pada barang.
+
+  - slug: elektronik
+    name: Elektronik
+    sort_order: 3
+    children:
+      - slug: ponsel
+        name: Ponsel
+        sensitivity: valuable
+        clip_prompts:
+          - a photo of a smartphone
+          - a mobile phone with a case
+          - a modern touchscreen phone
+        verification_questions:
+          - key: phone_model_case
+            question: Sebutkan merek, model, dan warna atau ciri casing.
+            required: true
+            check_hint: Pengklaim dapat membuka kunci atau menunjukkan ciri perangkat.
+          - key: phone_private_mark
+            question: Sebutkan gambar layar kunci atau ciri khusus lain yang tidak dipublikasikan.
+            required: true
+            check_hint: Ciri cocok tanpa meminta pengklaim menyebutkan kata sandi.
+      - slug: laptop
+        name: Laptop
+        sensitivity: valuable
+        clip_prompts:
+          - a photo of a laptop computer
+          - a closed notebook computer
+          - a personal laptop with a charger
+        verification_questions:
+          - key: laptop_model_mark
+            question: Sebutkan merek, model, dan tanda khusus pada laptop.
+            required: true
+            check_hint: Tanda cocok dengan perangkat yang disimpan.
+          - key: laptop_accessory
+            question: Sebutkan aksesori atau stiker yang tidak terlihat pada foto publik.
+            required: true
+            check_hint: Aksesori cocok dengan pemeriksaan petugas.
+      - slug: tablet
+        name: Tablet
+        sensitivity: valuable
+        clip_prompts:
+          - a photo of a tablet computer
+          - a touchscreen tablet
+          - a tablet with a protective cover
+        verification_questions:
+          - key: tablet_model_cover
+            question: Sebutkan merek, model, dan ciri cover tablet.
+            required: true
+            check_hint: Ciri cocok dengan perangkat yang disimpan.
+          - key: tablet_private_mark
+            question: Sebutkan tanda khusus di bagian belakang atau layar.
+            required: true
+            check_hint: Tanda cocok dengan pemeriksaan petugas.
+      - slug: earphone
+        name: Earphone
+        sensitivity: valuable
+        clip_prompts:
+          - a photo of wireless earbuds
+          - a pair of earphones in a charging case
+          - small personal audio earbuds
+        verification_questions:
+          - key: earphone_case_mark
+            question: Sebutkan merek, warna, dan ciri casing atau earphone.
+            required: true
+            check_hint: Ciri cocok dengan barang yang disimpan.
+          - key: earphone_accessory
+            question: Sebutkan aksesori atau kerusakan khusus yang tidak terlihat dari luar.
+            required: true
+            check_hint: Detail cocok dengan pemeriksaan petugas.
+      - slug: charger
+        name: Charger
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a phone charger
+          - a charging adapter and cable
+          - a USB power adapter
+        verification_questions:
+          - key: charger_output
+            question: Sebutkan merek, jenis konektor, dan tulisan output charger.
+            required: true
+            check_hint: Tulisan dan konektor sesuai barang.
+      - slug: power-bank
+        name: Power Bank
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a portable power bank
+          - a USB battery pack
+          - a small portable charger
+        verification_questions:
+          - key: power_bank_capacity
+            question: Sebutkan kapasitas, jumlah port, dan ciri casing power bank.
+            required: true
+            check_hint: Detail sesuai barang.
+      - slug: flashdisk
+        name: Flashdisk
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a USB flash drive
+          - a small thumb drive
+          - a portable USB storage device
+        verification_questions:
+          - key: flashdisk_capacity_mark
+            question: Sebutkan kapasitas dan ciri penutup atau gantungan flashdisk.
+            required: true
+            check_hint: Detail sesuai barang.
+      - slug: kalkulator
+        name: Kalkulator
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a school calculator
+          - a scientific calculator
+          - a handheld calculator
+        verification_questions:
+          - key: calculator_model_mark
+            question: Sebutkan merek, model, dan tanda khusus kalkulator.
+            required: true
+            check_hint: Detail sesuai barang.
+
+  - slug: kunci
+    name: Kunci
+    sort_order: 4
+    children:
+      - slug: kunci-motor
+        name: Kunci Motor
+        sensitivity: valuable
+        clip_prompts:
+          - a photo of a motorcycle key
+          - a motorbike key with a keychain
+          - a metal vehicle key
+        verification_questions:
+          - key: motorcycle_brand
+            question: Sebutkan merek motor dan bentuk atau isi gantungan kunci.
+            required: true
+            check_hint: Pengklaim menunjukkan STNK atau kendaraan yang cocok.
+      - slug: kunci-lain
+        name: Kunci Lain
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a house key set
+          - a small set of metal keys
+          - keys with a personal keychain
+        verification_questions:
+          - key: keychain_mark
+            question: Sebutkan jumlah kunci, fungsi, dan ciri gantungan kunci.
+            required: true
+            check_hint: Detail sesuai barang.
+
+  - slug: tas
+    name: Tas
+    sort_order: 5
+    children:
+      - slug: ransel
+        name: Ransel
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a backpack
+          - a school or campus backpack
+          - a two-strap daypack
+        verification_questions:
+          - key: backpack_contents
+            question: Sebutkan isi atau kompartemen khusus yang tidak terlihat dari luar.
+            required: true
+            check_hint: Detail cocok dengan pemeriksaan petugas.
+      - slug: tote-bag
+        name: Tote Bag
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a canvas tote bag
+          - a reusable shopping tote
+          - a cloth shoulder bag
+        verification_questions:
+          - key: tote_print_mark
+            question: Sebutkan tulisan, gambar, bahan, atau ciri khusus tote bag.
+            required: true
+            check_hint: Detail terlihat pada barang.
+      - slug: tas-laptop
+        name: Tas Laptop
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a laptop bag
+          - a padded computer shoulder bag
+          - a laptop messenger bag
+        verification_questions:
+          - key: laptop_bag_compartment
+            question: Sebutkan ukuran laptop dan ciri kompartemen atau tali tas.
+            required: true
+            check_hint: Detail cocok dengan pemeriksaan petugas.
+
+  - slug: botol
+    name: Botol dan Tumbler
+    sort_order: 6
+    children:
+      - slug: botol-minum
+        name: Botol Minum
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a reusable water bottle
+          - a plastic drinking bottle
+          - a personal water bottle
+        verification_questions:
+          - key: bottle_mark
+            question: Sebutkan merek, ukuran, warna, dan ciri tutup botol.
+            required: true
+            check_hint: Detail terlihat pada barang.
+      - slug: tumbler
+        name: Tumbler
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a travel tumbler
+          - an insulated coffee tumbler
+          - a reusable metal tumbler
+        verification_questions:
+          - key: tumbler_mark
+            question: Sebutkan bahan, kapasitas, warna, dan ciri tutup tumbler.
+            required: true
+            check_hint: Detail terlihat pada barang.
+
+  - slug: payung
+    name: Payung
+    sort_order: 7
+    children:
+      - slug: payung
+        name: Payung
+        sensitivity: normal
+        clip_prompts:
+          - a photo of an umbrella
+          - a folded umbrella
+          - a compact umbrella
+        verification_questions:
+          - key: umbrella_colour_shape
+            question: Sebutkan warna, motif, dan bentuk gagang payung.
+            required: true
+            check_hint: Ciri yang disebut terlihat pada barang.
+          - key: umbrella_damage
+            question: Sebutkan kerusakan atau tanda khusus pada payung.
+            required: false
+            check_hint: Ciri yang disebut terlihat pada barang.
+
+  - slug: pakaian
+    name: Pakaian
+    sort_order: 8
+    children:
+      - slug: jaket
+        name: Jaket
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a jacket
+          - a casual jacket
+          - a zippered outerwear jacket
+        verification_questions:
+          - key: jacket_mark
+            question: Sebutkan merek, ukuran, warna, dan ciri pada jaket.
+            required: true
+            check_hint: Detail sesuai pakaian.
+      - slug: topi
+        name: Topi
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a baseball cap
+          - a casual fabric hat
+          - a campus cap
+        verification_questions:
+          - key: hat_mark
+            question: Sebutkan warna, tulisan, dan ciri bagian dalam topi.
+            required: true
+            check_hint: Detail sesuai pakaian.
+      - slug: jas-almamater
+        name: Jas Almamater
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a university blazer
+          - a student campus jacket
+          - a university academic jacket
+        verification_questions:
+          - key: blazer_size_mark
+            question: Sebutkan ukuran, nama atau tanda di bagian dalam, dan ciri khususnya.
+            required: true
+            check_hint: Detail sesuai pakaian.
+      - slug: pakaian-lain
+        name: Pakaian Lain
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a piece of clothing
+          - a casual garment
+          - a folded personal garment
+        verification_questions:
+          - key: clothing_mark
+            question: Sebutkan bahan, ukuran, warna, dan ciri khusus pakaian.
+            required: true
+            check_hint: Detail sesuai pakaian.
+
+  - slug: helm
+    name: Helm
+    sort_order: 9
+    children:
+      - slug: helm
+        name: Helm
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a motorcycle helmet
+          - a half face helmet
+          - a full face helmet
+        verification_questions:
+          - key: helmet_mark
+            question: Sebutkan merek, ukuran, warna, dan ciri bagian dalam helm.
+            required: true
+            check_hint: Detail sesuai helm.
+
+  - slug: aksesori
+    name: Aksesori
+    sort_order: 10
+    children:
+      - slug: jam-tangan
+        name: Jam Tangan
+        sensitivity: valuable
+        clip_prompts:
+          - a photo of a wristwatch
+          - a digital or analog watch
+          - a personal watch on a strap
+        verification_questions:
+          - key: watch_mark
+            question: Sebutkan merek, tipe tampilan, dan ciri tali jam.
+            required: true
+            check_hint: Detail sesuai jam.
+      - slug: perhiasan
+        name: Perhiasan
+        sensitivity: valuable
+        clip_prompts:
+          - a photo of personal jewelry
+          - a ring or bracelet
+          - a small piece of jewelry
+        verification_questions:
+          - key: jewelry_mark
+            question: Sebutkan bahan, bentuk, ukuran, dan tanda khusus perhiasan.
+            required: true
+            check_hint: Detail sesuai barang.
+      - slug: kacamata
+        name: Kacamata
+        sensitivity: normal
+        clip_prompts:
+          - a photo of eyeglasses
+          - a pair of prescription glasses
+          - glasses in a case
+        verification_questions:
+          - key: glasses_frame_case
+            question: Sebutkan bentuk frame, warna, dan ciri tempat kacamata.
+            required: true
+            check_hint: Detail sesuai barang.
+
+  - slug: alat-tulis
+    name: Buku dan Alat Tulis
+    sort_order: 11
+    children:
+      - slug: buku
+        name: Buku
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a personal book
+          - a notebook or textbook
+          - a book with handwritten notes
+        verification_questions:
+          - key: book_notes
+            question: Sebutkan judul, tanda pada sampul, atau isi catatan pribadi.
+            required: true
+            check_hint: Detail cocok dengan isi buku.
+      - slug: alat-tulis
+        name: Alat Tulis
+        sensitivity: normal
+        clip_prompts:
+          - a photo of stationery
+          - pens and pencils in a pencil case
+          - personal writing tools
+        verification_questions:
+          - key: stationery_mark
+            question: Sebutkan isi dan ciri khusus alat tulis atau tempatnya.
+            required: true
+            check_hint: Detail sesuai barang.
+
+  - slug: dokumen
+    name: Dokumen
+    sort_order: 12
+    children:
+      - slug: dokumen
+        name: Dokumen
+        sensitivity: identity
+        clip_prompts:
+          - a photo of a paper document
+          - a folded personal document
+          - an envelope containing documents
+        verification_questions:
+          - key: document_type_owner
+            question: Sebutkan jenis dokumen dan ciri kepemilikan tanpa menyebutkan seluruh nomor.
+            required: true
+            check_hint: Nama pemilik dan jenis dokumen cocok dengan bukti pengklaim.
+
+  - slug: lainnya
+    name: Lainnya
+    sort_order: 13
+    children:
+      - slug: lainnya
+        name: Lainnya
+        sensitivity: normal
+        clip_prompts:
+          - a photo of a personal miscellaneous item
+          - a small everyday object
+          - an item found on a campus
+        verification_questions:
+          - key: miscellaneous_mark
+            question: Sebutkan ciri, isi, atau tanda khusus yang tidak terlihat pada foto publik.
+            required: true
+            check_hint: Detail cocok dengan barang yang disimpan.

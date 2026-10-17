@@ -3,8 +3,8 @@
 Master data seeds, fixtures shared by `api` and `ml`, the evaluation dataset pipeline, and
 reference analytics queries.
 
-Owner: Axelle Chandra. Status: specified. Seeds and the dataset are built in Sprints 0 to
-2.
+Owner: Axelle Chandra. Status: foundation in progress. Seeds and the dataset are built in
+Sprints 0 to 2.
 
 | Folder | Holds | In git |
 |---|---|---|
@@ -15,6 +15,27 @@ Owner: Axelle Chandra. Status: specified. Seeds and the dataset are built in Spr
 | `analytics/` | reference SQL for the analytics views | yes |
 
 How the evaluation dataset is collected: [docs/ai/dataset-collection.md](../docs/ai/dataset-collection.md).
+
+## Current stage
+
+The deterministic seed foundation is available in [`seed/`](seed/) and is checked by
+[`scripts/check.py`](scripts/check.py). The foundation check covers the category tree,
+verification questions, colour palette, compatibility factors, brand aliases, synonyms,
+and runtime defaults. The campus location/post list and model-version seed remain pending
+the OpenStreetMap review, security-unit input, and the inference-service lock file.
+
+```text
+python3 data/scripts/check.py
+```
+
+The complete-mode check is intentionally expected to fail until those reviewed files are
+added:
+
+```text
+python3 data/scripts/check.py --require-complete
+```
+
+The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 
 ## Seed files
 
