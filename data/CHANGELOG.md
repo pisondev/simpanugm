@@ -113,3 +113,5 @@
   reproducible evaluation records.
 - Hardened manifest checks to reject symlink dataset roots and symlink manifests before
   reading private files.
+- Hardened seed validation against symlink roots and seed files that could redirect checks
+  outside the repository checkout.

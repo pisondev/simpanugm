@@ -52,7 +52,8 @@ The complete handoff sequence and evidence checklist is in
 
 The foundation check rejects a partial addition of any deferred file. Once the first
 reviewed complete-seed file is available, run the complete check with all four files and
-the agreed campus bbox; do not rely on foundation mode for an incomplete handoff.
+the agreed campus bbox; do not rely on foundation mode for an incomplete handoff. Seed
+roots and files must be regular paths, not symlinks.
 
 Run the foundation check from the repository root:
 

@@ -59,3 +59,4 @@ All notable changes to this project are recorded here. The format follows
   validation is explicitly requested.
 - Made manifest publication print the dataset SHA-256 for reproducible handoff records.
 - Hardened private manifest checks against symlink dataset roots and manifest files.
+- Hardened seed validation against symlink roots and files outside the checkout.

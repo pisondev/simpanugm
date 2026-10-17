@@ -1,5 +1,6 @@
 import csv
 import json
+import shutil
 import tempfile
 import unittest
 from argparse import ArgumentTypeError
@@ -28,6 +29,36 @@ SEED_DIR = ROOT / "data" / "seed"
 class SeedCheckTests(unittest.TestCase):
     def test_foundation_seed_passes(self) -> None:
         self.assertEqual(validate_seed_dir(SEED_DIR), [])
+
+    def test_seed_check_rejects_symlinked_seed_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = Path(directory) / "seed"
+            shutil.copytree(SEED_DIR, seed)
+            external = Path(directory) / "categories.yaml"
+            external.write_bytes((seed / "categories.yaml").read_bytes())
+            (seed / "categories.yaml").unlink()
+            try:
+                (seed / "categories.yaml").symlink_to(external)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = validate_seed_dir(seed)
+
+            self.assertEqual(errors, ["seed file must not be a symlink: categories.yaml"])
+
+    def test_seed_check_rejects_symlinked_seed_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = Path(directory) / "seed"
+            shutil.copytree(SEED_DIR, seed)
+            alias = Path(directory) / "seed-alias"
+            try:
+                alias.symlink_to(seed, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = validate_seed_dir(alias)
+
+            self.assertEqual(errors, [f"seed directory must not be a symlink: {alias}"])
 
     def test_complete_mode_keeps_deferred_files_explicit(self) -> None:
         errors = validate_seed_dir(SEED_DIR, require_complete=True)

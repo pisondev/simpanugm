@@ -39,7 +39,8 @@ python3 data/scripts/check.py \
 
 The foundation check also fails if any deferred seed file appears by itself. This prevents
 CI from accepting a partial location, post, or model-version seed without the complete-mode
-review and campus bbox.
+review and campus bbox. It also rejects symlinked seed roots and files so validation cannot
+silently read data from outside the checkout.
 
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 

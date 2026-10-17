@@ -433,8 +433,15 @@ def validate_seed_dir(
     campus_bbox: tuple[float, float, float, float] | None = None,
 ) -> list[str]:
     errors: list[str] = []
+    if seed_dir.is_symlink():
+        return [f"seed directory must not be a symlink: {seed_dir}"]
+    if not seed_dir.is_dir():
+        return [f"seed directory does not exist: {seed_dir}"]
     for filename in STATIC_FILES:
-        if not (seed_dir / filename).is_file():
+        path = seed_dir / filename
+        if path.is_symlink():
+            errors.append(f"seed file must not be a symlink: {filename}")
+        elif not path.is_file():
             errors.append(f"missing required seed file: {filename}")
     if errors:
         return errors
@@ -450,7 +457,11 @@ def validate_seed_dir(
         errors.append(str(exc))
 
     if require_complete:
-        missing = [filename for filename in COMPLETE_FILES if not (seed_dir / filename).is_file()]
+        missing = [
+            filename
+            for filename in COMPLETE_FILES
+            if not (seed_dir / filename).is_file() or (seed_dir / filename).is_symlink()
+        ]
         errors.extend(f"missing complete-seed file: {filename}" for filename in missing)
         if not missing:
             if campus_bbox is None:
@@ -458,7 +469,11 @@ def validate_seed_dir(
             else:
                 errors.extend(validate_complete_seed_dir(seed_dir, campus_bbox))
     else:
-        present = [filename for filename in COMPLETE_FILES if (seed_dir / filename).is_file()]
+        present = [
+            filename
+            for filename in COMPLETE_FILES
+            if (seed_dir / filename).is_file() or (seed_dir / filename).is_symlink()
+        ]
         if present:
             errors.append(
                 "complete-seed files are present; rerun with --require-complete and --bbox: "
