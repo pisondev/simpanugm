@@ -101,3 +101,4 @@
   and review gates before manifest publication.
 - Extended complete seed validation to require the reviewed campus bbox and reject locations
   outside it.
+- Made private image intake canonicalize accepted image inputs to JPEG before hashing.

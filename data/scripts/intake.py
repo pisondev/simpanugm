@@ -49,8 +49,8 @@ def canonical_image_path(relative_path: Path) -> Path:
     match = IMAGE_RE.fullmatch(relative_path.parts[2])
     if match is None:
         raise IntakeError(f"unsupported image filename: {relative_path.name}")
-    kind, number, extension = match.groups()
-    return Path("images") / relative_path.parts[1] / f"{kind.lower()}_{int(number)}.{extension.lower()}"
+    kind, number, _extension = match.groups()
+    return Path("images") / relative_path.parts[1] / f"{kind.lower()}_{int(number)}.jpg"
 
 
 def strip_exif(source: Path, destination: Path) -> None:

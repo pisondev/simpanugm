@@ -50,3 +50,4 @@ All notable changes to this project are recorded here. The format follows
 - Added a read-only private evaluation freeze gate that aggregates the required checks.
 - Stabilized synthetic fixture image CI validation with reviewed SHA-256 integrity hashes.
 - Added an explicit campus-bbox check for complete location seeds.
+- Made evaluation image intake convert accepted inputs to canonical JPEG files.

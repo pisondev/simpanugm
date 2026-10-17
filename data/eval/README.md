@@ -21,9 +21,10 @@ consent forms, photographs, descriptions, and review logs stay in the private te
 and are never committed to git.
 
 The intake pipeline writes `manifest.json` with each prepared file's relative path, byte
-size, SHA-256, and kind. It strips EXIF metadata and normalizes accepted image names
-before hashing. It stages the output first, so a failed intake does not leave a partial
-dataset directory. The manifest checker requires normalized image paths, approved file
+size, SHA-256, and kind. It strips EXIF metadata, converts accepted image inputs to
+canonical `.jpg` files, and normalizes image names before hashing. It stages the output
+first, so a failed intake does not leave a partial dataset directory. The manifest checker
+requires normalized image paths, approved file
 kinds, valid hashes, images at least 1080 px on the short side, unique image content,
 and cross-item perceptual-hash distance greater than four bits. It also rejects symlinks,
 including symlink directories. Run

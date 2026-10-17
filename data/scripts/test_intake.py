@@ -44,6 +44,22 @@ class IntakeTests(unittest.TestCase):
             with Image.open(image_path) as image:
                 self.assertFalse(image.getexif())
 
+    def test_intake_converts_non_jpeg_input_to_canonical_jpeg(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            source_image = source / "images" / "I001" / "Finder-01.JPG"
+            converted_source = source / "images" / "I001" / "finder_2.png"
+            with Image.open(source_image) as image:
+                image.save(converted_source, format="PNG")
+            source_image.unlink()
+
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+
+            self.assertTrue((output / "images" / "I001" / "finder_2.jpg").is_file())
+            self.assertFalse((output / "images" / "I001" / "finder_2.png").exists())
+            self.assertEqual(check_manifest(output), [])
+
     def test_shared_gps_fixture_is_stripped_by_intake(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "raw"
@@ -179,6 +195,21 @@ class IntakeTests(unittest.TestCase):
             manifest_path.write_text(json.dumps(document), encoding="utf-8")
             errors = check_manifest(output)
             self.assertIn("invalid manifest path: './items.csv'", errors)
+
+    def test_manifest_rejects_non_jpeg_image_path(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            manifest_path = output / "manifest.json"
+            document = json.loads(manifest_path.read_text(encoding="utf-8"))
+            image_entry = next(entry for entry in document["files"] if entry["kind"] == "image")
+            image_entry["path"] = image_entry["path"].replace(".jpg", ".png")
+            manifest_path.write_text(json.dumps(document), encoding="utf-8")
+
+            errors = check_manifest(output)
+
+        self.assertTrue(any("image manifest path is not normalized" in error for error in errors))
 
     def test_manifest_rejects_symlink_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

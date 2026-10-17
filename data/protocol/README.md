@@ -116,8 +116,9 @@ python3 data/scripts/check_manifest.py \
 
 The intake requires Pillow from `data/scripts/requirements.txt`. It refuses to write into
 a non-empty destination and never deletes an existing dataset. Intake writes to a private
-staging directory first, so an invalid image or filename leaves no partial output. Source
-metadata and images must be regular files, not symlinks.
+staging directory first and converts accepted image inputs to canonical JPEG files, so an
+invalid image or filename leaves no partial output. Source metadata and images must be
+regular files, not symlinks.
 
 After the private dataset is approved and frozen, publish only its validated manifest to
 the repository. This copies no images or descriptions:
