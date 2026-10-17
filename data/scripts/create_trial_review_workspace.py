@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 
 from check_agreement import ANNOTATION_FIELDS
+from path_safety import first_symlink_component
 
 
 REVIEW_LOG_FIELDS = (
@@ -49,6 +50,9 @@ def write_csv(path: Path, fields: tuple[str, ...], rows: list[dict[str, str]]) -
 def create_review_workspace(output: Path, item_count: int = 20) -> list[Path]:
     if output.is_symlink():
         raise ReviewWorkspaceError(f"output must not be a symlink: {output}")
+    parent_symlink = first_symlink_component(output.parent)
+    if parent_symlink is not None:
+        raise ReviewWorkspaceError(f"output path must not contain a symlink: {parent_symlink}")
     if output.exists():
         if not output.is_dir():
             raise ReviewWorkspaceError(f"output must be a directory or absent: {output}")

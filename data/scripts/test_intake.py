@@ -315,6 +315,29 @@ class IntakeTests(unittest.TestCase):
 
             self.assertEqual(errors, [f"dataset directory must not be a symlink: {alias}"])
 
+    def test_manifest_rejects_dataset_path_through_symlink_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = self.create_source(directory)
+            output = root / "prepared"
+            intake_dataset(source, output, "trial-1")
+            real_parent = root / "real-datasets"
+            real_parent.mkdir()
+            dataset_copy = real_parent / "prepared"
+            shutil.copytree(output, dataset_copy)
+            alias_parent = root / "dataset-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = check_manifest(alias_parent / "prepared")
+
+            self.assertIn(
+                f"dataset path must not contain a symlink: {alias_parent}",
+                errors,
+            )
+
     def test_manifest_detects_tampered_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = self.create_source(directory)

@@ -69,6 +69,22 @@ class EvaluationTemplateTests(unittest.TestCase):
                 rows = list(csv.DictReader(handle))
             self.assertEqual([row["item_id"] for row in rows], ["I001", "I002"])
 
+    def test_rejects_symlinked_output_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-output"
+            real_parent.mkdir()
+            alias_parent = root / "output-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(TemplateError):
+                create_trial_templates(alias_parent / "trial", item_count=1)
+
+            self.assertFalse((real_parent / "trial").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

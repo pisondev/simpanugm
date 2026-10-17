@@ -13,6 +13,7 @@ from statistics import median
 from typing import Any
 
 from intake import IMAGE_RE, ITEM_RE, METADATA_FILES, canonical_image_path, sha256_file
+from path_safety import first_symlink_component
 
 try:
     from PIL import Image
@@ -33,16 +34,6 @@ DCT_BASIS = tuple(
     )
     for frequency in range(PHASH_LOW_FREQUENCY)
 )
-
-
-def _symlinked_path_component(root: Path, relative: Path) -> Path | None:
-    """Return the first symlink in a safe relative path, if any."""
-    current = root
-    for part in relative.parts:
-        current /= part
-        if current.is_symlink():
-            return current
-    return None
 
 
 def perceptual_hash(image: Any) -> int:
@@ -79,6 +70,9 @@ def check_manifest(dataset_dir: Path) -> list[str]:
     errors: list[str] = []
     if dataset_dir.is_symlink():
         return [f"dataset directory must not be a symlink: {dataset_dir}"]
+    parent_symlink = first_symlink_component(dataset_dir.parent)
+    if parent_symlink is not None:
+        return [f"dataset path must not contain a symlink: {parent_symlink}"]
     if not dataset_dir.is_dir():
         return [f"dataset directory does not exist: {dataset_dir}"]
     manifest_path = dataset_dir / "manifest.json"
@@ -132,7 +126,7 @@ def check_manifest(dataset_dir: Path) -> list[str]:
             errors.append(f"duplicate manifest path: {relative}")
             continue
         listed.add(relative)
-        if _symlinked_path_component(dataset_dir, path_value.parent) is not None:
+        if first_symlink_component((dataset_dir / path_value).parent) is not None:
             errors.append(f"manifest path must not contain a symlink: {relative}")
             continue
         kind = entry.get("kind")

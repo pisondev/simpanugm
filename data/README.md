@@ -66,8 +66,9 @@ four bits of an image from another item. Once the private dataset is approved, u
 `data/scripts/publish_manifest.py` to copy only the validated manifest into `data/eval/`.
 It also rejects symlinked dataset roots, manifest files, and any symlinked directory in
 a listed path, so validation cannot read private files from outside the dataset root.
-The private intake, fetch, and manifest-publication commands apply the same check to
-their source and output parent paths before resolving them.
+The private intake, fetch, manifest-publication, template-generation, and review-workspace
+commands apply the same check to their source and output parent paths before resolving
+them; the corresponding validators reject aliased roots as well.
 
 Reference analytics views are documented in [`analytics/README.md`](analytics/README.md)
 and defined in [`analytics/views.sql`](analytics/views.sql). They are reviewed SQL, not

@@ -71,6 +71,26 @@ class TemplateCheckTests(unittest.TestCase):
             self.assertIn("unexpected template entry: extra.csv", errors)
             self.assertTrue(any("template images/ must be empty" in error for error in errors))
 
+    def test_template_check_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-templates"
+            real_parent.mkdir()
+            real_output = real_parent / "trial"
+            create_trial_templates(real_output, item_count=2)
+            alias_parent = root / "template-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = validate_template_dir(alias_parent / "trial", "trial", {"items.csv": 2, "labels.csv": 2})
+
+            self.assertIn(
+                f"template path must not contain a symlink: {alias_parent}",
+                errors,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

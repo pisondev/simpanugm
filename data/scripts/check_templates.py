@@ -15,6 +15,7 @@ from create_eval_templates import (
     LABEL_FIELDS,
     QUERY_FIELDS,
 )
+from path_safety import first_symlink_component
 
 
 PROFILE_FILES = {
@@ -67,6 +68,9 @@ def validate_template_dir(path: Path, profile: str, counts: dict[str, int] | Non
         return [f"unknown template profile: {profile}"]
     if path.is_symlink() or not path.is_dir():
         return [f"template directory does not exist or is a symlink: {path}"]
+    parent_symlink = first_symlink_component(path.parent)
+    if parent_symlink is not None:
+        return [f"template path must not contain a symlink: {parent_symlink}"]
 
     default_counts = {
         "items.csv": 20 if profile == "trial" else 150,

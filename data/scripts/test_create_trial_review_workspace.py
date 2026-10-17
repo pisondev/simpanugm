@@ -43,6 +43,22 @@ class TrialReviewWorkspaceTests(unittest.TestCase):
             with self.assertRaises(ReviewWorkspaceError):
                 create_review_workspace(Path(directory) / "review", item_count=0)
 
+    def test_rejects_symlinked_output_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-output"
+            real_parent.mkdir()
+            alias_parent = root / "output-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(ReviewWorkspaceError):
+                create_review_workspace(alias_parent / "review", item_count=1)
+
+            self.assertFalse((real_parent / "review").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

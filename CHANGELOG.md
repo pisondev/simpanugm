@@ -67,3 +67,5 @@ All notable changes to this project are recorded here. The format follows
   dataset validation inside the dataset root.
 - Applied symlink-parent checks to private dataset intake, fetch, and manifest
   publication before any source or output path is resolved.
+- Extended symlink-parent checks to private template/workspace generation and their
+  validators, keeping all collection roots tied to the requested directory.
