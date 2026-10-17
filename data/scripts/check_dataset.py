@@ -82,8 +82,7 @@ def validate_dataset(dataset_dir: Path, seed_dir: Path, expected_count: int = 20
 
     errors.extend(validate_trial(dataset_dir / "labels.csv", seed_dir, expected_count))
     label_by_id = {row.get("item_id", ""): row for row in labels}
-    owner_hashes: dict[str, str] = {}
-    finder_hashes: dict[str, str] = {}
+    description_sources: dict[str, tuple[str, str]] = {}
     item_by_id = {row.get("item_id", ""): row for row in items}
     for item_id in sorted(expected_ids):
         item = item_by_id.get(item_id)
@@ -101,16 +100,18 @@ def validate_dataset(dataset_dir: Path, seed_dir: Path, expected_count: int = 20
             errors.append(f"{item_id}: finder_description must be 10 to 500 characters")
         if owner_description and finder_description and normalize_text(owner_description) == normalize_text(finder_description):
             errors.append(f"{item_id}: owner and finder descriptions must not be identical")
-        if owner_description:
-            digest = text_digest(owner_description)
-            if digest in owner_hashes:
-                errors.append(f"{item_id}: owner_description duplicates {owner_hashes[digest]}")
-            owner_hashes[digest] = item_id
-        if finder_description:
-            digest = text_digest(finder_description)
-            if digest in finder_hashes:
-                errors.append(f"{item_id}: finder_description duplicates {finder_hashes[digest]}")
-            finder_hashes[digest] = item_id
+        for field, description in (
+            ("owner_description", owner_description),
+            ("finder_description", finder_description),
+        ):
+            if not description:
+                continue
+            digest = text_digest(description)
+            previous = description_sources.get(digest)
+            if previous is not None and previous[0] != item_id:
+                errors.append(f"{item_id}: {field} duplicates {previous[0]} ({previous[1]})")
+            else:
+                description_sources[digest] = (item_id, field)
 
         finder_images = image_files(dataset_dir, item_id, "finder")
         owner_images = image_files(dataset_dir, item_id, "owner")

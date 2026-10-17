@@ -27,8 +27,9 @@ kinds, valid hashes, and rejects symlinks. Run `data/scripts/check_manifest.py` 
 intake and before a dataset freeze.
 
 The quality gate also verifies that each item has at least two finder photos, that the
-owner-photo label agrees with the presence of an owner photo, and that descriptions are
-not duplicated across items. It is run on the private prepared directory, not on git.
+owner-photo label agrees with the presence of an owner photo, and that normalized
+descriptions are not duplicated across items or report roles. It is run on the private
+prepared directory, not on git.
 
 After labels pass the quality gate, create and verify the grouped split:
 

@@ -76,5 +76,5 @@ python3 data/scripts/check_dataset.py \
 ```
 
 It checks metadata completeness, image coverage, owner-photo labels, and duplicate
-descriptions. It does not decide whether an object is safe to photograph; that remains a
-manual consent and privacy review.
+descriptions across items and report roles. It does not decide whether an object is safe
+to photograph; that remains a manual consent and privacy review.

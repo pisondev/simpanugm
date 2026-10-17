@@ -24,7 +24,12 @@ LABEL_FIELDS = (
 
 
 class DatasetQualityTests(unittest.TestCase):
-    def create_source(self, directory: str, duplicate_owner_description: bool = False) -> Path:
+    def create_source(
+        self,
+        directory: str,
+        duplicate_owner_description: bool = False,
+        duplicate_across_roles: bool = False,
+    ) -> Path:
         source = Path(directory) / "raw"
         (source / "images" / "I001").mkdir(parents=True)
         (source / "images" / "I002").mkdir(parents=True)
@@ -51,7 +56,11 @@ class DatasetQualityTests(unittest.TestCase):
                         if duplicate_owner_description
                         else "Pouch hitam dengan resleting merah dan jahitan miring."
                     ),
-                    "finder_description": "Pouch kecil berwarna hitam ditemukan dekat kursi.",
+                    "finder_description": (
+                        "Botol minum biru ditemukan di meja kelas."
+                        if duplicate_across_roles
+                        else "Pouch kecil berwarna hitam ditemukan dekat kursi."
+                    ),
                 }
             )
         with (source / "labels.csv").open("w", newline="", encoding="utf-8") as handle:
@@ -103,6 +112,14 @@ class DatasetQualityTests(unittest.TestCase):
             intake_dataset(source, output, "trial-1")
             errors = validate_dataset(output, SEED_DIR, expected_count=2)
             self.assertTrue(any("owner_description duplicates I001" in error for error in errors))
+
+    def test_quality_gate_rejects_cross_role_duplicate_descriptions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory, duplicate_across_roles=True)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            errors = validate_dataset(output, SEED_DIR, expected_count=2)
+            self.assertTrue(any("finder_description duplicates I001" in error for error in errors))
 
 
 if __name__ == "__main__":

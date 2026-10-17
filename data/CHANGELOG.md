@@ -38,3 +38,5 @@
   prepared dataset directory.
 - Hardened intake and manifest checks against symlink inputs, invalid manifest kinds or
   paths, malformed hashes, and disabled normalization policy flags.
+- Extended dataset quality checks to reject normalized description reuse across owner and
+  finder roles as well as across items.
