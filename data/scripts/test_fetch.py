@@ -87,6 +87,18 @@ class FetchTests(unittest.TestCase):
             with self.assertRaises(FetchError):
                 fetch_dataset(prepared / "manifest.json", prepared, root / "output")
 
+    def test_output_inside_private_source_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            prepared = root / "prepared"
+            intake_dataset(self.create_source(directory), prepared, "trial-1")
+            output = prepared / "fetched"
+
+            with self.assertRaises(FetchError):
+                fetch_dataset(prepared / "manifest.json", prepared, output)
+
+            self.assertFalse(output.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

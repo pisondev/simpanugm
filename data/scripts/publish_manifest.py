@@ -29,7 +29,7 @@ def publish_manifest(dataset_dir: Path, output: Path, replace: bool = False) -> 
     if output.is_symlink():
         raise ManifestPublishError(f"output must not be a symlink: {output}")
     output = output.resolve()
-    if output == source:
+    if output == source or source in output.parents:
         raise ManifestPublishError("output must be outside the private dataset directory")
     if output.exists() and not output.is_file():
         raise ManifestPublishError(f"output must be a file or absent: {output}")

@@ -53,3 +53,5 @@ All notable changes to this project are recorded here. The format follows
 - Made evaluation image intake convert accepted inputs to canonical JPEG files.
 - Added a safe local evaluation fetcher that verifies manifest-listed files before copying
   them from a private dataset sync or mount.
+- Prevented manifest publication and evaluation fetch output from being written inside a
+  private source dataset directory.

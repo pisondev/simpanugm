@@ -80,6 +80,18 @@ class PublishManifestTests(unittest.TestCase):
                 publish_manifest(prepared, output, replace=True)
             self.assertEqual(target.read_text(encoding="utf-8"), "keep\n")
 
+    def test_output_inside_private_dataset_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            prepared = root / "prepared"
+            intake_dataset(self.create_source(directory), prepared, "trial-1")
+            output = prepared / "published" / "manifest.json"
+
+            with self.assertRaises(ManifestPublishError):
+                publish_manifest(prepared, output)
+
+            self.assertFalse(output.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

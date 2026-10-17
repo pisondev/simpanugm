@@ -137,6 +137,13 @@ def fetch_dataset(manifest: Path, source: Path, output: Path) -> Path:
     output = output.absolute()
     manifest_payload, files = _load_manifest(manifest)
     validated_source = _validate_source(source, files)
+    resolved_source = source.resolve()
+    if output.is_symlink():
+        raise FetchError(f"output directory must not be a symlink: {output}")
+    resolved_output = output.resolve()
+    if resolved_output == resolved_source or resolved_source in resolved_output.parents:
+        raise FetchError("output must be outside the private source directory")
+    output = resolved_output
     _check_destination(output, files)
     output.parent.mkdir(parents=True, exist_ok=True)
 

@@ -105,3 +105,5 @@
 - Added a local-only evaluation fetcher that copies manifest-listed files from a private
   Drive sync or mount, verifies hashes, rejects symlinks and stale files, and preserves
   the repository dataset card.
+- Hardened manifest publishing and private fetches so their output cannot be placed inside
+  the source dataset directory.
