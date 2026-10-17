@@ -122,7 +122,7 @@ class LocationPromotionTests(unittest.TestCase):
                         "--raw", str(root / "overpass.json"),
                         "--zones", str(root / "zones.csv"),
                         "--output", str(root / "locations.csv"),
-                        "--bbox", "-7.80,110.35,-7.74,110.41",
+                        "--bbox=-7.80,110.35,-7.74,110.41",
                     ]
                 )
 

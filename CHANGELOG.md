@@ -61,3 +61,5 @@ All notable changes to this project are recorded here. The format follows
 - Hardened private manifest checks against symlink dataset roots and manifest files.
 - Hardened seed validation against symlink roots and files outside the checkout.
 - Required location promotion to recheck provenance against the saved raw Overpass response.
+- Made negative campus-bbox examples portable across supported Python CLI parsers by
+  using the `--bbox=...` form in tests and handoff documentation.

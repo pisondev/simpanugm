@@ -117,3 +117,5 @@
   outside the repository checkout.
 - Bound location promotion to the saved raw Overpass response so approved review fields
   cannot detach from their source OSM element.
+- Made negative campus-bbox examples portable across supported Python CLI parsers by
+  using the `--bbox=...` form in tests and handoff documentation.

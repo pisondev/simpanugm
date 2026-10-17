@@ -26,7 +26,7 @@ python3 data/scripts/promote_locations.py \
   --raw /private/simpanugm-locations/overpass.json \
   --zones data/seed/zones.csv \
   --output /private/simpanugm-locations/locations.csv \
-  --bbox SOUTH,WEST,NORTH,EAST
+  --bbox=SOUTH,WEST,NORTH,EAST
 ```
 
 The download retries transient Overpass errors twice by default; use `--retries 0` for a
@@ -69,5 +69,5 @@ Run the future full-seed check with the agreed campus bbox from the location rev
 ```text
 python3 data/scripts/check.py \
   --require-complete \
-  --bbox SOUTH,WEST,NORTH,EAST
+  --bbox=SOUTH,WEST,NORTH,EAST
 ```

@@ -34,7 +34,7 @@ added:
 ```text
 python3 data/scripts/check.py \
   --require-complete \
-  --bbox SOUTH,WEST,NORTH,EAST
+  --bbox=SOUTH,WEST,NORTH,EAST
 ```
 
 The foundation check also fails if any deferred seed file appears by itself. This prevents
@@ -106,7 +106,7 @@ For the location review, save an Overpass response and run:
 ```text
 python3 data/scripts/osm_locations.py \
   --download \
-  --bbox SOUTH,WEST,NORTH,EAST \
+  --bbox=SOUTH,WEST,NORTH,EAST \
   --raw-output /private/simpanugm-locations/overpass.json \
   --output /private/simpanugm-locations/locations-review.csv
 ```
@@ -116,7 +116,7 @@ Or, when the response has already been saved:
 ```text
 python3 data/scripts/osm_locations.py \
   --input /path/to/overpass.json \
-  --bbox SOUTH,WEST,NORTH,EAST \
+  --bbox=SOUTH,WEST,NORTH,EAST \
   --output /path/to/locations-review.csv
 ```
 
@@ -133,7 +133,7 @@ response:
 python3 data/scripts/check_location_review.py \
   --raw /private/simpanugm-locations/overpass.json \
   --review /private/simpanugm-locations/locations-review.csv \
-  --bbox SOUTH,WEST,NORTH,EAST
+  --bbox=SOUTH,WEST,NORTH,EAST
 ```
 
 Create a private counts-only summary to plan the manual review without copying candidate
@@ -207,7 +207,7 @@ needed by `check_dataset.py`. Verify it with
 These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts
 by natural key and never deletes.
 
-Run `python3 data/scripts/check.py --require-complete --bbox SOUTH,WEST,NORTH,EAST`
+Run `python3 data/scripts/check.py --require-complete --bbox=SOUTH,WEST,NORTH,EAST`
 after all four deferred seed files are reviewed. In complete mode the checker validates
 CSV/YAML shape, zone and location references, location coordinates inside the supplied
 campus bbox, post opening-hour intervals, and the eight model components with exactly one
