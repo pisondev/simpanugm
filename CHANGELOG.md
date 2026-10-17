@@ -8,6 +8,8 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- AI specification: matching engine, per role AI features, evaluation protocol, dataset
+  collection guide and model lifecycle, plus the seed and dataset contracts in `data/`.
 - Architecture overview, data model, REST API catalog, security and privacy design, and
   ten architecture decision records.
 - Software requirements specification with business rules, state machines, permission

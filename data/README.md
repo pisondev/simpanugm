@@ -1,0 +1,104 @@
+# data
+
+Master data seeds, fixtures shared by `api` and `ml`, the evaluation dataset pipeline, and
+reference analytics queries.
+
+Owner: Axelle Chandra. Status: specified. Seeds and the dataset are built in Sprints 0 to
+2.
+
+| Folder | Holds | In git |
+|---|---|---|
+| `seed/` | campus master data loaded by `simpan seed` | yes |
+| `fixtures/` | small test inputs and expected outputs used by both `api` and `ml` | yes |
+| `eval/` | the evaluation dataset card and manifest | only `README.md` and `manifest.json` |
+| `scripts/` | intake, quality checks, download, OpenStreetMap extraction | yes |
+| `analytics/` | reference SQL for the analytics views | yes |
+
+How the evaluation dataset is collected: [docs/ai/dataset-collection.md](../docs/ai/dataset-collection.md).
+
+## Seed files
+
+These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts
+by natural key and never deletes.
+
+| File | Format | Columns or keys |
+|---|---|---|
+| `zones.csv` | CSV, UTF-8, header | `slug`, `name`, `centroid_lat`, `centroid_lng` |
+| `locations.csv` | CSV | `slug`, `name`, `zone_slug`, `kind`, `lat`, `lng`, `aliases` with aliases separated by `;` |
+| `posts.yaml` | YAML list | `slug`, `name`, `location_slug`, `phone`, `opening_hours` per weekday as `[["07:00","16:00"]]` |
+| `categories.yaml` | YAML tree | parents with `slug`, `name`, `children`. Leaves with `slug`, `name`, `sensitivity`, optional `retention_days`, `clip_prompts`, `verification_questions` of `key`, `question`, `required`, `check_hint` |
+| `category_compatibility.csv` | CSV | `category_a`, `category_b`, `factor` |
+| `colours.csv` | CSV | `name`, `hex`, `sort_order`, the 14 palette colours of matching-engine section 4 |
+| `brands.csv` | CSV | `name`, `aliases` separated by `;` |
+| `synonyms.csv` | CSV | `term`, `expansion` |
+| `settings.yaml` | YAML map | the keys and defaults of business-rules section 10 |
+| `model_versions.yaml` | YAML list | the initial version of each component with its identity and the first fusion document |
+
+### Zones
+
+The campus clusters as the university names them, plus central facilities:
+
+| `slug` | `name` |
+|---|---|
+| `saintek` | Klaster Sains dan Teknologi |
+| `soshum` | Klaster Sosial Humaniora |
+| `agro` | Klaster Agro |
+| `medika` | Klaster Kesehatan |
+| `pusat` | Fasilitas Pusat |
+
+Faculty to cluster assignment follows the university's official list and is checked
+before the seed is merged.
+
+### Locations
+
+Built with `scripts/osm_locations.py`, which pulls named buildings inside the campus
+boundary from OpenStreetMap, then reviewed by hand: official name, the names students
+actually use as aliases, zone, kind, and the coordinate of the main entrance. Every
+location must fall inside the campus bounding box stored in `settings.yaml`, which a seed
+test checks.
+
+### Posts for the pilot
+
+One post per zone plus one at the central library, each tied to a location. The list is
+replaced by the security unit's actual posts when the system is adopted.
+
+### Categories
+
+| Parent | Leaves, with sensitivity |
+|---|---|
+| `identitas` Identitas dan Kartu | `ktm`, `ktp`, `sim`, `kartu-atm`, `kartu-lain`: identity |
+| `dompet-tas-kecil` Dompet dan Tas Kecil | `dompet` valuable, `tempat-kartu` valuable, `pouch` normal |
+| `elektronik` Elektronik | `ponsel`, `laptop`, `tablet`, `earphone` valuable. `charger`, `power-bank`, `flashdisk`, `kalkulator` normal |
+| `kunci` Kunci | `kunci-motor` valuable, `kunci-lain` normal |
+| `tas` Tas | `ransel`, `tote-bag`, `tas-laptop`: normal |
+| `botol` Botol dan Tumbler | `botol-minum`, `tumbler`: normal |
+| `payung` Payung | `payung`: normal |
+| `pakaian` Pakaian | `jaket`, `topi`, `jas-almamater`, `pakaian-lain`: normal |
+| `helm` Helm | `helm`: normal |
+| `aksesori` Aksesori | `jam-tangan` valuable, `perhiasan` valuable, `kacamata` normal |
+| `alat-tulis` Buku dan Alat Tulis | `buku`, `alat-tulis`: normal |
+| `dokumen` Dokumen | `dokumen`: identity |
+| `lainnya` Lainnya | `lainnya`: normal |
+
+Compatibility pairs across or within parents: `dompet` and `tempat-kartu` 0.80, `dompet`
+and `pouch` 0.70, `ransel` and `tas-laptop` 0.80, `botol-minum` and `tumbler` 0.90, `ktm`
+and `kartu-lain` 0.70, `tote-bag` and `pouch` 0.50.
+
+Verification question examples:
+
+| Leaf | Questions | Check hint |
+|---|---|---|
+| `dompet` | Sebutkan isi dompet (required). Ciri khusus di luar atau dalam dompet (required) | Isi dompet yang disebut sesuai |
+| `ponsel` | Merek, model, dan warna casing (required). Gambar layar kunci atau ciri casing (required) | Pengklaim dapat membuka kunci perangkat atau menunjukkan nomor IMEI |
+| `ktm` | Nama dan NIM pada kartu (required) | Nama pada kartu sesuai identitas pengklaim |
+| `kunci-motor` | Merek motor dan gantungan kunci (required) | Pengklaim menunjukkan STNK atau kendaraan yang cocok |
+| `payung` | Warna, motif, dan bentuk gagang (required). Kerusakan atau tanda khusus (optional) | Ciri yang disebut terlihat pada barang |
+
+## Fixtures
+
+| File | Used by | Content |
+|---|---|---|
+| `fusion_cases.json` | `api` matching tests, `ml/eval` tests | component inputs and expected component scores, overall score and tier, to six decimals |
+| `masking_cases.json` | `api` and `ml` | strings with identity and card numbers and their masked form |
+| `fuzzy_cases.json` | `api` | name pairs and their rapidfuzz token set ratio |
+| `images/` | `api` media tests, `ml` tests | tiny team made images: solid colour swatches, a GPS tagged photo of a desk, a mock card |
