@@ -24,6 +24,7 @@ All notable changes to this project are recorded here. The format follows
 - Shared synthetic data fixtures for matching fusion, privacy masking, and fuzzy name
   matching, including a validator used before service contract tests consume them.
 - Added deterministic synthetic image fixtures for colour, EXIF, OCR, and masking tests.
+- Added a CI check that detects drift in generated fixture image bytes.
 - Added a dedicated data CI workflow for seed, fixture, and data-script validation.
 - Added a safe freeze step that publishes only a validated private evaluation manifest.
 - Added an auditable raw-response option for the OpenStreetMap location review flow.

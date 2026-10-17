@@ -4,7 +4,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from create_fixture_images import ASSET_NAMES, create_fixture_images
+from create_fixture_images import ASSET_NAMES, check_fixture_images, create_fixture_images
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -31,6 +31,9 @@ class FixtureImageTests(unittest.TestCase):
             created = create_fixture_images(output)
             self.assertEqual([path.name for path in created], list(ASSET_NAMES))
             self.assertEqual(sorted(path.name for path in output.iterdir()), sorted(ASSET_NAMES))
+
+    def test_committed_images_match_deterministic_generator(self) -> None:
+        self.assertEqual(check_fixture_images(FIXTURE_DIR), [])
 
 
 if __name__ == "__main__":

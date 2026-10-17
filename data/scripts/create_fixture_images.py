@@ -72,6 +72,21 @@ def create_fixture_images(output: Path) -> list[Path]:
     return created
 
 
+def check_fixture_images(output: Path) -> list[str]:
+    """Compare committed assets with a fresh deterministic generation."""
+    errors: list[str] = []
+    with tempfile.TemporaryDirectory(prefix=".fixture-images-check-") as temporary_name:
+        generated = {path.name: path for path in create_fixture_images(Path(temporary_name))}
+        for name in ASSET_NAMES:
+            committed = output / name
+            if not committed.is_file():
+                errors.append(f"missing fixture image: {committed}")
+                continue
+            if committed.read_bytes() != generated[name].read_bytes():
+                errors.append(f"fixture image differs from generator output: {committed}")
+    return errors
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -80,11 +95,20 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         default=Path(__file__).resolve().parents[1] / "fixtures" / "images",
         help="fixture image directory",
     )
+    parser.add_argument("--check", action="store_true", help="verify committed assets match deterministic output")
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
+    if args.check:
+        errors = check_fixture_images(args.output)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"Fixture images: OK ({args.output})")
+        return 0
     for path in create_fixture_images(args.output):
         print(f"Created {path}")
     return 0
