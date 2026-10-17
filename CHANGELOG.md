@@ -8,6 +8,8 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Architecture overview, data model, REST API catalog, security and privacy design, and
+  ten architecture decision records.
 - Software requirements specification with business rules, state machines, permission
   matrix, notification catalog and traceability matrix.
 - Product requirements, user stories, success metrics and glossary.
