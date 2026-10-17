@@ -36,7 +36,9 @@ before starting the manual review. It rejects changed source fields and any prem
 zone, alias, or approval values.
 
 The promotion command skips explicitly rejected rows and refuses any row still marked
-`needs_review`, outside the bbox, or assigned to an unknown zone. Posts need the
+`needs_review`, outside the bbox, or assigned to an unknown zone. The promoter also
+requires valid positive OSM provenance and at least one approved row, so a fully
+rejected review cannot produce an empty location seed. Posts need the
 security-unit pilot list, and model versions must match the inference service lock file.
 It also rejects non-finite bbox values, missing OSM provenance, and duplicate OSM elements;
 any review error prevents the output seed from being written. Review and promoted CSV

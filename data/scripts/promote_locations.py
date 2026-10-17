@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import math
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -17,6 +18,8 @@ from osm_locations import REVIEW_FIELDS, parse_bbox
 LOCATION_FIELDS = ("slug", "name", "zone_slug", "kind", "lat", "lng", "aliases")
 ZONE_FIELDS = ("slug", "name", "centroid_lat", "centroid_lng")
 KINDS = {"building", "outdoor", "facility", "transport", "parking"}
+OSM_TYPES = {"node", "way", "relation"}
+OSM_ID_RE = re.compile(r"^[1-9][0-9]*$")
 
 
 def read_review(path: Path) -> list[dict[str, str]]:
@@ -96,11 +99,15 @@ def promote_rows(
         if slug in seen_slugs:
             errors.append(f"{slug}: duplicate slug")
         seen_slugs.add(slug)
-        if not osm_type or not osm_id:
-            errors.append(f"{slug or '<blank>'}: OSM provenance cannot be blank")
-        elif osm_key in seen_osm_keys:
+        if osm_type not in OSM_TYPES:
+            errors.append(f"{slug or '<blank>'}: invalid OSM type {osm_type!r}")
+        valid_osm_id = OSM_ID_RE.fullmatch(osm_id) is not None
+        if not valid_osm_id:
+            errors.append(f"{slug or '<blank>'}: OSM id must be a positive integer")
+        if osm_type in OSM_TYPES and valid_osm_id and osm_key in seen_osm_keys:
             errors.append(f"{slug or '<blank>'}: duplicate OSM element {osm_type}/{osm_id}")
-        seen_osm_keys.add(osm_key)
+        if osm_type in OSM_TYPES and valid_osm_id:
+            seen_osm_keys.add(osm_key)
         if not name:
             errors.append(f"{slug or '<blank>'}: name cannot be blank")
         if zone_slug not in zones:
@@ -120,6 +127,8 @@ def promote_rows(
                 "aliases": normalize_aliases(row["aliases"], name),
             }
         )
+    if not output:
+        errors.append("review must approve at least one location")
     if errors:
         return [], errors
     return sorted(output, key=lambda row: row["slug"]), []

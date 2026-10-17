@@ -42,3 +42,4 @@ All notable changes to this project are recorded here. The format follows
 - Added a cross-item perceptual-hash gate for visually near-identical private images.
 - Hardened evaluation split verification against edits that change stratum allocation.
 - Added a private two-annotator label agreement checker with aggregate Cohen's kappa.
+- Hardened reviewed-location promotion against empty output and invalid OSM provenance.

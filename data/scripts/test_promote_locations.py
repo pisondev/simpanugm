@@ -77,6 +77,23 @@ class LocationPromotionTests(unittest.TestCase):
         self.assertEqual(promoted, [])
         self.assertTrue(any("duplicate OSM element way/12" in error for error in errors))
 
+    def test_rejects_invalid_osm_provenance(self) -> None:
+        rows = self.approved_rows()
+        rows[0]["osm_type"] = "invalid"
+        rows[1]["osm_id"] = "not-a-number"
+        promoted, errors = promote_rows(rows, self.ZONES, self.BBOX)
+        self.assertEqual(promoted, [])
+        self.assertTrue(any("invalid OSM type" in error for error in errors))
+        self.assertTrue(any("OSM id must be a positive integer" in error for error in errors))
+
+    def test_rejects_review_with_no_approved_locations(self) -> None:
+        rows = self.approved_rows()
+        for row in rows:
+            row["review_status"] = "rejected"
+        promoted, errors = promote_rows(rows, self.ZONES, self.BBOX)
+        self.assertEqual(promoted, [])
+        self.assertIn("review must approve at least one location", errors)
+
     def test_output_has_seed_columns(self) -> None:
         promoted, errors = promote_rows(self.approved_rows(), self.ZONES, self.BBOX)
         self.assertEqual(errors, [])

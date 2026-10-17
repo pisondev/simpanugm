@@ -87,3 +87,5 @@
   allocation for a parent-category and distinctiveness group.
 - Added a private two-annotator agreement checker that reports aggregate Cohen's kappa
   without copying label sheets or participant data into the repository.
+- Hardened location promotion to require valid OSM provenance and at least one approved
+  location before writing a production seed.
