@@ -57,3 +57,4 @@ All notable changes to this project are recorded here. The format follows
   private source dataset directory.
 - Made seed foundation checks reject partial deferred seed files before complete-mode
   validation is explicitly requested.
+- Made manifest publication print the dataset SHA-256 for reproducible handoff records.

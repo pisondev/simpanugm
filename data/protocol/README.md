@@ -129,8 +129,9 @@ python3 data/scripts/publish_manifest.py \
   --output data/eval/manifest.json
 ```
 
-Commit `data/eval/manifest.json` together with the updated manifest hash in its dataset
-card. Use `--replace` only when publishing a reviewed new dataset version.
+The command prints the manifest SHA-256. Copy that value into the dataset card, then
+commit `data/eval/manifest.json` together with the updated manifest hash. Use `--replace`
+only when publishing a reviewed new dataset version.
 
 Run the quality gate after manifest verification:
 

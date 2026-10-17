@@ -109,3 +109,5 @@
   the source dataset directory.
 - Made foundation seed checks reject partial additions of deferred complete-seed files
   until the explicit complete-mode bbox gate is used.
+- Made manifest publication print the final SHA-256 needed for the dataset card and
+  reproducible evaluation records.

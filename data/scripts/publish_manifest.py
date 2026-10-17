@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 
 from check_manifest import check_manifest
+from intake import sha256_file
 
 
 class ManifestPublishError(ValueError):
@@ -75,6 +76,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
     print(f"Published manifest: {output}")
+    print(f"Manifest SHA-256: {sha256_file(output)}")
     return 0
 
 

@@ -47,8 +47,8 @@ local-only; Drive authentication and synchronization remain outside the reposito
 
 After the private review and v1 freeze, publish only that validated manifest with
 `data/scripts/publish_manifest.py`. The command copies no images, descriptions, or other
-private files into the repository and refuses to replace an existing manifest unless
-`--replace` is supplied explicitly.
+private files into the repository, prints the manifest SHA-256 for the dataset card, and
+refuses to replace an existing manifest unless `--replace` is supplied explicitly.
 
 The quality gate also verifies that each item has at least two finder photos, that the
 owner-photo label agrees with the presence of an owner photo, and that normalized
