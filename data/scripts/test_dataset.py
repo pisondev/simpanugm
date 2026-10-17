@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from check_dataset import validate_dataset
+from check_dataset import read_items, read_labels, validate_dataset
 from intake import intake_dataset
 
 
@@ -130,6 +130,28 @@ class DatasetQualityTests(unittest.TestCase):
             intake_dataset(source, output, "trial-1")
             errors = validate_dataset(output, SEED_DIR, expected_count=2)
             self.assertTrue(any("finder_description duplicates I001" in error for error in errors))
+
+    def test_metadata_readers_reject_short_and_extra_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            items_path = root / "items.csv"
+            items_path.write_text(
+                "item_id,item_name,owner_description,finder_description\nI001,botol\n",
+                encoding="utf-8",
+            )
+            labels_path = root / "labels.csv"
+            labels_path.write_text(
+                ",".join(LABEL_FIELDS) + "\n"
+                + ",".join(["I001"] + [""] * len(LABEL_FIELDS))
+                + "\n",
+                encoding="utf-8",
+            )
+
+            _, item_errors = read_items(items_path)
+            _, label_errors = read_labels(labels_path)
+
+            self.assertIn("items.csv: row 2 has missing or extra fields", item_errors)
+            self.assertIn("labels.csv: row 2 has missing or extra fields", label_errors)
 
 
 if __name__ == "__main__":

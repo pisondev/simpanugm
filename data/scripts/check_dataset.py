@@ -27,25 +27,36 @@ def text_digest(value: str) -> str:
     return hashlib.sha256(normalize_text(value).encode("utf-8")).hexdigest()
 
 
-def read_items(path: Path) -> tuple[list[dict[str, str]], list[str]]:
+def _read_metadata_rows(
+    path: Path,
+    required_fields: tuple[str, ...],
+    label: str,
+) -> tuple[list[dict[str, str]], list[str]]:
     if not path.is_file():
         return [], [f"missing metadata file: {path.name}"]
-    with path.open(newline="", encoding="utf-8") as handle:
-        reader = csv.DictReader(handle)
-        fields = tuple(reader.fieldnames or ())
-        missing = [field for field in ITEM_FIELDS if field not in fields]
-        if missing:
-            return [], [f"items.csv missing columns: {', '.join(missing)}"]
-        rows = list(reader)
+    try:
+        with path.open(newline="", encoding="utf-8") as handle:
+            reader = csv.DictReader(handle)
+            fields = tuple(reader.fieldnames or ())
+            missing = [field for field in required_fields if field not in fields]
+            if missing:
+                return [], [f"{label} missing columns: {', '.join(missing)}"]
+            rows: list[dict[str, str]] = []
+            for line_number, row in enumerate(reader, start=2):
+                if None in row or any(value is None for value in row.values()):
+                    return [], [f"{path.name}: row {line_number} has missing or extra fields"]
+                rows.append(row)
+    except (OSError, csv.Error, UnicodeError) as exc:
+        return [], [f"{path.name}: cannot read metadata: {exc}"]
     return rows, []
+
+
+def read_items(path: Path) -> tuple[list[dict[str, str]], list[str]]:
+    return _read_metadata_rows(path, ITEM_FIELDS, "items.csv")
 
 
 def read_labels(path: Path) -> tuple[list[dict[str, str]], list[str]]:
-    if not path.is_file():
-        return [], [f"missing metadata file: {path.name}"]
-    with path.open(newline="", encoding="utf-8") as handle:
-        rows = list(csv.DictReader(handle))
-    return rows, []
+    return _read_metadata_rows(path, ("item_id",), "labels.csv")
 
 
 def image_files(dataset_dir: Path, item_id: str, kind: str) -> list[Path]:

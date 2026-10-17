@@ -147,3 +147,5 @@
   agreement and final-review checks.
 - Hardened location review and promotion readers to reject malformed CSV rows before
   provenance or zone checks.
+- Hardened prepared-dataset metadata readers to reject malformed item and label rows
+  before content checks.

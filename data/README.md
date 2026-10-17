@@ -86,6 +86,9 @@ them; the corresponding validators reject aliased roots as well.
 The same output-root guard protects OSM review exports, promoted location seeds, review
 summaries, agreement reports, evaluation splits, and synthetic fixture regeneration.
 
+Prepared-dataset metadata readers reject rows with missing or extra fields before the
+content quality checks run.
+
 Reference analytics views are documented in [`analytics/README.md`](analytics/README.md)
 and defined in [`analytics/views.sql`](analytics/views.sql). They are reviewed SQL, not
 application migrations.
