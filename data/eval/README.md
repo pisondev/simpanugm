@@ -19,6 +19,11 @@ The Sprint 0 trial preparation is kept in [`data/protocol/`](../protocol/). Comp
 consent forms, photographs, descriptions, and review logs stay in the private team Drive
 and are never committed to git.
 
+The intake pipeline writes `manifest.json` with each prepared file's relative path, byte
+size, SHA-256, and kind. It strips EXIF metadata and normalizes accepted image names
+before hashing. Run `data/scripts/check_manifest.py` after intake and before a dataset
+freeze.
+
 ## Contents at freeze
 
 | Part | Target |

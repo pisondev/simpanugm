@@ -12,3 +12,5 @@
   output focused.
 - Added the Sprint 0 collection protocol, consent draft, mock identity-card specification,
   20-item label template, and trial-label validator.
+- Added private-dataset intake and manifest verification with EXIF stripping, filename
+  normalization, SHA-256 hashes, and tamper detection.

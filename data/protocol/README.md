@@ -22,3 +22,18 @@ python3 data/scripts/check_trial.py --input /path/to/labels.csv
 The template is intentionally incomplete and must not be treated as a dataset. The
 validator only checks label structure and allowed values; it does not replace the
 manual consent, photo, description, privacy, and quality review.
+
+After the trial files are collected outside the repository, prepare them into a private
+dataset directory:
+
+```text
+python3 data/scripts/intake.py \
+  --source /private/simpanugm-eval/raw \
+  --output /private/simpanugm-eval/v1 \
+  --version trial-1
+python3 data/scripts/check_manifest.py \
+  --dataset-dir /private/simpanugm-eval/v1
+```
+
+The intake requires Pillow from `data/scripts/requirements.txt`. It refuses to write into
+a non-empty destination and never deletes an existing dataset.
