@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Project plan, team charter, risk register and definition of done.
 - UX, engineering and operations guides: information architecture, UI guidelines, tech
   stack, repository structure, coding standards, testing strategy, local development,
   deployment, observability and runbook.
