@@ -34,7 +34,7 @@ def validate_review(
         return [f"cannot read raw Overpass response: {exc}"]
 
     try:
-        expected_rows = review_rows(raw_document)
+        expected_rows = review_rows(raw_document, bbox)
         actual_rows = read_review(review_path)
     except (OSError, csv.Error, ValueError) as exc:
         return [f"cannot read location review: {exc}"]
