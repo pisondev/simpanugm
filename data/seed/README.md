@@ -35,6 +35,9 @@ The seed checker supports an explicit complete-mode check once those files are a
 that mode validates file schemas, cross-file references, weekday opening hours, and the
 one-active-version-per-component rule instead of checking file presence only.
 
+The complete handoff sequence and evidence checklist is in
+[`data/protocol/seed-review-checklist.md`](../protocol/seed-review-checklist.md).
+
 Run the foundation check from the repository root:
 
 ```text

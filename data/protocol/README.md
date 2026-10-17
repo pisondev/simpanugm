@@ -10,6 +10,8 @@ It contains no participant data, photographs, or identity documents.
 - [`mock-identity-card.md`](mock-identity-card.md): production rules for fictitious
   identity-card props.
 - [`trial-20-items.md`](trial-20-items.md): collection and review checklist.
+- [`seed-review-checklist.md`](seed-review-checklist.md): handoff checklist for the
+  deferred campus and inference seed files.
 - [`trial-intake-template.csv`](trial-intake-template.csv): blank label template for
   `I001` through `I020`.
 

@@ -32,3 +32,5 @@
 - Added canonical reference analytics materialized-view SQL for daily reports, hourly
   patterns, return times, and match outcomes, with concurrent-refresh indexes and
   suppression delegated to the API query layer.
+- Added a no-placeholder handoff checklist for the deferred zone, location, security
+  post, and model-version seed files.
