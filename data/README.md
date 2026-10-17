@@ -88,6 +88,12 @@ paraphrase queries. The expected counts can be lowered for a local trial fixture
 These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts
 by natural key and never deletes.
 
+Run `python3 data/scripts/check.py --require-complete` after all four deferred seed files
+are reviewed. In complete mode the checker validates CSV/YAML shape, zone and location
+references, post opening-hour intervals, and the eight model components with exactly one
+active version each. Until the reviewed files exist, the command reports the four
+expected missing-file errors.
+
 | File | Format | Columns or keys |
 |---|---|---|
 | `zones.csv` | CSV, UTF-8, header | `slug`, `name`, `centroid_lat`, `centroid_lng` |

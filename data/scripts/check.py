@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import math
 import re
 import sys
 from pathlib import Path
@@ -28,6 +29,21 @@ COMPLETE_FILES = ("zones.csv", "locations.csv", "posts.yaml", "model_versions.ya
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 SENSITIVITIES = {"normal", "valuable", "identity"}
+ZONE_FIELDS = ("slug", "name", "centroid_lat", "centroid_lng")
+LOCATION_FIELDS = ("slug", "name", "zone_slug", "kind", "lat", "lng", "aliases")
+WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+TIME_RE = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+LOCATION_KINDS = {"building", "outdoor", "facility", "transport", "parking"}
+MODEL_COMPONENTS = {
+    "image_encoder",
+    "xmodal_text_encoder",
+    "text_encoder",
+    "ocr",
+    "category_classifier",
+    "colour_extractor",
+    "brand_matcher",
+    "fusion",
+}
 
 
 class ValidationError(ValueError):
@@ -221,6 +237,171 @@ def validate_settings(path: Path) -> None:
         raise ValidationError("settings.yaml: email_quiet_hours must match the documented WIB default")
 
 
+def parse_coordinate(value: str, field: str) -> float:
+    try:
+        result = float(value)
+    except ValueError as exc:
+        raise ValidationError(f"{field} must be numeric: {value!r}") from exc
+    if not math.isfinite(result):
+        raise ValidationError(f"{field} must be finite: {value!r}")
+    return result
+
+
+def validate_zones(path: Path) -> set[str]:
+    rows = read_csv(path, ZONE_FIELDS)
+    slugs = [row["slug"].strip() for row in rows]
+    if len(set(slugs)) != len(slugs):
+        raise ValidationError(f"{path}: zone slugs must be unique")
+    if set(slugs) != {"saintek", "soshum", "agro", "medika", "pusat"}:
+        raise ValidationError(f"{path}: must contain the five documented campus zones")
+    for row in rows:
+        slug = row["slug"].strip()
+        if not SLUG_RE.fullmatch(slug) or not row["name"].strip():
+            raise ValidationError(f"{path}: invalid zone row for {slug!r}")
+        lat = parse_coordinate(row["centroid_lat"], f"{slug}.centroid_lat")
+        lng = parse_coordinate(row["centroid_lng"], f"{slug}.centroid_lng")
+        if not -90 <= lat <= 90 or not -180 <= lng <= 180:
+            raise ValidationError(f"{path}: coordinates out of range for {slug}")
+    return set(slugs)
+
+
+def validate_locations(path: Path, zone_slugs: set[str]) -> set[str]:
+    rows = read_csv(path, LOCATION_FIELDS)
+    slugs = [row["slug"].strip() for row in rows]
+    if len(set(slugs)) != len(slugs):
+        raise ValidationError(f"{path}: location slugs must be unique")
+    for row in rows:
+        slug = row["slug"].strip()
+        name = " ".join(row["name"].split())
+        zone_slug = row["zone_slug"].strip()
+        kind = row["kind"].strip()
+        if not SLUG_RE.fullmatch(slug) or not name:
+            raise ValidationError(f"{path}: invalid location row for {slug!r}")
+        if zone_slug not in zone_slugs:
+            raise ValidationError(f"{path}: {slug} references unknown zone {zone_slug!r}")
+        if kind not in LOCATION_KINDS:
+            raise ValidationError(f"{path}: {slug} has invalid kind {kind!r}")
+        lat = parse_coordinate(row["lat"], f"{slug}.lat")
+        lng = parse_coordinate(row["lng"], f"{slug}.lng")
+        if not -90 <= lat <= 90 or not -180 <= lng <= 180:
+            raise ValidationError(f"{path}: coordinates out of range for {slug}")
+        aliases = [alias.strip() for alias in row["aliases"].split(";") if alias.strip()]
+        if len({alias.casefold() for alias in aliases}) != len(aliases):
+            raise ValidationError(f"{path}: duplicate aliases for {slug}")
+        if name.casefold() in {alias.casefold() for alias in aliases}:
+            raise ValidationError(f"{path}: location name repeated in aliases for {slug}")
+    return set(slugs)
+
+
+def parse_time(value: Any, field: str) -> int:
+    if not isinstance(value, str) or not TIME_RE.fullmatch(value):
+        raise ValidationError(f"{field} must be HH:MM")
+    hour, minute = (int(part) for part in value.split(":"))
+    return hour * 60 + minute
+
+
+def validate_posts(path: Path, location_slugs: set[str]) -> None:
+    document = load_yaml(path)
+    if not isinstance(document, list) or not document:
+        raise ValidationError(f"{path}: expected a non-empty YAML list")
+    seen: set[str] = set()
+    for post in document:
+        if not isinstance(post, dict):
+            raise ValidationError(f"{path}: every post must be a mapping")
+        required = ("slug", "name", "location_slug", "phone", "opening_hours")
+        missing = [key for key in required if key not in post]
+        if missing:
+            raise ValidationError(f"{path}: post missing {', '.join(missing)}")
+        slug = post["slug"]
+        if not isinstance(slug, str) or not SLUG_RE.fullmatch(slug):
+            raise ValidationError(f"{path}: invalid post slug {slug!r}")
+        if slug in seen:
+            raise ValidationError(f"{path}: duplicate post slug {slug}")
+        seen.add(slug)
+        if not isinstance(post["name"], str) or not post["name"].strip():
+            raise ValidationError(f"{path}: post {slug} needs a name")
+        if post["location_slug"] not in location_slugs:
+            raise ValidationError(f"{path}: post {slug} references unknown location")
+        if not isinstance(post["phone"], str):
+            raise ValidationError(f"{path}: post {slug} phone must be a string")
+        hours = post["opening_hours"]
+        if not isinstance(hours, dict) or set(hours) != set(WEEKDAYS):
+            raise ValidationError(f"{path}: post {slug} opening_hours must contain all weekdays")
+        for weekday in WEEKDAYS:
+            slots = hours[weekday]
+            if not isinstance(slots, list):
+                raise ValidationError(f"{path}: post {slug} {weekday} must be a list")
+            for index, slot in enumerate(slots):
+                if not isinstance(slot, list) or len(slot) != 2:
+                    raise ValidationError(f"{path}: post {slug} {weekday}[{index}] must be [start, end]")
+                start = parse_time(slot[0], f"{path}:{slug}.{weekday}[{index}].start")
+                end = parse_time(slot[1], f"{path}:{slug}.{weekday}[{index}].end")
+                if start >= end:
+                    raise ValidationError(f"{path}: post {slug} {weekday}[{index}] must end after start")
+
+
+def validate_model_versions(path: Path) -> None:
+    document = load_yaml(path)
+    if not isinstance(document, list) or not document:
+        raise ValidationError(f"{path}: expected a non-empty YAML list")
+    names: set[str] = set()
+    components: set[str] = set()
+    active_by_component: dict[str, int] = {}
+    for version in document:
+        if not isinstance(version, dict):
+            raise ValidationError(f"{path}: every model version must be a mapping")
+        required = ("component", "name", "identity", "status")
+        missing = [key for key in required if key not in version]
+        if missing:
+            raise ValidationError(f"{path}: model version missing {', '.join(missing)}")
+        component = version["component"]
+        name = version["name"]
+        status = version["status"]
+        if component not in MODEL_COMPONENTS:
+            raise ValidationError(f"{path}: unknown component {component!r}")
+        if not isinstance(name, str) or not name.strip() or name in names:
+            raise ValidationError(f"{path}: model names must be non-empty and unique")
+        if not isinstance(version["identity"], dict) or not version["identity"]:
+            raise ValidationError(f"{path}: {name} identity must be a non-empty mapping")
+        if status not in {"candidate", "active", "retired"}:
+            raise ValidationError(f"{path}: {name} has invalid status {status!r}")
+        if component == "fusion" and not isinstance(version.get("config"), dict):
+            raise ValidationError(f"{path}: fusion version {name} needs a config mapping")
+        names.add(name)
+        components.add(component)
+        if status == "active":
+            active_by_component[component] = active_by_component.get(component, 0) + 1
+    if components != MODEL_COMPONENTS:
+        missing = sorted(MODEL_COMPONENTS - components)
+        raise ValidationError(f"{path}: missing model components: {', '.join(missing)}")
+    invalid_active = sorted(component for component in MODEL_COMPONENTS if active_by_component.get(component) != 1)
+    if invalid_active:
+        raise ValidationError(f"{path}: exactly one active version required for: {', '.join(invalid_active)}")
+
+
+def validate_complete_seed_dir(seed_dir: Path) -> list[str]:
+    errors: list[str] = []
+    try:
+        zones = validate_zones(seed_dir / "zones.csv")
+    except (OSError, ValidationError) as exc:
+        errors.append(str(exc))
+        zones = set()
+    try:
+        locations = validate_locations(seed_dir / "locations.csv", zones)
+    except (OSError, ValidationError) as exc:
+        errors.append(str(exc))
+        locations = set()
+    try:
+        validate_posts(seed_dir / "posts.yaml", locations)
+    except (OSError, ValidationError) as exc:
+        errors.append(str(exc))
+    try:
+        validate_model_versions(seed_dir / "model_versions.yaml")
+    except (OSError, ValidationError) as exc:
+        errors.append(str(exc))
+    return errors
+
+
 def validate_seed_dir(seed_dir: Path, require_complete: bool = False) -> list[str]:
     errors: list[str] = []
     for filename in STATIC_FILES:
@@ -240,9 +421,10 @@ def validate_seed_dir(seed_dir: Path, require_complete: bool = False) -> list[st
         errors.append(str(exc))
 
     if require_complete:
-        for filename in COMPLETE_FILES:
-            if not (seed_dir / filename).is_file():
-                errors.append(f"missing complete-seed file: {filename}")
+        missing = [filename for filename in COMPLETE_FILES if not (seed_dir / filename).is_file()]
+        errors.extend(f"missing complete-seed file: {filename}" for filename in missing)
+        if not missing:
+            errors.extend(validate_complete_seed_dir(seed_dir))
     return errors
 
 

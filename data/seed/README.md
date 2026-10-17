@@ -31,7 +31,9 @@ python3 data/scripts/promote_locations.py \
 The promotion command skips explicitly rejected rows and refuses any row still marked
 `needs_review`, outside the bbox, or assigned to an unknown zone. Posts need the
 security-unit pilot list, and model versions must match the inference service lock file.
-The seed checker supports an explicit complete-mode check once those files are available.
+The seed checker supports an explicit complete-mode check once those files are available;
+that mode validates file schemas, cross-file references, weekday opening hours, and the
+one-active-version-per-component rule instead of checking file presence only.
 
 Run the foundation check from the repository root:
 
