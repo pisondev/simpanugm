@@ -8,7 +8,14 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
 
-from check import ValidationError, flatten_categories, parse_bbox as parse_seed_bbox, validate_seed_dir
+from check import (
+    ValidationError,
+    flatten_categories,
+    parse_bbox as parse_seed_bbox,
+    validate_brands,
+    validate_seed_dir,
+    validate_synonyms,
+)
 from check_trial import FIELDS, validate_trial
 from osm_locations import (
     REVIEW_FIELDS,
@@ -154,6 +161,26 @@ class SeedCheckTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(ValidationError, "retention_days must be a positive integer"):
             flatten_categories(document)
+
+    def test_brand_aliases_reject_normalized_collisions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "brands.csv"
+            path.write_text(
+                "name,aliases\nApple,apple;phone\nOther,OTHER; PHONE \n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValidationError, "normalized brand key"):
+                validate_brands(path)
+
+    def test_synonym_terms_reject_case_and_spacing_collisions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "synonyms.csv"
+            path.write_text(
+                "term,expansion\nHP,ponsel\nhp  ,handphone\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValidationError, "unique after normalization"):
+                validate_synonyms(path)
 
 
 class OsmLocationTests(unittest.TestCase):

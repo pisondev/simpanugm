@@ -8,6 +8,7 @@ import csv
 import math
 import re
 import sys
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -205,24 +206,56 @@ def validate_compatibility(path: Path, leaves: set[str]) -> None:
             raise ValidationError(f"{path}: factor must be between 0 and 1")
 
 
+def normalize_lookup(value: str) -> str:
+    """Normalize seed lookup keys the same way user-facing matching does."""
+    return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
+
+
 def validate_brands(path: Path) -> None:
     rows = read_csv(path, ("name", "aliases"))
-    names = [row["name"] for row in rows]
-    if len(set(names)) != len(names):
-        raise ValidationError(f"{path}: brand names must be unique")
+    owners: dict[str, str] = {}
     for row in rows:
         if not row["name"].strip() or not row["aliases"].strip():
             raise ValidationError(f"{path}: brand names and aliases cannot be blank")
+        name = row["name"].strip()
+        name_key = normalize_lookup(name)
+        if not name_key:
+            raise ValidationError(f"{path}: brand names cannot be blank after normalization")
+        keys = {name_key}
+        alias_keys: set[str] = set()
+        for raw_alias in row["aliases"].split(";"):
+            alias = raw_alias.strip()
+            if not alias:
+                raise ValidationError(f"{path}: brand aliases cannot contain blank entries")
+            alias_key = normalize_lookup(alias)
+            if not alias_key:
+                raise ValidationError(f"{path}: brand aliases cannot be blank after normalization")
+            if alias_key in alias_keys:
+                raise ValidationError(f"{path}: duplicate normalized brand alias for {name}")
+            if alias_key in keys and alias_key != name_key:
+                raise ValidationError(f"{path}: duplicate normalized brand alias for {name}")
+            alias_keys.add(alias_key)
+            keys.add(alias_key)
+        for key in keys:
+            owner = owners.get(key)
+            if owner is not None and owner != name:
+                raise ValidationError(
+                    f"{path}: normalized brand key {key!r} is shared by {owner!r} and {name!r}"
+                )
+            owners[key] = name
 
 
 def validate_synonyms(path: Path) -> None:
     rows = read_csv(path, ("term", "expansion"))
-    terms = [row["term"] for row in rows]
-    if len(set(terms)) != len(terms):
-        raise ValidationError(f"{path}: synonym terms must be unique")
+    terms: dict[str, str] = {}
     for row in rows:
         if not row["term"].strip() or not row["expansion"].strip():
             raise ValidationError(f"{path}: terms and expansions cannot be blank")
+        term = row["term"].strip()
+        normalized_term = normalize_lookup(term)
+        if normalized_term in terms:
+            raise ValidationError(f"{path}: synonym terms must be unique after normalization")
+        terms[normalized_term] = term
 
 
 def validate_settings(path: Path) -> None:

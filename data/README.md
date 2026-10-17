@@ -45,6 +45,8 @@ silently read data from outside the checkout.
 Category validation requires non-empty parent and leaf names, positive parent ordering,
 non-empty text prompts and question fields, boolean question requirements, and positive
 optional retention overrides.
+Brand names and aliases are checked case-insensitively with normalized whitespace, and
+synonym terms use the same normalized uniqueness rule to prevent ambiguous lookup keys.
 
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 

@@ -71,3 +71,5 @@ All notable changes to this project are recorded here. The format follows
   validators, keeping all collection roots tied to the requested directory.
 - Tightened category-seed validation for empty trees, field types, prompt/question text,
   and optional positive retention overrides.
+- Rejected normalized collisions between brand names/aliases and between synonym terms,
+  preventing ambiguous master-data lookups.
