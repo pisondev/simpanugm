@@ -23,6 +23,7 @@ rows can become `locations.csv`:
 ```text
 python3 data/scripts/promote_locations.py \
   --input /private/simpanugm-locations/locations-review.csv \
+  --raw /private/simpanugm-locations/overpass.json \
   --zones data/seed/zones.csv \
   --output /private/simpanugm-locations/locations.csv \
   --bbox SOUTH,WEST,NORTH,EAST
@@ -35,8 +36,10 @@ Run `data/scripts/check_location_review.py` against the saved response and gener
 before starting the manual review. It rejects changed source fields and any premature
 zone, alias, or approval values.
 
-The promotion command skips explicitly rejected rows and refuses any row still marked
-`needs_review`, outside the bbox, or assigned to an unknown zone. The promoter also
+The promotion command requires the saved raw Overpass response and rechecks every source
+field before applying human-reviewed status, aliases, and zones. It skips explicitly
+rejected rows and refuses any row still marked `needs_review`, outside the bbox, or
+assigned to an unknown zone. The promoter also
 requires valid positive OSM provenance and at least one approved row, so a fully
 rejected review cannot produce an empty location seed. Posts need the
 security-unit pilot list, and model versions must match the inference service lock file.

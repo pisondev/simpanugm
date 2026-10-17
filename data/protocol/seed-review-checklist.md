@@ -57,6 +57,7 @@ placeholders and do not include participant data.
   ```text
   python3 data/scripts/promote_locations.py \
     --input /private/simpanugm-locations/locations-review.csv \
+    --raw /private/simpanugm-locations/overpass.json \
     --zones data/seed/zones.csv \
     --output /private/simpanugm-locations/locations.csv \
     --bbox SOUTH,WEST,NORTH,EAST

@@ -12,6 +12,7 @@ import tempfile
 from pathlib import Path
 
 from check import SLUG_RE, ValidationError, read_csv
+from check_location_review import validate_provenance
 from osm_locations import REVIEW_FIELDS, parse_bbox
 
 
@@ -162,6 +163,7 @@ def write_locations(path: Path, rows: list[dict[str, str]]) -> None:
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True, help="human-reviewed locations CSV")
+    parser.add_argument("--raw", type=Path, required=True, help="saved raw Overpass JSON used for provenance")
     parser.add_argument("--zones", type=Path, required=True, help="approved zones.csv")
     parser.add_argument("--output", type=Path, required=True, help="locations.csv to write")
     parser.add_argument("--bbox", type=parse_bbox, required=True, help="south,west,north,east")
@@ -171,6 +173,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     try:
+        provenance_errors = validate_provenance(args.raw, args.input, args.bbox)
+        if provenance_errors:
+            for error in provenance_errors:
+                print(f"ERROR: {error}", file=sys.stderr)
+            return 1
         rows = read_review(args.input)
         zones = read_zone_slugs(args.zones)
         promoted, errors = promote_rows(rows, zones, args.bbox)

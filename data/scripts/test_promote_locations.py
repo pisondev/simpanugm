@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from promote_locations import LOCATION_FIELDS, promote_rows, write_locations
+from promote_locations import LOCATION_FIELDS, main, promote_rows, write_locations
 
 
 class LocationPromotionTests(unittest.TestCase):
@@ -111,6 +111,23 @@ class LocationPromotionTests(unittest.TestCase):
                 with self.assertRaises(OSError):
                     write_locations(output, [])
             self.assertEqual(output.read_text(encoding="utf-8"), "keep\n")
+
+    def test_cli_blocks_promotion_when_raw_provenance_drifted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with patch("promote_locations.validate_provenance", return_value=["source drift"]):
+                result = main(
+                    [
+                        "--input", str(root / "review.csv"),
+                        "--raw", str(root / "overpass.json"),
+                        "--zones", str(root / "zones.csv"),
+                        "--output", str(root / "locations.csv"),
+                        "--bbox", "-7.80,110.35,-7.74,110.41",
+                    ]
+                )
+
+            self.assertEqual(result, 1)
+            self.assertFalse((root / "locations.csv").exists())
 
 
 if __name__ == "__main__":

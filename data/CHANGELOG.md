@@ -115,3 +115,5 @@
   reading private files.
 - Hardened seed validation against symlink roots and seed files that could redirect checks
   outside the repository checkout.
+- Bound location promotion to the saved raw Overpass response so approved review fields
+  cannot detach from their source OSM element.

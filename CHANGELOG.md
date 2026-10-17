@@ -60,3 +60,4 @@ All notable changes to this project are recorded here. The format follows
 - Made manifest publication print the dataset SHA-256 for reproducible handoff records.
 - Hardened private manifest checks against symlink dataset roots and manifest files.
 - Hardened seed validation against symlink roots and files outside the checkout.
+- Required location promotion to recheck provenance against the saved raw Overpass response.
