@@ -1,7 +1,10 @@
 import unittest
+import json
+import tempfile
 from pathlib import Path
 
 from check import flatten_categories, validate_seed_dir
+from osm_locations import REVIEW_FIELDS, review_rows, write_rows
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -32,6 +35,50 @@ class SeedCheckTests(unittest.TestCase):
         self.assertEqual(len(leaves), 36)
         self.assertIn("ktm", leaves)
         self.assertIn("tumbler", leaves)
+
+
+class OsmLocationTests(unittest.TestCase):
+    def test_review_rows_use_centres_and_leave_review_fields_empty(self) -> None:
+        rows = review_rows(
+            {
+                "elements": [
+                    {
+                        "type": "way",
+                        "id": 12,
+                        "center": {"lat": -7.77012345, "lon": 110.37876543},
+                        "tags": {"name": "Perpustakaan Pusat", "amenity": "library"},
+                    },
+                    {
+                        "type": "node",
+                        "id": 13,
+                        "lat": -7.771,
+                        "lon": 110.379,
+                        "tags": {"name": "Perpustakaan Pusat", "amenity": "library"},
+                    },
+                    {"type": "node", "id": 14, "tags": {"amenity": "parking"}},
+                ]
+            }
+        )
+        self.assertEqual([row["slug"] for row in rows], ["perpustakaan-pusat", "perpustakaan-pusat-2"])
+        self.assertEqual(rows[0]["kind"], "facility")
+        self.assertEqual(rows[0]["zone_slug"], "")
+        self.assertEqual(rows[0]["review_status"], "needs_review")
+
+    def test_review_csv_has_stable_columns(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "locations-review.csv"
+            write_rows(output, review_rows({"elements": []}))
+            self.assertEqual(output.read_text(encoding="utf-8").splitlines()[0], ",".join(REVIEW_FIELDS))
+
+    def test_review_rows_ignore_duplicate_osm_elements(self) -> None:
+        element = {
+            "type": "node",
+            "id": 15,
+            "lat": -7.77,
+            "lon": 110.38,
+            "tags": {"name": "Parkir Utara", "amenity": "parking"},
+        }
+        self.assertEqual(len(review_rows({"elements": [element, json.loads(json.dumps(element))]})), 1)
 
 
 if __name__ == "__main__":

@@ -37,6 +37,17 @@ python3 data/scripts/check.py --require-complete
 
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 
+For the location review, save an Overpass response and run:
+
+```text
+python3 data/scripts/osm_locations.py \
+  --input /path/to/overpass.json \
+  --output /path/to/locations-review.csv
+```
+
+The generated rows have empty `zone_slug` and `aliases`, and carry
+`review_status=needs_review`. They are review material, not production seed data.
+
 ## Seed files
 
 These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts
