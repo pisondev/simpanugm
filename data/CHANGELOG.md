@@ -57,3 +57,5 @@
   collected evaluation images remain outside the repository.
 - Clarified that the private evaluation manifest is committed only after the real intake
   and v1 freeze, so no empty or fabricated hash is published beforehand.
+- Added a dedicated data CI workflow that installs the declared validator dependencies,
+  checks the seed foundation and shared fixtures, and runs all data-script tests.

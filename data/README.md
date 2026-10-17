@@ -49,6 +49,11 @@ The binary image set is deliberately reserved until the API media schema and ima
 analysis contract are implemented. The placeholder README in `fixtures/images/` records
 the same boundary.
 
+The repository data workflow runs the seed check, fixture check, and complete data-script
+test suite on every change under `data/`. Private manifest verification still runs after
+intake in the protected dataset workspace, because the manifest and its files are not in
+Git before the v1 freeze.
+
 Reference analytics views are documented in [`analytics/README.md`](analytics/README.md)
 and defined in [`analytics/views.sql`](analytics/views.sql). They are reviewed SQL, not
 application migrations.

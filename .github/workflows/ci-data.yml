@@ -1,0 +1,41 @@
+name: Data checks
+
+on:
+  push:
+    paths:
+      - "data/**"
+      - ".github/workflows/ci-data.yml"
+  pull_request:
+    paths:
+      - "data/**"
+      - ".github/workflows/ci-data.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate seeds, fixtures, and scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: data/scripts/requirements.txt
+
+      - name: Install data dependencies
+        run: python -m pip install --requirement data/scripts/requirements.txt
+
+      - name: Validate seed foundation
+        run: python data/scripts/check.py
+
+      - name: Validate shared fixtures
+        run: python data/scripts/check_fixtures.py
+
+      - name: Run data tests
+        run: python -m unittest discover -s data/scripts -p 'test_*.py'
