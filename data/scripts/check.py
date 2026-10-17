@@ -74,7 +74,13 @@ def read_csv(path: Path, expected_fields: tuple[str, ...]) -> list[dict[str, str
             raise ValidationError(
                 f"{path}: expected columns {expected_fields}, got {tuple(reader.fieldnames or ())}"
             )
-        rows = list(reader)
+        rows: list[dict[str, str]] = []
+        for line_number, row in enumerate(reader, start=2):
+            if None in row or any(value is None for value in row.values()):
+                raise ValidationError(
+                    f"{path}: row {line_number} must contain exactly {len(expected_fields)} columns"
+                )
+            rows.append(row)
     if not rows:
         raise ValidationError(f"{path}: file must contain at least one row")
     return rows

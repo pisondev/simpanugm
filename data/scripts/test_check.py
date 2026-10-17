@@ -205,6 +205,20 @@ class SeedCheckTests(unittest.TestCase):
 
             self.assertTrue(any("settings.yaml: invalid YAML" in error for error in errors))
 
+    def test_csv_reader_rejects_short_and_extra_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            short_path = Path(directory) / "short.csv"
+            short_path.write_text("name,hex,sort_order\nblack,#000000\n", encoding="utf-8")
+            extra_path = Path(directory) / "extra.csv"
+            extra_path.write_text("name,hex,sort_order\nblack,#000000,1,unexpected\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValidationError, "row 2 must contain exactly 3 columns"):
+                import check
+
+                check.read_csv(short_path, ("name", "hex", "sort_order"))
+            with self.assertRaisesRegex(ValidationError, "row 2 must contain exactly 3 columns"):
+                check.read_csv(extra_path, ("name", "hex", "sort_order"))
+
 
 class OsmLocationTests(unittest.TestCase):
     def test_review_rows_use_centres_and_leave_review_fields_empty(self) -> None:
