@@ -54,10 +54,13 @@ def validate_csv_template(path: Path, fields: tuple[str, ...], count: int) -> li
     except (OSError, csv.Error) as exc:
         return [f"{path.name}: cannot read template: {exc}"]
 
-    ids = [row.get(fields[0], "") for row in rows]
+    ids = [(row.get(fields[0]) or "") for row in rows]
     if ids != expected_ids(path.name, count):
         errors.append(f"{path.name}: IDs must run from {expected_ids(path.name, count)[0]} through {expected_ids(path.name, count)[-1]} in order")
     for index, row in enumerate(rows, start=1):
+        if None in row or any(value is None for value in row.values()):
+            errors.append(f"{path.name}: row {index} must contain exactly {len(fields)} columns")
+            continue
         if any(row.get(field, "") for field in fields[1:]):
             errors.append(f"{path.name}: row {index} must be blank apart from its stable ID")
     return errors

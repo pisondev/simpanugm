@@ -75,7 +75,8 @@ non-empty directory and stages the output so a failed generation leaves no parti
 templates. Fill the CSVs and photos privately, then run `intake.py`; none of these filled
 files belong in git.
 
-Verify a blank full template before data entry:
+Verify a blank full template before data entry; the checker also rejects rows with
+missing or extra CSV fields:
 
 ```text
 python3 data/scripts/check_templates.py \

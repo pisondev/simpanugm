@@ -3,8 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from check_templates import validate_template_dir
-from create_eval_templates import create_templates, create_trial_templates
+from check_templates import validate_csv_template, validate_template_dir
+from create_eval_templates import ITEM_FIELDS, LABEL_FIELDS, create_templates, create_trial_templates
 
 
 class TemplateCheckTests(unittest.TestCase):
@@ -70,6 +70,19 @@ class TemplateCheckTests(unittest.TestCase):
             errors = validate_template_dir(output, "trial", {"items.csv": 3, "labels.csv": 3})
             self.assertIn("unexpected template entry: extra.csv", errors)
             self.assertTrue(any("template images/ must be empty" in error for error in errors))
+
+    def test_template_rejects_short_and_extra_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            short_path = Path(directory) / "items.csv"
+            short_path.write_text(",".join(ITEM_FIELDS) + "\nI001,,\n", encoding="utf-8")
+            extra_path = Path(directory) / "labels.csv"
+            extra_path.write_text(",".join(LABEL_FIELDS) + "\n" + ",".join(["I001"] + [""] * len(LABEL_FIELDS)) + "\n", encoding="utf-8")
+
+            short_errors = validate_csv_template(short_path, ITEM_FIELDS, 1)
+            extra_errors = validate_csv_template(extra_path, LABEL_FIELDS, 1)
+
+            self.assertIn("items.csv: row 1 must contain exactly 4 columns", short_errors)
+            self.assertIn("labels.csv: row 1 must contain exactly 8 columns", extra_errors)
 
     def test_template_check_rejects_symlinked_parent(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
