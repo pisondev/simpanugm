@@ -77,6 +77,8 @@ def copy_metadata(source: Path, destination: Path) -> list[Path]:
         source_file = source / filename
         if not source_file.exists():
             continue
+        if source_file.is_symlink():
+            raise IntakeError(f"metadata file must not be a symlink: {source_file}")
         if not source_file.is_file():
             raise IntakeError(f"metadata path is not a file: {source_file}")
         with source_file.open(newline="", encoding="utf-8") as handle:
@@ -94,9 +96,13 @@ def copy_images(source: Path, destination: Path) -> list[Path]:
     images_root = source / "images"
     if not images_root.is_dir():
         raise IntakeError("source must contain an images/ directory")
+    if images_root.is_symlink():
+        raise IntakeError(f"images/ must not be a symlink: {images_root}")
     copied: list[Path] = []
     output_paths: set[Path] = set()
     for image_path in sorted(path for path in images_root.rglob("*") if path.is_file()):
+        if image_path.is_symlink():
+            raise IntakeError(f"source image must not be a symlink: {image_path}")
         relative = Path("images") / image_path.relative_to(images_root)
         target_relative = canonical_image_path(relative)
         if target_relative in output_paths:
@@ -122,6 +128,8 @@ def manifest_entry(path: Path, root: Path, kind: str) -> dict[str, Any]:
 
 def intake_dataset(source: Path, destination: Path, version: str) -> Path:
     source = source.resolve()
+    if destination.is_symlink():
+        raise IntakeError(f"destination must not be a symlink: {destination}")
     destination = destination.resolve()
     if not source.is_dir():
         raise IntakeError(f"source directory does not exist: {source}")

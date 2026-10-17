@@ -36,3 +36,5 @@
   post, and model-version seed files.
 - Made private dataset intake atomic so invalid source files cannot leave a partial
   prepared dataset directory.
+- Hardened intake and manifest checks against symlink inputs, invalid manifest kinds or
+  paths, malformed hashes, and disabled normalization policy flags.

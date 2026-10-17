@@ -5,16 +5,21 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
 
-from intake import sha256_file
+from intake import IMAGE_RE, ITEM_RE, METADATA_FILES, canonical_image_path, sha256_file
 
 try:
     from PIL import Image
 except ModuleNotFoundError:  # pragma: no cover - exercised by the CLI error path
     Image = None
+
+
+ALLOWED_KINDS = {"metadata", "image"}
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def check_manifest(dataset_dir: Path) -> list[str]:
@@ -33,8 +38,13 @@ def check_manifest(dataset_dir: Path) -> list[str]:
     if not isinstance(document.get("version"), str) or not document["version"]:
         errors.append("manifest.version must be a non-empty string")
     policy = document.get("policy")
-    if not isinstance(policy, dict) or policy.get("exif_stripped") is not True:
-        errors.append("manifest.policy.exif_stripped must be true")
+    if not isinstance(policy, dict):
+        errors.append("manifest.policy must be an object")
+    else:
+        if policy.get("exif_stripped") is not True:
+            errors.append("manifest.policy.exif_stripped must be true")
+        if policy.get("image_names_normalized") is not True:
+            errors.append("manifest.policy.image_names_normalized must be true")
     entries = document.get("files")
     if not isinstance(entries, list) or not entries:
         errors.append("manifest.files must be a non-empty list")
@@ -52,6 +62,8 @@ def check_manifest(dataset_dir: Path) -> list[str]:
             or not relative
             or path_value.is_absolute()
             or ".." in path_value.parts
+            or "\\" in relative
+            or path_value.as_posix() != relative
         ):
             errors.append(f"invalid manifest path: {relative!r}")
             continue
@@ -59,15 +71,44 @@ def check_manifest(dataset_dir: Path) -> list[str]:
             errors.append(f"duplicate manifest path: {relative}")
             continue
         listed.add(relative)
+        kind = entry.get("kind")
+        if kind not in ALLOWED_KINDS:
+            errors.append(f"invalid manifest kind for {relative}: {kind!r}")
+        elif kind == "metadata" and relative not in METADATA_FILES:
+            errors.append(f"invalid metadata manifest path: {relative}")
+        elif kind == "image":
+            try:
+                normalized = canonical_image_path(path_value)
+            except ValueError:
+                errors.append(f"invalid image manifest path: {relative}")
+            else:
+                if normalized != path_value:
+                    errors.append(f"image manifest path is not normalized: {relative}")
+        if kind == "image" and (
+            len(path_value.parts) != 3
+            or path_value.parts[0] != "images"
+            or not ITEM_RE.fullmatch(path_value.parts[1])
+            or IMAGE_RE.fullmatch(path_value.parts[2]) is None
+        ):
+            errors.append(f"invalid image manifest path: {relative}")
         path = dataset_dir / relative
+        if path.is_symlink():
+            errors.append(f"manifest file must not be a symlink: {relative}")
+            continue
         if not path.is_file():
             errors.append(f"manifest file is missing: {relative}")
             continue
-        if entry.get("size") != path.stat().st_size:
+        size = entry.get("size")
+        if type(size) is not int or size < 0:
+            errors.append(f"invalid manifest size: {relative}")
+        elif size != path.stat().st_size:
             errors.append(f"size mismatch: {relative}")
-        if entry.get("sha256") != sha256_file(path):
+        sha256 = entry.get("sha256")
+        if not isinstance(sha256, str) or SHA256_RE.fullmatch(sha256) is None:
+            errors.append(f"invalid manifest sha256: {relative}")
+        elif sha256 != sha256_file(path):
             errors.append(f"sha256 mismatch: {relative}")
-        if entry.get("kind") == "image":
+        if kind == "image":
             if Image is None:
                 errors.append("Pillow is required to check image EXIF metadata")
                 continue

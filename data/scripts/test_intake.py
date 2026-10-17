@@ -71,6 +71,58 @@ class IntakeTests(unittest.TestCase):
                 intake_dataset(source, output, "trial-1")
             self.assertEqual(list(output.iterdir()), [])
 
+    def test_intake_rejects_symlink_image(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            symlink = source / "images" / "I001" / "finder_2.jpg"
+            try:
+                symlink.symlink_to(source / "images" / "I001" / "Finder-01.JPG")
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+            with self.assertRaises(IntakeError):
+                intake_dataset(source, Path(directory) / "prepared", "trial-1")
+
+    def test_manifest_rejects_invalid_kind_and_policy(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            manifest_path = output / "manifest.json"
+            document = json.loads(manifest_path.read_text(encoding="utf-8"))
+            document["policy"]["image_names_normalized"] = False
+            document["files"][0]["kind"] = "other"
+            manifest_path.write_text(json.dumps(document), encoding="utf-8")
+            errors = check_manifest(output)
+            self.assertIn("manifest.policy.image_names_normalized must be true", errors)
+            self.assertTrue(any("invalid manifest kind" in error for error in errors))
+
+    def test_manifest_rejects_non_normalized_path(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            manifest_path = output / "manifest.json"
+            document = json.loads(manifest_path.read_text(encoding="utf-8"))
+            document["files"][0]["path"] = "./items.csv"
+            manifest_path.write_text(json.dumps(document), encoding="utf-8")
+            errors = check_manifest(output)
+            self.assertIn("invalid manifest path: './items.csv'", errors)
+
+    def test_manifest_rejects_symlink_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            image_path = output / "images" / "I001" / "finder_1.jpg"
+            external = Path(directory) / "external.jpg"
+            image_path.unlink()
+            try:
+                image_path.symlink_to(external)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+            errors = check_manifest(output)
+            self.assertTrue(any("must not be a symlink" in error for error in errors))
+
     def test_manifest_detects_tampered_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = self.create_source(directory)

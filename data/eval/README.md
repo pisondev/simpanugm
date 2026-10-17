@@ -22,8 +22,9 @@ and are never committed to git.
 The intake pipeline writes `manifest.json` with each prepared file's relative path, byte
 size, SHA-256, and kind. It strips EXIF metadata and normalizes accepted image names
 before hashing. It stages the output first, so a failed intake does not leave a partial
-dataset directory. Run `data/scripts/check_manifest.py` after intake and before a dataset
-freeze.
+dataset directory. The manifest checker requires normalized image paths, approved file
+kinds, valid hashes, and rejects symlinks. Run `data/scripts/check_manifest.py` after
+intake and before a dataset freeze.
 
 The quality gate also verifies that each item has at least two finder photos, that the
 owner-photo label agrees with the presence of an owner photo, and that descriptions are
