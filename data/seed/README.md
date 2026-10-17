@@ -32,7 +32,8 @@ The promotion command skips explicitly rejected rows and refuses any row still m
 `needs_review`, outside the bbox, or assigned to an unknown zone. Posts need the
 security-unit pilot list, and model versions must match the inference service lock file.
 It also rejects non-finite bbox values, missing OSM provenance, and duplicate OSM elements;
-any review error prevents the output seed from being written.
+any review error prevents the output seed from being written. Review and promoted CSV
+writes are atomic, so a failed write does not replace an existing output with partial data.
 The seed checker supports an explicit complete-mode check once those files are available;
 that mode validates file schemas, cross-file references, weekday opening hours, and the
 one-active-version-per-component rule instead of checking file presence only.

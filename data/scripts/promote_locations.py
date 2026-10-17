@@ -7,6 +7,7 @@ import argparse
 import csv
 import math
 import sys
+import tempfile
 from pathlib import Path
 
 from check import SLUG_RE, ValidationError, read_csv
@@ -125,11 +126,28 @@ def promote_rows(
 
 
 def write_locations(path: Path, rows: list[dict[str, str]]) -> None:
+    if path.is_symlink():
+        raise OSError(f"output must not be a symlink: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=LOCATION_FIELDS)
-        writer.writeheader()
-        writer.writerows(rows)
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            newline="",
+            encoding="utf-8",
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            dir=path.parent,
+            delete=False,
+        ) as handle:
+            temporary_path = Path(handle.name)
+            writer = csv.DictWriter(handle, fieldnames=LOCATION_FIELDS)
+            writer.writeheader()
+            writer.writerows(rows)
+        temporary_path.replace(path)
+    finally:
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

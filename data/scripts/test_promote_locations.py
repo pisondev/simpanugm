@@ -2,6 +2,7 @@ import csv
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from promote_locations import LOCATION_FIELDS, promote_rows, write_locations
 
@@ -84,6 +85,15 @@ class LocationPromotionTests(unittest.TestCase):
             write_locations(output, promoted)
             with output.open(newline="", encoding="utf-8") as handle:
                 self.assertEqual(tuple(csv.DictReader(handle).fieldnames or ()), LOCATION_FIELDS)
+
+    def test_location_write_failure_preserves_existing_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "locations.csv"
+            output.write_text("keep\n", encoding="utf-8")
+            with patch("promote_locations.csv.DictWriter", side_effect=OSError("disk full")):
+                with self.assertRaises(OSError):
+                    write_locations(output, [])
+            self.assertEqual(output.read_text(encoding="utf-8"), "keep\n")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from argparse import ArgumentTypeError
 from pathlib import Path
+from unittest.mock import patch
 
 from check import flatten_categories, validate_seed_dir
 from check_trial import FIELDS, validate_trial
@@ -72,6 +73,15 @@ class OsmLocationTests(unittest.TestCase):
             output = Path(directory) / "locations-review.csv"
             write_rows(output, review_rows({"elements": []}))
             self.assertEqual(output.read_text(encoding="utf-8").splitlines()[0], ",".join(REVIEW_FIELDS))
+
+    def test_review_csv_write_failure_preserves_existing_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "locations-review.csv"
+            output.write_text("keep\n", encoding="utf-8")
+            with patch("osm_locations.csv.DictWriter", side_effect=OSError("disk full")):
+                with self.assertRaises(OSError):
+                    write_rows(output, [])
+            self.assertEqual(output.read_text(encoding="utf-8"), "keep\n")
 
     def test_review_rows_ignore_duplicate_osm_elements(self) -> None:
         element = {
