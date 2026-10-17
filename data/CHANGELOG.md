@@ -125,3 +125,5 @@
   publication before any source or output path is resolved.
 - Extended symlink-parent checks to private template/workspace generation and their
   validators, keeping all collection roots tied to the requested directory.
+- Tightened category-seed validation for empty trees, field types, prompt/question text,
+  and optional positive retention overrides.

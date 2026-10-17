@@ -75,6 +75,8 @@ def read_csv(path: Path, expected_fields: tuple[str, ...]) -> list[dict[str, str
 def flatten_categories(document: Any) -> tuple[set[str], list[dict[str, Any]]]:
     if not isinstance(document, dict) or not isinstance(document.get("parents"), list):
         raise ValidationError("categories.yaml: expected a top-level 'parents' list")
+    if not document["parents"]:
+        raise ValidationError("categories.yaml: parents must contain at least one parent")
 
     leaves: set[str] = set()
     parents: list[dict[str, Any]] = []
@@ -88,6 +90,12 @@ def flatten_categories(document: Any) -> tuple[set[str], list[dict[str, Any]]]:
         slug = parent["slug"]
         if not isinstance(slug, str) or not SLUG_RE.fullmatch(slug):
             raise ValidationError(f"categories.yaml: invalid parent slug {slug!r}")
+        if not isinstance(parent["name"], str) or not parent["name"].strip():
+            raise ValidationError(f"categories.yaml: parent {slug!r} needs a non-empty name")
+        if type(parent["sort_order"]) is not int or parent["sort_order"] < 1:
+            raise ValidationError(
+                f"categories.yaml: parent {slug!r} sort_order must be a positive integer"
+            )
         if slug in parent_slugs:
             raise ValidationError(f"categories.yaml: duplicate parent slug {slug}")
         parent_slugs.add(slug)
@@ -105,15 +113,25 @@ def flatten_categories(document: Any) -> tuple[set[str], list[dict[str, Any]]]:
             child_slug = child["slug"]
             if not isinstance(child_slug, str) or not SLUG_RE.fullmatch(child_slug):
                 raise ValidationError(f"categories.yaml: invalid leaf slug {child_slug!r}")
+            if not isinstance(child["name"], str) or not child["name"].strip():
+                raise ValidationError(f"categories.yaml: leaf {child_slug!r} needs a non-empty name")
             if child_slug in leaves:
                 raise ValidationError(f"categories.yaml: duplicate leaf slug {child_slug}")
             leaves.add(child_slug)
-            if child["sensitivity"] not in SENSITIVITIES:
+            if not isinstance(child["sensitivity"], str) or child["sensitivity"] not in SENSITIVITIES:
                 raise ValidationError(
                     f"categories.yaml: invalid sensitivity for {child_slug}: {child['sensitivity']}"
                 )
             if not isinstance(child["clip_prompts"], list) or not child["clip_prompts"]:
                 raise ValidationError(f"categories.yaml: {child_slug} needs clip prompts")
+            if any(not isinstance(prompt, str) or not prompt.strip() for prompt in child["clip_prompts"]):
+                raise ValidationError(f"categories.yaml: {child_slug} clip prompts must be non-empty strings")
+            if "retention_days" in child and (
+                type(child["retention_days"]) is not int or child["retention_days"] < 1
+            ):
+                raise ValidationError(
+                    f"categories.yaml: {child_slug} retention_days must be a positive integer"
+                )
             questions = child["verification_questions"]
             if not isinstance(questions, list) or not questions:
                 raise ValidationError(f"categories.yaml: {child_slug} needs verification questions")
@@ -124,6 +142,17 @@ def flatten_categories(document: Any) -> tuple[set[str], list[dict[str, Any]]]:
                 for key in ("key", "question", "required", "check_hint"):
                     if key not in question:
                         raise ValidationError(f"categories.yaml: question under {child_slug} missing '{key}'")
+                if any(
+                    not isinstance(question[key], str) or not question[key].strip()
+                    for key in ("key", "question", "check_hint")
+                ):
+                    raise ValidationError(
+                        f"categories.yaml: question under {child_slug} needs non-empty text fields"
+                    )
+                if type(question["required"]) is not bool:
+                    raise ValidationError(
+                        f"categories.yaml: question under {child_slug} required must be boolean"
+                    )
                 if question["key"] in question_keys:
                     raise ValidationError(f"categories.yaml: duplicate question key under {child_slug}")
                 question_keys.add(question["key"])

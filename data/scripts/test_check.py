@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
 
-from check import flatten_categories, parse_bbox as parse_seed_bbox, validate_seed_dir
+from check import ValidationError, flatten_categories, parse_bbox as parse_seed_bbox, validate_seed_dir
 from check_trial import FIELDS, validate_trial
 from osm_locations import (
     REVIEW_FIELDS,
@@ -86,6 +86,74 @@ class SeedCheckTests(unittest.TestCase):
         self.assertEqual(len(leaves), 36)
         self.assertIn("ktm", leaves)
         self.assertIn("tumbler", leaves)
+
+    def test_categories_reject_empty_parent_list(self) -> None:
+        with self.assertRaisesRegex(ValidationError, "parents must contain at least one parent"):
+            flatten_categories({"parents": []})
+
+    def test_categories_reject_non_text_prompts_and_question_fields(self) -> None:
+        document = {
+            "parents": [
+                {
+                    "slug": "elektronik",
+                    "name": "Elektronik",
+                    "sort_order": 1,
+                    "children": [
+                        {
+                            "slug": "ponsel",
+                            "name": "Ponsel",
+                            "sensitivity": "valuable",
+                            "clip_prompts": [""],
+                            "verification_questions": [
+                                {
+                                    "key": "phone_model",
+                                    "question": "Sebutkan model.",
+                                    "required": True,
+                                    "check_hint": "Cocok.",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
+        with self.assertRaisesRegex(ValidationError, "clip prompts must be non-empty strings"):
+            flatten_categories(document)
+
+        document["parents"][0]["children"][0]["clip_prompts"] = ["a phone"]
+        document["parents"][0]["children"][0]["verification_questions"][0]["required"] = "true"
+        with self.assertRaisesRegex(ValidationError, "required must be boolean"):
+            flatten_categories(document)
+
+    def test_categories_reject_invalid_retention_days(self) -> None:
+        document = {
+            "parents": [
+                {
+                    "slug": "identitas",
+                    "name": "Identitas",
+                    "sort_order": 1,
+                    "children": [
+                        {
+                            "slug": "ktm",
+                            "name": "KTM",
+                            "sensitivity": "identity",
+                            "retention_days": 0,
+                            "clip_prompts": ["a student card"],
+                            "verification_questions": [
+                                {
+                                    "key": "identity_name",
+                                    "question": "Sebutkan nama.",
+                                    "required": True,
+                                    "check_hint": "Sesuai.",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
+        with self.assertRaisesRegex(ValidationError, "retention_days must be a positive integer"):
+            flatten_categories(document)
 
 
 class OsmLocationTests(unittest.TestCase):

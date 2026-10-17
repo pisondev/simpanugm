@@ -42,6 +42,10 @@ CI from accepting a partial location, post, or model-version seed without the co
 review and campus bbox. It also rejects symlinked seed roots and files so validation cannot
 silently read data from outside the checkout.
 
+Category validation requires non-empty parent and leaf names, positive parent ordering,
+non-empty text prompts and question fields, boolean question requirements, and positive
+optional retention overrides.
+
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 
 Shared contract fixtures are now available in [`fixtures/`](fixtures/). They contain only
