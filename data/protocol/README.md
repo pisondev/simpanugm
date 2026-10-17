@@ -37,6 +37,17 @@ paraphrase queries, plus an `images/` directory. The generator refuses to write 
 non-empty directory. Fill the CSVs and photos privately, then run `intake.py`; none of
 these filled files belong in git.
 
+To prepare the trial workspace itself, use the trial profile:
+
+```text
+python3 data/scripts/create_eval_templates.py \
+  --profile trial \
+  --output /private/simpanugm-eval/trial-20/raw
+```
+
+The trial profile creates only `items.csv`, `labels.csv`, and `images/`; it does not
+create distractor, duplicate, or query files.
+
 After the trial files are collected outside the repository, prepare them into a private
 dataset directory:
 

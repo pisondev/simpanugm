@@ -85,9 +85,29 @@ def create_templates(
     return created
 
 
+def create_trial_templates(output: Path, item_count: int = 20) -> list[Path]:
+    if item_count < 1:
+        raise TemplateError("trial item count must be positive")
+    if output.exists() and any(output.iterdir()):
+        raise TemplateError(f"output must be empty or absent: {output}")
+    output.mkdir(parents=True, exist_ok=True)
+    templates = {
+        "items.csv": (ITEM_FIELDS, blank_rows("I", item_count, ITEM_FIELDS)),
+        "labels.csv": (LABEL_FIELDS, blank_rows("I", item_count, LABEL_FIELDS)),
+    }
+    created: list[Path] = []
+    for filename, (fields, rows) in templates.items():
+        path = output / filename
+        write_template(path, fields, rows)
+        created.append(path)
+    (output / "images").mkdir()
+    return created
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True, help="private raw dataset directory")
+    parser.add_argument("--profile", choices=("full", "trial"), default="full")
     parser.add_argument("--items", type=int, default=150)
     parser.add_argument("--distractors", type=int, default=400)
     parser.add_argument("--duplicates", type=int, default=40)
@@ -98,13 +118,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     try:
-        created = create_templates(
-            args.output,
-            item_count=args.items,
-            distractor_count=args.distractors,
-            duplicate_count=args.duplicates,
-            query_count=args.queries,
-        )
+        if args.profile == "trial":
+            created = create_trial_templates(args.output, item_count=args.items)
+        else:
+            created = create_templates(
+                args.output,
+                item_count=args.items,
+                distractor_count=args.distractors,
+                duplicate_count=args.duplicates,
+                query_count=args.queries,
+            )
     except (OSError, TemplateError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

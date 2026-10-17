@@ -87,6 +87,9 @@ For the full collection, create the private raw layout with
 `data/scripts/create_eval_templates.py`; it generates stable IDs for all target rows
 without adding any participant data to the repository.
 
+For the Sprint 0 trial, pass `--profile trial` to create only the 20-item workspace
+needed by `check_dataset.py`.
+
 ## Seed files
 
 These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts

@@ -28,3 +28,4 @@
   cross-file references, opening-hour intervals, and active-version uniqueness.
 - Added a safe private-template generator for the 150-item collection and its auxiliary
   metadata, refusing to overwrite non-empty directories.
+- Added a trial profile that creates only the 20-item metadata files and image directory.

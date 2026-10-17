@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from create_eval_templates import TemplateError, create_templates
+from create_eval_templates import TemplateError, create_templates, create_trial_templates
 
 
 class EvaluationTemplateTests(unittest.TestCase):
@@ -40,6 +40,16 @@ class EvaluationTemplateTests(unittest.TestCase):
             (output / "keep.txt").write_text("do not overwrite", encoding="utf-8")
             with self.assertRaises(TemplateError):
                 create_templates(output, item_count=1, distractor_count=1, duplicate_count=1, query_count=1)
+
+    def test_trial_profile_creates_only_trial_files(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "trial"
+            created = create_trial_templates(output, item_count=2)
+            self.assertEqual([path.name for path in created], ["items.csv", "labels.csv"])
+            self.assertEqual(sorted(path.name for path in output.iterdir()), ["images", "items.csv", "labels.csv"])
+            with (output / "labels.csv").open(newline="", encoding="utf-8") as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual([row["item_id"] for row in rows], ["I001", "I002"])
 
 
 if __name__ == "__main__":
