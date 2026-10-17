@@ -106,7 +106,9 @@ python3 data/scripts/check_agreement.py \
 ```
 
 The report contains observed agreement and Cohen's kappa for `leaf_category` and
-`distinctiveness`; label sheets and the report remain outside git.
+`distinctiveness`; label sheets and the report remain outside git. The annotation and
+review-log readers reject rows with missing or extra fields before the final trial gate
+evaluates their statuses.
 
 Prepare those sheets and the trial exit log atomically in a private directory with:
 

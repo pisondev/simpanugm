@@ -143,3 +143,5 @@
 - Hardened shared seed/trial CSV reading to reject rows with missing or extra fields.
 - Extended malformed-row rejection to auxiliary distractor, duplicate-pair, and query CSVs.
 - Hardened private template checks to reject rows with missing or extra CSV fields.
+- Hardened annotation and trial review-log readers to reject malformed rows before
+  agreement and final-review checks.

@@ -56,6 +56,7 @@ private collection begins; keep all completed files and their Drive path outside
 After the trial is complete, run `data/scripts/check_trial_review.py` on this private
 workspace. It verifies both annotation sheets, every final review status, the disagreement
 fields, and the recorded private Drive path; it does not inspect or copy photographs.
+Malformed annotation or review-log rows with missing or extra fields are rejected.
 
 Run `data/scripts/check_freeze.py --profile trial` with the prepared dataset and this
 review workspace before publishing its manifest. The freeze gate is read-only.

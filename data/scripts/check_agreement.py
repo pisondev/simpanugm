@@ -41,12 +41,18 @@ def read_annotations(
             missing = [field for field in ANNOTATION_FIELDS if field not in fields]
             if missing:
                 raise AgreementError(f"{path}: missing columns: {', '.join(missing)}")
-            rows = list(reader)
+            rows: list[dict[str, str]] = []
+            for line_number, row in enumerate(reader, start=2):
+                if None in row or any(value is None for value in row.values()):
+                    raise AgreementError(
+                        f"{path}: row {line_number} has missing or extra fields"
+                    )
+                rows.append(row)
     except (OSError, csv.Error, ValidationError) as exc:
         raise AgreementError(str(exc)) from exc
 
     ids = expected_ids(expected_count)
-    row_ids = [row.get("item_id", "").strip() for row in rows]
+    row_ids = [(row.get("item_id") or "").strip() for row in rows]
     if len(row_ids) != expected_count or set(row_ids) != set(ids):
         raise AgreementError(f"{path}: item_id must contain I001 through I{expected_count:03d} exactly")
     if len(set(row_ids)) != len(row_ids):

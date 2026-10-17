@@ -95,6 +95,25 @@ class TrialReviewCheckTests(unittest.TestCase):
             errors = validate_trial_review(workspace, SEED_DIR, 3)
             self.assertIn("agreement.md: report does not match the annotation sheets", errors)
 
+    def test_review_log_rejects_short_and_extra_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = self.complete_workspace(directory)
+            review_log = workspace / "review-log.csv"
+            header = review_log.read_text(encoding="utf-8").splitlines()[0]
+            review_log.write_text(f"{header}\nI001,pass\n", encoding="utf-8")
+
+            errors = validate_trial_review(workspace, SEED_DIR, 3)
+
+            self.assertTrue(any("review-log.csv: row 2 has missing or extra fields" in error for error in errors))
+
+            review_log.write_text(
+                f"{header}\n" + ",".join(["I001", "pass"] + [""] * len(REVIEW_LOG_FIELDS)) + "\n",
+                encoding="utf-8",
+            )
+            errors = validate_trial_review(workspace, SEED_DIR, 3)
+
+            self.assertTrue(any("review-log.csv: row 2 has missing or extra fields" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()
