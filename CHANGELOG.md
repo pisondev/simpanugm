@@ -8,6 +8,9 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- UX, engineering and operations guides: information architecture, UI guidelines, tech
+  stack, repository structure, coding standards, testing strategy, local development,
+  deployment, observability and runbook.
 - AI specification: matching engine, per role AI features, evaluation protocol, dataset
   collection guide and model lifecycle, plus the seed and dataset contracts in `data/`.
 - Architecture overview, data model, REST API catalog, security and privacy design, and
