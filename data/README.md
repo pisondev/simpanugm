@@ -159,6 +159,9 @@ python3 data/scripts/check_location_review.py \
   --bbox=SOUTH,WEST,NORTH,EAST
 ```
 
+Location review and promotion readers reject rows with missing or extra fields before
+provenance or zone approval checks run.
+
 Create a private counts-only summary to plan the manual review without copying candidate
 names into Git:
 

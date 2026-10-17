@@ -4,6 +4,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from check import ValidationError
+from osm_locations import REVIEW_FIELDS
+from promote_locations import read_review
 from promote_locations import LOCATION_FIELDS, main, promote_rows, write_locations
 
 
@@ -142,6 +145,19 @@ class LocationPromotionTests(unittest.TestCase):
 
             self.assertEqual(result, 1)
             self.assertFalse((root / "locations.csv").exists())
+
+    def test_review_reader_rejects_short_and_extra_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            short_path = root / "short.csv"
+            short_path.write_text(",".join(REVIEW_FIELDS) + "\nway,12\n", encoding="utf-8")
+            extra_path = root / "extra.csv"
+            extra_path.write_text(",".join(REVIEW_FIELDS) + "\n" + ",".join(["way", "12"] + [""] * len(REVIEW_FIELDS)) + "\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValidationError, "row 2 has missing or extra fields"):
+                read_review(short_path)
+            with self.assertRaisesRegex(ValidationError, "row 2 has missing or extra fields"):
+                read_review(extra_path)
 
 
 if __name__ == "__main__":

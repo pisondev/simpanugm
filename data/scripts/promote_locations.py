@@ -29,7 +29,11 @@ def read_review(path: Path) -> list[dict[str, str]]:
         reader = csv.DictReader(handle)
         if tuple(reader.fieldnames or ()) != REVIEW_FIELDS:
             raise ValidationError(f"{path}: expected columns {REVIEW_FIELDS}")
-        rows = list(reader)
+        rows: list[dict[str, str]] = []
+        for line_number, row in enumerate(reader, start=2):
+            if None in row or any(value is None for value in row.values()):
+                raise ValidationError(f"{path}: row {line_number} has missing or extra fields")
+            rows.append(row)
     if not rows:
         raise ValidationError(f"{path}: review file must contain at least one row")
     return rows

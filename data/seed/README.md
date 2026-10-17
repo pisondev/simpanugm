@@ -33,8 +33,8 @@ The download retries transient Overpass errors twice by default; use `--retries 
 single request or `--timeout` to adjust the per-request limit.
 
 Run `data/scripts/check_location_review.py` against the saved response and generated CSV
-before starting the manual review. It rejects changed source fields and any premature
-zone, alias, or approval values.
+before starting the manual review. It rejects changed source fields, malformed CSV rows,
+and any premature zone, alias, or approval values.
 
 The promotion command requires the saved raw Overpass response and rechecks every source
 field before applying human-reviewed status, aliases, and zones. It skips explicitly

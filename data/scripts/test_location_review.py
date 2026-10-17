@@ -84,6 +84,21 @@ class LocationReviewTests(unittest.TestCase):
 
             self.assertEqual(validate_provenance(raw_path, review_path), [])
 
+    def test_review_rejects_short_and_extra_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            raw_path, review_path = self.write_bundle(directory)
+            header = review_path.read_text(encoding="utf-8").splitlines()[0]
+            review_path.write_text(f"{header}\nway,42\n", encoding="utf-8")
+            errors = validate_review(raw_path, review_path)
+            self.assertTrue(any("missing or extra fields" in error for error in errors))
+
+            review_path.write_text(
+                f"{header}\n" + ",".join(["way", "42"] + [""] * len(REVIEW_FIELDS)) + "\n",
+                encoding="utf-8",
+            )
+            errors = validate_review(raw_path, review_path)
+            self.assertTrue(any("missing or extra fields" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()
