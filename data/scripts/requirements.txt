@@ -1,1 +1,2 @@
 Pillow>=10,<13
+rapidfuzz>=3,<4

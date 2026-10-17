@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "metric": "rapidfuzz.fuzz.token_set_ratio",
+  "identity_name_threshold": 85.0,
+  "cases": [
+    {
+      "id": "exact_name",
+      "left": "Nara Wijaya",
+      "right": "Nara Wijaya",
+      "expected_ratio": 100.000000,
+      "expected_name_hit": true
+    },
+    {
+      "id": "reordered_tokens",
+      "left": "Raka Pradipta",
+      "right": "Pradipta Raka",
+      "expected_ratio": 100.000000,
+      "expected_name_hit": true
+    },
+    {
+      "id": "extra_token",
+      "left": "Sinta Maharani",
+      "right": "Sinta Maharani Putri",
+      "expected_ratio": 100.000000,
+      "expected_name_hit": true
+    },
+    {
+      "id": "similar_surname",
+      "left": "Bima Santosa",
+      "right": "Dimas Santosa",
+      "expected_ratio": 88.000000,
+      "expected_name_hit": true
+    },
+    {
+      "id": "below_identity_threshold",
+      "left": "Tio Mahendra",
+      "right": "Maya Mahendra",
+      "expected_ratio": 80.000000,
+      "expected_name_hit": false
+    },
+    {
+      "id": "near_name_below_threshold",
+      "left": "Nara Wijaya",
+      "right": "Nadia Wijaya",
+      "expected_ratio": 86.956522,
+      "expected_name_hit": true
+    }
+  ]
+}

@@ -51,3 +51,7 @@
 - Made location review and promotion CSV writes atomic to prevent partial output files.
 - Made evaluation split CSV writes atomic to protect existing private assignments from
   partial output.
+- Added shared synthetic fixture contracts for fusion scores, BR-PRV-03 masking, and
+  rapidfuzz token-set name matching, with a dependency-light validator and test coverage.
+- Added an explicit boundary for future synthetic image fixtures so participant media and
+  collected evaluation images remain outside the repository.

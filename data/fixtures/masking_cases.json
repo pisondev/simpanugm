@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "rule": "BR-PRV-03",
+  "cases": [
+    {
+      "id": "identity_and_card",
+      "input": "Nama Nara Wijaya, NIM 2468135790241, kartu 4532015112830366.",
+      "expected": "Nama Nara Wijaya, NIM *********0241, kartu ************0366."
+    },
+    {
+      "id": "nineteen_digit_run",
+      "input": "Kode kartu sintetis 2468135790246813571.",
+      "expected": "Kode kartu sintetis ***************3571."
+    },
+    {
+      "id": "short_and_invalid_runs",
+      "input": "Kode 123456789012 dan invalid 4532015112830367.",
+      "expected": "Kode 123456789012 dan invalid 4532015112830367."
+    }
+  ]
+}

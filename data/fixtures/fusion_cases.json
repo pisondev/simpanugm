@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "fusion_version": "fusion-linear-2026.11.0",
+  "cases": [
+    {
+      "id": "image_all_signals",
+      "mode": "image",
+      "category_factor": 1.0,
+      "visual": {"image_cosine": 0.8625},
+      "text": {"semantic_cosine": 0.87, "colour": "shared", "brand": "same"},
+      "location": {"distance_m": 80},
+      "time": {"relation": "in_window"},
+      "expected": {
+        "visual": 0.750000,
+        "semantic": 0.600000,
+        "attributes": 1.000000,
+        "text": 0.700000,
+        "location": 0.818731,
+        "time": 1.000000,
+        "fused": 0.780310,
+        "stored_score": 0.7803,
+        "tier": "high"
+      }
+    },
+    {
+      "id": "cross_modal_same_parent",
+      "mode": "cross_modal",
+      "category_factor": 0.85,
+      "visual": {"cross_modal_cosine": 0.30},
+      "text": {"semantic_cosine": 0.90, "colour": "shared", "brand": "missing"},
+      "location": {"distance_m": 400},
+      "time": {"relation": "after_window", "hours_after_window": 24},
+      "expected": {
+        "visual": 0.800000,
+        "semantic": 0.800000,
+        "attributes": 1.000000,
+        "text": 0.850000,
+        "location": 0.367879,
+        "time": 0.793701,
+        "fused": 0.634418,
+        "stored_score": 0.6344,
+        "tier": "medium"
+      }
+    },
+    {
+      "id": "cross_modal_sparse_compatible",
+      "mode": "cross_modal",
+      "category_factor": 0.8,
+      "visual": {"cross_modal_cosine": 0.285},
+      "text": {"semantic_cosine": 0.84, "colour": "adjacent", "brand": "missing"},
+      "location": null,
+      "time": {"relation": "after_window", "hours_after_window": 72},
+      "expected": {
+        "visual": 0.700000,
+        "semantic": 0.400000,
+        "attributes": 0.500000,
+        "text": 0.425000,
+        "location": null,
+        "time": 0.500000,
+        "fused": 0.425333,
+        "stored_score": 0.4253,
+        "tier": "low"
+      }
+    },
+    {
+      "id": "no_visual_before_window",
+      "mode": "none",
+      "category_factor": 0.35,
+      "visual": null,
+      "text": {"semantic_cosine": 0.79, "colour": "missing", "brand": "missing"},
+      "location": null,
+      "time": {"relation": "before_window", "hours_before_start": 3},
+      "expected": {
+        "visual": null,
+        "semantic": 0.066667,
+        "attributes": null,
+        "text": 0.066667,
+        "location": null,
+        "time": 0.000000,
+        "fused": 0.016333,
+        "stored_score": 0.0163,
+        "tier": "not_stored"
+      }
+    },
+    {
+      "id": "image_other_category_floor",
+      "mode": "image",
+      "category_factor": 0.35,
+      "visual": {"image_cosine": 0.95},
+      "text": {"semantic_cosine": 0.93, "colour": "missing", "brand": "same"},
+      "location": null,
+      "time": {"relation": "in_window"},
+      "expected": {
+        "visual": 1.000000,
+        "semantic": 1.000000,
+        "attributes": 1.000000,
+        "text": 1.000000,
+        "location": null,
+        "time": 1.000000,
+        "fused": 0.350000,
+        "stored_score": 0.3500,
+        "tier": "not_stored"
+      }
+    }
+  ]
+}

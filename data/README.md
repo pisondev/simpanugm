@@ -37,6 +37,18 @@ python3 data/scripts/check.py --require-complete
 
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 
+Shared contract fixtures are now available in [`fixtures/`](fixtures/). They contain only
+synthetic scoring, masking, and name-comparison cases; participant data and collected
+images remain outside the repository. Validate them with:
+
+```text
+python3 data/scripts/check_fixtures.py
+```
+
+The binary image set is deliberately reserved until the API media schema and image
+analysis contract are implemented. The placeholder README in `fixtures/images/` records
+the same boundary.
+
 Reference analytics views are documented in [`analytics/README.md`](analytics/README.md)
 and defined in [`analytics/views.sql`](analytics/views.sql). They are reviewed SQL, not
 application migrations.

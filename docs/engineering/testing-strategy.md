@@ -99,7 +99,7 @@ images.
 | `ci-api.yml` | changes in `api/`, `data/fixtures/`, `data/seed/` | generate and diff check, lint, unit, integration with PostgreSQL, migrations up and down, coverage, govulncheck | 6 min |
 | `ci-web.yml` | changes in `web/`, `api/openapi.yaml` | install, generate client and diff check, lint, typecheck, unit, build, pnpm audit | 5 min |
 | `ci-ml.yml` | changes in `ml/`, `data/fixtures/` | uv sync, ruff, mypy, unit, API tests with cached weights, pip-audit | 7 min |
-| `ci-data.yml` | changes in `data/` | seed validation, manifest check | 1 min |
+| `ci-data.yml` | changes in `data/` | seed validation, shared fixture validation, manifest check | 1 min |
 | `e2e.yml` | pull requests touching `web/` or `api/`, nightly | compose up, seed, Playwright, upload report | 10 min |
 | all | every pull request | gitleaks, commit message lint | 1 min |
 

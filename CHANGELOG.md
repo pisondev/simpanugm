@@ -21,3 +21,5 @@ All notable changes to this project are recorded here. The format follows
 - Product requirements, user stories, success metrics and glossary.
 - Repository skeleton for `api/`, `web/`, `ml/` and `deploy/`, contribution guide, security
   policy, issue and pull request templates.
+- Shared synthetic data fixtures for matching fusion, privacy masking, and fuzzy name
+  matching, including a validator used before service contract tests consume them.
