@@ -83,3 +83,5 @@
   minimum and exact duplicate image content before dataset freeze.
 - Added a cross-item perceptual-hash gate that flags visually near-identical images within
   four bits before dataset freeze.
+- Hardened split verification to reject manual edits that change the stratified `val`
+  allocation for a parent-category and distinctiveness group.

@@ -124,7 +124,9 @@ python3 data/scripts/split_eval.py \
 
 The splitter stratifies by parent category and distinctiveness, assigns each physical
 item to exactly one split, and assigns distractors to the same `val`/`test` proportion.
-It can verify both existing assignments with `--verify` and `--verify-distractors`. The
+Verification rechecks the expected `val` quota for every parent-category and
+distinctiveness group, so manual edits cannot silently change the stratification. It can
+verify both existing assignments with `--verify` and `--verify-distractors`. The
 split files stay private with the dataset; only the script and its tests are committed.
 
 Once the full private dataset has its auxiliary reports, run the additional metadata

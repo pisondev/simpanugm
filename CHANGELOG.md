@@ -40,3 +40,4 @@ All notable changes to this project are recorded here. The format follows
 - Added private dataset gates for the 1080 px image short-side minimum and exact duplicate
   image content.
 - Added a cross-item perceptual-hash gate for visually near-identical private images.
+- Hardened evaluation split verification against edits that change stratum allocation.

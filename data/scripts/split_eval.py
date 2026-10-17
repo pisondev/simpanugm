@@ -10,7 +10,7 @@ import random
 import re
 import sys
 import tempfile
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Iterable
 
@@ -164,6 +164,22 @@ def verify_split_rows(
         errors.append("split output must contain both val and test")
     if val_count is not None and sum(row.get("split") == "val" for row in split_rows) != val_count:
         errors.append(f"split output must contain exactly {val_count} val items")
+    if val_count is not None and not errors:
+        groups: dict[tuple[str, str], list[dict[str, str]]] = defaultdict(list)
+        for row in label_rows:
+            groups[(row["parent_category"], row["distinctiveness"])].append(row)
+        expected_counts = allocate_counts(groups, val_count)
+        actual_counts = Counter(
+            (row.get("parent_category"), row.get("distinctiveness"))
+            for row in split_rows
+            if row.get("split") == "val"
+        )
+        for key in sorted(groups):
+            if actual_counts[key] != expected_counts[key]:
+                errors.append(
+                    f"val allocation for {key[0]}/{key[1]} must be "
+                    f"{expected_counts[key]}, got {actual_counts[key]}"
+                )
     return errors
 
 

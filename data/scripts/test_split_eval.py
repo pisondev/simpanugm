@@ -93,6 +93,17 @@ class EvaluationSplitTests(unittest.TestCase):
             errors = verify_split_rows(rows, labels, val_count=4)
             self.assertTrue(any("duplicate split assignment" in error for error in errors))
 
+    def test_verifier_rejects_changed_stratum_allocation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            labels_path = self.labels_file(directory)
+            labels = read_labels(labels_path, SEED_DIR)
+            rows = make_split_rows(labels, val_count=4, seed=2026)
+            val_row = next(row for row in rows if row["split"] == "val")
+            test_row = next(row for row in rows if row["split"] == "test")
+            val_row["split"], test_row["split"] = "test", "val"
+            errors = verify_split_rows(rows, labels, val_count=4)
+            self.assertTrue(any("val allocation for" in error for error in errors))
+
     def test_labels_reject_non_contract_item_id(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "labels.csv"

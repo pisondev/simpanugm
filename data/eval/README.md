@@ -57,8 +57,9 @@ python3 data/scripts/split_eval.py \
   --verify-distractors /private/simpanugm-eval/v1/distractor-splits.csv
 ```
 
-The assignments are deterministic, keep every physical item in one split only, and
-place 160 of the 400 distractors in `val` for the v1 target. The generated CSV files
+The assignments are deterministic, keep every physical item in one split only, and the
+verifier rechecks the expected `val` quota for every parent-category and distinctiveness
+group. With the v1 target this places 160 of the 400 distractors in `val`. The generated CSV files
 are private dataset metadata, are written atomically, and must not be committed.
 
 The full collection also requires the following private metadata contracts:
