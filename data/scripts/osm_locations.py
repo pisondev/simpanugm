@@ -10,9 +10,11 @@ import math
 import re
 import sys
 import tempfile
+import time
 import unicodedata
 from pathlib import Path
 from typing import Any, Iterable
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -147,11 +149,31 @@ def parse_bbox(value: str) -> tuple[float, float, float, float]:
     return values  # type: ignore[return-value]
 
 
-def fetch_overpass(endpoint: str, bbox: tuple[float, float, float, float]) -> dict[str, Any]:
+RETRYABLE_HTTP_CODES = {408, 429, 500, 502, 503, 504}
+
+
+def fetch_overpass(
+    endpoint: str,
+    bbox: tuple[float, float, float, float],
+    retries: int = 2,
+    request_timeout: float = 45,
+) -> dict[str, Any]:
     payload = urlencode({"data": overpass_query(bbox)}).encode("utf-8")
     request = Request(endpoint, data=payload, headers={"User-Agent": "simpanugm-data-review/1.0"})
-    with urlopen(request, timeout=45) as response:  # noqa: S310 - endpoint is an explicit CLI argument
-        return json.load(response)
+    for attempt in range(retries + 1):
+        try:
+            with urlopen(request, timeout=request_timeout) as response:  # noqa: S310 - endpoint is an explicit CLI argument
+                return json.load(response)
+        except HTTPError as exc:
+            should_retry = exc.code in RETRYABLE_HTTP_CODES and attempt < retries
+            exc.close()
+            if not should_retry:
+                raise
+        except (TimeoutError, URLError):
+            if attempt == retries:
+                raise
+        time.sleep(2**attempt)
+    raise RuntimeError("unreachable Overpass retry state")
 
 
 def write_raw_response(path: Path, document: dict[str, Any]) -> None:
@@ -215,6 +237,18 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         type=Path,
         help="save the downloaded Overpass JSON response for review",
     )
+    parser.add_argument(
+        "--retries",
+        type=int,
+        default=2,
+        help="retries for transient Overpass errors (default: 2)",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=45,
+        help="HTTP timeout in seconds for each Overpass request (default: 45)",
+    )
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT, help=f"Overpass endpoint (default: {DEFAULT_ENDPOINT})")
     return parser.parse_args(argv)
 
@@ -225,7 +259,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.download:
             if args.bbox is None:
                 raise ValueError("--bbox is required with --download")
-            document = fetch_overpass(args.endpoint, args.bbox)
+            if args.retries < 0 or args.timeout <= 0:
+                raise ValueError("--retries must be non-negative and --timeout must be positive")
+            document = fetch_overpass(args.endpoint, args.bbox, args.retries, args.timeout)
             if args.raw_output is not None:
                 write_raw_response(args.raw_output, document)
         else:

@@ -83,7 +83,8 @@ python3 data/scripts/osm_locations.py \
 
 The download mode saves the raw response and review CSV atomically. Generated rows have
 empty `zone_slug` and `aliases`, and carry
-`review_status=needs_review`. They are review material, not production seed data.
+`review_status=needs_review`. It retries transient Overpass errors twice by default.
+They are review material, not production seed data.
 Before a human starts editing the review, verify that the CSV still matches its raw
 response:
 

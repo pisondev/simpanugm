@@ -71,3 +71,5 @@
   source alongside the generated CSV without promoting unreviewed values.
 - Added a pre-review location checker that verifies the generated CSV against its raw OSM
   response and rejects premature manual fields.
+- Added bounded retries for transient Overpass timeouts and server errors while leaving
+  client errors fail-fast.

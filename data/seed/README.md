@@ -28,6 +28,9 @@ python3 data/scripts/promote_locations.py \
   --bbox SOUTH,WEST,NORTH,EAST
 ```
 
+The download retries transient Overpass errors twice by default; use `--retries 0` for a
+single request or `--timeout` to adjust the per-request limit.
+
 Run `data/scripts/check_location_review.py` against the saved response and generated CSV
 before starting the manual review. It rejects changed source fields and any premature
 zone, alias, or approval values.

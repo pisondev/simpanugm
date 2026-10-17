@@ -4,11 +4,20 @@ import tempfile
 import unittest
 from argparse import ArgumentTypeError
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError
 
 from check import flatten_categories, validate_seed_dir
 from check_trial import FIELDS, validate_trial
-from osm_locations import REVIEW_FIELDS, overpass_query, parse_bbox, review_rows, write_raw_response, write_rows
+from osm_locations import (
+    REVIEW_FIELDS,
+    fetch_overpass,
+    overpass_query,
+    parse_bbox,
+    review_rows,
+    write_raw_response,
+    write_rows,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -109,6 +118,29 @@ class OsmLocationTests(unittest.TestCase):
     def test_bbox_rejects_non_finite_values(self) -> None:
         with self.assertRaises(ArgumentTypeError):
             parse_bbox("-inf,110.36,-7.75,110.405")
+
+    def test_overpass_retries_transient_server_error(self) -> None:
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.__exit__.return_value = False
+        response.read.return_value = b'{"elements": []}'
+        failure = HTTPError("https://example.test", 504, "gateway timeout", {}, None)
+        with patch("osm_locations.urlopen", side_effect=[failure, response]) as urlopen_mock:
+            with patch("osm_locations.time.sleep") as sleep_mock:
+                self.assertEqual(fetch_overpass("https://example.test", (-7.79, 110.36, -7.75, 110.405)), {"elements": []})
+        failure.close()
+        self.assertEqual(urlopen_mock.call_count, 2)
+        sleep_mock.assert_called_once_with(1)
+
+    def test_overpass_does_not_retry_client_error(self) -> None:
+        failure = HTTPError("https://example.test", 400, "bad request", {}, None)
+        with patch("osm_locations.urlopen", side_effect=failure) as urlopen_mock:
+            try:
+                with self.assertRaises(HTTPError):
+                    fetch_overpass("https://example.test", (-7.79, 110.36, -7.75, 110.405))
+            finally:
+                failure.close()
+        urlopen_mock.assert_called_once()
 
 
 class TrialCheckTests(unittest.TestCase):
