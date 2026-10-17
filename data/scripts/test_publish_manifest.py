@@ -110,6 +110,24 @@ class PublishManifestTests(unittest.TestCase):
 
             self.assertFalse(output.exists())
 
+    def test_output_through_symlinked_parent_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            prepared = root / "prepared"
+            intake_dataset(self.create_source(directory), prepared, "trial-1")
+            real_parent = root / "real-output"
+            real_parent.mkdir()
+            alias_parent = root / "output-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(ManifestPublishError):
+                publish_manifest(prepared, alias_parent / "manifest.json")
+
+            self.assertFalse((real_parent / "manifest.json").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -65,3 +65,5 @@ All notable changes to this project are recorded here. The format follows
   using the `--bbox=...` form in tests and handoff documentation.
 - Rejected manifest-listed paths that traverse symlinked directories, keeping private
   dataset validation inside the dataset root.
+- Applied symlink-parent checks to private dataset intake, fetch, and manifest
+  publication before any source or output path is resolved.

@@ -88,6 +88,23 @@ class IntakeTests(unittest.TestCase):
             with self.assertRaises(IntakeError):
                 intake_dataset(source, output, "trial-1")
 
+    def test_intake_rejects_symlinked_destination_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = self.create_source(directory)
+            real_parent = root / "real-output"
+            real_parent.mkdir()
+            alias_parent = root / "output-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(IntakeError):
+                intake_dataset(source, alias_parent / "prepared", "trial-1")
+
+            self.assertFalse((real_parent / "prepared").exists())
+
     def test_manifest_rejects_image_below_minimum_short_side(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = self.create_source(directory)

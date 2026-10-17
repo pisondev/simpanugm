@@ -99,6 +99,24 @@ class FetchTests(unittest.TestCase):
 
             self.assertFalse(output.exists())
 
+    def test_output_through_symlinked_parent_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            prepared = root / "prepared"
+            intake_dataset(self.create_source(directory), prepared, "trial-1")
+            real_parent = root / "real-output"
+            real_parent.mkdir()
+            alias_parent = root / "output-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(FetchError):
+                fetch_dataset(prepared / "manifest.json", prepared, alias_parent / "fetched")
+
+            self.assertFalse((real_parent / "fetched").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
