@@ -1,0 +1,78 @@
+# environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# os and editors
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# go
+api/bin/
+api/tmp/
+*.test
+*.out
+coverage.*
+go.work
+go.work.sum
+
+# node and next.js
+node_modules/
+.pnpm-store/
+web/.next/
+web/out/
+web/coverage/
+web/playwright-report/
+web/test-results/
+web/blob-report/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+pnpm-debug.log*
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+htmlcov/
+.coverage
+
+# model weights, caches and experiment runs never enter the repository
+ml/models/
+ml/.cache/
+ml/mlruns/
+ml/mlartifacts/
+*.onnx
+*.safetensors
+*.pt
+*.pth
+*.bin
+
+# datasets and media stay outside the repository
+data/raw/
+data/interim/
+data/processed/
+data/eval/*
+!data/eval/README.md
+!data/eval/manifest.json
+media/
+storage/
+uploads/
+
+# local runtime state
+deploy/volumes/
+*.dump
+*.sql.gz
+*.log
