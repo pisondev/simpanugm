@@ -10,11 +10,13 @@ shapes. Drift between client and server is the most likely integration bug.
 
 ## Decision
 
-`api/openapi.yaml`, OpenAPI 3.1, is written first and is the contract. Go server
+`api/openapi.yaml`, OpenAPI 3.0.3, is written first and is the contract. 3.0.3 rather than 3.1
+because both `oapi-codegen` and `kin-openapi` support it completely. Go server
 interfaces and request and response types are generated with `oapi-codegen` in strict
 server mode. TypeScript types are generated with `openapi-typescript` and called through
-`openapi-fetch`. Requests are validated against the spec at runtime with `kin-openapi`
-middleware. CI fails when generated code is out of date.
+`openapi-fetch`. Every request goes through one contract middleware that finds its
+operation in the spec, applies the permission rule of that operation, then validates the
+request with `kin-openapi`. CI fails when generated code is out of date.
 
 ## Consequences
 

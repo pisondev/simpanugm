@@ -143,7 +143,7 @@ Rationale in [security-privacy.md](../architecture/security-privacy.md) section 
 | BR-RET-06 | Notifications are deleted 180 days after creation. Expired sessions are deleted 30 days after expiry |
 | BR-PRV-01 | Found item photos are never published in a listing. They are shown only to the finder, to owners with a medium or high candidate, and to officers |
 | BR-PRV-02 | The finder's identity is never shown to the owner and the owner's identity is never shown to the finder. The finder's thank you notification is anonymous |
-| BR-PRV-03 | Before storing or returning visible text, and before storing a public description, any run of 16 digits and any run of 13 to 19 digits that passes the Luhn check is masked to its last four digits, for example `************3175` |
+| BR-PRV-03 | Before storing or returning visible text, and before storing a public description, any run of 16 digits and any run of 13 to 19 digits that passes the Luhn check is masked to its last four digits, for example `************3175`. Digits grouped by single spaces or hyphens, as printed on cards, count as one run. The shared cases are `data/fixtures/masking_cases.json` |
 | BR-PRV-04 | Officer and administrator access to private fields is recorded per FR-AUDIT-03 |
 | BR-PRV-05 | Analytics suppress any cell built from fewer than 3 reports (**setting**), shown as "< 3" |
 

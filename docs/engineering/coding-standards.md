@@ -20,8 +20,8 @@ review time goes to design and behaviour.
 
 | Rule | Detail |
 |---|---|
-| Format and lint | `gofmt`, `goimports`, `golangci-lint` with `govet`, `staticcheck`, `errcheck`, `gosec`, `revive`, `gocritic`, `bodyclose`, `sqlclosecheck`, `depguard` |
-| Module boundaries | `depguard` forbids importing another module's `store` or `queries`. Cross module calls go through the other module's `Service` |
+| Format and lint | `gofmt`, `goimports`, `golangci-lint` v2 with the standard set plus `gosec`, `revive`, `gocritic`, `bodyclose`, `sqlclosecheck`, `errorlint`, `misspell`, `unconvert`, configured in `api/.golangci.yml` |
+| Module boundaries | Cross module calls go through the other module's `Service`, and a module never calls another module's sqlc queries for writes. Checked in review, because all queries share one generated package |
 | Context | Every function doing I/O takes `ctx context.Context` first |
 | Errors | Wrap with `fmt.Errorf("claims: approve: %w", err)`. Domain errors are typed values (`ErrInvalidTransition`, `ErrStaleVersion`) mapped to problem codes in one place |
 | Panics | Only for programmer errors at start up. The HTTP recover middleware turns a panic into a 500 with a request id |

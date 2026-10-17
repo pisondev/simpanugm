@@ -1,0 +1,177 @@
+package access
+
+import (
+	"context"
+	"slices"
+
+	"github.com/google/uuid"
+
+	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
+)
+
+type Role string
+
+const (
+	Member  Role = "member"
+	Officer Role = "officer"
+	Admin   Role = "admin"
+)
+
+func (r Role) Valid() bool { return r == Member || r == Officer || r == Admin }
+
+type Permission string
+
+const (
+	AccountSelfRead      Permission = "account.self.read"
+	AccountSelfUpdate    Permission = "account.self.update"
+	ReportLostCreate     Permission = "report.lost.create"
+	ReportLostRead       Permission = "report.lost.read"
+	ReportLostUpdate     Permission = "report.lost.update"
+	ReportLostClose      Permission = "report.lost.close"
+	ReportFoundCreate    Permission = "report.found.create"
+	ReportFoundRead      Permission = "report.found.read"
+	ReportFoundUpdate    Permission = "report.found.update"
+	ReportFoundClose     Permission = "report.found.close"
+	ReportPrivateRead    Permission = "report.private.read"
+	ReportHistoryRead    Permission = "report.history.read"
+	ReportProxyCreate    Permission = "report.proxy.create"
+	MediaUpload          Permission = "media.upload"
+	MediaRead            Permission = "media.read"
+	MediaDelete          Permission = "media.delete"
+	MasterdataRead       Permission = "masterdata.read"
+	CustodyReceive       Permission = "custody.receive"
+	CustodyInventoryRead Permission = "custody.inventory.read"
+	SearchReports        Permission = "search.reports"
+	OfficerQueueRead     Permission = "officer.queue.read"
+	UserRead             Permission = "user.read"
+	UserInvite           Permission = "user.invite"
+	UserUpdateRole       Permission = "user.update_role"
+	UserAssignPost       Permission = "user.assign_post"
+)
+
+var memberPerms = []Permission{
+	AccountSelfRead, AccountSelfUpdate,
+	ReportLostCreate, ReportLostRead, ReportLostUpdate, ReportLostClose,
+	ReportFoundCreate, ReportFoundRead, ReportFoundUpdate, ReportFoundClose,
+	ReportPrivateRead, ReportHistoryRead,
+	MediaUpload, MediaRead, MediaDelete,
+	MasterdataRead,
+}
+
+var officerPerms = append(slices.Clone(memberPerms),
+	ReportProxyCreate, CustodyReceive, CustodyInventoryRead, SearchReports, OfficerQueueRead,
+)
+
+var adminPerms = append(slices.Clone(officerPerms),
+	UserRead, UserInvite, UserUpdateRole, UserAssignPost,
+)
+
+var rolePerms = map[Role][]Permission{Member: memberPerms, Officer: officerPerms, Admin: adminPerms}
+
+func (r Role) Can(p Permission) bool { return slices.Contains(rolePerms[r], p) }
+
+func (r Role) Permissions() []string {
+	out := make([]string, 0, len(rolePerms[r]))
+	for _, p := range rolePerms[r] {
+		out = append(out, string(p))
+	}
+	slices.Sort(out)
+	return out
+}
+
+type Principal struct {
+	UserID          uuid.UUID
+	SessionID       uuid.UUID
+	Role            Role
+	Status          string
+	Email           string
+	FullName        string
+	EmailVerified   bool
+	ClaimRestricted bool
+	PostIDs         []uuid.UUID
+}
+
+func (p *Principal) IsStaff() bool { return p != nil && (p.Role == Officer || p.Role == Admin) }
+
+func (p *Principal) IsAdmin() bool { return p != nil && p.Role == Admin }
+
+func (p *Principal) AssignedTo(post uuid.UUID) bool {
+	return p != nil && (p.Role == Admin || slices.Contains(p.PostIDs, post))
+}
+
+type principalKey struct{}
+
+func WithPrincipal(ctx context.Context, p *Principal) context.Context {
+	return context.WithValue(ctx, principalKey{}, p)
+}
+
+func FromContext(ctx context.Context) *Principal {
+	p, _ := ctx.Value(principalKey{}).(*Principal)
+	return p
+}
+
+type Rule struct {
+	Public     bool
+	Permission Permission
+	Verified   bool
+}
+
+// one rule per operationId in api/openapi.yaml, a test keeps the two in step
+var Operations = map[string]Rule{
+	"register":               {Public: true},
+	"verifyEmail":            {Public: true},
+	"resendVerification":     {Permission: AccountSelfRead},
+	"login":                  {Public: true},
+	"logout":                 {Permission: AccountSelfRead},
+	"forgotPassword":         {Public: true},
+	"resetPassword":          {Public: true},
+	"acceptInvitation":       {Public: true},
+	"getMe":                  {Permission: AccountSelfRead},
+	"listCategories":         {Permission: MasterdataRead},
+	"listZones":              {Permission: MasterdataRead},
+	"listLocations":          {Permission: MasterdataRead},
+	"listPosts":              {Permission: MasterdataRead},
+	"listColours":            {Permission: MasterdataRead},
+	"uploadMedia":            {Permission: MediaUpload, Verified: true},
+	"getMedia":               {Permission: MediaRead},
+	"deleteMedia":            {Permission: MediaDelete},
+	"createLostReport":       {Permission: ReportLostCreate, Verified: true},
+	"listLostReports":        {Permission: ReportLostRead},
+	"getLostReport":          {Permission: ReportLostRead},
+	"updateLostReport":       {Permission: ReportLostUpdate, Verified: true},
+	"closeLostReport":        {Permission: ReportLostClose},
+	"getLostReportHistory":   {Permission: ReportHistoryRead},
+	"createFoundReport":      {Permission: ReportFoundCreate, Verified: true},
+	"listFoundReports":       {Permission: ReportFoundRead},
+	"listPublicFoundReports": {Permission: ReportFoundRead},
+	"getFoundReport":         {Permission: ReportFoundRead},
+	"updateFoundReport":      {Permission: ReportFoundUpdate, Verified: true},
+	"closeFoundReport":       {Permission: ReportFoundClose},
+	"getFoundReportHistory":  {Permission: ReportHistoryRead},
+	"receiveFoundReport":     {Permission: CustodyReceive},
+	"getPostInventory":       {Permission: CustodyInventoryRead},
+	"searchReports":          {Permission: SearchReports},
+	"adminListUsers":         {Permission: UserRead},
+	"adminInviteUser":        {Permission: UserInvite},
+	"adminUpdateUser":        {Permission: UserUpdateRole},
+}
+
+func Check(p *Principal, operationID string) error {
+	rule, ok := Operations[operationID]
+	if !ok {
+		return apperr.Forbidden()
+	}
+	if rule.Public {
+		return nil
+	}
+	if p == nil {
+		return apperr.Unauthenticated()
+	}
+	if !p.Role.Can(rule.Permission) {
+		return apperr.Forbidden()
+	}
+	if rule.Verified && !p.EmailVerified {
+		return apperr.AccountUnverified()
+	}
+	return nil
+}

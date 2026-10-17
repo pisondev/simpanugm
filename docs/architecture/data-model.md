@@ -87,7 +87,7 @@ Types are abbreviated: `uuid`, `text`, `int`, `smallint`, `bool`, `tstz` for `ti
 | id | uuid | |
 | email | citext | unique |
 | full_name | text | 2 to 100 |
-| nim_nip | text? | digits and dots, up to 30 |
+| nim_nip | text? | letters, digits, dots, slashes and spaces, up to 30, for example `24/543770/PA/23107` |
 | phone | text? | `+62` normalised, up to 20 |
 | password_hash | text? | argon2id PHC string. Null until an invited user sets it |
 | role | text | `member`, `officer`, `admin` |
@@ -131,9 +131,10 @@ Indexes: trigram GIN on `lower(immutable_unaccent(full_name))` for officer searc
 **notification_preferences** `(user_id, event_group, channel)` primary key, `enabled bool`.
 Groups: `matching`, `custody`, `claims_messages`, `found_updates`.
 
-**idempotency_keys** `(user_id, key)` primary key, `method`, `path`, `request_hash bytea`,
-`response_status int`, `response_body jsonb`, `expires_at tstz`. A repeated key with a
-different request hash returns `422 idempotency_key_reused`.
+**idempotency_keys** `(user_id, key)` primary key, `endpoint`, `request_hash bytea`,
+`resource_id uuid?`, `created_at`, `expires_at tstz`. The key is claimed inside the creating
+transaction and stores the id of what was created, so a replay returns that resource. A
+repeated key with a different request hash returns `422 idempotency_key_reused`.
 
 ### 4.2 Master data
 
@@ -143,7 +144,7 @@ different request hash returns `422 idempotency_key_reused`.
 |---|---|---|
 | id | uuid | |
 | parent_id | uuid? | FK categories. Null for a parent |
-| slug | text | unique, for example `dompet` |
+| slug | text | unique among parents and unique among leaves, so a parent and its only leaf may share one, as `payung` does |
 | name | text | Indonesian display name |
 | sensitivity | text? | `normal`, `valuable`, `identity`. Required on leaves (`CHECK (parent_id is null or sensitivity is not null)`) |
 | retention_days | int? | overrides BR-CUS-01 |
@@ -282,9 +283,9 @@ code_sequences.last_value + 1 RETURNING last_value`.
 |---|---|---|
 | id | uuid | |
 | uploaded_by | uuid | FK users |
-| purpose | text | `lost_report`, `found_report`, `claim_evidence` |
-| lost_report_id, found_report_id, claim_id | uuid? | `CHECK (num_nonnulls(lost_report_id, found_report_id, claim_id) <= 1)` |
-| state | text | `staged`, `processing`, `ready`, `failed`, `deleted` |
+| purpose | text | `lost_report`, `found_report`. `claim_evidence` and `claim_id` arrive with claims in Sprint 3 |
+| lost_report_id, found_report_id | uuid? | `CHECK (num_nonnulls(lost_report_id, found_report_id) <= 1)` |
+| state | text | `staged` (processed, not yet attached), `ready` (attached), `deleted`. Variants are produced during the upload request, so there is no processing state |
 | mime | text | `image/jpeg`, `image/png`, `image/webp` |
 | width, height | int | after orientation |
 | bytes | int | as received |

@@ -102,7 +102,7 @@ Two account flags further restrict a role: `unverified` (BR-ACC-02) and
 
 | Permission | M | O | A |
 |---|---|---|---|
-| `search.reports` | own and public | all | all |
+| `search.reports` | | all | all |
 | `officer.queue.read`, `officer.board.read` | | post, switch to all | all |
 | `masterdata.read` | all | all | all |
 | `masterdata.manage` | | | all |

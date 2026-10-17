@@ -1,7 +1,7 @@
 # REST API | SimpanUGM
 
 The public API is the contract between `web` and `api`. Its machine readable form is
-`api/openapi.yaml` (OpenAPI 3.1), written by hand from this catalog in Sprint 1. Go server
+`api/openapi.yaml` (OpenAPI 3.0.3), written by hand from this catalog in Sprint 1. Go server
 interfaces are generated from it with `oapi-codegen` and the TypeScript client types with
 `openapi-typescript`, so drift between the two sides fails the build.
 
@@ -198,7 +198,7 @@ Permission names are from [permissions.md](../requirements/permissions.md).
 | GET | `/officer/duplicates` | `report.mark_duplicate` | Suggested duplicate pairs |
 | POST | `/officer/duplicates/{id}/confirm` | `report.mark_duplicate` | Merge, FR-OFF-05 |
 | POST | `/officer/duplicates/{id}/reject` | `report.mark_duplicate` | |
-| GET | `/search` | `search.reports` | `?q=&type=&category_id=&zone_id=&location_id=&from=&to=&status=&custody=&post_id=&semantic=true` |
+| GET | `/search` | `search.reports` | `?q=&type=&category_id=&zone_id=&location_id=&from=&to=&status=&custody=&post_id=&semantic=true`. Staff only. Members find their own reports through the list endpoints and everything else through the public listing |
 
 ### 2.10 Notifications
 

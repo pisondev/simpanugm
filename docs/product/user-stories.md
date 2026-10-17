@@ -484,7 +484,7 @@ As an officer, I want to search every report by name, category, place, date, sta
 |---|---|---|---|
 | M | 5 | 1 | FR-SEARCH-01 to FR-SEARCH-03, FR-SEARCH-06 |
 
-1. "dompet hitam" finds reports with those words in name or description. "Rnai" finds a reporter named Rani.
+1. "dompet hitam" finds reports with those words in name or description. "tumblr biru" finds a report named "Tumbler biru dongker", and "Raani" finds a reporter named Rani, through trigram similarity.
 2. Typing `FND-2611-0042` opens that report.
 
 ### US-38 Work from a priority queue

@@ -340,7 +340,7 @@ The full event catalog is [notifications.md](notifications.md).
 
 | Id | Requirement |
 |---|---|
-| API-01 | JSON over HTTPS under `/api/v1`, described by `api/openapi.yaml` (OpenAPI 3.1), which is the contract for the web client |
+| API-01 | JSON over HTTPS under `/api/v1`, described by `api/openapi.yaml` (OpenAPI 3.0.3, the latest version the Go code generator and validator fully support), which is the contract for the web client |
 | API-02 | Errors as RFC 9457 problem details with a stable `code` field |
 | API-03 | Cursor pagination, RFC 3339 timestamps in UTC, UUIDv7 identifiers |
 | API-04 | Conventions and the endpoint catalog in [api.md](../architecture/api.md) |

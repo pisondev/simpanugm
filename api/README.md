@@ -1,19 +1,62 @@
 # api
 
-The Go core of SimpanUGM: HTTP API, authentication and authorisation, every state
-machine, persistence, background jobs, notifications. One binary, `simpan`, with the
-commands `serve`, `worker`, `migrate`, `seed` and `admin`.
+The Go core of SimpanUGM: HTTP API, authentication and authorisation, the state machines,
+persistence, background jobs and notifications. One binary, `simpan`:
 
-Owner: Pison Golda. Status: specified, implementation starts in Sprint 1.
-
-| Read first | For |
+| Command | Does |
 |---|---|
-| [docs/architecture/overview.md](../docs/architecture/overview.md) | modules and runtime flows |
-| [docs/architecture/api.md](../docs/architecture/api.md) | the endpoint catalog that becomes `openapi.yaml` |
-| [docs/architecture/data-model.md](../docs/architecture/data-model.md) | every table and migration rule |
-| [docs/requirements/state-machines.md](../docs/requirements/state-machines.md) | the transitions each module implements |
-| [docs/requirements/permissions.md](../docs/requirements/permissions.md) | authorisation |
-| [docs/engineering/repository-structure.md](../docs/engineering/repository-structure.md) | the layout of this folder |
+| `simpan serve` | HTTP API on `HTTP_ADDR`, metrics and health on `METRICS_ADDR` |
+| `simpan worker` | River jobs: email, maintenance purge |
+| `simpan migrate [up\|down\|status]` | goose migrations, then River's own, as the owner role |
+| `simpan seed [--dir data/seed] [--overlay deploy/dev-seed] [--demo]` | master data, optional development overlay and demo accounts, both refused in production |
+| `simpan admin create --email e --name n` | first administrator, prints the set password link |
+| `simpan healthcheck URL` | exit 0 when URL answers 200, for container health checks |
 
-Stack: Go 1.26, chi, oapi-codegen, pgx, sqlc, goose, River, pgvector-go. Full list in
-[docs/engineering/tech-stack.md](../docs/engineering/tech-stack.md).
+Owner: Pison Golda. Read first: [api.md](../docs/architecture/api.md),
+[data-model.md](../docs/architecture/data-model.md),
+[state-machines.md](../docs/requirements/state-machines.md),
+[permissions.md](../docs/requirements/permissions.md).
+
+## Implemented in v0.1
+
+Accounts (registration on UGM domains, verification, sign in, sessions, password reset,
+invitations, user administration), master data with ETags, photo upload with metadata
+stripping and four variants, lost and found reports with idempotent creation, editing,
+closing, history and audit, the public found listing, proxy reports for walk ins, custody
+intake with retention, post inventory, and officer search.
+
+## Layout
+
+```
+cmd/simpan/          commands
+internal/
+  platform/          config, db, httpx, storage, mail, ratelimit, settings, idem, cursor, logx, metrics
+  access/            roles, permissions, the rule of every operation
+  auth/ masterdata/ media/ reports/ custody/ search/ audit/ notify/ maintenance/ privacy/
+  server/            router, contract middleware, integration tests
+  openapi/           generated from openapi.yaml, never edited
+  db/sqlc/           generated from migrations and queries.sql files, never edited
+  testenv/           PostgreSQL in a container with the real init script, for integration tests
+migrations/          numbered goose migrations, embedded in the binary
+openapi.yaml         the public contract
+```
+
+## Working on it
+
+Requires Go 1.26 or newer and Docker.
+
+```
+go build ./...
+go test ./...                                   # unit tests
+go test -tags integration ./internal/server/    # starts pgvector/pgvector:pg18 through testcontainers
+golangci-lint run ./...
+go generate ./internal/openapi/                 # after editing openapi.yaml
+docker run --rm -v "$PWD:/src" -w /src sqlc/sqlc:1.31.1 generate   # after editing SQL
+```
+
+The integration tests run the same `deploy/postgres/init.sql` as Compose, apply every
+migration as the owner role, seed `data/seed` with the `deploy/dev-seed` overlay, then
+exercise the real router over HTTP as the application role.
+
+The image is built from the repository root so the seed files can be copied in:
+`docker build -f api/Dockerfile .`

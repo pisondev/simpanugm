@@ -163,6 +163,7 @@ sequenceDiagram
     participant W as worker
     participant M as ml
     B->>A: POST /api/v1/media (photo)
+    A->>A: decode, orient, strip metadata, four variants, hashes
     A->>DB: insert media (staged)
     A-->>B: 201 media id
     B->>A: POST /api/v1/assist/analyze-image
@@ -170,9 +171,8 @@ sequenceDiagram
     M-->>A: categories, colours, text, brands
     A-->>B: suggestions
     B->>A: POST /api/v1/found-reports (Idempotency-Key)
-    A->>DB: tx: report, attach media, history, audit, enqueue media.process
+    A->>DB: tx: report, attach media, history, audit, enqueue ai.embed_image and ai.analyze_image
     A-->>B: 201 FND-2611-0042
-    W->>DB: media.process: variants, hashes
     W->>M: embed image, analyze image
     W->>DB: store embeddings and attributes, enqueue ai.embed_text
     W->>M: embed text

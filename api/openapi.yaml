@@ -1,0 +1,1466 @@
+openapi: 3.0.3
+info:
+  title: SimpanUGM API
+  version: 0.1.0
+  description: |
+    Public API between `web` and `api`. Conventions and the full catalog are in
+    docs/architecture/api.md. Errors are RFC 9457 problem details.
+servers:
+  - url: /api/v1
+security:
+  - cookieAuth: []
+tags:
+  - name: auth
+  - name: masterdata
+  - name: media
+  - name: lost
+  - name: found
+  - name: custody
+  - name: search
+  - name: admin
+
+paths:
+  /auth/register:
+    post:
+      tags: [auth]
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '202':
+          description: Accepted. The same answer is given whether or not the email already exists.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ack' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/verify-email:
+    post:
+      tags: [auth]
+      operationId: verifyEmail
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TokenRequest' }
+      responses:
+        '200':
+          description: Email verified
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ack' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/resend-verification:
+    post:
+      tags: [auth]
+      operationId: resendVerification
+      responses:
+        '202':
+          description: Sent if the account is still unverified
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ack' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Signed in, session cookie set
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      parameters:
+        - name: all
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '204':
+          description: Signed out
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/password/forgot:
+    post:
+      tags: [auth]
+      operationId: forgotPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailRequest' }
+      responses:
+        '202':
+          description: Always accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ack' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/password/reset:
+    post:
+      tags: [auth]
+      operationId: resetPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TokenPasswordRequest' }
+      responses:
+        '200':
+          description: Password changed, every session revoked
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ack' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/invitations/accept:
+    post:
+      tags: [auth]
+      operationId: acceptInvitation
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TokenPasswordRequest' }
+      responses:
+        '200':
+          description: Account activated and signed in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /me:
+    get:
+      tags: [auth]
+      operationId: getMe
+      responses:
+        '200':
+          description: The signed in user
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /categories:
+    get:
+      tags: [masterdata]
+      operationId: listCategories
+      responses:
+        '200':
+          description: Parent categories with their leaves
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /zones:
+    get:
+      tags: [masterdata]
+      operationId: listZones
+      responses:
+        '200':
+          description: Zones
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ZoneList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /locations:
+    get:
+      tags: [masterdata]
+      operationId: listLocations
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 100 }
+        - name: zone_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+      responses:
+        '200':
+          description: Active locations, best match first when q is given
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LocationList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /posts:
+    get:
+      tags: [masterdata]
+      operationId: listPosts
+      parameters:
+        - name: near_location_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Active posts, nearest first when near_location_id is given
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PostList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /colours:
+    get:
+      tags: [masterdata]
+      operationId: listColours
+      responses:
+        '200':
+          description: Colour palette
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ColourList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /media:
+    post:
+      tags: [media]
+      operationId: uploadMedia
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, purpose]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                purpose:
+                  $ref: '#/components/schemas/MediaPurpose'
+      responses:
+        '201':
+          description: Uploaded and processed, staged until attached
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Media' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /media/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    get:
+      tags: [media]
+      operationId: getMedia
+      description: Served by a plain handler, excluded from code generation.
+      parameters:
+        - name: variant
+          in: query
+          schema:
+            type: string
+            enum: [thumb, display, original, thumb_blur]
+            default: display
+      responses:
+        '200':
+          description: Image bytes
+          content:
+            image/webp:
+              schema: { type: string, format: binary }
+            image/jpeg:
+              schema: { type: string, format: binary }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      tags: [media]
+      operationId: deleteMedia
+      responses:
+        '204':
+          description: Removed
+        default: { $ref: '#/components/responses/Problem' }
+
+  /lost-reports:
+    post:
+      tags: [lost]
+      operationId: createLostReport
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LostReportCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LostReport' }
+        default: { $ref: '#/components/responses/Problem' }
+    get:
+      tags: [lost]
+      operationId: listLostReports
+      parameters:
+        - $ref: '#/components/parameters/Mine'
+        - $ref: '#/components/parameters/StatusFilter'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Members see their own reports. Officers see all unless mine is true
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LostReportList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /lost-reports/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    get:
+      tags: [lost]
+      operationId: getLostReport
+      responses:
+        '200':
+          description: The report, projected for the caller
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LostReport' }
+        default: { $ref: '#/components/responses/Problem' }
+    patch:
+      tags: [lost]
+      operationId: updateLostReport
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LostReportUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LostReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /lost-reports/{id}/close:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [lost]
+      operationId: closeLostReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CloseLostReportRequest' }
+      responses:
+        '200':
+          description: Closed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LostReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /lost-reports/{id}/history:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    get:
+      tags: [lost]
+      operationId: getLostReportHistory
+      responses:
+        '200':
+          description: Status timeline, oldest first
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HistoryList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports:
+    post:
+      tags: [found]
+      operationId: createFoundReport
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FoundReportCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FoundReport' }
+        default: { $ref: '#/components/responses/Problem' }
+    get:
+      tags: [found]
+      operationId: listFoundReports
+      parameters:
+        - $ref: '#/components/parameters/Mine'
+        - $ref: '#/components/parameters/StatusFilter'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Members see their own reports. Officers see all unless mine is true
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FoundReportList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports/public:
+    get:
+      tags: [found]
+      operationId: listPublicFoundReports
+      parameters:
+        - name: category_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: zone_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Open found items, minimal projection without photos or descriptions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PublicFoundItemList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    get:
+      tags: [found]
+      operationId: getFoundReport
+      responses:
+        '200':
+          description: The report, projected for the caller
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FoundReport' }
+        default: { $ref: '#/components/responses/Problem' }
+    patch:
+      tags: [found]
+      operationId: updateFoundReport
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FoundReportUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FoundReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports/{id}/close:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [found]
+      operationId: closeFoundReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CloseFoundReportRequest' }
+      responses:
+        '200':
+          description: Closed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FoundReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports/{id}/history:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    get:
+      tags: [found]
+      operationId: getFoundReportHistory
+      responses:
+        '200':
+          description: Status and custody timeline, oldest first
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HistoryList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports/{id}/receive:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [custody]
+      operationId: receiveFoundReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReceiveFoundReportRequest' }
+      responses:
+        '200':
+          description: Received into custody
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FoundReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /posts/{id}/inventory:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    get:
+      tags: [custody]
+      operationId: getPostInventory
+      parameters:
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [retention_due_at, -received_at]
+            default: retention_due_at
+      responses:
+        '200':
+          description: Items in custody at the post
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InventoryList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /search:
+    get:
+      tags: [search]
+      operationId: searchReports
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 200 }
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [lost, found]
+        - name: category_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: zone_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: location_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+        - $ref: '#/components/parameters/StatusFilter'
+        - name: custody
+          in: query
+          schema: { $ref: '#/components/schemas/CustodyStatus' }
+        - name: post_id
+          in: query
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Lost and found reports matching the query, most relevant first
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SearchResultList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/users:
+    get:
+      tags: [admin]
+      operationId: adminListUsers
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 100 }
+        - name: role
+          in: query
+          schema: { $ref: '#/components/schemas/Role' }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Users
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminUserList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/users/invitations:
+    post:
+      tags: [admin]
+      operationId: adminInviteUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InviteUserRequest' }
+      responses:
+        '201':
+          description: Invited, email sent
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminUser' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    patch:
+      tags: [admin]
+      operationId: adminUpdateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateUserRequest' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminUser' }
+        default: { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: simpan_session
+
+  parameters:
+    UUIDPath:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    IdOrCode:
+      name: id
+      in: path
+      required: true
+      description: UUID or human code such as LST-2611-0007
+      schema: { type: string, maxLength: 40 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 8, maxLength: 100 }
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      description: The version from the last read, quoted or bare
+      schema: { type: string, maxLength: 20 }
+    Mine:
+      name: mine
+      in: query
+      schema: { type: boolean, default: false }
+    StatusFilter:
+      name: status
+      in: query
+      style: form
+      explode: true
+      schema:
+        type: array
+        maxItems: 10
+        items: { type: string, maxLength: 30 }
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string, maxLength: 200 }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  responses:
+    Problem:
+      description: RFC 9457 problem details
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        code: { type: string }
+        detail: { type: string }
+        instance: { type: string }
+        request_id: { type: string }
+        retry_after_seconds: { type: integer }
+        errors:
+          type: array
+          items: { $ref: '#/components/schemas/FieldError' }
+
+    FieldError:
+      type: object
+      required: [field, code, message]
+      properties:
+        field: { type: string }
+        code: { type: string }
+        message: { type: string }
+
+    Ack:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+
+    Role:
+      type: string
+      enum: [member, officer, admin]
+
+    AccountStatus:
+      type: string
+      enum: [pending_verification, active, suspended, deleted]
+
+    Sensitivity:
+      type: string
+      enum: [normal, valuable, identity]
+
+    LostStatus:
+      type: string
+      enum: [reported, potential_match, under_verification, claimed, returned, closed]
+
+    FoundStatus:
+      type: string
+      enum: [reported, potential_match, under_verification, claimed, returned, unclaimed, closed]
+
+    CustodyStatus:
+      type: string
+      enum: [with_finder, in_custody, released, disposed, cancelled]
+
+    MediaPurpose:
+      type: string
+      enum: [lost_report, found_report]
+
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [full_name, email, password, privacy_version, accept_privacy]
+      properties:
+        full_name: { type: string, maxLength: 100 }
+        email: { type: string, maxLength: 254 }
+        password: { type: string, maxLength: 128 }
+        nim_nip: { type: string, maxLength: 30 }
+        phone: { type: string, maxLength: 20 }
+        privacy_version: { type: string, maxLength: 20 }
+        accept_privacy: { type: boolean }
+
+    TokenRequest:
+      type: object
+      additionalProperties: false
+      required: [token]
+      properties:
+        token: { type: string, maxLength: 100 }
+
+    TokenPasswordRequest:
+      type: object
+      additionalProperties: false
+      required: [token, password]
+      properties:
+        token: { type: string, maxLength: 100 }
+        password: { type: string, maxLength: 128 }
+
+    EmailRequest:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email: { type: string, maxLength: 254 }
+
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: { type: string, maxLength: 254 }
+        password: { type: string, maxLength: 128 }
+
+    Me:
+      type: object
+      required: [id, email, full_name, role, status, email_verified, claim_restricted, post_ids, permissions]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        full_name: { type: string }
+        nim_nip: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        role: { $ref: '#/components/schemas/Role' }
+        status: { $ref: '#/components/schemas/AccountStatus' }
+        email_verified: { type: boolean }
+        claim_restricted: { type: boolean }
+        post_ids:
+          type: array
+          items: { type: string, format: uuid }
+        permissions:
+          type: array
+          items: { type: string }
+
+    VerificationQuestion:
+      type: object
+      required: [key, question, required]
+      properties:
+        key: { type: string }
+        question: { type: string }
+        required: { type: boolean }
+        check_hint: { type: string }
+
+    Category:
+      type: object
+      required: [id, slug, name]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        parent_id: { type: string, format: uuid, nullable: true }
+        sensitivity: { $ref: '#/components/schemas/Sensitivity' }
+        verification_questions:
+          type: array
+          items: { $ref: '#/components/schemas/VerificationQuestion' }
+        children:
+          type: array
+          items: { $ref: '#/components/schemas/Category' }
+
+    CategoryList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Category' }
+
+    Zone:
+      type: object
+      required: [id, slug, name, centroid_lat, centroid_lng]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        centroid_lat: { type: number, format: double }
+        centroid_lng: { type: number, format: double }
+
+    ZoneList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Zone' }
+
+    Location:
+      type: object
+      required: [id, slug, name, aliases, kind, zone_id, zone_name, lat, lng]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        aliases:
+          type: array
+          items: { type: string }
+        kind:
+          type: string
+          enum: [building, outdoor, facility, transport, parking]
+        zone_id: { type: string, format: uuid }
+        zone_name: { type: string }
+        lat: { type: number, format: double }
+        lng: { type: number, format: double }
+
+    LocationList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Location' }
+
+    Post:
+      type: object
+      required: [id, slug, name, location_id, location_name, zone_id, zone_name, opening_hours]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        location_id: { type: string, format: uuid }
+        location_name: { type: string }
+        zone_id: { type: string, format: uuid }
+        zone_name: { type: string }
+        phone: { type: string, nullable: true }
+        opening_hours:
+          type: object
+          description: Weekday keys mon to sun, each a list of [from, to] in WIB
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items: { type: string }
+        distance_m: { type: number, format: double, nullable: true }
+
+    PostList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Post' }
+
+    Colour:
+      type: object
+      required: [name, hex]
+      properties:
+        name: { type: string }
+        hex: { type: string }
+
+    ColourList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Colour' }
+
+    Media:
+      type: object
+      required: [id, purpose, state, width, height, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        purpose: { $ref: '#/components/schemas/MediaPurpose' }
+        state:
+          type: string
+          enum: [staged, ready, deleted]
+        width: { type: integer }
+        height: { type: integer }
+        created_at: { type: string, format: date-time }
+
+    CategoryRef:
+      type: object
+      required: [id, slug, name, parent_name, sensitivity]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        parent_name: { type: string }
+        sensitivity: { $ref: '#/components/schemas/Sensitivity' }
+
+    NamedRef:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+
+    PlaceInput:
+      type: object
+      additionalProperties: false
+      properties:
+        location_id: { type: string, format: uuid }
+        zone_id: { type: string, format: uuid }
+
+    PlaceRef:
+      type: object
+      properties:
+        location: { $ref: '#/components/schemas/NamedRef' }
+        zone: { $ref: '#/components/schemas/NamedRef' }
+
+    PhotoRef:
+      type: object
+      required: [media_id, position]
+      properties:
+        media_id: { type: string, format: uuid }
+        position: { type: integer }
+
+    PersonRef:
+      type: object
+      required: [full_name]
+      properties:
+        id: { type: string, format: uuid }
+        full_name: { type: string }
+        email: { type: string }
+        phone: { type: string, nullable: true }
+        nim_nip: { type: string, nullable: true }
+
+    ProxyLostInput:
+      type: object
+      additionalProperties: false
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 100 }
+        phone: { type: string, maxLength: 20 }
+
+    LostReportCreate:
+      type: object
+      additionalProperties: false
+      required: [category_id, item_name, description, lost_from, lost_until, location_unknown, places, colours, media_ids]
+      properties:
+        category_id: { type: string, format: uuid }
+        item_name: { type: string, maxLength: 80 }
+        description: { type: string, maxLength: 1000 }
+        private_details: { type: string, maxLength: 500 }
+        colours:
+          type: array
+          maxItems: 2
+          items: { type: string, maxLength: 30 }
+        brand: { type: string, maxLength: 40 }
+        lost_from: { type: string, format: date-time }
+        lost_until: { type: string, format: date-time }
+        location_unknown: { type: boolean }
+        places:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/PlaceInput' }
+        location_note: { type: string, maxLength: 200 }
+        media_ids:
+          type: array
+          maxItems: 5
+          items: { type: string, format: uuid }
+        proxy: { $ref: '#/components/schemas/ProxyLostInput' }
+
+    LostReportUpdate:
+      type: object
+      additionalProperties: false
+      description: Every field is optional. A present field replaces the stored value. An empty string clears an optional text
+      properties:
+        category_id: { type: string, format: uuid }
+        item_name: { type: string, maxLength: 80 }
+        description: { type: string, maxLength: 1000 }
+        private_details: { type: string, maxLength: 500 }
+        colours:
+          type: array
+          maxItems: 2
+          items: { type: string, maxLength: 30 }
+        brand: { type: string, maxLength: 40 }
+        lost_from: { type: string, format: date-time }
+        lost_until: { type: string, format: date-time }
+        location_unknown: { type: boolean }
+        places:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/PlaceInput' }
+        location_note: { type: string, maxLength: 200 }
+        media_ids:
+          type: array
+          maxItems: 5
+          items: { type: string, format: uuid }
+
+    LostReport:
+      type: object
+      required: [id, code, status, category, item_name, description, colours, lost_from, lost_until, location_unknown, places, photos, proxy, candidate_count, version, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        status: { $ref: '#/components/schemas/LostStatus' }
+        close_reason: { type: string, nullable: true }
+        closed_at: { type: string, format: date-time, nullable: true }
+        category: { $ref: '#/components/schemas/CategoryRef' }
+        item_name: { type: string }
+        description: { type: string }
+        private_details: { type: string, nullable: true }
+        colours:
+          type: array
+          items: { type: string }
+        brand: { type: string, nullable: true }
+        lost_from: { type: string, format: date-time }
+        lost_until: { type: string, format: date-time }
+        location_unknown: { type: boolean }
+        places:
+          type: array
+          items: { $ref: '#/components/schemas/PlaceRef' }
+        location_note: { type: string, nullable: true }
+        photos:
+          type: array
+          items: { $ref: '#/components/schemas/PhotoRef' }
+        reporter: { $ref: '#/components/schemas/PersonRef' }
+        proxy: { type: boolean }
+        editable: { type: boolean }
+        candidate_count: { type: integer }
+        version: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    LostReportSummary:
+      type: object
+      required: [id, code, status, item_name, category_name, lost_until, candidate_count, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        status: { $ref: '#/components/schemas/LostStatus' }
+        item_name: { type: string }
+        category_name: { type: string }
+        lost_until: { type: string, format: date-time }
+        candidate_count: { type: integer }
+        thumb_media_id: { type: string, format: uuid, nullable: true }
+        reporter_name: { type: string, nullable: true }
+        updated_at: { type: string, format: date-time }
+
+    LostReportList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/LostReportSummary' }
+        next_cursor: { type: string, nullable: true }
+
+    CloseLostReportRequest:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          enum: [found_by_owner, no_longer_needed]
+        note: { type: string, maxLength: 500 }
+
+    HistoryEntry:
+      type: object
+      required: [entity, to_status, transition, actor_kind, created_at]
+      properties:
+        entity:
+          type: string
+          enum: [lost_report, found_report, custody]
+        from_status: { type: string, nullable: true }
+        to_status: { type: string }
+        transition: { type: string }
+        reason: { type: string, nullable: true }
+        actor_kind:
+          type: string
+          enum: [user, system]
+        actor_name: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    HistoryList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/HistoryEntry' }
+
+    CustodyChoice:
+      type: object
+      additionalProperties: false
+      required: [mode]
+      properties:
+        mode:
+          type: string
+          enum: [handover, keep]
+        intended_post_id: { type: string, format: uuid }
+
+    ProxyFoundInput:
+      type: object
+      additionalProperties: false
+      required: [post_id, storage_slot]
+      properties:
+        finder_name: { type: string, maxLength: 100 }
+        post_id: { type: string, format: uuid }
+        storage_slot: { type: string, maxLength: 40 }
+        condition_note: { type: string, maxLength: 500 }
+
+    FoundReportCreate:
+      type: object
+      additionalProperties: false
+      required: [category_id, item_name, description, found_at, found_location_id, colours, media_ids, custody]
+      properties:
+        category_id: { type: string, format: uuid }
+        item_name: { type: string, maxLength: 80 }
+        description: { type: string, maxLength: 500 }
+        hidden_details: { type: string, maxLength: 500 }
+        colours:
+          type: array
+          maxItems: 2
+          items: { type: string, maxLength: 30 }
+        brand: { type: string, maxLength: 40 }
+        found_at: { type: string, format: date-time }
+        found_location_id: { type: string, format: uuid }
+        location_note: { type: string, maxLength: 200 }
+        media_ids:
+          type: array
+          maxItems: 5
+          items: { type: string, format: uuid }
+        custody: { $ref: '#/components/schemas/CustodyChoice' }
+        proxy: { $ref: '#/components/schemas/ProxyFoundInput' }
+
+    FoundReportUpdate:
+      type: object
+      additionalProperties: false
+      description: Every field is optional. A present field replaces the stored value. An empty string clears an optional text
+      properties:
+        category_id: { type: string, format: uuid }
+        item_name: { type: string, maxLength: 80 }
+        description: { type: string, maxLength: 500 }
+        hidden_details: { type: string, maxLength: 500 }
+        colours:
+          type: array
+          maxItems: 2
+          items: { type: string, maxLength: 30 }
+        brand: { type: string, maxLength: 40 }
+        found_at: { type: string, format: date-time }
+        found_location_id: { type: string, format: uuid }
+        location_note: { type: string, maxLength: 200 }
+        media_ids:
+          type: array
+          maxItems: 5
+          items: { type: string, format: uuid }
+        custody: { $ref: '#/components/schemas/CustodyChoice' }
+
+    FoundReport:
+      type: object
+      required: [id, code, status, category, item_name, description, colours, found_at, found_location, photos, custody_status, custody_keep, proxy, version, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        status: { $ref: '#/components/schemas/FoundStatus' }
+        close_reason: { type: string, nullable: true }
+        closed_at: { type: string, format: date-time, nullable: true }
+        category: { $ref: '#/components/schemas/CategoryRef' }
+        item_name: { type: string }
+        description: { type: string }
+        hidden_details: { type: string, nullable: true }
+        colours:
+          type: array
+          items: { type: string }
+        brand: { type: string, nullable: true }
+        found_at: { type: string, format: date-time }
+        found_location: { $ref: '#/components/schemas/LocationRef' }
+        location_note: { type: string, nullable: true }
+        photos:
+          type: array
+          items: { $ref: '#/components/schemas/PhotoRef' }
+        custody_status: { $ref: '#/components/schemas/CustodyStatus' }
+        custody_keep: { type: boolean }
+        intended_post: { $ref: '#/components/schemas/NamedRef' }
+        holding_post: { $ref: '#/components/schemas/NamedRef' }
+        storage_slot: { type: string, nullable: true }
+        received_at: { type: string, format: date-time, nullable: true }
+        retention_due_at: { type: string, format: date-time, nullable: true }
+        finder: { $ref: '#/components/schemas/PersonRef' }
+        proxy: { type: boolean }
+        proxy_finder_name: { type: string, nullable: true }
+        editable: { type: boolean }
+        version: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    LocationRef:
+      type: object
+      required: [id, name, zone_id, zone_name]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        zone_id: { type: string, format: uuid }
+        zone_name: { type: string }
+
+    FoundReportSummary:
+      type: object
+      required: [id, code, status, item_name, category_name, found_at, custody_status, location_name, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        status: { $ref: '#/components/schemas/FoundStatus' }
+        item_name: { type: string }
+        category_name: { type: string }
+        found_at: { type: string, format: date-time }
+        custody_status: { $ref: '#/components/schemas/CustodyStatus' }
+        location_name: { type: string }
+        holding_post_name: { type: string, nullable: true }
+        thumb_media_id: { type: string, format: uuid, nullable: true }
+        finder_name: { type: string, nullable: true }
+        updated_at: { type: string, format: date-time }
+
+    FoundReportList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/FoundReportSummary' }
+        next_cursor: { type: string, nullable: true }
+
+    PublicFoundItem:
+      type: object
+      required: [id, category, item_name, zone, found_date, custody_status]
+      properties:
+        id: { type: string, format: uuid }
+        category: { $ref: '#/components/schemas/NamedRef' }
+        item_name: { type: string }
+        zone: { $ref: '#/components/schemas/NamedRef' }
+        found_date: { type: string, format: date }
+        holding_post: { $ref: '#/components/schemas/NamedRef' }
+        custody_status: { $ref: '#/components/schemas/CustodyStatus' }
+
+    PublicFoundItemList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/PublicFoundItem' }
+        next_cursor: { type: string, nullable: true }
+
+    CloseFoundReportRequest:
+      type: object
+      additionalProperties: false
+      required: [reason, note]
+      properties:
+        reason:
+          type: string
+          enum: [returned_directly, reported_in_error]
+        note: { type: string, maxLength: 500 }
+
+    ReceiveFoundReportRequest:
+      type: object
+      additionalProperties: false
+      required: [post_id, storage_slot]
+      properties:
+        post_id: { type: string, format: uuid }
+        storage_slot: { type: string, maxLength: 40 }
+        condition_note: { type: string, maxLength: 500 }
+
+    InventoryItem:
+      type: object
+      required: [id, code, item_name, category_name, sensitivity, storage_slot, received_at, retention_due_at, age_days, status, claim_state]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        item_name: { type: string }
+        category_name: { type: string }
+        sensitivity: { $ref: '#/components/schemas/Sensitivity' }
+        storage_slot: { type: string }
+        received_at: { type: string, format: date-time }
+        retention_due_at: { type: string, format: date-time }
+        age_days: { type: integer }
+        status: { $ref: '#/components/schemas/FoundStatus' }
+        claim_state:
+          type: string
+          enum: [none, open, approved]
+        thumb_media_id: { type: string, format: uuid, nullable: true }
+
+    InventoryList:
+      type: object
+      required: [post, items]
+      properties:
+        post: { $ref: '#/components/schemas/NamedRef' }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/InventoryItem' }
+
+    SearchResult:
+      type: object
+      required: [type, id, code, item_name, category_name, status, occurred_at]
+      properties:
+        type:
+          type: string
+          enum: [lost, found]
+        id: { type: string, format: uuid }
+        code: { type: string }
+        item_name: { type: string }
+        category_name: { type: string }
+        status: { type: string }
+        custody_status: { $ref: '#/components/schemas/CustodyStatus' }
+        place_name: { type: string, nullable: true }
+        occurred_at: { type: string, format: date-time }
+        person_name: { type: string, nullable: true }
+        relevance: { type: number, format: double, nullable: true }
+
+    SearchResultList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/SearchResult' }
+        next_cursor: { type: string, nullable: true }
+
+    AdminUser:
+      type: object
+      required: [id, email, full_name, role, status, email_verified, post_ids, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        full_name: { type: string }
+        role: { $ref: '#/components/schemas/Role' }
+        status: { $ref: '#/components/schemas/AccountStatus' }
+        email_verified: { type: boolean }
+        post_ids:
+          type: array
+          items: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+        last_login_at: { type: string, format: date-time, nullable: true }
+
+    AdminUserList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AdminUser' }
+        next_cursor: { type: string, nullable: true }
+
+    InviteUserRequest:
+      type: object
+      additionalProperties: false
+      required: [email, full_name, role, post_ids]
+      properties:
+        email: { type: string, maxLength: 254 }
+        full_name: { type: string, maxLength: 100 }
+        role:
+          type: string
+          enum: [officer, admin]
+        post_ids:
+          type: array
+          maxItems: 20
+          items: { type: string, format: uuid }
+
+    UpdateUserRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        role: { $ref: '#/components/schemas/Role' }
+        post_ids:
+          type: array
+          maxItems: 20
+          items: { type: string, format: uuid }

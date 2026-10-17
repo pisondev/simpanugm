@@ -1,0 +1,10 @@
+package: openapi
+output: openapi.gen.go
+generate:
+  models: true
+  chi-server: true
+  strict-server: true
+  embedded-spec: false
+output-options:
+  exclude-operation-ids:
+    - getMedia

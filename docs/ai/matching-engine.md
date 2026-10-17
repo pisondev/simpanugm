@@ -318,9 +318,8 @@ CPU is never oversubscribed.
 
 | Job | Queue | Trigger | Does | Idempotency |
 |---|---|---|---|---|
-| `media.process` | `default` | upload attached | variants, hashes, then enqueues the two jobs below | by media id |
-| `ai.embed_image` | `ml` | after `media.process` | stores image embedding | upsert by image id and model version |
-| `ai.analyze_image` | `ml` | after `media.process` | stores attributes and masked text | upsert by image id and model version |
+| `ai.embed_image` | `ml` | photo attached to a report. Variants and hashes already exist, they are produced during the upload request | stores image embedding | upsert by image id and model version |
+| `ai.analyze_image` | `ml` | photo attached to a report | stores attributes and masked text | upsert by image id and model version |
 | `ai.embed_text` | `ml` | report created or text changed, and after every `ai.analyze_image` of the report | stores both text embeddings | upsert by report and model version, skipped if the text hash is unchanged |
 | `match.report` | `default` | after `ai.embed_text`, or on demand | retrieval, scoring, upsert of matches, status effects | unique per report while pending, so bursts of edits coalesce |
 | `match.notify` | `default` | after `match.report` produced a new high candidate | applies BR-NTF-01 and creates notifications | by match id and throttle window |

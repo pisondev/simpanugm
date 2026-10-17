@@ -1,0 +1,48 @@
+version: "2"
+run:
+  timeout: 5m
+  build-tags: [integration]
+linters:
+  default: standard
+  enable:
+    - gosec
+    - revive
+    - gocritic
+    - bodyclose
+    - sqlclosecheck
+    - misspell
+    - unconvert
+    - errorlint
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+        - name: var-naming
+        - name: indent-error-flow
+        - name: error-strings
+        - name: receiver-naming
+    gosec:
+      excludes:
+        - G115
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+  exclusions:
+    generated: strict
+    paths:
+      - internal/openapi
+      - internal/db/sqlc
+    rules:
+      - path: _test\.go
+        linters: [gosec, errcheck]
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/pisondev/simpanugm

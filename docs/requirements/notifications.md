@@ -15,6 +15,7 @@ All mandatory, email only, never delayed by quiet hours.
 | Event | Recipient | Subject | Body baseline |
 |---|---|---|---|
 | `account.verify_email` | new user | Verifikasi email SimpanUGM | Klik tautan berikut untuk mengaktifkan akunmu. Tautan berlaku 24 jam. |
+| `account.register_attempt` | owner of an existing account | Percobaan pendaftaran dengan emailmu | Ada percobaan pendaftaran dengan alamat ini, padahal kamu sudah punya akun. Jika bukan kamu, abaikan email ini. |
 | `account.password_reset` | user | Atur ulang kata sandi | Ada permintaan atur ulang kata sandi. Tautan berlaku 30 menit. Abaikan jika bukan kamu. |
 | `account.password_changed` | user | Kata sandi diubah | Kata sandi akunmu baru saja diubah. Semua sesi lain telah dikeluarkan. |
 | `account.invite` | invited officer or admin | Undangan akun SimpanUGM | Kamu diundang sebagai petugas. Atur kata sandi dalam 72 jam. |

@@ -17,6 +17,7 @@ desktop.ini
 
 # go
 api/bin/
+api/var/
 api/tmp/
 *.test
 *.out
