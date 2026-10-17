@@ -14,8 +14,18 @@
     },
     {
       "id": "short_and_invalid_runs",
-      "input": "Kode 123456789012 dan invalid 4532015112830367.",
-      "expected": "Kode 123456789012 dan invalid 4532015112830367."
+      "input": "Kode 123456789012 dan invalid 453201511283036.",
+      "expected": "Kode 123456789012 dan invalid 453201511283036."
+    },
+    {
+      "id": "sixteen_digits_without_luhn",
+      "input": "NIK 3404012345678901 pada KTP.",
+      "expected": "NIK ************8901 pada KTP."
+    },
+    {
+      "id": "grouped_card_number",
+      "input": "Kartu 4532 0151 1283 0366 milik siapa?",
+      "expected": "Kartu ************0366 milik siapa?"
     }
   ]
 }

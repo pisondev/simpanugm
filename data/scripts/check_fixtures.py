@@ -19,7 +19,8 @@ FUSION_BANDS = {
     "e5": (0.78, 0.93),
 }
 FUSION_WEIGHTS = {"image": 0.35, "cross_modal": 0.25, "text": 0.35, "location": 0.15, "time": 0.15}
-DIGIT_RUN = re.compile(r"\d+")
+# digit runs may be grouped by single spaces or hyphens, as printed on cards
+DIGIT_RUN = re.compile(r"\d(?:[ -]?\d){12,18}")
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -48,10 +49,12 @@ def luhn_valid(value: str) -> bool:
 
 def mask_visible_text(value: str) -> str:
     def replace(match: re.Match[str]) -> str:
-        digits = match.group(0)
-        if 13 <= len(digits) <= 19 and luhn_valid(digits):
+        run = match.group(0)
+        digits = re.sub(r"\D", "", run)
+        # BR-PRV-03: every 16 digit run, which covers NIK, plus any 13 to 19 digit run that passes Luhn
+        if len(digits) == 16 or luhn_valid(digits):
             return "*" * (len(digits) - 4) + digits[-4:]
-        return digits
+        return run
 
     return DIGIT_RUN.sub(replace, value)
 
