@@ -100,9 +100,11 @@ def copy_images(source: Path, destination: Path) -> list[Path]:
         raise IntakeError(f"images/ must not be a symlink: {images_root}")
     copied: list[Path] = []
     output_paths: set[Path] = set()
-    for image_path in sorted(path for path in images_root.rglob("*") if path.is_file()):
+    for image_path in sorted(images_root.rglob("*")):
         if image_path.is_symlink():
             raise IntakeError(f"source image must not be a symlink: {image_path}")
+        if not image_path.is_file():
+            continue
         relative = Path("images") / image_path.relative_to(images_root)
         target_relative = canonical_image_path(relative)
         if target_relative in output_paths:

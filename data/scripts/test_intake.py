@@ -82,6 +82,19 @@ class IntakeTests(unittest.TestCase):
             with self.assertRaises(IntakeError):
                 intake_dataset(source, Path(directory) / "prepared", "trial-1")
 
+    def test_intake_rejects_symlink_image_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            external = Path(directory) / "external-images"
+            external.mkdir()
+            symlink = source / "images" / "I002"
+            try:
+                symlink.symlink_to(external, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+            with self.assertRaises(IntakeError):
+                intake_dataset(source, Path(directory) / "prepared", "trial-1")
+
     def test_manifest_rejects_invalid_kind_and_policy(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = self.create_source(directory)
@@ -122,6 +135,21 @@ class IntakeTests(unittest.TestCase):
                 self.skipTest(f"symlink is unavailable: {exc}")
             errors = check_manifest(output)
             self.assertTrue(any("must not be a symlink" in error for error in errors))
+
+    def test_manifest_rejects_unlisted_symlink_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            external = Path(directory) / "external-images"
+            external.mkdir()
+            symlink = output / "images" / "I002"
+            try:
+                symlink.symlink_to(external, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+            errors = check_manifest(output)
+            self.assertIn("unlisted symlink: images/I002", errors)
 
     def test_manifest_detects_tampered_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

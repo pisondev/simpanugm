@@ -44,3 +44,5 @@
 - Hardened auxiliary metadata checks for one-based IDs and duplicate label references.
 - Made full and trial template generation atomic so failed writes do not leave partial
   private collection layouts.
+- Extended private intake and manifest checks to reject symlink directories as well as
+  symlink files.

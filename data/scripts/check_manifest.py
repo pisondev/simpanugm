@@ -119,11 +119,15 @@ def check_manifest(dataset_dir: Path) -> list[str]:
             except OSError as exc:
                 errors.append(f"cannot open image {relative}: {exc}")
 
-    actual = {
-        path.relative_to(dataset_dir).as_posix()
-        for path in dataset_dir.rglob("*")
-        if path.is_file() and path.name != "manifest.json"
-    }
+    actual: set[str] = set()
+    for path in dataset_dir.rglob("*"):
+        relative = path.relative_to(dataset_dir).as_posix()
+        if path.is_symlink():
+            if relative not in listed:
+                errors.append(f"unlisted symlink: {relative}")
+            continue
+        if path.is_file() and path.name != "manifest.json":
+            actual.add(relative)
     for relative in sorted(actual - listed):
         errors.append(f"file is not listed in manifest: {relative}")
     return errors
