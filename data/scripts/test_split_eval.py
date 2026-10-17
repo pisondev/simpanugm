@@ -3,7 +3,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from split_eval import make_split_rows, read_labels, verify_split_rows, write_split
+from split_eval import (
+    make_distractor_split_rows,
+    make_split_rows,
+    read_labels,
+    verify_distractor_split_rows,
+    verify_split_rows,
+    write_split,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -74,6 +81,17 @@ class EvaluationSplitTests(unittest.TestCase):
             rows.append(dict(rows[0]))
             errors = verify_split_rows(rows, labels, val_count=4)
             self.assertTrue(any("duplicate split assignment" in error for error in errors))
+
+    def test_distractors_follow_the_item_split_proportion(self) -> None:
+        distractors = [f"D{index:03d}" for index in range(1, 11)]
+        first = make_distractor_split_rows(distractors, item_val_count=4, item_count=10, seed=2026)
+        second = make_distractor_split_rows(distractors, item_val_count=4, item_count=10, seed=2026)
+        self.assertEqual(first, second)
+        self.assertEqual(sum(row["split"] == "val" for row in first), 4)
+        self.assertEqual(
+            verify_distractor_split_rows(first, distractors, item_val_count=4, item_count=10),
+            [],
+        )
 
 
 if __name__ == "__main__":

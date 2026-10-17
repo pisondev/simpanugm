@@ -20,3 +20,5 @@
   distinctiveness while preventing physical-item leakage between `val` and `test`.
 - Added auxiliary dataset checks for distractor metadata and photos, duplicate-pair
   references, and unique paraphrase queries.
+- Extended the evaluation splitter to assign and verify distractors at the same split
+  proportion as the physical-item set.

@@ -34,16 +34,21 @@ After labels pass the quality gate, create and verify the grouped split:
 python3 data/scripts/split_eval.py \
   --labels /private/simpanugm-eval/v1/labels.csv \
   --output /private/simpanugm-eval/v1/splits.csv \
+  --distractors /private/simpanugm-eval/v1/distractors.csv \
+  --distractor-output /private/simpanugm-eval/v1/distractor-splits.csv \
   --val-count 60 \
   --seed 2026
 python3 data/scripts/split_eval.py \
   --labels /private/simpanugm-eval/v1/labels.csv \
   --val-count 60 \
-  --verify /private/simpanugm-eval/v1/splits.csv
+  --verify /private/simpanugm-eval/v1/splits.csv \
+  --distractors /private/simpanugm-eval/v1/distractors.csv \
+  --verify-distractors /private/simpanugm-eval/v1/distractor-splits.csv
 ```
 
-The assignment is deterministic and keeps every physical item in one split only. The
-generated CSV is private dataset metadata and must not be committed.
+The assignments are deterministic, keep every physical item in one split only, and
+place 160 of the 400 distractors in `val` for the v1 target. The generated CSV files
+are private dataset metadata and must not be committed.
 
 The full collection also requires the following private metadata contracts:
 

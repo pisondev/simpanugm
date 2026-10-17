@@ -58,13 +58,16 @@ item-grouped `val`/`test` assignment:
 python3 data/scripts/split_eval.py \
   --labels /private/simpanugm-eval/v1/labels.csv \
   --output /private/simpanugm-eval/v1/splits.csv \
+  --distractors /private/simpanugm-eval/v1/distractors.csv \
+  --distractor-output /private/simpanugm-eval/v1/distractor-splits.csv \
   --val-count 60 \
   --seed 2026
 ```
 
 The splitter stratifies by parent category and distinctiveness, assigns each physical
-item to exactly one split, and can verify an existing assignment with `--verify`. The
-split file stays private with the dataset; only the script and its tests are committed.
+item to exactly one split, and assigns distractors to the same `val`/`test` proportion.
+It can verify both existing assignments with `--verify` and `--verify-distractors`. The
+split files stay private with the dataset; only the script and its tests are committed.
 
 Once the full private dataset has its auxiliary reports, run the additional metadata
 check:
