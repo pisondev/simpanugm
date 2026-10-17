@@ -51,6 +51,21 @@ python3 data/scripts/osm_locations.py \
 The generated rows have empty `zone_slug` and `aliases`, and carry
 `review_status=needs_review`. They are review material, not production seed data.
 
+After the private labels pass the dataset quality gate, create the reproducible,
+item-grouped `val`/`test` assignment:
+
+```text
+python3 data/scripts/split_eval.py \
+  --labels /private/simpanugm-eval/v1/labels.csv \
+  --output /private/simpanugm-eval/v1/splits.csv \
+  --val-count 60 \
+  --seed 2026
+```
+
+The splitter stratifies by parent category and distinctiveness, assigns each physical
+item to exactly one split, and can verify an existing assignment with `--verify`. The
+split file stays private with the dataset; only the script and its tests are committed.
+
 ## Seed files
 
 These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts

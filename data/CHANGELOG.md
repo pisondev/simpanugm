@@ -16,3 +16,5 @@
   normalization, SHA-256 hashes, and tamper detection.
 - Added dataset quality gates for metadata completeness, photo coverage, owner-photo
   consistency, and duplicate descriptions.
+- Added a deterministic evaluation splitter that stratifies by parent category and
+  distinctiveness while preventing physical-item leakage between `val` and `test`.
