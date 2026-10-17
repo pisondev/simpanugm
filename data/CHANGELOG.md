@@ -53,8 +53,8 @@
   partial output.
 - Added shared synthetic fixture contracts for fusion scores, BR-PRV-03 masking, and
   rapidfuzz token-set name matching, with a dependency-light validator and test coverage.
-- Added an explicit boundary for future synthetic image fixtures so participant media and
-  collected evaluation images remain outside the repository.
+- Added deterministic synthetic image fixtures for colour extraction, EXIF removal, OCR,
+  and masking while keeping participant media outside the repository.
 - Clarified that the private evaluation manifest is committed only after the real intake
   and v1 freeze, so no empty or fabricated hash is published beforehand.
 - Added a dedicated data CI workflow that installs the declared validator dependencies,

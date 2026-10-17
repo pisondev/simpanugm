@@ -45,9 +45,9 @@ images remain outside the repository. Validate them with:
 python3 data/scripts/check_fixtures.py
 ```
 
-The binary image set is deliberately reserved until the API media schema and image
-analysis contract are implemented. The placeholder README in `fixtures/images/` records
-the same boundary.
+Synthetic image fixtures are available in `fixtures/images/` and can be recreated with
+`python3 data/scripts/create_fixture_images.py`. They contain no people, real documents,
+or participant data.
 
 The repository data workflow runs the seed check, fixture check, and complete data-script
 test suite on every change under `data/`. Private manifest verification still runs after
