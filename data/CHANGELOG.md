@@ -18,3 +18,5 @@
   consistency, and duplicate descriptions.
 - Added a deterministic evaluation splitter that stratifies by parent category and
   distinctiveness while preventing physical-item leakage between `val` and `test`.
+- Added auxiliary dataset checks for distractor metadata and photos, duplicate-pair
+  references, and unique paraphrase queries.

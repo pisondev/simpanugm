@@ -66,6 +66,20 @@ The splitter stratifies by parent category and distinctiveness, assigns each phy
 item to exactly one split, and can verify an existing assignment with `--verify`. The
 split file stays private with the dataset; only the script and its tests are committed.
 
+Once the full private dataset has its auxiliary reports, run the additional metadata
+check:
+
+```text
+python3 data/scripts/check_auxiliary.py \
+  --dataset-dir /private/simpanugm-eval/v1 \
+  --expected-distractors 400 \
+  --expected-duplicates 40 \
+  --expected-queries 50
+```
+
+It validates the distractor IDs and photos, duplicate-pair references, and unique
+paraphrase queries. The expected counts can be lowered for a local trial fixture.
+
 ## Seed files
 
 These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts

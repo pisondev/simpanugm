@@ -45,6 +45,17 @@ python3 data/scripts/split_eval.py \
 The assignment is deterministic and keeps every physical item in one split only. The
 generated CSV is private dataset metadata and must not be committed.
 
+The full collection also requires the following private metadata contracts:
+
+| File | Required columns | Target |
+|---|---|---|
+| `distractors.csv` | `distractor_id`, `leaf_category`, `primary_colour`, `distinctiveness`, `description` | `D001` through `D400`, with at least one finder photo each |
+| `duplicates.csv` | `pair_id`, `item_id`, `first_report_id`, `second_report_id` | `P001` through `P040`, one pair per physical item |
+| `queries.csv` | `query_id`, `query_text`, `target_report_id` | `Q001` through `Q050`, unique normalized query text |
+
+Run `data/scripts/check_auxiliary.py` after the manifest and base quality checks. These
+files remain private and are never committed to git.
+
 ## Contents at freeze
 
 | Part | Target |
