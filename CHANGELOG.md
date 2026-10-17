@@ -44,3 +44,4 @@ All notable changes to this project are recorded here. The format follows
 - Added a private two-annotator label agreement checker with aggregate Cohen's kappa.
 - Hardened reviewed-location promotion against empty output and invalid OSM provenance.
 - Added a blank trial exit-review log template for the private collection workflow.
+- Added an atomic generator for the private trial-review workspace and annotation sheets.

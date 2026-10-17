@@ -91,3 +91,5 @@
   location before writing a production seed.
 - Added a blank 20-item trial exit-review log template for consent, privacy, retake, and
   disagreement tracking outside git.
+- Added an atomic private trial-review workspace generator for two annotation sheets and
+  the exit-review log.

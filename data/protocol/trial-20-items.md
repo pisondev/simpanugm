@@ -31,5 +31,5 @@ when the labels, descriptions, images, and consent records pass the checks below
 The trial reviewer records pass/fail for each item, the reason for every retake, category
 disagreements, missing photos, consent status, and the final Drive path. The review log
 and all raw material stay outside git. Record the aggregate Cohen's kappa values in that
-private review log; start from [`trial-review-log-template.csv`](trial-review-log-template.csv)
-and do not publish the annotation sheets or completed log.
+private review log; create it with `create_trial_review_workspace.py` and do not publish
+the annotation sheets or completed log.

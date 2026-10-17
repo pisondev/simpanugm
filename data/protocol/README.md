@@ -41,10 +41,17 @@ python3 data/scripts/check_agreement.py \
 The report contains Cohen's kappa for category and distinctiveness. Do not commit either
 label sheet or the report when it is tied to private collection activity.
 
-Copy the blank [`trial-review-log-template.csv`](trial-review-log-template.csv) into the
-private trial workspace before collection. It records review status and retakes without
-adding participant details to the repository; keep the completed copy and its private
-Drive path outside git.
+Create the private review workspace before collection; it contains two blank annotation
+sheets and a review log with stable IDs:
+
+```text
+python3 data/scripts/create_trial_review_workspace.py \
+  --output /private/simpanugm-eval/trial-20/review
+```
+
+The committed [`trial-review-log-template.csv`](trial-review-log-template.csv) documents
+the review-log columns. The generated sheets record no participant details until the
+private collection begins; keep all completed files and their Drive path outside git.
 
 ## Full collection templates
 

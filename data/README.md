@@ -80,6 +80,13 @@ python3 data/scripts/check_agreement.py \
 The report contains observed agreement and Cohen's kappa for `leaf_category` and
 `distinctiveness`; label sheets and the report remain outside git.
 
+Prepare those sheets and the trial exit log atomically in a private directory with:
+
+```text
+python3 data/scripts/create_trial_review_workspace.py \
+  --output /private/simpanugm-eval/trial-20/review
+```
+
 For the location review, save an Overpass response and run:
 
 ```text
