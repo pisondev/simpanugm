@@ -141,3 +141,4 @@
 - Hardened fixture validation to report malformed JSON and non-object case entries
   without an internal traceback.
 - Hardened shared seed/trial CSV reading to reject rows with missing or extra fields.
+- Extended malformed-row rejection to auxiliary distractor, duplicate-pair, and query CSVs.

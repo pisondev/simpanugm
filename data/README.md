@@ -45,8 +45,8 @@ validation error.
 
 Category validation requires non-empty parent and leaf names, positive parent ordering,
 non-empty text prompts and question fields, boolean question requirements, and positive
-optional retention overrides. Seed and trial CSV readers also reject rows whose field
-count does not match the declared header.
+optional retention overrides. Seed, trial, and auxiliary CSV readers also reject rows
+whose field count does not match the declared header or required fields.
 Brand names and aliases are checked case-insensitively with normalized whitespace, and
 synonym terms use the same normalized uniqueness rule to prevent ambiguous lookup keys.
 Allowed email domains must be valid, non-empty, and unique; reviewed location aliases

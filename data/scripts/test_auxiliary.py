@@ -5,7 +5,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from check_auxiliary import validate_auxiliary
+from check import ValidationError
+from check_auxiliary import read_required_csv, validate_auxiliary
 from intake import intake_dataset
 
 
@@ -171,6 +172,28 @@ class AuxiliaryCheckTests(unittest.TestCase):
                 expected_queries=2,
             )
             self.assertIn("labels.csv item_id values must be unique", errors)
+
+    def test_auxiliary_csv_reader_rejects_short_and_extra_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            short_path = Path(directory) / "distractors.csv"
+            short_path.write_text(
+                "distractor_id,leaf_category,primary_colour,distinctiveness,description\n"
+                "D001,botol-minum,biru,generic\n",
+                encoding="utf-8",
+            )
+            extra_path = Path(directory) / "queries.csv"
+            extra_path.write_text(
+                "query_id,query_text,target_report_id\nQ001,botol,FND-001,unexpected\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValidationError, "row 2 has missing or extra fields"):
+                read_required_csv(
+                    short_path,
+                    ("distractor_id", "leaf_category", "primary_colour", "distinctiveness", "description"),
+                )
+            with self.assertRaisesRegex(ValidationError, "row 2 has missing or extra fields"):
+                read_required_csv(extra_path, ("query_id", "query_text", "target_report_id"))
 
 
 if __name__ == "__main__":
