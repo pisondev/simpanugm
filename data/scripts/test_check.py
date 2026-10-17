@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from check import flatten_categories, validate_seed_dir
 from check_trial import FIELDS, validate_trial
-from osm_locations import REVIEW_FIELDS, overpass_query, parse_bbox, review_rows, write_rows
+from osm_locations import REVIEW_FIELDS, overpass_query, parse_bbox, review_rows, write_raw_response, write_rows
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -82,6 +82,12 @@ class OsmLocationTests(unittest.TestCase):
                 with self.assertRaises(OSError):
                     write_rows(output, [])
             self.assertEqual(output.read_text(encoding="utf-8"), "keep\n")
+
+    def test_raw_response_is_written_as_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "overpass.json"
+            write_raw_response(output, {"elements": [{"type": "node", "id": 1}]})
+            self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["elements"][0]["id"], 1)
 
     def test_review_rows_ignore_duplicate_osm_elements(self) -> None:
         element = {

@@ -66,11 +66,22 @@ For the location review, save an Overpass response and run:
 
 ```text
 python3 data/scripts/osm_locations.py \
+  --download \
+  --bbox SOUTH,WEST,NORTH,EAST \
+  --raw-output /private/simpanugm-locations/overpass.json \
+  --output /private/simpanugm-locations/locations-review.csv
+```
+
+Or, when the response has already been saved:
+
+```text
+python3 data/scripts/osm_locations.py \
   --input /path/to/overpass.json \
   --output /path/to/locations-review.csv
 ```
 
-The generated rows have empty `zone_slug` and `aliases`, and carry
+The download mode saves the raw response and review CSV atomically. Generated rows have
+empty `zone_slug` and `aliases`, and carry
 `review_status=needs_review`. They are review material, not production seed data.
 
 After the private labels pass the dataset quality gate, create the reproducible,

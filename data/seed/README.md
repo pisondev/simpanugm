@@ -15,8 +15,8 @@ campus review and dataset collection.
 ## Deferred until review
 
 `zones.csv`, `locations.csv`, `posts.yaml`, and `model_versions.yaml` are intentionally
-not created in this stage. Run `data/scripts/osm_locations.py` against a saved Overpass
-JSON response to create a review CSV; the extractor requests named campus-relevant
+not created in this stage. Run `data/scripts/osm_locations.py` in download mode to save
+the raw response and review CSV atomically; the extractor requests named campus-relevant
 features only. A human must assign zones, aliases, and an approved status before the
 rows can become `locations.csv`:
 

@@ -154,6 +154,30 @@ def fetch_overpass(endpoint: str, bbox: tuple[float, float, float, float]) -> di
         return json.load(response)
 
 
+def write_raw_response(path: Path, document: dict[str, Any]) -> None:
+    """Persist the source response atomically for a later human review."""
+    if path.is_symlink():
+        raise OSError(f"output must not be a symlink: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            dir=path.parent,
+            delete=False,
+        ) as handle:
+            temporary_path = Path(handle.name)
+            json.dump(document, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+        temporary_path.replace(path)
+    finally:
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
+
+
 def write_rows(path: Path, rows: Iterable[dict[str, str]]) -> None:
     if path.is_symlink():
         raise OSError(f"output must not be a symlink: {path}")
@@ -186,6 +210,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     source.add_argument("--download", action="store_true", help="download a fresh Overpass response")
     parser.add_argument("--output", type=Path, required=True, help="review CSV output path")
     parser.add_argument("--bbox", type=parse_bbox, help="south,west,north,east; required with --download")
+    parser.add_argument(
+        "--raw-output",
+        type=Path,
+        help="save the downloaded Overpass JSON response for review",
+    )
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT, help=f"Overpass endpoint (default: {DEFAULT_ENDPOINT})")
     return parser.parse_args(argv)
 
@@ -197,7 +226,11 @@ def main(argv: list[str] | None = None) -> int:
             if args.bbox is None:
                 raise ValueError("--bbox is required with --download")
             document = fetch_overpass(args.endpoint, args.bbox)
+            if args.raw_output is not None:
+                write_raw_response(args.raw_output, document)
         else:
+            if args.raw_output is not None:
+                raise ValueError("--raw-output requires --download")
             with args.input.open(encoding="utf-8") as handle:
                 document = json.load(handle)
         rows = review_rows(document)

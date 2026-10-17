@@ -17,6 +17,16 @@ placeholders and do not include participant data.
 
   ```text
   python3 data/scripts/osm_locations.py \
+    --download \
+    --bbox SOUTH,WEST,NORTH,EAST \
+    --raw-output /private/simpanugm-locations/overpass.json \
+    --output /private/simpanugm-locations/locations-review.csv
+  ```
+
+  When a raw response has already been saved, use:
+
+  ```text
+  python3 data/scripts/osm_locations.py \
     --input /private/simpanugm-locations/overpass.json \
     --output /private/simpanugm-locations/locations-review.csv
   ```

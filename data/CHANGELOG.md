@@ -61,3 +61,5 @@
   checks the seed foundation and shared fixtures, and runs all data-script tests.
 - Added an atomic manifest publisher that validates the private prepared dataset and
   copies only `manifest.json` into `data/eval/` at the reviewed freeze.
+- Added an atomic Overpass raw-response output so location review rows retain an auditable
+  source alongside the generated CSV without promoting unreviewed values.
