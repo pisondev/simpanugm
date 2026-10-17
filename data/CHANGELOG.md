@@ -57,6 +57,8 @@
   and masking while keeping participant media outside the repository.
 - Added a deterministic byte-level check for committed synthetic image fixtures and wired
   it into the data CI workflow.
+- Added a private template checker for stable IDs, exact columns, blank pre-entry fields,
+  and empty image directories in the full and trial collection scaffolds.
 - Clarified that the private evaluation manifest is committed only after the real intake
   and v1 freeze, so no empty or fabricated hash is published beforehand.
 - Added a dedicated data CI workflow that installs the declared validator dependencies,

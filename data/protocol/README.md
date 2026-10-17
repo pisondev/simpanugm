@@ -40,6 +40,14 @@ non-empty directory and stages the output so a failed generation leaves no parti
 templates. Fill the CSVs and photos privately, then run `intake.py`; none of these filled
 files belong in git.
 
+Verify a blank full template before data entry:
+
+```text
+python3 data/scripts/check_templates.py \
+  --input /private/simpanugm-eval/raw-v1 \
+  --profile full
+```
+
 To prepare the trial workspace itself, use the trial profile:
 
 ```text
@@ -50,6 +58,14 @@ python3 data/scripts/create_eval_templates.py \
 
 The trial profile creates only `items.csv`, `labels.csv`, and `images/`; it does not
 create distractor, duplicate, or query files.
+
+Verify the blank trial scaffold with:
+
+```text
+python3 data/scripts/check_templates.py \
+  --input /private/simpanugm-eval/trial-20/raw \
+  --profile trial
+```
 
 After the trial files are collected outside the repository, prepare them into a private
 dataset directory:

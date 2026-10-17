@@ -128,10 +128,13 @@ paraphrase queries. The expected counts can be lowered for a local trial fixture
 
 For the full collection, create the private raw layout with
 `data/scripts/create_eval_templates.py`; it generates stable IDs for all target rows
-without adding any participant data to the repository.
+without adding any participant data to the repository. Run
+`data/scripts/check_templates.py --profile full` before data entry to verify the blank
+scaffold.
 
 For the Sprint 0 trial, pass `--profile trial` to create only the 20-item workspace
-needed by `check_dataset.py`.
+needed by `check_dataset.py`. Verify it with
+`data/scripts/check_templates.py --profile trial` before collection begins.
 
 ## Seed files
 
