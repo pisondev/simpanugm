@@ -24,3 +24,4 @@ All notable changes to this project are recorded here. The format follows
 - Shared synthetic data fixtures for matching fusion, privacy masking, and fuzzy name
   matching, including a validator used before service contract tests consume them.
 - Added a dedicated data CI workflow for seed, fixture, and data-script validation.
+- Added a safe freeze step that publishes only a validated private evaluation manifest.

@@ -59,3 +59,5 @@
   and v1 freeze, so no empty or fabricated hash is published beforehand.
 - Added a dedicated data CI workflow that installs the declared validator dependencies,
   checks the seed foundation and shared fixtures, and runs all data-script tests.
+- Added an atomic manifest publisher that validates the private prepared dataset and
+  copies only `manifest.json` into `data/eval/` at the reviewed freeze.

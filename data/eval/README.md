@@ -27,6 +27,11 @@ dataset directory. The manifest checker requires normalized image paths, approve
 kinds, valid hashes, and rejects symlinks, including symlink directories. Run
 `data/scripts/check_manifest.py` after intake and before a dataset freeze.
 
+After the private review and v1 freeze, publish only that validated manifest with
+`data/scripts/publish_manifest.py`. The command copies no images, descriptions, or other
+private files into the repository and refuses to replace an existing manifest unless
+`--replace` is supplied explicitly.
+
 The quality gate also verifies that each item has at least two finder photos, that the
 owner-photo label agrees with the presence of an owner photo, and that normalized
 descriptions are not duplicated across items or report roles. It is run on the private
