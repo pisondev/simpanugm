@@ -83,6 +83,10 @@ python3 data/scripts/check_auxiliary.py \
 It validates the distractor IDs and photos, duplicate-pair references, and unique
 paraphrase queries. The expected counts can be lowered for a local trial fixture.
 
+For the full collection, create the private raw layout with
+`data/scripts/create_eval_templates.py`; it generates stable IDs for all target rows
+without adding any participant data to the repository.
+
 ## Seed files
 
 These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts

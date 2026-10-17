@@ -26,3 +26,5 @@
   into the production location seed after zone and campus-bbox checks.
 - Extended complete seed checking to validate zones, locations, posts, model components,
   cross-file references, opening-hour intervals, and active-version uniqueness.
+- Added a safe private-template generator for the 150-item collection and its auxiliary
+  metadata, refusing to overwrite non-empty directories.

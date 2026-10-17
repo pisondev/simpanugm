@@ -23,6 +23,20 @@ The template is intentionally incomplete and must not be treated as a dataset. T
 validator only checks label structure and allowed values; it does not replace the
 manual consent, photo, description, privacy, and quality review.
 
+## Full collection templates
+
+When the 20-item trial is accepted, create blank private templates for the full target:
+
+```text
+python3 data/scripts/create_eval_templates.py \
+  --output /private/simpanugm-eval/raw-v1
+```
+
+This creates templates for 150 items, 400 distractors, 40 duplicate pairs, and 50
+paraphrase queries, plus an `images/` directory. The generator refuses to write into a
+non-empty directory. Fill the CSVs and photos privately, then run `intake.py`; none of
+these filled files belong in git.
+
 After the trial files are collected outside the repository, prepare them into a private
 dataset directory:
 
