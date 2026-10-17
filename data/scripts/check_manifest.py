@@ -67,7 +67,13 @@ def perceptual_hash(image: Any) -> int:
 
 def check_manifest(dataset_dir: Path) -> list[str]:
     errors: list[str] = []
+    if dataset_dir.is_symlink():
+        return [f"dataset directory must not be a symlink: {dataset_dir}"]
+    if not dataset_dir.is_dir():
+        return [f"dataset directory does not exist: {dataset_dir}"]
     manifest_path = dataset_dir / "manifest.json"
+    if manifest_path.is_symlink():
+        return ["manifest.json must not be a symlink"]
     if not manifest_path.is_file():
         return [f"missing manifest: {manifest_path}"]
     try:

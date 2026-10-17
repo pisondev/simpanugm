@@ -27,7 +27,7 @@ first, so a failed intake does not leave a partial dataset directory. The manife
 requires normalized image paths, approved file
 kinds, valid hashes, images at least 1080 px on the short side, unique image content,
 and cross-item perceptual-hash distance greater than four bits. It also rejects symlinks,
-including symlink directories. Run
+including the dataset directory, manifest, and symlink directories. Run
 `data/scripts/check_manifest.py` after intake and before a dataset freeze.
 
 After the reviewed manifest is published, fetch the private files from a locally synced

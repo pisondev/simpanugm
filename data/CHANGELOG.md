@@ -111,3 +111,5 @@
   until the explicit complete-mode bbox gate is used.
 - Made manifest publication print the final SHA-256 needed for the dataset card and
   reproducible evaluation records.
+- Hardened manifest checks to reject symlink dataset roots and symlink manifests before
+  reading private files.

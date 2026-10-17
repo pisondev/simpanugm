@@ -241,6 +241,38 @@ class IntakeTests(unittest.TestCase):
             errors = check_manifest(output)
             self.assertIn("unlisted symlink: images/I002", errors)
 
+    def test_manifest_rejects_symlink_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            external = Path(directory) / "manifest-copy.json"
+            external.write_bytes((output / "manifest.json").read_bytes())
+            (output / "manifest.json").unlink()
+            try:
+                (output / "manifest.json").symlink_to(external)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = check_manifest(output)
+
+            self.assertEqual(errors, ["manifest.json must not be a symlink"])
+
+    def test_manifest_rejects_symlink_dataset_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            alias = Path(directory) / "prepared-alias"
+            try:
+                alias.symlink_to(output, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = check_manifest(alias)
+
+            self.assertEqual(errors, [f"dataset directory must not be a symlink: {alias}"])
+
     def test_manifest_detects_tampered_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = self.create_source(directory)
