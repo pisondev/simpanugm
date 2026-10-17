@@ -73,3 +73,5 @@
   response and rejects premature manual fields.
 - Added bounded retries for transient Overpass timeouts and server errors while leaving
   client errors fail-fast.
+- Restricted generated location-review candidates to the requested bbox, including when
+  processing a saved raw response.

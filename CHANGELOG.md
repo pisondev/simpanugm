@@ -34,3 +34,4 @@ All notable changes to this project are recorded here. The format follows
 - Added an auditable raw-response option for the OpenStreetMap location review flow.
 - Added a provenance check that catches drift between raw location data and its review CSV.
 - Added bounded retry handling for transient OpenStreetMap extraction failures.
+- Ensured location-review extraction excludes candidates outside the requested bbox.

@@ -63,7 +63,10 @@ def classify_kind(tags: dict[str, str]) -> str:
     return "building"
 
 
-def review_rows(document: dict[str, Any]) -> list[dict[str, str]]:
+def review_rows(
+    document: dict[str, Any],
+    bbox: tuple[float, float, float, float] | None = None,
+) -> list[dict[str, str]]:
     elements = document.get("elements")
     if not isinstance(elements, list):
         raise ValueError("OSM response must contain an 'elements' list")
@@ -94,6 +97,10 @@ def review_rows(document: dict[str, Any]) -> list[dict[str, str]]:
         point = coordinates(element)
         if point is None:
             continue
+        if bbox is not None:
+            south, west, north, east = bbox
+            if not (south <= point[0] <= north and west <= point[1] <= east):
+                continue
         seen_osm_ids.add(osm_key)
         name = tags["name"].strip()
         base_slug = slugify(name)
@@ -269,7 +276,7 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("--raw-output requires --download")
             with args.input.open(encoding="utf-8") as handle:
                 document = json.load(handle)
-        rows = review_rows(document)
+        rows = review_rows(document, args.bbox)
         write_rows(args.output, rows)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

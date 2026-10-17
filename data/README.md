@@ -78,10 +78,13 @@ Or, when the response has already been saved:
 ```text
 python3 data/scripts/osm_locations.py \
   --input /path/to/overpass.json \
+  --bbox SOUTH,WEST,NORTH,EAST \
   --output /path/to/locations-review.csv
 ```
 
-The download mode saves the raw response and review CSV atomically. Generated rows have
+The bbox filters candidates by their extracted coordinates, including when a saved raw
+response is processed. Download mode saves the raw response and review CSV atomically.
+Generated rows have
 empty `zone_slug` and `aliases`, and carry
 `review_status=needs_review`. It retries transient Overpass errors twice by default.
 They are review material, not production seed data.

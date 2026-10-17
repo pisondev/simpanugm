@@ -28,6 +28,7 @@ placeholders and do not include participant data.
   ```text
   python3 data/scripts/osm_locations.py \
     --input /private/simpanugm-locations/overpass.json \
+    --bbox SOUTH,WEST,NORTH,EAST \
     --output /private/simpanugm-locations/locations-review.csv
   ```
 

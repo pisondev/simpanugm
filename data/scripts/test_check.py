@@ -108,6 +108,28 @@ class OsmLocationTests(unittest.TestCase):
         }
         self.assertEqual(len(review_rows({"elements": [element, json.loads(json.dumps(element))]})), 1)
 
+    def test_review_rows_filter_candidates_to_bbox(self) -> None:
+        document = {
+            "elements": [
+                {
+                    "type": "node",
+                    "id": 16,
+                    "lat": -7.77,
+                    "lon": 110.38,
+                    "tags": {"name": "Di Dalam", "amenity": "library"},
+                },
+                {
+                    "type": "node",
+                    "id": 17,
+                    "lat": -7.80,
+                    "lon": 110.38,
+                    "tags": {"name": "Di Luar", "amenity": "library"},
+                },
+            ]
+        }
+        rows = review_rows(document, (-7.79, 110.36, -7.75, 110.405))
+        self.assertEqual([row["name"] for row in rows], ["Di Dalam"])
+
     def test_overpass_query_limits_results_to_location_features(self) -> None:
         query = overpass_query((-7.79, 110.36, -7.75, 110.405))
         self.assertIn('nwr["name"]["building"]', query)
