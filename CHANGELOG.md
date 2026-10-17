@@ -8,6 +8,8 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Software requirements specification with business rules, state machines, permission
+  matrix, notification catalog and traceability matrix.
 - Product requirements, user stories, success metrics and glossary.
 - Repository skeleton for `api/`, `web/`, `ml/` and `deploy/`, contribution guide, security
   policy, issue and pull request templates.
