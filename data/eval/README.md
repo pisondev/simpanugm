@@ -42,6 +42,8 @@ prepared directory, not on git.
 Independent category and distinctiveness sheets can be checked with
 `data/scripts/check_agreement.py`. It emits only aggregate observed agreement and
 Cohen's kappa, so both sheets and the report stay in the private review workspace.
+The completed trial review workspace is then checked with
+`data/scripts/check_trial_review.py` before its prepared dataset is accepted.
 
 After labels pass the quality gate, create and verify the grouped split:
 

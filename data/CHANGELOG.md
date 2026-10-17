@@ -93,3 +93,5 @@
   disagreement tracking outside git.
 - Added an atomic private trial-review workspace generator for two annotation sheets and
   the exit-review log.
+- Added a final private trial-review gate for valid annotations, pass statuses, disagreement
+  fields, and the recorded private Drive path.

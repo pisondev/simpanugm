@@ -87,6 +87,13 @@ python3 data/scripts/create_trial_review_workspace.py \
   --output /private/simpanugm-eval/trial-20/review
 ```
 
+After collection and the manual privacy review, run the final trial gate:
+
+```text
+python3 data/scripts/check_trial_review.py \
+  --workspace /private/simpanugm-eval/trial-20/review
+```
+
 For the location review, save an Overpass response and run:
 
 ```text

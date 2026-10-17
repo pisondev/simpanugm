@@ -53,6 +53,10 @@ The committed [`trial-review-log-template.csv`](trial-review-log-template.csv) d
 the review-log columns. The generated sheets record no participant details until the
 private collection begins; keep all completed files and their Drive path outside git.
 
+After the trial is complete, run `data/scripts/check_trial_review.py` on this private
+workspace. It verifies both annotation sheets, every final review status, the disagreement
+fields, and the recorded private Drive path; it does not inspect or copy photographs.
+
 ## Full collection templates
 
 When the 20-item trial is accepted, create blank private templates for the full target:
