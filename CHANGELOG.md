@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Fixed
 
+- The fetch test compares resolved paths, so it also passes on Windows where temporary directories have short names.
 - Masking now hides every 16 digit run, so NIK numbers are covered although they fail the Luhn check, and treats digits grouped by single spaces or hyphens as one run, as BR-PRV-03 requires.
 
 ### Added

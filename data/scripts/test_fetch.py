@@ -28,7 +28,7 @@ class FetchTests(unittest.TestCase):
 
             fetched = fetch_dataset(prepared / "manifest.json", prepared, output)
 
-            self.assertEqual(fetched, output)
+            self.assertEqual(fetched.resolve(), output.resolve())
             self.assertEqual((output / "README.md").read_text(encoding="utf-8"), "dataset card\n")
             self.assertEqual(
                 (output / "items.csv").read_text(encoding="utf-8"),
