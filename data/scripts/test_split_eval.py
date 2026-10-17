@@ -2,6 +2,7 @@ import csv
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from split_eval import (
     make_distractor_split_rows,
@@ -73,6 +74,15 @@ class EvaluationSplitTests(unittest.TestCase):
             with output.open(newline="", encoding="utf-8") as handle:
                 saved_rows = list(csv.DictReader(handle))
             self.assertEqual(verify_split_rows(saved_rows, labels, 4), [])
+
+    def test_split_write_failure_preserves_existing_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "splits.csv"
+            output.write_text("keep\n", encoding="utf-8")
+            with patch("split_eval.csv.DictWriter", side_effect=OSError("disk full")):
+                with self.assertRaises(OSError):
+                    write_split(output, [])
+            self.assertEqual(output.read_text(encoding="utf-8"), "keep\n")
 
     def test_verifier_rejects_duplicate_assignment(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

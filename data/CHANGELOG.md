@@ -49,3 +49,5 @@
 - Hardened location review promotion against non-finite bboxes and duplicate OSM
   provenance rows.
 - Made location review and promotion CSV writes atomic to prevent partial output files.
+- Made evaluation split CSV writes atomic to protect existing private assignments from
+  partial output.
