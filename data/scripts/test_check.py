@@ -1,9 +1,11 @@
 import unittest
 import json
+import csv
 import tempfile
 from pathlib import Path
 
 from check import flatten_categories, validate_seed_dir
+from check_trial import FIELDS, validate_trial
 from osm_locations import REVIEW_FIELDS, overpass_query, review_rows, write_rows
 
 
@@ -86,6 +88,50 @@ class OsmLocationTests(unittest.TestCase):
         self.assertIn('nwr["name"]["amenity"]', query)
         self.assertIn('nwr["name"]["highway"~"bus_stop|platform"]', query)
         self.assertNotIn('nwr["name"](-7.79', query)
+
+
+class TrialCheckTests(unittest.TestCase):
+    def write_rows(self, directory: str, rows: list[dict[str, str]]) -> Path:
+        path = Path(directory) / "labels.csv"
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=FIELDS)
+            writer.writeheader()
+            writer.writerows(rows)
+        return path
+
+    def valid_rows(self) -> list[dict[str, str]]:
+        return [
+            {
+                "item_id": f"I{index:03d}",
+                "leaf_category": "tumbler",
+                "primary_colour": "biru",
+                "secondary_colour": "",
+                "brand": "",
+                "distinctiveness": "generic",
+                "has_owner_photo": "false",
+                "flags": "",
+            }
+            for index in range(1, 21)
+        ]
+
+    def test_completed_trial_labels_pass(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_rows(directory, self.valid_rows())
+            self.assertEqual(validate_trial(path, SEED_DIR), [])
+
+    def test_trial_labels_reject_unknown_values(self) -> None:
+        rows = self.valid_rows()
+        rows[0]["leaf_category"] = "not-a-category"
+        rows[0]["flags"] = "private_data"
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_rows(directory, rows)
+            errors = validate_trial(path, SEED_DIR)
+            self.assertEqual(len(errors), 2)
+
+    def test_blank_template_is_not_accepted_as_completed_data(self) -> None:
+        template = ROOT / "data" / "protocol" / "trial-intake-template.csv"
+        errors = validate_trial(template, SEED_DIR)
+        self.assertTrue(errors)
 
 
 if __name__ == "__main__":

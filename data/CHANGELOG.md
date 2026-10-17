@@ -10,3 +10,5 @@
   explicit human-review CSV without filling zones or aliases automatically.
 - Restricted the Overpass query to named campus-relevant location features to keep review
   output focused.
+- Added the Sprint 0 collection protocol, consent draft, mock identity-card specification,
+  20-item label template, and trial-label validator.

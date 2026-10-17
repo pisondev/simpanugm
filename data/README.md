@@ -37,6 +37,9 @@ python3 data/scripts/check.py --require-complete
 
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 
+Sprint 0 collection preparation is in [`data/protocol/`](protocol/), including the
+consent draft, mock identity-card rules, 20-item checklist, and label template.
+
 For the location review, save an Overpass response and run:
 
 ```text

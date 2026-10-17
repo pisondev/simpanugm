@@ -15,6 +15,10 @@ fetched with `make eval-data`.
 | Intended use | offline evaluation of SimpanUGM matching and report assistance, and the course report |
 | Not for | training models that are distributed, any use outside the team |
 
+The Sprint 0 trial preparation is kept in [`data/protocol/`](../protocol/). Completed
+consent forms, photographs, descriptions, and review logs stay in the private team Drive
+and are never committed to git.
+
 ## Contents at freeze
 
 | Part | Target |
