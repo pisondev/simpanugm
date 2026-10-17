@@ -1,15 +1,16 @@
 # simpanugm-eval
 
 Dataset card for the evaluation dataset. The protocol is
-[docs/ai/dataset-collection.md](../../docs/ai/dataset-collection.md). Only this file and
-`manifest.json` are in git. The images and texts live in the team Drive folder and are
+[docs/ai/dataset-collection.md](../../docs/ai/dataset-collection.md). Until the private
+dataset is frozen, only this card is in git. `manifest.json` is committed at the v1
+freeze with the real file hashes; images and texts live in the team Drive folder and are
 fetched with `make eval-data`.
 
 | | |
 |---|---|
 | Version | v1, in collection |
 | Freeze | 15 November 2026 |
-| Manifest hash | published here at freeze |
+| Manifest hash | pending private intake and freeze |
 | Owner | Axelle Chandra |
 | Consent | team members and friends who filled the consent form, mock identity cards only |
 | Intended use | offline evaluation of SimpanUGM matching and report assistance, and the course report |
