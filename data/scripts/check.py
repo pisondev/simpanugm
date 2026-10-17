@@ -417,7 +417,10 @@ def validate_posts(path: Path, location_slugs: set[str]) -> None:
         seen.add(slug)
         if not isinstance(post["name"], str) or not post["name"].strip():
             raise ValidationError(f"{path}: post {slug} needs a name")
-        if post["location_slug"] not in location_slugs:
+        location_slug = post["location_slug"]
+        if not isinstance(location_slug, str):
+            raise ValidationError(f"{path}: post {slug} location_slug must be a string")
+        if location_slug not in location_slugs:
             raise ValidationError(f"{path}: post {slug} references unknown location")
         if not isinstance(post["phone"], str) or not post["phone"].strip():
             raise ValidationError(f"{path}: post {slug} phone must be a non-empty string")

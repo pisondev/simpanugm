@@ -190,6 +190,17 @@ class CompleteSeedTests(unittest.TestCase):
 
             self.assertTrue(any("unknown component" in error for error in errors))
 
+    def test_complete_seed_rejects_non_string_post_location(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = self.write_complete_seed(directory)
+            posts = json.loads((seed / "posts.yaml").read_text(encoding="utf-8"))
+            posts[0]["location_slug"] = []
+            (seed / "posts.yaml").write_text(json.dumps(posts), encoding="utf-8")
+
+            errors = validate_complete_seed_dir(seed, self.CAMPUS_BBOX)
+
+            self.assertTrue(any("location_slug must be a string" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -79,3 +79,5 @@ All notable changes to this project are recorded here. The format follows
   blank, or normalized duplicate lookup values.
 - Hardened complete post and model-version validation against blank contact values,
   overlapping hours, and malformed component/status types.
+- Hardened complete post validation to report malformed location references instead of
+  failing with an internal type error.
