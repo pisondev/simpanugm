@@ -150,6 +150,16 @@ class CompleteSeedTests(unittest.TestCase):
             errors = validate_complete_seed_dir(seed, self.CAMPUS_BBOX)
             self.assertTrue(any("outside the campus bbox" in error for error in errors))
 
+    def test_complete_seed_rejects_normalized_alias_duplicates(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = self.write_complete_seed(directory)
+            locations = (seed / "locations.csv").read_text(encoding="utf-8").replace(
+                "perpus\n", "perpus; PERPUS\n"
+            )
+            (seed / "locations.csv").write_text(locations, encoding="utf-8")
+            errors = validate_complete_seed_dir(seed, self.CAMPUS_BBOX)
+            self.assertTrue(any("duplicate aliases after normalization" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()

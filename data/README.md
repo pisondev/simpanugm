@@ -47,6 +47,8 @@ non-empty text prompts and question fields, boolean question requirements, and p
 optional retention overrides.
 Brand names and aliases are checked case-insensitively with normalized whitespace, and
 synonym terms use the same normalized uniqueness rule to prevent ambiguous lookup keys.
+Allowed email domains must be valid, non-empty, and unique; reviewed location aliases
+also reject blank entries and normalized duplicates.
 
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 

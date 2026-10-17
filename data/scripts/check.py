@@ -34,6 +34,10 @@ ZONE_FIELDS = ("slug", "name", "centroid_lat", "centroid_lng")
 LOCATION_FIELDS = ("slug", "name", "zone_slug", "kind", "lat", "lng", "aliases")
 WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 TIME_RE = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+DOMAIN_RE = re.compile(
+    r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
+    r"(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$"
+)
 LOCATION_KINDS = {"building", "outdoor", "facility", "transport", "parking"}
 MODEL_COMPONENTS = {
     "image_encoder",
@@ -290,6 +294,11 @@ def validate_settings(path: Path) -> None:
     domains = get_path("auth.allowed_email_domains")
     if not isinstance(domains, list) or not domains or any(not isinstance(item, str) for item in domains):
         raise ValidationError("settings.yaml: allowed_email_domains must be a non-empty list of strings")
+    normalized_domains = [normalize_lookup(domain) for domain in domains]
+    if any(not DOMAIN_RE.fullmatch(domain) for domain in normalized_domains):
+        raise ValidationError("settings.yaml: allowed_email_domains must contain valid domain names")
+    if len(set(normalized_domains)) != len(normalized_domains):
+        raise ValidationError("settings.yaml: allowed_email_domains must be unique")
     for key, (value_type, lower, upper) in expected.items():
         value = get_path(key)
         if type(value) is not value_type or not lower <= value <= upper:
@@ -369,10 +378,14 @@ def validate_locations(
             south, west, north, east = campus_bbox
             if not south <= lat <= north or not west <= lng <= east:
                 raise ValidationError(f"{path}: {slug} is outside the campus bbox")
-        aliases = [alias.strip() for alias in row["aliases"].split(";") if alias.strip()]
-        if len({alias.casefold() for alias in aliases}) != len(aliases):
-            raise ValidationError(f"{path}: duplicate aliases for {slug}")
-        if name.casefold() in {alias.casefold() for alias in aliases}:
+        raw_aliases = row["aliases"].split(";") if row["aliases"] else []
+        if any(not alias.strip() for alias in raw_aliases):
+            raise ValidationError(f"{path}: aliases cannot contain blank entries for {slug}")
+        aliases = [" ".join(alias.split()) for alias in raw_aliases]
+        alias_keys = [normalize_lookup(alias) for alias in aliases]
+        if len(set(alias_keys)) != len(alias_keys):
+            raise ValidationError(f"{path}: duplicate aliases after normalization for {slug}")
+        if normalize_lookup(name) in set(alias_keys):
             raise ValidationError(f"{path}: location name repeated in aliases for {slug}")
     return set(slugs)
 

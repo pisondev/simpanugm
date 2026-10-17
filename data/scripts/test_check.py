@@ -14,6 +14,7 @@ from check import (
     parse_bbox as parse_seed_bbox,
     validate_brands,
     validate_seed_dir,
+    validate_settings,
     validate_synonyms,
 )
 from check_trial import FIELDS, validate_trial
@@ -181,6 +182,18 @@ class SeedCheckTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValidationError, "unique after normalization"):
                 validate_synonyms(path)
+
+    def test_settings_reject_invalid_email_domain(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "settings.yaml"
+            path.write_text(
+                (SEED_DIR / "settings.yaml").read_text(encoding="utf-8").replace(
+                    "mail.ugm.ac.id", "mail_ugm.ac.id"
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValidationError, "valid domain names"):
+                validate_settings(path)
 
 
 class OsmLocationTests(unittest.TestCase):

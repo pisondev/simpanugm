@@ -75,3 +75,5 @@ All notable changes to this project are recorded here. The format follows
   preventing ambiguous master-data lookups.
 - Extended output parent-path safety to OSM review artifacts, location promotion, private
   summaries/reports, evaluation splits, and fixture regeneration.
+- Hardened settings domain validation and complete-seed location aliases against invalid,
+  blank, or normalized duplicate lookup values.
