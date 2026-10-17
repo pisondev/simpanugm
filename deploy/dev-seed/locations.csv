@@ -1,0 +1,42 @@
+slug,name,zone_slug,kind,lat,lng,aliases
+balairung,Balairung (Gedung Pusat UGM),pusat,building,-7.767660,110.378570,balairung;gedung pusat;rektorat;kantor pusat
+grha-sabha-pramana,Grha Sabha Pramana,pusat,building,-7.770168,110.377915,gsp;grha sabha
+perpustakaan-pusat,Perpustakaan Pusat UGM,pusat,building,-7.769304,110.377955,perpus;perpus pusat;perpustakaan
+parkir-perpustakaan,Parkir Perpustakaan Pusat,pusat,parking,-7.769042,110.377644,parkiran perpus;parkir perpus
+masjid-kampus,Masjid Kampus UGM,pusat,building,-7.773380,110.380019,maskam;masjid kampus
+gik,Gelanggang Inovasi dan Kreativitas,pusat,building,-7.773934,110.376114,gik;gelanggang
+university-club,University Club UGM,pusat,building,-7.772803,110.377622,uc;university club
+pusat-kegiatan-mahasiswa,Pusat Kegiatan Mahasiswa,pusat,building,-7.772682,110.383903,pkm;student center
+lembah-ugm,Lembah UGM,pusat,outdoor,-7.772060,110.382321,lembah;lembah fitness;lapangan lembah
+pusat-jajanan-lembah,Pusat Jajanan Lembah,pusat,facility,-7.771647,110.381565,pujale;kantin lembah;jajanan lembah
+wisdom-park,Wisdom Park UGM,pusat,outdoor,-7.770350,110.382752,wisdom park;taman ugm
+stadion-pancasila,Stadion Pancasila,pusat,outdoor,-7.769263,110.384704,stadion;lapangan pancasila
+bundaran-ugm,Bundaran UGM,pusat,outdoor,-7.776005,110.376065,bundaran;boulevard
+halte-gik,Halte GIK UGM,pusat,transport,-7.774324,110.375150,halte gik;halte trans jogja
+halte-vokasi,Halte Vokasi UGM,pusat,transport,-7.774499,110.374941,halte vokasi;halte sv
+sekolah-vokasi,Sekolah Vokasi UGM,pusat,building,-7.774635,110.373983,sv;vokasi
+pascasarjana,Gedung Pascasarjana UGM,pusat,building,-7.765002,110.378274,pasca;sps;sekolah pascasarjana
+fmipa,Fakultas MIPA,saintek,building,-7.767359,110.376550,mipa;fmipa
+gedung-kuliah-fmipa,Gedung Kuliah S1 FMIPA,saintek,building,-7.767586,110.376340,gedung s1 mipa;kuliah mipa
+fakultas-teknik,Fakultas Teknik,saintek,building,-7.765250,110.372654,ft;teknik
+dteti,Departemen Teknik Elektro dan Teknologi Informasi,saintek,building,-7.765889,110.371737,dteti;elektro
+dtsl,Departemen Teknik Sipil dan Lingkungan,saintek,building,-7.764283,110.373105,dtsl;sipil
+sglc,Smart Green Learning Center,saintek,building,-7.765309,110.372312,sglc
+perpustakaan-teknik,Perpustakaan Fakultas Teknik,saintek,building,-7.765895,110.372439,perpus teknik;perpus ft
+fakultas-geografi,Fakultas Geografi,saintek,building,-7.766282,110.377489,geo;geografi
+kantin-biogeo,Kantin BioGeo,saintek,facility,-7.766227,110.376764,biogeo;kantin bio geo
+fakultas-biologi,Fakultas Biologi,agro,building,-7.765952,110.376496,bio;biologi
+fakultas-kehutanan,Fakultas Kehutanan,agro,building,-7.767146,110.380533,kehutanan;fkt
+fakultas-kedokteran-hewan,Fakultas Kedokteran Hewan,agro,building,-7.767589,110.384115,fkh;kedokteran hewan
+fakultas-peternakan,Fakultas Peternakan,agro,building,-7.768257,110.386300,peternakan;fapet
+fakultas-teknologi-pertanian,Fakultas Teknologi Pertanian,agro,building,-7.768876,110.379929,ftp;teknologi pertanian
+feb,Fakultas Ekonomika dan Bisnis,soshum,building,-7.770586,110.379399,feb;ekonomi
+fakultas-hukum,Fakultas Hukum,soshum,building,-7.770059,110.380723,fh;hukum
+fisipol,Fakultas Ilmu Sosial dan Ilmu Politik,soshum,building,-7.769532,110.379611,fisipol;fisip
+fib,Fakultas Ilmu Budaya,soshum,building,-7.771549,110.378827,fib;budaya
+fakultas-psikologi,Fakultas Psikologi,soshum,building,-7.772088,110.380118,psikologi;fpsi
+fakultas-filsafat,Fakultas Filsafat,soshum,building,-7.771412,110.380745,filsafat
+fkkmk,Fakultas Kedokteran Kesehatan Masyarakat dan Keperawatan,medika,building,-7.768816,110.374998,fk;fkkmk;kedokteran
+perpustakaan-fkkmk,Perpustakaan FKKMK,medika,building,-7.769782,110.375335,perpus fk;perpus kedokteran
+fkg,Fakultas Kedokteran Gigi,medika,building,-7.770421,110.374185,fkg;kedokteran gigi
+fakultas-farmasi,Fakultas Farmasi,medika,building,-7.768756,110.376714,farmasi
