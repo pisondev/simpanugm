@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
 
-from check import flatten_categories, validate_seed_dir
+from check import flatten_categories, parse_bbox as parse_seed_bbox, validate_seed_dir
 from check_trial import FIELDS, validate_trial
 from osm_locations import (
     REVIEW_FIELDS,
@@ -40,6 +40,12 @@ class SeedCheckTests(unittest.TestCase):
                 "missing complete-seed file: model_versions.yaml",
             ],
         )
+
+    def test_seed_bbox_parser_rejects_non_finite_or_reversed_values(self) -> None:
+        with self.assertRaises(ArgumentTypeError):
+            parse_seed_bbox("-inf,110.36,-7.75,110.405")
+        with self.assertRaises(ArgumentTypeError):
+            parse_seed_bbox("-7.75,110.405,-7.79,110.36")
 
     def test_categories_have_expected_leaf_count(self) -> None:
         import check

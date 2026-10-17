@@ -91,7 +91,9 @@ placeholders and do not include participant data.
 Run from the repository root after all four files are present:
 
 ```text
-python3 data/scripts/check.py --require-complete
+python3 data/scripts/check.py \
+  --require-complete \
+  --bbox SOUTH,WEST,NORTH,EAST
 python3 -m unittest discover -s data/scripts -p 'test_*.py'
 ```
 

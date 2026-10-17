@@ -56,8 +56,10 @@ Run the foundation check from the repository root:
 python3 data/scripts/check.py
 ```
 
-Run the future full-seed check with:
+Run the future full-seed check with the agreed campus bbox from the location review:
 
 ```text
-python3 data/scripts/check.py --require-complete
+python3 data/scripts/check.py \
+  --require-complete \
+  --bbox SOUTH,WEST,NORTH,EAST
 ```

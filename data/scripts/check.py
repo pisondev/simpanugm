@@ -247,6 +247,20 @@ def parse_coordinate(value: str, field: str) -> float:
     return result
 
 
+def parse_bbox(value: str) -> tuple[float, float, float, float]:
+    """Parse a finite south,west,north,east bounding box."""
+    try:
+        south, west, north, east = (float(part) for part in value.split(","))
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("bbox must be south,west,north,east") from exc
+    values = (south, west, north, east)
+    if not all(math.isfinite(part) for part in values):
+        raise argparse.ArgumentTypeError("bbox values must be finite")
+    if south > north or west > east:
+        raise argparse.ArgumentTypeError("bbox must have minimum values first")
+    return values
+
+
 def validate_zones(path: Path) -> set[str]:
     rows = read_csv(path, ZONE_FIELDS)
     slugs = [row["slug"].strip() for row in rows]
@@ -265,7 +279,11 @@ def validate_zones(path: Path) -> set[str]:
     return set(slugs)
 
 
-def validate_locations(path: Path, zone_slugs: set[str]) -> set[str]:
+def validate_locations(
+    path: Path,
+    zone_slugs: set[str],
+    campus_bbox: tuple[float, float, float, float] | None = None,
+) -> set[str]:
     rows = read_csv(path, LOCATION_FIELDS)
     slugs = [row["slug"].strip() for row in rows]
     if len(set(slugs)) != len(slugs):
@@ -285,6 +303,10 @@ def validate_locations(path: Path, zone_slugs: set[str]) -> set[str]:
         lng = parse_coordinate(row["lng"], f"{slug}.lng")
         if not -90 <= lat <= 90 or not -180 <= lng <= 180:
             raise ValidationError(f"{path}: coordinates out of range for {slug}")
+        if campus_bbox is not None:
+            south, west, north, east = campus_bbox
+            if not south <= lat <= north or not west <= lng <= east:
+                raise ValidationError(f"{path}: {slug} is outside the campus bbox")
         aliases = [alias.strip() for alias in row["aliases"].split(";") if alias.strip()]
         if len({alias.casefold() for alias in aliases}) != len(aliases):
             raise ValidationError(f"{path}: duplicate aliases for {slug}")
@@ -379,7 +401,10 @@ def validate_model_versions(path: Path) -> None:
         raise ValidationError(f"{path}: exactly one active version required for: {', '.join(invalid_active)}")
 
 
-def validate_complete_seed_dir(seed_dir: Path) -> list[str]:
+def validate_complete_seed_dir(
+    seed_dir: Path,
+    campus_bbox: tuple[float, float, float, float] | None = None,
+) -> list[str]:
     errors: list[str] = []
     try:
         zones = validate_zones(seed_dir / "zones.csv")
@@ -387,7 +412,7 @@ def validate_complete_seed_dir(seed_dir: Path) -> list[str]:
         errors.append(str(exc))
         zones = set()
     try:
-        locations = validate_locations(seed_dir / "locations.csv", zones)
+        locations = validate_locations(seed_dir / "locations.csv", zones, campus_bbox)
     except (OSError, ValidationError) as exc:
         errors.append(str(exc))
         locations = set()
@@ -402,7 +427,11 @@ def validate_complete_seed_dir(seed_dir: Path) -> list[str]:
     return errors
 
 
-def validate_seed_dir(seed_dir: Path, require_complete: bool = False) -> list[str]:
+def validate_seed_dir(
+    seed_dir: Path,
+    require_complete: bool = False,
+    campus_bbox: tuple[float, float, float, float] | None = None,
+) -> list[str]:
     errors: list[str] = []
     for filename in STATIC_FILES:
         if not (seed_dir / filename).is_file():
@@ -424,7 +453,10 @@ def validate_seed_dir(seed_dir: Path, require_complete: bool = False) -> list[st
         missing = [filename for filename in COMPLETE_FILES if not (seed_dir / filename).is_file()]
         errors.extend(f"missing complete-seed file: {filename}" for filename in missing)
         if not missing:
-            errors.extend(validate_complete_seed_dir(seed_dir))
+            if campus_bbox is None:
+                errors.append("complete-seed validation requires --bbox")
+            else:
+                errors.extend(validate_complete_seed_dir(seed_dir, campus_bbox))
     return errors
 
 
@@ -441,12 +473,21 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         action="store_true",
         help="also require the location, post, zone and model-version files",
     )
+    parser.add_argument(
+        "--bbox",
+        type=parse_bbox,
+        help="campus bounding box as south,west,north,east (required for a complete seed)",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
-    errors = validate_seed_dir(args.seed_dir, require_complete=args.require_complete)
+    errors = validate_seed_dir(
+        args.seed_dir,
+        require_complete=args.require_complete,
+        campus_bbox=args.bbox,
+    )
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)

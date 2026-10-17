@@ -32,7 +32,9 @@ The complete-mode check is intentionally expected to fail until those reviewed f
 added:
 
 ```text
-python3 data/scripts/check.py --require-complete
+python3 data/scripts/check.py \
+  --require-complete \
+  --bbox SOUTH,WEST,NORTH,EAST
 ```
 
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
@@ -200,11 +202,12 @@ needed by `check_dataset.py`. Verify it with
 These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts
 by natural key and never deletes.
 
-Run `python3 data/scripts/check.py --require-complete` after all four deferred seed files
-are reviewed. In complete mode the checker validates CSV/YAML shape, zone and location
-references, post opening-hour intervals, and the eight model components with exactly one
+Run `python3 data/scripts/check.py --require-complete --bbox SOUTH,WEST,NORTH,EAST`
+after all four deferred seed files are reviewed. In complete mode the checker validates
+CSV/YAML shape, zone and location references, location coordinates inside the supplied
+campus bbox, post opening-hour intervals, and the eight model components with exactly one
 active version each. Until the reviewed files exist, the command reports the four
-expected missing-file errors.
+expected missing-file errors without needing a bbox.
 
 | File | Format | Columns or keys |
 |---|---|---|

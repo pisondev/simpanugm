@@ -99,3 +99,5 @@
   results cannot pass review.
 - Added a read-only freeze orchestrator that runs the trial/full dataset, auxiliary, split,
   and review gates before manifest publication.
+- Extended complete seed validation to require the reviewed campus bbox and reject locations
+  outside it.

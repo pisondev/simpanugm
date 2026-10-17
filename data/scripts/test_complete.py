@@ -15,6 +15,8 @@ LOCATION_FIELDS = ("slug", "name", "zone_slug", "kind", "lat", "lng", "aliases")
 
 
 class CompleteSeedTests(unittest.TestCase):
+    CAMPUS_BBOX = (-7.79, 110.36, -7.75, 110.405)
+
     def write_complete_seed(self, directory: str) -> Path:
         seed = Path(directory) / "seed"
         shutil.copytree(SEED_DIR, seed)
@@ -97,8 +99,19 @@ class CompleteSeedTests(unittest.TestCase):
     def test_complete_seed_validates_all_references(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             seed = self.write_complete_seed(directory)
-            self.assertEqual(validate_complete_seed_dir(seed), [])
-            self.assertEqual(validate_seed_dir(seed, require_complete=True), [])
+            self.assertEqual(validate_complete_seed_dir(seed, self.CAMPUS_BBOX), [])
+            self.assertEqual(
+                validate_seed_dir(seed, require_complete=True, campus_bbox=self.CAMPUS_BBOX),
+                [],
+            )
+
+    def test_complete_mode_requires_campus_bbox_once_files_exist(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = self.write_complete_seed(directory)
+            self.assertEqual(
+                validate_seed_dir(seed, require_complete=True),
+                ["complete-seed validation requires --bbox"],
+            )
 
     def test_complete_seed_rejects_unknown_references(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -107,9 +120,19 @@ class CompleteSeedTests(unittest.TestCase):
             (seed / "locations.csv").write_text(locations, encoding="utf-8")
             posts = (seed / "posts.yaml").read_text(encoding="utf-8").replace("perpustakaan-pusat", "missing-location")
             (seed / "posts.yaml").write_text(posts, encoding="utf-8")
-            errors = validate_complete_seed_dir(seed)
+            errors = validate_complete_seed_dir(seed, self.CAMPUS_BBOX)
             self.assertTrue(any("unknown zone" in error for error in errors))
             self.assertTrue(any("unknown location" in error for error in errors))
+
+    def test_complete_seed_rejects_location_outside_campus_bbox(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = self.write_complete_seed(directory)
+            locations = (seed / "locations.csv").read_text(encoding="utf-8").replace(
+                "-7.7701", "-7.8001"
+            )
+            (seed / "locations.csv").write_text(locations, encoding="utf-8")
+            errors = validate_complete_seed_dir(seed, self.CAMPUS_BBOX)
+            self.assertTrue(any("outside the campus bbox" in error for error in errors))
 
 
 if __name__ == "__main__":
