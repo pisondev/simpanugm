@@ -81,3 +81,4 @@ All notable changes to this project are recorded here. The format follows
   overlapping hours, and malformed component/status types.
 - Hardened complete post validation to report malformed location references instead of
   failing with an internal type error.
+- Wrapped malformed YAML seed input as a readable validation error.

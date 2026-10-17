@@ -195,6 +195,16 @@ class SeedCheckTests(unittest.TestCase):
             with self.assertRaisesRegex(ValidationError, "valid domain names"):
                 validate_settings(path)
 
+    def test_seed_check_reports_invalid_yaml(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = Path(directory) / "seed"
+            shutil.copytree(SEED_DIR, seed)
+            (seed / "settings.yaml").write_text("auth: [\n", encoding="utf-8")
+
+            errors = validate_seed_dir(seed)
+
+            self.assertTrue(any("settings.yaml: invalid YAML" in error for error in errors))
+
 
 class OsmLocationTests(unittest.TestCase):
     def test_review_rows_use_centres_and_leave_review_fields_empty(self) -> None:

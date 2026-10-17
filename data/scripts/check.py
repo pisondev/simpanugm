@@ -60,8 +60,11 @@ def load_yaml(path: Path) -> Any:
         raise ValidationError(
             "PyYAML is required to validate YAML seeds; install it before running the check"
         )
-    with path.open(encoding="utf-8") as handle:
-        return yaml.safe_load(handle)
+    try:
+        with path.open(encoding="utf-8") as handle:
+            return yaml.safe_load(handle)
+    except yaml.YAMLError as exc:
+        raise ValidationError(f"{path}: invalid YAML") from exc
 
 
 def read_csv(path: Path, expected_fields: tuple[str, ...]) -> list[dict[str, str]]:
