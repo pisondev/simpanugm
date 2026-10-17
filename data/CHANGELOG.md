@@ -133,3 +133,5 @@
   summaries/reports, evaluation splits, and fixture regeneration.
 - Hardened settings domain validation and complete-seed location aliases against invalid,
   blank, or normalized duplicate lookup values.
+- Hardened complete post and model-version validation against blank contact values,
+  overlapping hours, and malformed component/status types.

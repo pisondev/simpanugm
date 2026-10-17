@@ -419,8 +419,8 @@ def validate_posts(path: Path, location_slugs: set[str]) -> None:
             raise ValidationError(f"{path}: post {slug} needs a name")
         if post["location_slug"] not in location_slugs:
             raise ValidationError(f"{path}: post {slug} references unknown location")
-        if not isinstance(post["phone"], str):
-            raise ValidationError(f"{path}: post {slug} phone must be a string")
+        if not isinstance(post["phone"], str) or not post["phone"].strip():
+            raise ValidationError(f"{path}: post {slug} phone must be a non-empty string")
         hours = post["opening_hours"]
         if not isinstance(hours, dict) or set(hours) != set(WEEKDAYS):
             raise ValidationError(f"{path}: post {slug} opening_hours must contain all weekdays")
@@ -428,6 +428,7 @@ def validate_posts(path: Path, location_slugs: set[str]) -> None:
             slots = hours[weekday]
             if not isinstance(slots, list):
                 raise ValidationError(f"{path}: post {slug} {weekday} must be a list")
+            previous_end: int | None = None
             for index, slot in enumerate(slots):
                 if not isinstance(slot, list) or len(slot) != 2:
                     raise ValidationError(f"{path}: post {slug} {weekday}[{index}] must be [start, end]")
@@ -435,6 +436,9 @@ def validate_posts(path: Path, location_slugs: set[str]) -> None:
                 end = parse_time(slot[1], f"{path}:{slug}.{weekday}[{index}].end")
                 if start >= end:
                     raise ValidationError(f"{path}: post {slug} {weekday}[{index}] must end after start")
+                if previous_end is not None and start < previous_end:
+                    raise ValidationError(f"{path}: post {slug} {weekday} opening hours must not overlap")
+                previous_end = end
 
 
 def validate_model_versions(path: Path) -> None:
@@ -454,13 +458,13 @@ def validate_model_versions(path: Path) -> None:
         component = version["component"]
         name = version["name"]
         status = version["status"]
-        if component not in MODEL_COMPONENTS:
+        if not isinstance(component, str) or component not in MODEL_COMPONENTS:
             raise ValidationError(f"{path}: unknown component {component!r}")
         if not isinstance(name, str) or not name.strip() or name in names:
             raise ValidationError(f"{path}: model names must be non-empty and unique")
         if not isinstance(version["identity"], dict) or not version["identity"]:
             raise ValidationError(f"{path}: {name} identity must be a non-empty mapping")
-        if status not in {"candidate", "active", "retired"}:
+        if not isinstance(status, str) or status not in {"candidate", "active", "retired"}:
             raise ValidationError(f"{path}: {name} has invalid status {status!r}")
         if component == "fusion" and not isinstance(version.get("config"), dict):
             raise ValidationError(f"{path}: fusion version {name} needs a config mapping")

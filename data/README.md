@@ -49,6 +49,8 @@ Brand names and aliases are checked case-insensitively with normalized whitespac
 synonym terms use the same normalized uniqueness rule to prevent ambiguous lookup keys.
 Allowed email domains must be valid, non-empty, and unique; reviewed location aliases
 also reject blank entries and normalized duplicates.
+Complete post seeds require non-empty phone strings and non-overlapping ordered opening
+intervals, while model-version components and statuses must use their declared strings.
 
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 

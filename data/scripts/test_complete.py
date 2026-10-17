@@ -160,6 +160,36 @@ class CompleteSeedTests(unittest.TestCase):
             errors = validate_complete_seed_dir(seed, self.CAMPUS_BBOX)
             self.assertTrue(any("duplicate aliases after normalization" in error for error in errors))
 
+    def test_complete_seed_rejects_blank_phone_and_overlapping_hours(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = self.write_complete_seed(directory)
+            posts = json.loads((seed / "posts.yaml").read_text(encoding="utf-8"))
+            posts[0]["phone"] = " "
+            (seed / "posts.yaml").write_text(json.dumps(posts), encoding="utf-8")
+
+            errors = validate_complete_seed_dir(seed, self.CAMPUS_BBOX)
+
+            self.assertTrue(any("phone must be a non-empty string" in error for error in errors))
+
+            posts[0]["phone"] = "+62274123456"
+            posts[0]["opening_hours"]["mon"] = [["07:00", "10:00"], ["09:00", "11:00"]]
+            (seed / "posts.yaml").write_text(json.dumps(posts), encoding="utf-8")
+
+            errors = validate_complete_seed_dir(seed, self.CAMPUS_BBOX)
+
+            self.assertTrue(any("opening hours must not overlap" in error for error in errors))
+
+    def test_complete_seed_rejects_non_string_model_component(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = self.write_complete_seed(directory)
+            models = json.loads((seed / "model_versions.yaml").read_text(encoding="utf-8"))
+            models[0]["component"] = []
+            (seed / "model_versions.yaml").write_text(json.dumps(models), encoding="utf-8")
+
+            errors = validate_complete_seed_dir(seed, self.CAMPUS_BBOX)
+
+            self.assertTrue(any("unknown component" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()
