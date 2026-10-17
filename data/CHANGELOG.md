@@ -22,3 +22,5 @@
   references, and unique paraphrase queries.
 - Extended the evaluation splitter to assign and verify distractors at the same split
   proportion as the physical-item set.
+- Added a guarded location-review promotion step that converts only approved OSM rows
+  into the production location seed after zone and campus-bbox checks.

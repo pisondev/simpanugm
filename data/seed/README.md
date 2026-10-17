@@ -17,10 +17,21 @@ campus review and dataset collection.
 `zones.csv`, `locations.csv`, `posts.yaml`, and `model_versions.yaml` are intentionally
 not created in this stage. Run `data/scripts/osm_locations.py` against a saved Overpass
 JSON response to create a review CSV; the extractor requests named campus-relevant
-features only. A human must assign zones and aliases before the rows can become
-`locations.csv`. Posts need the security-unit pilot list, and model versions must match
-the inference service lock file. The seed checker supports an explicit complete-mode
-check once those files are available.
+features only. A human must assign zones, aliases, and an approved status before the
+rows can become `locations.csv`:
+
+```text
+python3 data/scripts/promote_locations.py \
+  --input /private/simpanugm-locations/locations-review.csv \
+  --zones data/seed/zones.csv \
+  --output /private/simpanugm-locations/locations.csv \
+  --bbox SOUTH,WEST,NORTH,EAST
+```
+
+The promotion command skips explicitly rejected rows and refuses any row still marked
+`needs_review`, outside the bbox, or assigned to an unknown zone. Posts need the
+security-unit pilot list, and model versions must match the inference service lock file.
+The seed checker supports an explicit complete-mode check once those files are available.
 
 Run the foundation check from the repository root:
 

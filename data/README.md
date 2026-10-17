@@ -121,8 +121,10 @@ before the seed is merged.
 Built with `scripts/osm_locations.py`, which pulls named buildings inside the campus
 boundary from OpenStreetMap, then reviewed by hand: official name, the names students
 actually use as aliases, zone, kind, and the coordinate of the main entrance. Every
-location must fall inside the campus bounding box stored in `settings.yaml`, which a seed
-test checks.
+location must be marked `approved` and fall inside the campus bbox passed to
+`scripts/promote_locations.py`. The promotion step checks zone and kind values and
+writes only the seven columns accepted by the seed contract. Candidates still marked
+`needs_review` cannot be promoted.
 
 ### Posts for the pilot
 
