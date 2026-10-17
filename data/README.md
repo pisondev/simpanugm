@@ -71,10 +71,10 @@ aggregate agreement statistics:
 
 ```text
 python3 data/scripts/check_agreement.py \
-  --first /private/simpanugm-eval/trial-20/labels-a.csv \
-  --second /private/simpanugm-eval/trial-20/labels-b.csv \
+  --first /private/simpanugm-eval/trial-20/review/labels-a.csv \
+  --second /private/simpanugm-eval/trial-20/review/labels-b.csv \
   --expected-count 20 \
-  --output /private/simpanugm-eval/trial-20/agreement.md
+  --output /private/simpanugm-eval/trial-20/review/agreement.md
 ```
 
 The report contains observed agreement and Cohen's kappa for `leaf_category` and

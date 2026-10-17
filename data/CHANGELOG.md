@@ -95,3 +95,5 @@
   the exit-review log.
 - Added a final private trial-review gate for valid annotations, pass statuses, disagreement
   fields, and the recorded private Drive path.
+- Bound the final trial gate to the generated agreement report so stale or missing kappa
+  results cannot pass review.

@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from check_agreement import render_report, summarize_agreement
 from check_trial_review import validate_trial_review
 from create_trial_review_workspace import REVIEW_LOG_FIELDS, create_review_workspace
 
@@ -33,6 +34,11 @@ class TrialReviewCheckTests(unittest.TestCase):
         ]
         self.write_rows(workspace / "labels-a.csv", ANNOTATION_FIELDS, annotations)
         self.write_rows(workspace / "labels-b.csv", ANNOTATION_FIELDS, annotations)
+        annotations_by_id = {row["item_id"]: row for row in annotations}
+        (workspace / "agreement.md").write_text(
+            render_report(summarize_agreement(annotations_by_id, annotations_by_id)),
+            encoding="utf-8",
+        )
         review_rows = [
             {
                 "item_id": row["item_id"],
@@ -81,6 +87,13 @@ class TrialReviewCheckTests(unittest.TestCase):
             errors = validate_trial_review(workspace, SEED_DIR, 3)
             self.assertIn("I001: category_disagreement must be yes or no", errors)
             self.assertIn("I001: private_drive_path cannot be blank", errors)
+
+    def test_stale_agreement_report_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = self.complete_workspace(directory)
+            (workspace / "agreement.md").write_text("stale\n", encoding="utf-8")
+            errors = validate_trial_review(workspace, SEED_DIR, 3)
+            self.assertIn("agreement.md: report does not match the annotation sheets", errors)
 
 
 if __name__ == "__main__":

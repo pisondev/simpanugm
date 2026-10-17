@@ -46,3 +46,4 @@ All notable changes to this project are recorded here. The format follows
 - Added a blank trial exit-review log template for the private collection workflow.
 - Added an atomic generator for the private trial-review workspace and annotation sheets.
 - Added a final private trial-review gate for completed collection records.
+- Bound trial completion to a current agreement report generated from both annotation sheets.

@@ -8,7 +8,7 @@ import csv
 import sys
 from pathlib import Path
 
-from check_agreement import AgreementError, read_annotations
+from check_agreement import AgreementError, read_annotations, render_report, summarize_agreement
 from create_trial_review_workspace import REVIEW_LOG_FIELDS
 
 
@@ -39,11 +39,25 @@ def validate_trial_review(
     expected_count: int = 20,
 ) -> list[str]:
     errors: list[str] = []
+    annotations: dict[str, dict[str, dict[str, str]]] = {}
     for filename in ("labels-a.csv", "labels-b.csv"):
         try:
-            read_annotations(workspace / filename, seed_dir, expected_count)
+            annotations[filename] = read_annotations(workspace / filename, seed_dir, expected_count)
         except AgreementError as exc:
             errors.append(f"{filename}: {exc}")
+
+    if len(annotations) == 2:
+        expected_report = render_report(
+            summarize_agreement(annotations["labels-a.csv"], annotations["labels-b.csv"])
+        )
+        agreement_path = workspace / "agreement.md"
+        try:
+            actual_report = agreement_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            errors.append(f"agreement.md: cannot read agreement report: {exc}")
+        else:
+            if actual_report != expected_report:
+                errors.append("agreement.md: report does not match the annotation sheets")
 
     try:
         rows = read_review_log(workspace / "review-log.csv", expected_count)
