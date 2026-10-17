@@ -64,6 +64,8 @@ Git before the v1 freeze. The manifest checker also rejects images whose short s
 under 1080 px, whose exact SHA-256 content is reused, or whose perceptual hash is within
 four bits of an image from another item. Once the private dataset is approved, use
 `data/scripts/publish_manifest.py` to copy only the validated manifest into `data/eval/`.
+It also rejects symlinked dataset roots, manifest files, and any symlinked directory in
+a listed path, so validation cannot read private files from outside the dataset root.
 
 Reference analytics views are documented in [`analytics/README.md`](analytics/README.md)
 and defined in [`analytics/views.sql`](analytics/views.sql). They are reviewed SQL, not

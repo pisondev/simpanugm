@@ -241,6 +241,31 @@ class IntakeTests(unittest.TestCase):
             errors = check_manifest(output)
             self.assertIn("unlisted symlink: images/I002", errors)
 
+    def test_manifest_rejects_listed_path_through_symlink_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            external = Path(directory) / "external-images"
+            external.mkdir()
+            shutil.copyfile(
+                output / "images" / "I001" / "finder_1.jpg",
+                external / "finder_1.jpg",
+            )
+            item_directory = output / "images" / "I001"
+            shutil.rmtree(item_directory)
+            try:
+                item_directory.symlink_to(external, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = check_manifest(output)
+
+            self.assertIn(
+                "manifest path must not contain a symlink: images/I001/finder_1.jpg",
+                errors,
+            )
+
     def test_manifest_rejects_symlink_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = self.create_source(directory)

@@ -35,6 +35,16 @@ DCT_BASIS = tuple(
 )
 
 
+def _symlinked_path_component(root: Path, relative: Path) -> Path | None:
+    """Return the first symlink in a safe relative path, if any."""
+    current = root
+    for part in relative.parts:
+        current /= part
+        if current.is_symlink():
+            return current
+    return None
+
+
 def perceptual_hash(image: Any) -> int:
     """Return a compact DCT perceptual hash for cross-item near-duplicate checks."""
     resized = image.convert("L").resize(
@@ -122,6 +132,9 @@ def check_manifest(dataset_dir: Path) -> list[str]:
             errors.append(f"duplicate manifest path: {relative}")
             continue
         listed.add(relative)
+        if _symlinked_path_component(dataset_dir, path_value.parent) is not None:
+            errors.append(f"manifest path must not contain a symlink: {relative}")
+            continue
         kind = entry.get("kind")
         if kind not in ALLOWED_KINDS:
             errors.append(f"invalid manifest kind for {relative}: {kind!r}")

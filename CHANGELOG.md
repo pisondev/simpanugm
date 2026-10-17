@@ -63,3 +63,5 @@ All notable changes to this project are recorded here. The format follows
 - Required location promotion to recheck provenance against the saved raw Overpass response.
 - Made negative campus-bbox examples portable across supported Python CLI parsers by
   using the `--bbox=...` form in tests and handoff documentation.
+- Rejected manifest-listed paths that traverse symlinked directories, keeping private
+  dataset validation inside the dataset root.
