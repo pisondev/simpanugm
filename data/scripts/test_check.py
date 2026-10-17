@@ -230,11 +230,39 @@ class OsmLocationTests(unittest.TestCase):
                     write_rows(output, [])
             self.assertEqual(output.read_text(encoding="utf-8"), "keep\n")
 
+    def test_review_csv_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-review"
+            real_parent.mkdir()
+            alias_parent = root / "review-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(OSError):
+                write_rows(alias_parent / "locations.csv", [])
+
     def test_raw_response_is_written_as_json(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "overpass.json"
             write_raw_response(output, {"elements": [{"type": "node", "id": 1}]})
             self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["elements"][0]["id"], 1)
+
+    def test_raw_response_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-review"
+            real_parent.mkdir()
+            alias_parent = root / "review-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(OSError):
+                write_raw_response(alias_parent / "overpass.json", {"elements": []})
 
     def test_review_rows_ignore_duplicate_osm_elements(self) -> None:
         element = {

@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 
 from check import ValidationError, validate_categories
+from path_safety import first_symlink_component
 
 
 ANNOTATION_FIELDS = ("item_id", "leaf_category", "distinctiveness")
@@ -120,6 +121,9 @@ remain outside the repository.
 def write_report(path: Path, content: str) -> None:
     if path.is_symlink():
         raise OSError(f"output must not be a symlink: {path}")
+    parent_symlink = first_symlink_component(path.parent)
+    if parent_symlink is not None:
+        raise OSError(f"output path must not contain a symlink: {parent_symlink}")
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary: Path | None = None
     try:

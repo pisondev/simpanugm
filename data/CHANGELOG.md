@@ -129,3 +129,5 @@
   and optional positive retention overrides.
 - Rejected normalized collisions between brand names/aliases and between synonym terms,
   preventing ambiguous master-data lookups.
+- Extended output parent-path safety to OSM review artifacts, location promotion, private
+  summaries/reports, evaluation splits, and fixture regeneration.

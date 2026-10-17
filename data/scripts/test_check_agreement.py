@@ -90,6 +90,20 @@ class AgreementTests(unittest.TestCase):
             write_report(output, render_report(summarize_agreement(first, first)))
             self.assertIn("Label agreement report", output.read_text(encoding="utf-8"))
 
+    def test_report_writer_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-report"
+            real_parent.mkdir()
+            alias_parent = root / "report-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(OSError):
+                write_report(alias_parent / "agreement.md", "report\n")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Iterable
 
 from check import ValidationError, load_yaml
+from path_safety import first_symlink_component
 
 
 LABEL_FIELDS = ("item_id", "leaf_category", "distinctiveness")
@@ -202,6 +203,9 @@ def write_split_csv(
 ) -> None:
     if path.is_symlink():
         raise OSError(f"output must not be a symlink: {path}")
+    parent_symlink = first_symlink_component(path.parent)
+    if parent_symlink is not None:
+        raise OSError(f"output path must not contain a symlink: {parent_symlink}")
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path: Path | None = None
     try:

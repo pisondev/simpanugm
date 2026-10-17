@@ -14,6 +14,7 @@ from pathlib import Path
 from check import SLUG_RE, ValidationError, read_csv
 from check_location_review import validate_provenance
 from osm_locations import REVIEW_FIELDS, parse_bbox
+from path_safety import first_symlink_component
 
 
 LOCATION_FIELDS = ("slug", "name", "zone_slug", "kind", "lat", "lng", "aliases")
@@ -138,6 +139,9 @@ def promote_rows(
 def write_locations(path: Path, rows: list[dict[str, str]]) -> None:
     if path.is_symlink():
         raise OSError(f"output must not be a symlink: {path}")
+    parent_symlink = first_symlink_component(path.parent)
+    if parent_symlink is not None:
+        raise OSError(f"output path must not contain a symlink: {parent_symlink}")
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path: Path | None = None
     try:

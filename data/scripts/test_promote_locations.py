@@ -112,6 +112,20 @@ class LocationPromotionTests(unittest.TestCase):
                     write_locations(output, [])
             self.assertEqual(output.read_text(encoding="utf-8"), "keep\n")
 
+    def test_location_writer_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-seed"
+            real_parent.mkdir()
+            alias_parent = root / "seed-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(OSError):
+                write_locations(alias_parent / "locations.csv", [])
+
     def test_cli_blocks_promotion_when_raw_provenance_drifted(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

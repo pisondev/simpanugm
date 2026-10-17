@@ -75,6 +75,8 @@ a listed path, so validation cannot read private files from outside the dataset 
 The private intake, fetch, manifest-publication, template-generation, and review-workspace
 commands apply the same check to their source and output parent paths before resolving
 them; the corresponding validators reject aliased roots as well.
+The same output-root guard protects OSM review exports, promoted location seeds, review
+summaries, agreement reports, evaluation splits, and synthetic fixture regeneration.
 
 Reference analytics views are documented in [`analytics/README.md`](analytics/README.md)
 and defined in [`analytics/views.sql`](analytics/views.sql). They are reviewed SQL, not
