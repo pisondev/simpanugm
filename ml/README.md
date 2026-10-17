@@ -4,7 +4,8 @@ The inference service and the offline evaluation harness. Stateless FastAPI serv
 internal network: image and text embeddings, image analysis (category, colour, visible
 text, brand), clustering. Scoring and every decision stay in `api`.
 
-Owner: Irfan Fadilah Rafif. Status: specified, implementation starts in Sprint 1.
+Owner: Irfan Fadilah Rafif. Status: service skeleton in place (health, readiness, model
+lock, token auth, JSON logs, metrics). Encoders and the inference endpoints come next.
 
 | Read first | For |
 |---|---|
@@ -21,3 +22,20 @@ Rules that matter most here:
 
 Stack: Python 3.12, uv, FastAPI, PyTorch CPU, sentence-transformers, EasyOCR,
 scikit-learn, MLflow for evaluation runs.
+
+## Working on it
+
+Requires Python 3.12 and uv.
+
+```
+uv sync                       # creates .venv from uv.lock
+uv run pytest
+uv run ruff check . && uv run ruff format --check .
+uv run mypy                   # strict on app/
+ML_INTERNAL_TOKEN=change-me-to-16-chars uv run uvicorn app.main:create_app --factory --port 8100
+```
+
+`/healthz` and `/readyz` are open on the internal network. Every `/v1` endpoint needs
+`Authorization: Bearer $ML_INTERNAL_TOKEN`. `/readyz` turns green only when every component
+in `models.lock.json` is loaded, and the lock refuses floating revisions such as `main`.
+
