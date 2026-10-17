@@ -138,3 +138,5 @@
 - Hardened complete post validation to report malformed location references instead of
   failing with an internal type error.
 - Wrapped malformed YAML seed input as a readable validation error.
+- Hardened fixture validation to report malformed JSON and non-object case entries
+  without an internal traceback.

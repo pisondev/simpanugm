@@ -58,7 +58,8 @@ The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 
 Shared contract fixtures are now available in [`fixtures/`](fixtures/). They contain only
 synthetic scoring, masking, and name-comparison cases; participant data and collected
-images remain outside the repository. Validate them with:
+images remain outside the repository. Malformed JSON and case shapes are reported as
+fixture validation errors. Validate them with:
 
 ```text
 python3 data/scripts/check_fixtures.py
