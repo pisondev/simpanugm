@@ -23,10 +23,12 @@ when the labels, descriptions, images, and consent records pass the checks below
 5. Capture labels in `trial-intake-template.csv` without private details.
 6. Strip EXIF metadata and review every image for people, reflections, screens, and real
    documents.
-7. Run the label validator, then complete the two-person review.
+7. Run the label validator, compare the two private label sheets with
+   `data/scripts/check_agreement.py`, then complete the two-person review.
 
 ## Exit review
 
 The trial reviewer records pass/fail for each item, the reason for every retake, category
 disagreements, missing photos, consent status, and the final Drive path. The review log
-and all raw material stay outside git.
+and all raw material stay outside git. Record the aggregate Cohen's kappa values in that
+private review log; do not publish the annotation sheets.

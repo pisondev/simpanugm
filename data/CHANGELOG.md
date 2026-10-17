@@ -85,3 +85,5 @@
   four bits before dataset freeze.
 - Hardened split verification to reject manual edits that change the stratified `val`
   allocation for a parent-category and distinctiveness group.
+- Added a private two-annotator agreement checker that reports aggregate Cohen's kappa
+  without copying label sheets or participant data into the repository.

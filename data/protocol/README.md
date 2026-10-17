@@ -25,6 +25,20 @@ The template is intentionally incomplete and must not be treated as a dataset. T
 validator only checks label structure and allowed values; it does not replace the
 manual consent, photo, description, privacy, and quality review.
 
+For the two-person label review, keep both private sheets separate and generate only an
+aggregate agreement report:
+
+```text
+python3 data/scripts/check_agreement.py \
+  --first /private/simpanugm-eval/trial-20/labels-a.csv \
+  --second /private/simpanugm-eval/trial-20/labels-b.csv \
+  --expected-count 20 \
+  --output /private/simpanugm-eval/trial-20/agreement.md
+```
+
+The report contains Cohen's kappa for category and distinctiveness. Do not commit either
+label sheet or the report when it is tied to private collection activity.
+
 ## Full collection templates
 
 When the 20-item trial is accepted, create blank private templates for the full target:

@@ -65,6 +65,20 @@ application migrations.
 Sprint 0 collection preparation is in [`data/protocol/`](protocol/), including the
 consent draft, mock identity-card rules, 20-item checklist, and label template.
 
+For an independent two-person label review, compare two private sheets and write only
+aggregate agreement statistics:
+
+```text
+python3 data/scripts/check_agreement.py \
+  --first /private/simpanugm-eval/trial-20/labels-a.csv \
+  --second /private/simpanugm-eval/trial-20/labels-b.csv \
+  --expected-count 20 \
+  --output /private/simpanugm-eval/trial-20/agreement.md
+```
+
+The report contains observed agreement and Cohen's kappa for `leaf_category` and
+`distinctiveness`; label sheets and the report remain outside git.
+
 For the location review, save an Overpass response and run:
 
 ```text
