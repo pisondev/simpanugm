@@ -66,7 +66,8 @@ The base item and distractor IDs are stable, one-based IDs (`I001` through `I150
 `val` and `test`.
 
 Run `data/scripts/check_auxiliary.py` after the manifest and base quality checks. These
-files remain private and are never committed to git.
+files remain private and are never committed to git. The auxiliary gate also rechecks
+one-based IDs and label-ID uniqueness so it is safe to run independently.
 
 Use `data/scripts/create_eval_templates.py` to create the blank raw collection layout
 before data entry. It produces all five metadata files with stable IDs and refuses to

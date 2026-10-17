@@ -41,3 +41,4 @@
 - Extended dataset quality checks to reject normalized description reuse across owner and
   finder roles as well as across items.
 - Restricted evaluation splitting to the stable one-based item and distractor ID formats.
+- Hardened auxiliary metadata checks for one-based IDs and duplicate label references.

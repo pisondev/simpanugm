@@ -63,7 +63,7 @@ def validate_id_set(rows: list[dict[str, str]], field: str, prefix: str, expecte
         errors.append(f"{field} must contain {prefix}001 through {prefix}{expected_count:03d} exactly")
     pattern = ID_PATTERNS[prefix]
     for value in ids:
-        if not pattern.fullmatch(value):
+        if not pattern.fullmatch(value) or value == f"{prefix}000":
             errors.append(f"{field} has invalid value {value!r}")
     return errors
 
@@ -185,7 +185,12 @@ def read_label_ids(dataset_dir: Path) -> set[str]:
             "flags",
         ),
     )
-    return {row["item_id"] for row in rows}
+    ids = [row["item_id"].strip() for row in rows]
+    if any(not re.fullmatch(r"I[0-9]{3}", value) or value == "I000" for value in ids):
+        raise ValidationError("labels.csv item_id values must match I001 format")
+    if len(set(ids)) != len(ids):
+        raise ValidationError("labels.csv item_id values must be unique")
+    return set(ids)
 
 
 def validate_auxiliary(

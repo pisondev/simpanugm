@@ -130,6 +130,44 @@ class AuxiliaryCheckTests(unittest.TestCase):
             )
             self.assertTrue(any("report ids must be different" in error for error in errors))
 
+    def test_auxiliary_check_rejects_zero_based_record_id(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            distractors = source / "distractors.csv"
+            distractors.write_text(
+                distractors.read_text(encoding="utf-8").replace("D001", "D000"),
+                encoding="utf-8",
+            )
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-aux")
+            errors = validate_auxiliary(
+                output,
+                SEED_DIR,
+                expected_distractors=2,
+                expected_duplicates=1,
+                expected_queries=2,
+            )
+            self.assertTrue(any("distractor_id has invalid value 'D000'" in error for error in errors))
+
+    def test_auxiliary_check_rejects_duplicate_label_id(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            labels = source / "labels.csv"
+            labels.write_text(
+                labels.read_text(encoding="utf-8").replace("I002", "I001"),
+                encoding="utf-8",
+            )
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-aux")
+            errors = validate_auxiliary(
+                output,
+                SEED_DIR,
+                expected_distractors=2,
+                expected_duplicates=1,
+                expected_queries=2,
+            )
+            self.assertIn("labels.csv item_id values must be unique", errors)
+
 
 if __name__ == "__main__":
     unittest.main()
