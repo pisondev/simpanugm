@@ -37,6 +37,10 @@ python3 data/scripts/check.py --require-complete
 
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 
+Reference analytics views are documented in [`analytics/README.md`](analytics/README.md)
+and defined in [`analytics/views.sql`](analytics/views.sql). They are reviewed SQL, not
+application migrations.
+
 Sprint 0 collection preparation is in [`data/protocol/`](protocol/), including the
 consent draft, mock identity-card rules, 20-item checklist, and label template.
 

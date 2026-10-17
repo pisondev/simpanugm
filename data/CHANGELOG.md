@@ -29,3 +29,5 @@
 - Added a safe private-template generator for the 150-item collection and its auxiliary
   metadata, refusing to overwrite non-empty directories.
 - Added a trial profile that creates only the 20-item metadata files and image directory.
+- Added reference analytics materialized-view SQL for hotspots, time trends, weekly
+  outcomes, and privacy-safe aggregate suppression.
