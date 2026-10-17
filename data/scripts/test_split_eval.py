@@ -6,6 +6,7 @@ from pathlib import Path
 from split_eval import (
     make_distractor_split_rows,
     make_split_rows,
+    read_distractor_ids,
     read_labels,
     verify_distractor_split_rows,
     verify_split_rows,
@@ -81,6 +82,35 @@ class EvaluationSplitTests(unittest.TestCase):
             rows.append(dict(rows[0]))
             errors = verify_split_rows(rows, labels, val_count=4)
             self.assertTrue(any("duplicate split assignment" in error for error in errors))
+
+    def test_labels_reject_non_contract_item_id(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "labels.csv"
+            with path.open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.DictWriter(
+                    handle,
+                    fieldnames=("item_id", "leaf_category", "distinctiveness"),
+                )
+                writer.writeheader()
+                writer.writerow(
+                    {
+                        "item_id": "I000",
+                        "leaf_category": "botol-minum",
+                        "distinctiveness": "generic",
+                    }
+                )
+            with self.assertRaises(ValueError):
+                read_labels(path, SEED_DIR)
+
+    def test_distractors_reject_zero_id(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "distractors.csv"
+            with path.open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.DictWriter(handle, fieldnames=("distractor_id",))
+                writer.writeheader()
+                writer.writerow({"distractor_id": "D000"})
+            with self.assertRaises(ValueError):
+                read_distractor_ids(path)
 
     def test_distractors_follow_the_item_split_proportion(self) -> None:
         distractors = [f"D{index:03d}" for index in range(1, 11)]

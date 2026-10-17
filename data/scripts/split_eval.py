@@ -20,6 +20,8 @@ LABEL_FIELDS = ("item_id", "leaf_category", "distinctiveness")
 SPLIT_FIELDS = ("item_id", "split", "parent_category", "distinctiveness")
 DISTRACTOR_SPLIT_FIELDS = ("distractor_id", "split")
 SPLITS = {"val", "test"}
+ITEM_ID_RE = re.compile(r"^I[0-9]{3}$")
+DISTRACTOR_ID_RE = re.compile(r"^D[0-9]{3}$")
 
 
 class SplitError(ValueError):
@@ -65,6 +67,8 @@ def read_labels(path: Path, seed_dir: Path) -> list[dict[str, str]]:
         distinctiveness = row.get("distinctiveness", "").strip()
         if not item_id:
             raise SplitError(f"{path}: item_id cannot be blank")
+        if not ITEM_ID_RE.fullmatch(item_id) or item_id == "I000":
+            raise SplitError(f"{path}: item_id must match I001 format: {item_id!r}")
         if item_id in seen:
             raise SplitError(f"{path}: duplicate item_id {item_id}")
         seen.add(item_id)
@@ -187,7 +191,7 @@ def read_distractor_ids(path: Path) -> list[str]:
     if not rows:
         raise SplitError(f"{path}: distractors file must contain at least one row")
     ids = [row.get("distractor_id", "").strip() for row in rows]
-    if any(not re.fullmatch(r"D\d{3}", value) for value in ids):
+    if any(not DISTRACTOR_ID_RE.fullmatch(value) or value == "D000" for value in ids):
         raise SplitError(f"{path}: distractor_id values must match D001 format")
     if len(set(ids)) != len(ids):
         raise SplitError(f"{path}: distractor_id values must be unique")

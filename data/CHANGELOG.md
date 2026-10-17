@@ -40,3 +40,4 @@
   paths, malformed hashes, and disabled normalization policy flags.
 - Extended dataset quality checks to reject normalized description reuse across owner and
   finder roles as well as across items.
+- Restricted evaluation splitting to the stable one-based item and distractor ID formats.

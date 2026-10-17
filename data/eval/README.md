@@ -61,6 +61,10 @@ The full collection also requires the following private metadata contracts:
 | `duplicates.csv` | `pair_id`, `item_id`, `first_report_id`, `second_report_id` | `P001` through `P040`, one pair per physical item |
 | `queries.csv` | `query_id`, `query_text`, `target_report_id` | `Q001` through `Q050`, unique normalized query text |
 
+The base item and distractor IDs are stable, one-based IDs (`I001` through `I150` and
+`D001` through `D400`). The splitter rejects IDs outside those formats before assigning
+`val` and `test`.
+
 Run `data/scripts/check_auxiliary.py` after the manifest and base quality checks. These
 files remain private and are never committed to git.
 
