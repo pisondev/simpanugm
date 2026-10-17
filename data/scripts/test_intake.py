@@ -23,7 +23,7 @@ class IntakeTests(unittest.TestCase):
             writer = csv.writer(handle)
             writer.writerow(["item_id", "leaf_category"])
             writer.writerow(["I001", "botol-minum"])
-        image = Image.new("RGB", (64, 64), "blue")
+        image = Image.new("RGB", (1080, 1080), "blue")
         image.save(
             source / "images" / "I001" / "Finder-01.JPG",
             exif=b"Exif\x00\x00test",
@@ -71,6 +71,29 @@ class IntakeTests(unittest.TestCase):
             (output / "existing.txt").write_text("keep", encoding="utf-8")
             with self.assertRaises(IntakeError):
                 intake_dataset(source, output, "trial-1")
+
+    def test_manifest_rejects_image_below_minimum_short_side(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            Image.new("RGB", (64, 1080), "blue").save(source / "images" / "I001" / "Finder-01.JPG")
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            errors = check_manifest(output)
+            self.assertTrue(any("image short side must be at least 1080 px" in error for error in errors))
+
+    def test_manifest_rejects_duplicate_image_content(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            second_item = source / "images" / "I002"
+            second_item.mkdir()
+            shutil.copyfile(
+                source / "images" / "I001" / "Finder-01.JPG",
+                second_item / "finder_1.jpg",
+            )
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            errors = check_manifest(output)
+            self.assertTrue(any("duplicate image content" in error for error in errors))
 
     def test_intake_failure_does_not_leave_partial_output(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

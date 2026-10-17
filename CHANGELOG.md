@@ -37,3 +37,5 @@ All notable changes to this project are recorded here. The format follows
 - Ensured location-review extraction excludes candidates outside the requested bbox.
 - Improved OpenStreetMap location-kind classification for public amenities and institutions.
 - Added a private counts-only summary for planning the manual location review.
+- Added private dataset gates for the 1080 px image short-side minimum and exact duplicate
+  image content.

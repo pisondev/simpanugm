@@ -94,8 +94,8 @@ class AuxiliaryCheckTests(unittest.TestCase):
                     ("Q002", "pouch resleting merah", "FND-003"),
                 )
             )
-        for distractor_id in ("D001", "D002"):
-            Image.new("RGB", (64, 64), "blue").save(
+        for distractor_id, colour in (("D001", "blue"), ("D002", "red")):
+            Image.new("RGB", (1080, 1080), colour).save(
                 source / "images" / distractor_id / "finder_1.jpg"
             )
         return source

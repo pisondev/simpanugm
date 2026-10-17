@@ -20,6 +20,7 @@ except ModuleNotFoundError:  # pragma: no cover - exercised by the CLI error pat
 
 ALLOWED_KINDS = {"metadata", "image"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+MIN_IMAGE_SHORT_SIDE = 1080
 
 
 def check_manifest(dataset_dir: Path) -> list[str]:
@@ -51,6 +52,7 @@ def check_manifest(dataset_dir: Path) -> list[str]:
         return errors
 
     listed: set[str] = set()
+    image_hashes: dict[str, str] = {}
     for entry in entries:
         if not isinstance(entry, dict):
             errors.append("manifest.files entries must be objects")
@@ -103,17 +105,31 @@ def check_manifest(dataset_dir: Path) -> list[str]:
             errors.append(f"invalid manifest size: {relative}")
         elif size != path.stat().st_size:
             errors.append(f"size mismatch: {relative}")
+        actual_sha256: str | None = None
         sha256 = entry.get("sha256")
         if not isinstance(sha256, str) or SHA256_RE.fullmatch(sha256) is None:
             errors.append(f"invalid manifest sha256: {relative}")
-        elif sha256 != sha256_file(path):
-            errors.append(f"sha256 mismatch: {relative}")
+        else:
+            actual_sha256 = sha256_file(path)
+            if sha256 != actual_sha256:
+                errors.append(f"sha256 mismatch: {relative}")
         if kind == "image":
+            if actual_sha256 is not None:
+                previous = image_hashes.get(actual_sha256)
+                if previous is not None:
+                    errors.append(f"duplicate image content: {relative} matches {previous}")
+                else:
+                    image_hashes[actual_sha256] = relative
             if Image is None:
-                errors.append("Pillow is required to check image EXIF metadata")
+                errors.append("Pillow is required to check image dimensions and EXIF metadata")
                 continue
             try:
                 with Image.open(path) as image:
+                    width, height = image.size
+                    if min(width, height) < MIN_IMAGE_SHORT_SIDE:
+                        errors.append(
+                            f"image short side must be at least {MIN_IMAGE_SHORT_SIDE} px: {relative}"
+                        )
                     if image.getexif():
                         errors.append(f"EXIF metadata remains: {relative}")
             except OSError as exc:

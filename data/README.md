@@ -53,7 +53,9 @@ documents, or participant data.
 The repository data workflow runs the seed check, fixture check, and complete data-script
 test suite on every change under `data/`. Private manifest verification still runs after
 intake in the protected dataset workspace, because the manifest and its files are not in
-Git before the v1 freeze. Once the private dataset is approved, use
+Git before the v1 freeze. The manifest checker also rejects images whose short side is
+under 1080 px or whose exact SHA-256 content is reused by another image. Once the private
+dataset is approved, use
 `data/scripts/publish_manifest.py` to copy only the validated manifest into `data/eval/`.
 
 Reference analytics views are documented in [`analytics/README.md`](analytics/README.md)

@@ -18,7 +18,7 @@ class PublishManifestTests(unittest.TestCase):
             writer = csv.writer(handle)
             writer.writerow(["item_id", "item_name"])
             writer.writerow(["I001", "botol sintetis"])
-        Image.new("RGB", (64, 64), "blue").save(source / "images" / "I001" / "finder_1.jpg")
+        Image.new("RGB", (1080, 1080), "blue").save(source / "images" / "I001" / "finder_1.jpg")
         return source
 
     def test_publishes_only_the_validated_manifest(self) -> None:

@@ -90,12 +90,16 @@ class DatasetQualityTests(unittest.TestCase):
                     "flags": "",
                 }
             )
+        image_colours = {
+            "I001": ("blue", "navy", "cyan"),
+            "I002": ("red", "maroon"),
+        }
         for item_id, names in {
             "I001": ("finder_1.jpg", "finder_2.jpg", "owner_1.jpg"),
             "I002": ("finder_1.jpg", "finder_2.jpg"),
         }.items():
-            for name in names:
-                Image.new("RGB", (64, 64), "blue").save(source / "images" / item_id / name)
+            for name, colour in zip(names, image_colours[item_id]):
+                Image.new("RGB", (1080, 1080), colour).save(source / "images" / item_id / name)
         return source
 
     def test_quality_gate_accepts_complete_two_item_fixture(self) -> None:

@@ -79,3 +79,5 @@
   review CSV instead of leaving them as generic `building` rows.
 - Added a counts-only private location-review summary to help plan manual review without
   copying candidate names into the repository.
+- Extended private manifest quality checks to reject images below the 1080 px short-side
+  minimum and exact duplicate image content before dataset freeze.

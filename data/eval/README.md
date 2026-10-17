@@ -24,7 +24,8 @@ The intake pipeline writes `manifest.json` with each prepared file's relative pa
 size, SHA-256, and kind. It strips EXIF metadata and normalizes accepted image names
 before hashing. It stages the output first, so a failed intake does not leave a partial
 dataset directory. The manifest checker requires normalized image paths, approved file
-kinds, valid hashes, and rejects symlinks, including symlink directories. Run
+kinds, valid hashes, images at least 1080 px on the short side, unique image content,
+and rejects symlinks, including symlink directories. Run
 `data/scripts/check_manifest.py` after intake and before a dataset freeze.
 
 After the private review and v1 freeze, publish only that validated manifest with
