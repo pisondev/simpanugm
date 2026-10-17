@@ -63,7 +63,8 @@ and defined in [`analytics/views.sql`](analytics/views.sql). They are reviewed S
 application migrations.
 
 Sprint 0 collection preparation is in [`data/protocol/`](protocol/), including the
-consent draft, mock identity-card rules, 20-item checklist, and label template.
+consent draft, mock identity-card rules, 20-item checklist, label template, and blank
+trial review log template.
 
 For an independent two-person label review, compare two private sheets and write only
 aggregate agreement statistics:

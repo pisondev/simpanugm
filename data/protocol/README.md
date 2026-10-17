@@ -14,6 +14,8 @@ It contains no participant data, photographs, or identity documents.
   deferred campus and inference seed files.
 - [`trial-intake-template.csv`](trial-intake-template.csv): blank label template for
   `I001` through `I020`.
+- [`trial-review-log-template.csv`](trial-review-log-template.csv): blank exit-review
+  log for the same 20 trial items.
 
 Validate a completed label sheet from the repository root:
 
@@ -38,6 +40,11 @@ python3 data/scripts/check_agreement.py \
 
 The report contains Cohen's kappa for category and distinctiveness. Do not commit either
 label sheet or the report when it is tied to private collection activity.
+
+Copy the blank [`trial-review-log-template.csv`](trial-review-log-template.csv) into the
+private trial workspace before collection. It records review status and retakes without
+adding participant details to the repository; keep the completed copy and its private
+Drive path outside git.
 
 ## Full collection templates
 

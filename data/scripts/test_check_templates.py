@@ -1,3 +1,4 @@
+import csv
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,6 +8,28 @@ from create_eval_templates import create_templates, create_trial_templates
 
 
 class TemplateCheckTests(unittest.TestCase):
+    def test_trial_review_log_template_is_blank_and_stable(self) -> None:
+        path = Path(__file__).resolve().parents[1] / "protocol" / "trial-review-log-template.csv"
+        with path.open(newline="", encoding="utf-8") as handle:
+            reader = csv.DictReader(handle)
+            rows = list(reader)
+        self.assertEqual(
+            tuple(reader.fieldnames or ()),
+            (
+                "item_id",
+                "consent_status",
+                "photo_privacy_status",
+                "photo_quality_status",
+                "retake_reason",
+                "category_disagreement",
+                "distinctiveness_disagreement",
+                "review_status",
+                "private_drive_path",
+            ),
+        )
+        self.assertEqual([row["item_id"] for row in rows], [f"I{index:03d}" for index in range(1, 21)])
+        self.assertTrue(all(not any(row[field] for field in reader.fieldnames[1:]) for row in rows))
+
     def test_full_template_passes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "full"

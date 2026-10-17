@@ -89,3 +89,5 @@
   without copying label sheets or participant data into the repository.
 - Hardened location promotion to require valid OSM provenance and at least one approved
   location before writing a production seed.
+- Added a blank 20-item trial exit-review log template for consent, privacy, retake, and
+  disagreement tracking outside git.
