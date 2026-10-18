@@ -79,9 +79,11 @@ The approval email never contains the handover code (FR-CLAIM-12).
 | Aspect | Rule |
 |---|---|
 | Creation | The domain transaction inserts the `notifications` row and enqueues the email job, so a rolled back action notifies nobody |
-| Live push | After commit, `api` issues `NOTIFY notifications, '<user_id>'`. Each `api` instance listens and pushes to that user's open SSE streams |
+| Live push | The domain transaction calls `pg_notify('notifications', '<user_id>')`, which PostgreSQL delivers at commit. Each `api` instance holds one `LISTEN` connection and wakes that user's open SSE streams, which read what is new. A stream lives 10 minutes and the browser reconnects with `Last-Event-ID`, so a session that expired meanwhile stops receiving |
+| Passive requests | The stream and `GET /notifications/unread-count` never extend a session, an open tab is not activity (BR-ACC-04) |
 | Email retries | 5 attempts with exponential backoff from 30 s. After that the job is discarded and visible in River's failed list |
-| Officer digest | One email per officer at 07:00 WIB listing everything marked `digest` from the previous 24 hours, sent only if non empty |
+| Officer digest | One email per officer at 07:00 WIB listing everything marked `digest` from the previous 24 hours, sent only if non empty. Digest events never email directly |
+| Quiet hours | Emails of optional and owner events created inside `notify.email_quiet_hours` are scheduled for the end of the window, the app row is created at once |
 | Payload | `{event, title, body, link, entity_type, entity_id}`. Rendered text is stored, so a later template change does not rewrite history |
 | Language | Indonesian only in v1.0 |
 | Privacy | No email contains private details, hidden details, the handover code, or the identity of the other party |

@@ -15,6 +15,7 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/masterdata"
 	"github.com/pisondev/simpanugm/api/internal/media"
+	"github.com/pisondev/simpanugm/api/internal/notify"
 	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
 	"github.com/pisondev/simpanugm/api/internal/platform/clock"
 	"github.com/pisondev/simpanugm/api/internal/platform/settings"
@@ -41,10 +42,11 @@ type Service struct {
 	md       *masterdata.Service
 	custody  *custody.Service
 	settings *settings.Store
+	notifier *notify.Notifier
 }
 
-func NewService(pool *pgxpool.Pool, c clock.Clock, m *media.Service, md *masterdata.Service, cs *custody.Service, st *settings.Store) *Service {
-	return &Service{pool: pool, q: sqlc.New(pool), clock: c, media: m, md: md, custody: cs, settings: st}
+func NewService(pool *pgxpool.Pool, c clock.Clock, m *media.Service, md *masterdata.Service, cs *custody.Service, st *settings.Store, n *notify.Notifier) *Service {
+	return &Service{pool: pool, q: sqlc.New(pool), clock: c, media: m, md: md, custody: cs, settings: st, notifier: n}
 }
 
 func IsCode(s string) bool { return codePattern.MatchString(s) }

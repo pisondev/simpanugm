@@ -208,6 +208,28 @@ type Medium struct {
 	DeletedAt     *time.Time
 }
 
+type Notification struct {
+	ID          uuid.UUID
+	RecipientID uuid.UUID
+	Event       string
+	Title       string
+	Body        string
+	Link        string
+	EntityType  *string
+	EntityID    *uuid.UUID
+	ReadAt      *time.Time
+	EmailStatus string
+	CreatedAt   time.Time
+}
+
+type NotificationPreference struct {
+	UserID     uuid.UUID
+	EventGroup string
+	Channel    string
+	Enabled    bool
+	UpdatedAt  time.Time
+}
+
 type OfficerPost struct {
 	UserID     uuid.UUID
 	PostID     uuid.UUID

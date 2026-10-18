@@ -12,6 +12,7 @@ sql:
       - internal/audit/queries.sql
       - internal/platform/idem/queries.sql
       - internal/platform/settings/queries.sql
+      - internal/notify/queries.sql
     gen:
       go:
         package: sqlc

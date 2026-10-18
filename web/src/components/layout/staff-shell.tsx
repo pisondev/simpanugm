@@ -4,6 +4,7 @@ import { Ellipsis, FileSearch, FolderOpen, HandHeart, House, LayoutDashboard, Pa
 import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 
+import { NotificationBell } from "@/components/notifications/notification-bell"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import type { Me } from "@/lib/api/types"
@@ -69,7 +70,10 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
         <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
           <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6">
             <Wordmark href={me.role === "admin" ? "/admin" : "/petugas"} className="lg:invisible" />
-            <UserMenu me={me} />
+            <div className="flex items-center gap-1">
+              <NotificationBell />
+              <UserMenu me={me} />
+            </div>
           </div>
         </header>
         <main id="konten" className="w-full max-w-7xl flex-1 px-4 pt-6 pb-28 md:px-6 lg:pb-12">

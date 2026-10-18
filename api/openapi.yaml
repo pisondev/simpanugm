@@ -17,6 +17,8 @@ tags:
   - name: found
   - name: custody
   - name: search
+  - name: notifications
+  - name: account
   - name: admin
 
 paths:
@@ -603,6 +605,103 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/SearchResultList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /notifications:
+    get:
+      tags: [notifications]
+      operationId: listNotifications
+      parameters:
+        - name: unread
+          in: query
+          schema: { type: boolean, default: false }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Newest first
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /notifications/unread-count:
+    get:
+      tags: [notifications]
+      operationId: countUnreadNotifications
+      responses:
+        '200':
+          description: Unread notifications of the caller
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UnreadCount' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /notifications/read-all:
+    post:
+      tags: [notifications]
+      operationId: markAllNotificationsRead
+      responses:
+        '200':
+          description: Every unread notification of the caller is read
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UnreadCount' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /notifications/{id}/read:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    post:
+      tags: [notifications]
+      operationId: markNotificationRead
+      responses:
+        '204':
+          description: Read
+        default: { $ref: '#/components/responses/Problem' }
+
+  /notifications/stream:
+    get:
+      tags: [notifications]
+      operationId: streamNotifications
+      description: Server Sent Events with events `notification` and `heartbeat`. Resumes after `Last-Event-ID`
+      parameters:
+        - name: Last-Event-ID
+          in: header
+          schema: { type: string, maxLength: 40 }
+      responses:
+        '200':
+          description: An open event stream
+          content:
+            text/event-stream:
+              schema: { type: string }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /me/notification-preferences:
+    get:
+      tags: [account]
+      operationId: getNotificationPreferences
+      responses:
+        '200':
+          description: Optional notification groups and their channels
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationPreferences' }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      tags: [account]
+      operationId: putNotificationPreferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NotificationPreferences' }
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationPreferences' }
         default: { $ref: '#/components/responses/Problem' }
 
   /admin/users:
@@ -1466,3 +1565,53 @@ components:
           type: array
           maxItems: 20
           items: { type: string, format: uuid }
+
+    Notification:
+      type: object
+      required: [id, event, title, body, link, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        event: { type: string }
+        title: { type: string }
+        body: { type: string }
+        link: { type: string }
+        entity_type: { type: string, nullable: true }
+        entity_id: { type: string, format: uuid, nullable: true }
+        read_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    NotificationList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Notification' }
+        next_cursor: { type: string, nullable: true }
+
+    UnreadCount:
+      type: object
+      required: [count]
+      properties:
+        count: { type: integer }
+
+    NotificationPreference:
+      type: object
+      additionalProperties: false
+      required: [group, app, email]
+      properties:
+        group:
+          type: string
+          enum: [match, found, claim]
+        app: { type: boolean }
+        email: { type: boolean }
+
+    NotificationPreferences:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/NotificationPreference' }

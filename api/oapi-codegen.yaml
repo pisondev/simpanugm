@@ -8,3 +8,4 @@ generate:
 output-options:
   exclude-operation-ids:
     - getMedia
+    - streamNotifications

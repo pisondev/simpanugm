@@ -160,6 +160,7 @@ type Env struct {
 	Pool     *pgxpool.Pool
 	Clock    *clock.Fake
 	Services *server.Services
+	Jobs     *river.Client[pgx.Tx]
 	Server   *httptest.Server
 	Config   config.Config
 }
@@ -188,13 +189,16 @@ func New(t testing.TB) *Env {
 		AppEnv: "test", PublicBaseURL: srv.URL, DatabaseURL: d.AppURL, StorageDriver: "fs",
 		SessionCookieSecure: false, TrustedProxies: []string{"10.0.0.0/8"}, WorkerQueues: "default=1",
 	}
-	env := &Env{T: t, DB: d, Pool: pool, Clock: clock.NewFake(time.Now().UTC().Truncate(time.Second)), Server: srv, Config: cfg}
+	env := &Env{T: t, DB: d, Pool: pool, Clock: clock.NewFake(time.Now().UTC().Truncate(time.Second)), Server: srv, Config: cfg, Jobs: jobs}
 	deps := server.Deps{Config: cfg, Pool: pool, Clock: env.Clock, Store: store, Jobs: jobs}
 	env.Services = server.NewServices(deps)
 	handler, err = server.NewRouter(deps, env.Services)
 	if err != nil {
 		t.Fatalf("testenv: router: %v", err)
 	}
+	hubCtx, stopHub := context.WithCancel(context.Background())
+	go env.Services.Hub.Run(hubCtx)
+	t.Cleanup(stopHub)
 	return env
 }
 
@@ -285,6 +289,17 @@ func (e *Env) EmailCount(to, event string) int {
 	return n
 }
 
+func (e *Env) EmailScheduledAt(to, event string) time.Time {
+	e.T.Helper()
+	var at time.Time
+	err := e.Pool.QueryRow(context.Background(),
+		"SELECT scheduled_at FROM river_job WHERE kind = 'email.send' AND args->>'to' = $1 AND args->>'event' = $2 ORDER BY id DESC LIMIT 1", strings.ToLower(to), event).Scan(&at)
+	if err != nil {
+		e.T.Fatalf("testenv: no %s email to %s: %v", event, to, err)
+	}
+	return at
+}
+
 func TokenFrom(t testing.TB, a notify.EmailArgs) string {
 	t.Helper()
 	_, after, ok := strings.Cut(a.Text, "token=")
@@ -368,6 +383,24 @@ func (c *Client) Do(method, path string, body io.Reader, contentType string, hea
 	defer func() { _ = res.Body.Close() }()
 	b, _ := io.ReadAll(res.Body)
 	return Response{Status: res.StatusCode, Header: res.Header, Body: b}
+}
+
+// an open response for streams, the caller closes the body
+func (c *Client) Open(path string, headers ...string) *http.Response {
+	c.t.Helper()
+	req, err := http.NewRequest(http.MethodGet, c.base+path, nil)
+	if err != nil {
+		c.t.Fatalf("request: %v", err)
+	}
+	for i := 0; i+1 < len(headers); i += 2 {
+		req.Header.Set(headers[i], headers[i+1])
+	}
+	streaming := &http.Client{Jar: c.http.Jar}
+	res, err := streaming.Do(req)
+	if err != nil {
+		c.t.Fatalf("GET %s: %v", path, err)
+	}
+	return res
 }
 
 func (c *Client) JSON(method, path string, body any, headers ...string) Response {

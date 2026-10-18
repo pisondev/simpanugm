@@ -85,6 +85,22 @@ func (s *Store) Strings(ctx context.Context, key string) []string {
 	return out
 }
 
+type QuietHours struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+}
+
+// BR-NTF-03, both ends are WIB wall clock times
+func (s *Store) QuietHours(ctx context.Context) QuietHours {
+	if v, ok := s.raw(ctx, "notify.email_quiet_hours"); ok {
+		var q QuietHours
+		if json.Unmarshal(v, &q) == nil && q.From != "" && q.To != "" {
+			return q
+		}
+	}
+	return QuietHours{From: "22:00", To: "06:00"}
+}
+
 func (s *Store) AllowedEmailDomains(ctx context.Context) []string {
 	return s.Strings(ctx, "auth.allowed_email_domains")
 }

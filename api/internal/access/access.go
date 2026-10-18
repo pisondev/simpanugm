@@ -24,6 +24,7 @@ type Permission string
 const (
 	AccountSelfRead      Permission = "account.self.read"
 	AccountSelfUpdate    Permission = "account.self.update"
+	AccountSessions      Permission = "account.sessions.manage"
 	ReportLostCreate     Permission = "report.lost.create"
 	ReportLostRead       Permission = "report.lost.read"
 	ReportLostUpdate     Permission = "report.lost.update"
@@ -39,6 +40,12 @@ const (
 	MediaRead            Permission = "media.read"
 	MediaDelete          Permission = "media.delete"
 	MasterdataRead       Permission = "masterdata.read"
+	MasterdataManage     Permission = "masterdata.manage"
+	MatchRead            Permission = "match.read"
+	MatchFeedback        Permission = "match.feedback"
+	MatchDismiss         Permission = "match.dismiss"
+	MatchRematch         Permission = "match.rematch"
+	AssistAnalyze        Permission = "assist.analyze"
 	CustodyReceive       Permission = "custody.receive"
 	CustodyInventoryRead Permission = "custody.inventory.read"
 	SearchReports        Permission = "search.reports"
@@ -50,20 +57,21 @@ const (
 )
 
 var memberPerms = []Permission{
-	AccountSelfRead, AccountSelfUpdate,
+	AccountSelfRead, AccountSelfUpdate, AccountSessions,
 	ReportLostCreate, ReportLostRead, ReportLostUpdate, ReportLostClose,
 	ReportFoundCreate, ReportFoundRead, ReportFoundUpdate, ReportFoundClose,
 	ReportPrivateRead, ReportHistoryRead,
 	MediaUpload, MediaRead, MediaDelete,
 	MasterdataRead,
+	MatchRead, MatchFeedback, MatchDismiss, AssistAnalyze,
 }
 
 var officerPerms = append(slices.Clone(memberPerms),
-	ReportProxyCreate, CustodyReceive, CustodyInventoryRead, SearchReports, OfficerQueueRead,
+	ReportProxyCreate, CustodyReceive, CustodyInventoryRead, SearchReports, OfficerQueueRead, MatchRematch,
 )
 
 var adminPerms = append(slices.Clone(officerPerms),
-	UserRead, UserInvite, UserUpdateRole, UserAssignPost,
+	UserRead, UserInvite, UserUpdateRole, UserAssignPost, MasterdataManage,
 )
 
 var rolePerms = map[Role][]Permission{Member: memberPerms, Officer: officerPerms, Admin: adminPerms}
@@ -118,42 +126,49 @@ type Rule struct {
 
 // one rule per operationId in api/openapi.yaml, a test keeps the two in step
 var Operations = map[string]Rule{
-	"register":               {Public: true},
-	"verifyEmail":            {Public: true},
-	"resendVerification":     {Permission: AccountSelfRead},
-	"login":                  {Public: true},
-	"logout":                 {Permission: AccountSelfRead},
-	"forgotPassword":         {Public: true},
-	"resetPassword":          {Public: true},
-	"acceptInvitation":       {Public: true},
-	"getMe":                  {Permission: AccountSelfRead},
-	"listCategories":         {Permission: MasterdataRead},
-	"listZones":              {Permission: MasterdataRead},
-	"listLocations":          {Permission: MasterdataRead},
-	"listPosts":              {Public: true},
-	"listColours":            {Permission: MasterdataRead},
-	"uploadMedia":            {Permission: MediaUpload, Verified: true},
-	"getMedia":               {Permission: MediaRead},
-	"deleteMedia":            {Permission: MediaDelete},
-	"createLostReport":       {Permission: ReportLostCreate, Verified: true},
-	"listLostReports":        {Permission: ReportLostRead},
-	"getLostReport":          {Permission: ReportLostRead},
-	"updateLostReport":       {Permission: ReportLostUpdate, Verified: true},
-	"closeLostReport":        {Permission: ReportLostClose},
-	"getLostReportHistory":   {Permission: ReportHistoryRead},
-	"createFoundReport":      {Permission: ReportFoundCreate, Verified: true},
-	"listFoundReports":       {Permission: ReportFoundRead},
-	"listPublicFoundReports": {Permission: ReportFoundRead},
-	"getFoundReport":         {Permission: ReportFoundRead},
-	"updateFoundReport":      {Permission: ReportFoundUpdate, Verified: true},
-	"closeFoundReport":       {Permission: ReportFoundClose},
-	"getFoundReportHistory":  {Permission: ReportHistoryRead},
-	"receiveFoundReport":     {Permission: CustodyReceive},
-	"getPostInventory":       {Permission: CustodyInventoryRead},
-	"searchReports":          {Permission: SearchReports},
-	"adminListUsers":         {Permission: UserRead},
-	"adminInviteUser":        {Permission: UserInvite},
-	"adminUpdateUser":        {Permission: UserUpdateRole},
+	"register":                   {Public: true},
+	"verifyEmail":                {Public: true},
+	"resendVerification":         {Permission: AccountSelfRead},
+	"login":                      {Public: true},
+	"logout":                     {Permission: AccountSelfRead},
+	"forgotPassword":             {Public: true},
+	"resetPassword":              {Public: true},
+	"acceptInvitation":           {Public: true},
+	"getMe":                      {Permission: AccountSelfRead},
+	"listCategories":             {Permission: MasterdataRead},
+	"listZones":                  {Permission: MasterdataRead},
+	"listLocations":              {Permission: MasterdataRead},
+	"listPosts":                  {Public: true},
+	"listColours":                {Permission: MasterdataRead},
+	"uploadMedia":                {Permission: MediaUpload, Verified: true},
+	"getMedia":                   {Permission: MediaRead},
+	"deleteMedia":                {Permission: MediaDelete},
+	"createLostReport":           {Permission: ReportLostCreate, Verified: true},
+	"listLostReports":            {Permission: ReportLostRead},
+	"getLostReport":              {Permission: ReportLostRead},
+	"updateLostReport":           {Permission: ReportLostUpdate, Verified: true},
+	"closeLostReport":            {Permission: ReportLostClose},
+	"getLostReportHistory":       {Permission: ReportHistoryRead},
+	"createFoundReport":          {Permission: ReportFoundCreate, Verified: true},
+	"listFoundReports":           {Permission: ReportFoundRead},
+	"listPublicFoundReports":     {Permission: ReportFoundRead},
+	"getFoundReport":             {Permission: ReportFoundRead},
+	"updateFoundReport":          {Permission: ReportFoundUpdate, Verified: true},
+	"closeFoundReport":           {Permission: ReportFoundClose},
+	"getFoundReportHistory":      {Permission: ReportHistoryRead},
+	"receiveFoundReport":         {Permission: CustodyReceive},
+	"getPostInventory":           {Permission: CustodyInventoryRead},
+	"searchReports":              {Permission: SearchReports},
+	"adminListUsers":             {Permission: UserRead},
+	"adminInviteUser":            {Permission: UserInvite},
+	"adminUpdateUser":            {Permission: UserUpdateRole},
+	"listNotifications":          {Permission: AccountSelfRead},
+	"countUnreadNotifications":   {Permission: AccountSelfRead},
+	"markAllNotificationsRead":   {Permission: AccountSelfRead},
+	"markNotificationRead":       {Permission: AccountSelfRead},
+	"streamNotifications":        {Permission: AccountSelfRead},
+	"getNotificationPreferences": {Permission: AccountSelfRead},
+	"putNotificationPreferences": {Permission: AccountSelfUpdate},
 }
 
 func Check(p *Principal, operationID string) error {

@@ -124,6 +124,7 @@
     "reportFound": "Saya menemukan",
     "reportFoundHint": "Laporkan barang yang kamu temukan",
     "foundItems": "Barang Temuan",
+    "notifications": "Notifikasi",
     "profile": "Profil",
     "officerHome": "Beranda",
     "receive": "Terima Barang",
@@ -147,6 +148,35 @@
     "help": "Bantuan",
     "privacy": "Privasi",
     "terms": "Ketentuan"
+  },
+  "notifications": {
+    "title": "Notifikasi",
+    "bell": "Notifikasi",
+    "bellUnread": "{count, plural, =0 {Notifikasi, tidak ada yang baru} other {Notifikasi, # belum dibaca}}",
+    "empty": "Belum ada notifikasi. Kabar tentang laporanmu akan muncul di sini.",
+    "emptyUnread": "Semua notifikasi sudah dibaca.",
+    "markAll": "Tandai semua dibaca",
+    "seeAll": "Lihat semua notifikasi",
+    "open": "Buka",
+    "unread": "Belum dibaca",
+    "filterAll": "Semua",
+    "filterUnread": "Belum dibaca",
+    "markedAll": "Semua notifikasi ditandai dibaca.",
+    "prefsTitle": "Pengaturan notifikasi",
+    "prefsLead": "Pilih kabar yang ingin kamu terima. Notifikasi akun dan keamanan selalu dikirim.",
+    "prefsSaved": "Pengaturan notifikasi disimpan.",
+    "channelApp": "Di aplikasi",
+    "channelEmail": "Email",
+    "groups": {
+      "match": "Kandidat barang",
+      "found": "Barang temuan dan penyerahan",
+      "claim": "Klaim"
+    },
+    "groupHints": {
+      "match": "Kandidat kuat untuk laporan kehilangan, dan petunjuk pemilik untuk laporan temuan.",
+      "found": "Barang yang kamu temukan sudah diterima pos atau sudah kembali ke pemiliknya.",
+      "claim": "Pesan baru pada klaim. Perubahan status klaim selalu dikirim."
+    }
   },
   "landing": {
     "title": "Barang hilang di kampus? Laporkan, kami bantu temukan.",

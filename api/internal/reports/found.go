@@ -13,6 +13,7 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/masterdata"
 	"github.com/pisondev/simpanugm/api/internal/media"
+	"github.com/pisondev/simpanugm/api/internal/notify"
 	"github.com/pisondev/simpanugm/api/internal/openapi"
 	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
 	"github.com/pisondev/simpanugm/api/internal/platform/db"
@@ -508,6 +509,20 @@ func (s *Service) Receive(ctx context.Context, p *access.Principal, ref string, 
 		}
 		if err := s.history(ctx, q, "custody", r.ID, r.CustodyStatus, "in_custody", cid, nil); err != nil {
 			return err
+		}
+		// US-30 criterion 2, the finder learns the item reached a post
+		if r.FinderID != nil {
+			postRow, err := q.GetPost(ctx, post)
+			if err != nil {
+				return err
+			}
+			if err := s.notifier.Send(ctx, tx, notify.Message{
+				Event: notify.FoundReceived, To: *r.FinderID, Link: "/laporan/temuan/" + r.Code,
+				Data:       map[string]string{"item_name": r.ItemName, "post_name": postRow.Name},
+				EntityType: "found_report", EntityID: &r.ID,
+			}); err != nil {
+				return err
+			}
 		}
 		return audit.Record(ctx, q, now, audit.Entry{Action: "custody.receive", EntityType: "found_report", EntityID: r.ID,
 			Changes: map[string]any{"custody_status": audit.Change(r.CustodyStatus, "in_custody"), "post_id": post, "retention_due_at": due}})

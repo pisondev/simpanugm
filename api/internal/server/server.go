@@ -51,6 +51,9 @@ type Deps struct {
 type Services struct {
 	Settings   *settings.Store
 	Mailer     *notify.Mailer
+	Notifier   *notify.Notifier
+	Hub        *notify.Hub
+	Notify     *notify.Service
 	Auth       *auth.Service
 	Masterdata *masterdata.Service
 	Media      *media.Service
@@ -62,14 +65,16 @@ type Services struct {
 func NewServices(d Deps) *Services {
 	st := settings.New(sqlc.New(d.Pool), d.Clock.Now)
 	mailer := notify.NewMailer(d.Jobs, strings.TrimRight(d.Config.PublicBaseURL, "/"))
+	notifier := notify.NewNotifier(d.Jobs, d.Config.PublicBaseURL, st, d.Clock)
+	hub := notify.NewHub(d.Pool)
 	md := masterdata.NewService(d.Pool)
 	med := media.NewService(d.Pool, d.Store, d.Clock)
 	cs := custody.NewService(d.Pool, d.Clock, st)
 	return &Services{
-		Settings: st, Mailer: mailer,
+		Settings: st, Mailer: mailer, Notifier: notifier, Hub: hub, Notify: notify.NewService(d.Pool, d.Clock, hub),
 		Auth:       auth.NewService(d.Pool, d.Clock, mailer, st),
 		Masterdata: md, Media: med, Custody: cs,
-		Reports: reports.NewService(d.Pool, d.Clock, med, md, cs, st),
+		Reports: reports.NewService(d.Pool, d.Clock, med, md, cs, st, notifier),
 		Search:  search.NewService(d.Pool),
 	}
 }
@@ -81,6 +86,7 @@ type (
 	reportHandlers     = reports.Handlers
 	custodyHandlers    = custody.Handlers
 	searchHandlers     = search.Handlers
+	notifyHandlers     = notify.Handlers
 )
 
 type strictServer struct {
@@ -90,6 +96,7 @@ type strictServer struct {
 	*reportHandlers
 	*custodyHandlers
 	*searchHandlers
+	*notifyHandlers
 }
 
 var _ openapi.StrictServerInterface = strictServer{}
@@ -129,6 +136,7 @@ func NewRouter(d Deps, s *Services) (http.Handler, error) {
 		reportHandlers:     reports.NewHandlers(s.Reports),
 		custodyHandlers:    custody.NewHandlers(s.Custody),
 		searchHandlers:     search.NewHandlers(s.Search),
+		notifyHandlers:     notify.NewHandlers(s.Notify),
 	}
 	strict := openapi.NewStrictHandlerWithOptions(handlers, nil, openapi.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
@@ -164,6 +172,7 @@ func NewRouter(d Deps, s *Services) (http.Handler, error) {
 		api.Use(contract)
 		api.Use(httpx.ETag(func(r *http.Request) bool { return masterdataPaths[r.URL.Path] }))
 		api.Get("/media/{id}", s.Media.Serve)
+		api.Get("/notifications/stream", s.Notify.Stream)
 		openapi.HandlerWithOptions(strict, openapi.ChiServerOptions{
 			BaseRouter: api,
 			ErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {

@@ -127,10 +127,12 @@ func serve(ctx context.Context) error {
 	}
 	m := metrics.NewHTTP("api")
 	deps := server.Deps{Config: cfg, Pool: pool, Clock: clockFor(cfg), Store: store, Jobs: jobs, Metrics: m}
-	router, err := server.NewRouter(deps, server.NewServices(deps))
+	svcs := server.NewServices(deps)
+	router, err := server.NewRouter(deps, svcs)
 	if err != nil {
 		return err
 	}
+	go svcs.Hub.Run(ctx)
 	api := &http.Server{
 		Addr: cfg.HTTPAddr, Handler: router,
 		ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 60 * time.Second, WriteTimeout: 120 * time.Second, IdleTimeout: 120 * time.Second,
@@ -193,7 +195,8 @@ func worker(ctx context.Context) error {
 	c := clockFor(cfg)
 	svcs := server.NewServices(server.Deps{Config: cfg, Pool: pool, Clock: c, Store: store, Jobs: insert})
 	workers := river.NewWorkers()
-	river.AddWorker(workers, &notify.EmailWorker{Sender: sender})
+	river.AddWorker(workers, &notify.EmailWorker{Sender: sender, Q: sqlc.New(pool)})
+	river.AddWorker(workers, &notify.DigestWorker{Q: sqlc.New(pool), Jobs: insert, Clock: c, BaseURL: cfg.PublicBaseURL})
 	river.AddWorker(workers, &maintenance.PurgeWorker{Media: svcs.Media, Auth: svcs.Auth, Q: sqlc.New(pool), Clock: c})
 	counts, err := cfg.Queues()
 	if err != nil {
@@ -204,7 +207,7 @@ func worker(ctx context.Context) error {
 		queues[name] = river.QueueConfig{MaxWorkers: n}
 	}
 	client, err := river.NewClient(riverpgxv5.New(pool), &river.Config{
-		Queues: queues, Workers: workers, PeriodicJobs: maintenance.Periodic(),
+		Queues: queues, Workers: workers, PeriodicJobs: append(maintenance.Periodic(), notify.Periodic()...),
 		CompletedJobRetentionPeriod: time.Hour, Logger: slog.Default(),
 	})
 	if err != nil {

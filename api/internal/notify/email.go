@@ -6,11 +6,14 @@ import (
 	"embed"
 	"fmt"
 	htmltemplate "html/template"
+	"log/slog"
 	texttemplate "text/template"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/riverqueue/river"
 
+	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/platform/mail"
 )
 
@@ -47,14 +50,24 @@ type Data struct {
 	Link    string
 	AppURL  string
 	Expires string
+	Title   string
+	Body    string
+	Items   []DigestItem
+}
+
+type DigestItem struct {
+	Title string
+	Body  string
+	Link  string
 }
 
 type EmailArgs struct {
-	Event   string `json:"event"`
-	To      string `json:"to"`
-	Subject string `json:"subject"`
-	Text    string `json:"text"`
-	HTML    string `json:"html"`
+	Event          string     `json:"event"`
+	To             string     `json:"to"`
+	Subject        string     `json:"subject"`
+	Text           string     `json:"text"`
+	HTML           string     `json:"html"`
+	NotificationID *uuid.UUID `json:"notification_id,omitempty"`
 }
 
 func (EmailArgs) Kind() string { return "email.send" }
@@ -105,9 +118,26 @@ func Render(event Event, to string, d Data, baseURL string) (EmailArgs, error) {
 type EmailWorker struct {
 	river.WorkerDefaults[EmailArgs]
 	Sender mail.Sender
+	// nil in tests that only exercise sending, then the notification row is not updated
+	Q *sqlc.Queries
 }
 
+// retried up to five times by River, the notification row records the outcome (FR-NOTIF-03)
 func (w *EmailWorker) Work(ctx context.Context, job *river.Job[EmailArgs]) error {
 	a := job.Args
-	return w.Sender.Send(ctx, mail.Message{To: a.To, Subject: a.Subject, Text: a.Text, HTML: a.HTML})
+	err := w.Sender.Send(ctx, mail.Message{To: a.To, Subject: a.Subject, Text: a.Text, HTML: a.HTML})
+	if a.NotificationID == nil || w.Q == nil {
+		return err
+	}
+	switch {
+	case err == nil:
+		if serr := w.Q.SetEmailStatus(ctx, sqlc.SetEmailStatusParams{ID: *a.NotificationID, EmailStatus: "sent"}); serr != nil {
+			slog.WarnContext(ctx, "email status not recorded", "error", serr.Error())
+		}
+	case job.Attempt >= job.MaxAttempts:
+		if serr := w.Q.SetEmailStatus(ctx, sqlc.SetEmailStatusParams{ID: *a.NotificationID, EmailStatus: "failed"}); serr != nil {
+			slog.WarnContext(ctx, "email status not recorded", "error", serr.Error())
+		}
+	}
+	return err
 }

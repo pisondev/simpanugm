@@ -1,0 +1,8 @@
+Halo {{.Name}},
+
+Ringkasan pekerjaan pos dalam 24 jam terakhir:
+{{range .Items}}
+- {{.Title}}: {{.Body}}
+  {{.Link}}
+{{end}}
+Buka ruang petugas: {{.Link}}

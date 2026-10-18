@@ -14,6 +14,9 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/platform/clock"
 )
 
+// BR-RET-06
+const notificationRetentionDays = 180
+
 type PurgeArgs struct{}
 
 func (PurgeArgs) Kind() string { return "maintenance.purge" }
@@ -44,7 +47,11 @@ func (w *PurgeWorker) Work(ctx context.Context, _ *river.Job[PurgeArgs]) error {
 	if err != nil {
 		return err
 	}
-	summary := map[string]any{"staged_media": staged, "idempotency_keys": keys, "unverified_users": users, "expired_sessions": sessions}
+	notifications, err := w.Q.DeleteOldNotifications(ctx, w.Clock.Now().AddDate(0, 0, -notificationRetentionDays))
+	if err != nil {
+		return err
+	}
+	summary := map[string]any{"staged_media": staged, "idempotency_keys": keys, "unverified_users": users, "expired_sessions": sessions, "notifications": notifications}
 	slog.InfoContext(ctx, "maintenance purge done", "summary", summary)
 	return audit.Record(ctx, w.Q, w.Clock.Now(), audit.Entry{Action: "maintenance.purge", EntityType: "system", Changes: summary})
 }

@@ -16,9 +16,11 @@
 An officer or admin who also has personal reports reaches them from Profil, Laporan
 Saya, so the member flows are never mixed into the work queue.
 
-Until notifications land with US-35 in Sprint 2, the fourth member slot holds Barang
-Temuan, the public found listing of US-17, and the officer bar holds Beranda, Terima,
-Cari, Inventaris and Lainnya.
+On a phone the member bar is Beranda, Laporan Saya, Lapor, Notifikasi with the unread
+badge, and Profil. Barang Temuan sits in the desktop top bar and behind the Beranda
+shortcut. On a desktop the bell in the header opens the latest notifications. Staff see
+the bell in their header at every width, their phone bar holds Beranda, Terima, Cari,
+Inventaris and Lainnya.
 
 ## 2. Route map
 

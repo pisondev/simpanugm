@@ -1,0 +1,7 @@
+{{template "top" .}}<p>Halo {{.Name}},</p>
+<p>Ringkasan pekerjaan pos dalam 24 jam terakhir:</p>
+<ul style="padding-left:20px">
+{{range .Items}}<li style="margin:0 0 8px"><a href="{{.Link}}" style="color:#1E40AF">{{.Title}}</a><br><span style="color:#475569">{{.Body}}</span></li>
+{{end}}</ul>
+{{template "button" .Link}}
+{{template "bottom" .}}

@@ -178,6 +178,17 @@ func (q *Queries) CountOpenLostByReporter(ctx context.Context, reporterID *uuid.
 	return column_1, err
 }
 
+const countUnread = `-- name: CountUnread :one
+SELECT count(*)::int FROM notifications WHERE recipient_id = $1 AND read_at IS NULL
+`
+
+func (q *Queries) CountUnread(ctx context.Context, recipientID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, countUnread, recipientID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createAuthToken = `-- name: CreateAuthToken :exec
 INSERT INTO auth_tokens (id, user_id, purpose, token_hash, new_email, expires_at, created_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -349,6 +360,18 @@ DELETE FROM officer_posts WHERE user_id = $1
 func (q *Queries) DeleteOfficerPosts(ctx context.Context, userID uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteOfficerPosts, userID)
 	return err
+}
+
+const deleteOldNotifications = `-- name: DeleteOldNotifications :execrows
+DELETE FROM notifications WHERE created_at < $1
+`
+
+func (q *Queries) DeleteOldNotifications(ctx context.Context, createdAt time.Time) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteOldNotifications, createdAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const deleteUnverifiedUsersBefore = `-- name: DeleteUnverifiedUsersBefore :execrows
@@ -714,6 +737,22 @@ func (q *Queries) GetMediaForAccess(ctx context.Context, id uuid.UUID) (GetMedia
 	return i, err
 }
 
+const getNotificationCreated = `-- name: GetNotificationCreated :one
+SELECT created_at FROM notifications WHERE id = $1 AND recipient_id = $2
+`
+
+type GetNotificationCreatedParams struct {
+	ID          uuid.UUID
+	RecipientID uuid.UUID
+}
+
+func (q *Queries) GetNotificationCreated(ctx context.Context, arg GetNotificationCreatedParams) (time.Time, error) {
+	row := q.db.QueryRow(ctx, getNotificationCreated, arg.ID, arg.RecipientID)
+	var created_at time.Time
+	err := row.Scan(&created_at)
+	return created_at, err
+}
+
 const getPost = `-- name: GetPost :one
 SELECT p.id, p.slug, p.name, p.location_id, p.phone, p.opening_hours, p.active, p.created_at, p.updated_at, l.name AS location_name, l.lat, l.lng, l.zone_id, z.name AS zone_name
 FROM posts p
@@ -757,6 +796,31 @@ func (q *Queries) GetPost(ctx context.Context, id uuid.UUID) (GetPostRow, error)
 		&i.Lng,
 		&i.ZoneID,
 		&i.ZoneName,
+	)
+	return i, err
+}
+
+const getRecipient = `-- name: GetRecipient :one
+SELECT id, email, full_name, role, status FROM users WHERE id = $1
+`
+
+type GetRecipientRow struct {
+	ID       uuid.UUID
+	Email    string
+	FullName string
+	Role     string
+	Status   string
+}
+
+func (q *Queries) GetRecipient(ctx context.Context, id uuid.UUID) (GetRecipientRow, error) {
+	row := q.db.QueryRow(ctx, getRecipient, id)
+	var i GetRecipientRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.FullName,
+		&i.Role,
+		&i.Status,
 	)
 	return i, err
 }
@@ -1158,6 +1222,40 @@ func (q *Queries) InsertMedia(ctx context.Context, arg InsertMediaParams) error 
 	return err
 }
 
+const insertNotification = `-- name: InsertNotification :exec
+INSERT INTO notifications (id, recipient_id, event, title, body, link, entity_type, entity_id, email_status, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+`
+
+type InsertNotificationParams struct {
+	ID          uuid.UUID
+	RecipientID uuid.UUID
+	Event       string
+	Title       string
+	Body        string
+	Link        string
+	EntityType  *string
+	EntityID    *uuid.UUID
+	EmailStatus string
+	CreatedAt   time.Time
+}
+
+func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotificationParams) error {
+	_, err := q.db.Exec(ctx, insertNotification,
+		arg.ID,
+		arg.RecipientID,
+		arg.Event,
+		arg.Title,
+		arg.Body,
+		arg.Link,
+		arg.EntityType,
+		arg.EntityID,
+		arg.EmailStatus,
+		arg.CreatedAt,
+	)
+	return err
+}
+
 const insertOfficerPost = `-- name: InsertOfficerPost :exec
 INSERT INTO officer_posts (user_id, post_id, assigned_at, assigned_by) VALUES ($1, $2, $3, $4)
 `
@@ -1257,6 +1355,26 @@ func (q *Queries) IsOfficerOfPost(ctx context.Context, arg IsOfficerOfPostParams
 	return exists, err
 }
 
+const lastNotificationOf = `-- name: LastNotificationOf :one
+SELECT created_at FROM notifications
+WHERE recipient_id = $1 AND event = $2 AND entity_id = $3
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type LastNotificationOfParams struct {
+	RecipientID uuid.UUID
+	Event       string
+	EntityID    *uuid.UUID
+}
+
+func (q *Queries) LastNotificationOf(ctx context.Context, arg LastNotificationOfParams) (time.Time, error) {
+	row := q.db.QueryRow(ctx, lastNotificationOf, arg.RecipientID, arg.Event, arg.EntityID)
+	var created_at time.Time
+	err := row.Scan(&created_at)
+	return created_at, err
+}
+
 const listAuditForEntity = `-- name: ListAuditForEntity :many
 SELECT id, occurred_at, actor_id, actor_role, action, entity_type, entity_id, changes, request_id, ip, user_agent FROM audit_logs WHERE entity_type = $1 AND entity_id = $2 ORDER BY occurred_at, id
 `
@@ -1349,6 +1467,99 @@ func (q *Queries) ListColours(ctx context.Context) ([]Colour, error) {
 	for rows.Next() {
 		var i Colour
 		if err := rows.Scan(&i.Name, &i.Hex, &i.SortOrder); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listDigestItems = `-- name: ListDigestItems :many
+SELECT title, body, link, created_at FROM notifications
+WHERE recipient_id = $1 AND created_at >= $2 AND created_at < $3
+  AND event = ANY($4::text[])
+ORDER BY created_at
+LIMIT 100
+`
+
+type ListDigestItemsParams struct {
+	RecipientID uuid.UUID
+	Since       time.Time
+	Until       time.Time
+	Events      []string
+}
+
+type ListDigestItemsRow struct {
+	Title     string
+	Body      string
+	Link      string
+	CreatedAt time.Time
+}
+
+func (q *Queries) ListDigestItems(ctx context.Context, arg ListDigestItemsParams) ([]ListDigestItemsRow, error) {
+	rows, err := q.db.Query(ctx, listDigestItems,
+		arg.RecipientID,
+		arg.Since,
+		arg.Until,
+		arg.Events,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListDigestItemsRow{}
+	for rows.Next() {
+		var i ListDigestItemsRow
+		if err := rows.Scan(
+			&i.Title,
+			&i.Body,
+			&i.Link,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listDigestRecipients = `-- name: ListDigestRecipients :many
+SELECT DISTINCT n.recipient_id, u.email, u.full_name
+FROM notifications n
+JOIN users u ON u.id = n.recipient_id
+WHERE n.created_at >= $1 AND n.created_at < $2
+  AND n.event = ANY($3::text[])
+  AND u.role IN ('officer', 'admin') AND u.status = 'active'
+`
+
+type ListDigestRecipientsParams struct {
+	Since  time.Time
+	Until  time.Time
+	Events []string
+}
+
+type ListDigestRecipientsRow struct {
+	RecipientID uuid.UUID
+	Email       string
+	FullName    string
+}
+
+func (q *Queries) ListDigestRecipients(ctx context.Context, arg ListDigestRecipientsParams) ([]ListDigestRecipientsRow, error) {
+	rows, err := q.db.Query(ctx, listDigestRecipients, arg.Since, arg.Until, arg.Events)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListDigestRecipientsRow{}
+	for rows.Next() {
+		var i ListDigestRecipientsRow
+		if err := rows.Scan(&i.RecipientID, &i.Email, &i.FullName); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -1709,6 +1920,108 @@ func (q *Queries) ListLostReports(ctx context.Context, arg ListLostReportsParams
 	return items, nil
 }
 
+const listNotifications = `-- name: ListNotifications :many
+SELECT id, recipient_id, event, title, body, link, entity_type, entity_id, read_at, email_status, created_at FROM notifications
+WHERE recipient_id = $1
+  AND (NOT $2::bool OR read_at IS NULL)
+  AND ($3::timestamptz IS NULL
+       OR (created_at, id) < ($3::timestamptz, $4::uuid))
+ORDER BY created_at DESC, id DESC
+LIMIT $5
+`
+
+type ListNotificationsParams struct {
+	RecipientID   uuid.UUID
+	UnreadOnly    bool
+	CursorCreated *time.Time
+	CursorID      *uuid.UUID
+	RowLimit      int32
+}
+
+func (q *Queries) ListNotifications(ctx context.Context, arg ListNotificationsParams) ([]Notification, error) {
+	rows, err := q.db.Query(ctx, listNotifications,
+		arg.RecipientID,
+		arg.UnreadOnly,
+		arg.CursorCreated,
+		arg.CursorID,
+		arg.RowLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Notification{}
+	for rows.Next() {
+		var i Notification
+		if err := rows.Scan(
+			&i.ID,
+			&i.RecipientID,
+			&i.Event,
+			&i.Title,
+			&i.Body,
+			&i.Link,
+			&i.EntityType,
+			&i.EntityID,
+			&i.ReadAt,
+			&i.EmailStatus,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listNotificationsAfter = `-- name: ListNotificationsAfter :many
+SELECT id, recipient_id, event, title, body, link, entity_type, entity_id, read_at, email_status, created_at FROM notifications
+WHERE recipient_id = $1
+  AND (created_at, id) > ($2::timestamptz, $3::uuid)
+ORDER BY created_at, id
+LIMIT 50
+`
+
+type ListNotificationsAfterParams struct {
+	RecipientID  uuid.UUID
+	AfterCreated time.Time
+	AfterID      uuid.UUID
+}
+
+func (q *Queries) ListNotificationsAfter(ctx context.Context, arg ListNotificationsAfterParams) ([]Notification, error) {
+	rows, err := q.db.Query(ctx, listNotificationsAfter, arg.RecipientID, arg.AfterCreated, arg.AfterID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Notification{}
+	for rows.Next() {
+		var i Notification
+		if err := rows.Scan(
+			&i.ID,
+			&i.RecipientID,
+			&i.Event,
+			&i.Title,
+			&i.Body,
+			&i.Link,
+			&i.EntityType,
+			&i.EntityID,
+			&i.ReadAt,
+			&i.EmailStatus,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPostIDsForUsers = `-- name: ListPostIDsForUsers :many
 SELECT user_id, post_id FROM officer_posts WHERE user_id = ANY($1::uuid[])
 `
@@ -1789,6 +2102,36 @@ func (q *Queries) ListPosts(ctx context.Context) ([]ListPostsRow, error) {
 			&i.ZoneID,
 			&i.ZoneName,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPreferences = `-- name: ListPreferences :many
+SELECT event_group, channel, enabled FROM notification_preferences WHERE user_id = $1
+`
+
+type ListPreferencesRow struct {
+	EventGroup string
+	Channel    string
+	Enabled    bool
+}
+
+func (q *Queries) ListPreferences(ctx context.Context, userID uuid.UUID) ([]ListPreferencesRow, error) {
+	rows, err := q.db.Query(ctx, listPreferences, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPreferencesRow{}
+	for rows.Next() {
+		var i ListPreferencesRow
+		if err := rows.Scan(&i.EventGroup, &i.Channel, &i.Enabled); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -2042,6 +2385,32 @@ func (q *Queries) ListStatusHistory(ctx context.Context, arg ListStatusHistoryPa
 	return items, nil
 }
 
+const listUserIDsForPosts = `-- name: ListUserIDsForPosts :many
+SELECT DISTINCT u.id FROM users u
+JOIN officer_posts op ON op.user_id = u.id
+WHERE op.post_id = ANY($1::uuid[]) AND u.role IN ('officer', 'admin') AND u.status = 'active'
+`
+
+func (q *Queries) ListUserIDsForPosts(ctx context.Context, postIds []uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, listUserIDsForPosts, postIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserPostIDs = `-- name: ListUserPostIDs :many
 SELECT post_id FROM officer_posts WHERE user_id = $1 ORDER BY post_id
 `
@@ -2207,6 +2576,23 @@ func (q *Queries) LockMedia(ctx context.Context, ids []uuid.UUID) ([]Medium, err
 	return items, nil
 }
 
+const markAllRead = `-- name: MarkAllRead :execrows
+UPDATE notifications SET read_at = $2 WHERE recipient_id = $1 AND read_at IS NULL
+`
+
+type MarkAllReadParams struct {
+	RecipientID uuid.UUID
+	ReadAt      *time.Time
+}
+
+func (q *Queries) MarkAllRead(ctx context.Context, arg MarkAllReadParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markAllRead, arg.RecipientID, arg.ReadAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const markAuthTokenUsed = `-- name: MarkAuthTokenUsed :exec
 UPDATE auth_tokens SET used_at = $2 WHERE id = $1
 `
@@ -2252,6 +2638,24 @@ type MarkMediaDeletedParams struct {
 func (q *Queries) MarkMediaDeleted(ctx context.Context, arg MarkMediaDeletedParams) error {
 	_, err := q.db.Exec(ctx, markMediaDeleted, arg.ID, arg.DeletedAt)
 	return err
+}
+
+const markRead = `-- name: MarkRead :execrows
+UPDATE notifications SET read_at = $3 WHERE id = $1 AND recipient_id = $2 AND read_at IS NULL
+`
+
+type MarkReadParams struct {
+	ID          uuid.UUID
+	RecipientID uuid.UUID
+	ReadAt      *time.Time
+}
+
+func (q *Queries) MarkRead(ctx context.Context, arg MarkReadParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markRead, arg.ID, arg.RecipientID, arg.ReadAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const nextCodeSequence = `-- name: NextCodeSequence :one
@@ -2486,6 +2890,20 @@ func (q *Queries) SearchReports(ctx context.Context, arg SearchReportsParams) ([
 	return items, nil
 }
 
+const setEmailStatus = `-- name: SetEmailStatus :exec
+UPDATE notifications SET email_status = $2 WHERE id = $1
+`
+
+type SetEmailStatusParams struct {
+	ID          uuid.UUID
+	EmailStatus string
+}
+
+func (q *Queries) SetEmailStatus(ctx context.Context, arg SetEmailStatusParams) error {
+	_, err := q.db.Exec(ctx, setEmailStatus, arg.ID, arg.EmailStatus)
+	return err
+}
+
 const setIdempotencyResource = `-- name: SetIdempotencyResource :exec
 UPDATE idempotency_keys SET resource_id = $3 WHERE user_id = $1 AND key = $2
 `
@@ -2548,6 +2966,15 @@ func (q *Queries) SetLostStatus(ctx context.Context, arg SetLostStatusParams) (i
 	var version int32
 	err := row.Scan(&version)
 	return version, err
+}
+
+const signalRecipient = `-- name: SignalRecipient :exec
+SELECT pg_notify('notifications', $1::text)
+`
+
+func (q *Queries) SignalRecipient(ctx context.Context, recipientID string) error {
+	_, err := q.db.Exec(ctx, signalRecipient, recipientID)
+	return err
 }
 
 const tokenIssueStats = `-- name: TokenIssueStats :one
@@ -2924,6 +3351,31 @@ func (q *Queries) UpsertPost(ctx context.Context, arg UpsertPostParams) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const upsertPreference = `-- name: UpsertPreference :exec
+INSERT INTO notification_preferences (user_id, event_group, channel, enabled, updated_at)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (user_id, event_group, channel) DO UPDATE SET enabled = excluded.enabled, updated_at = excluded.updated_at
+`
+
+type UpsertPreferenceParams struct {
+	UserID     uuid.UUID
+	EventGroup string
+	Channel    string
+	Enabled    bool
+	UpdatedAt  time.Time
+}
+
+func (q *Queries) UpsertPreference(ctx context.Context, arg UpsertPreferenceParams) error {
+	_, err := q.db.Exec(ctx, upsertPreference,
+		arg.UserID,
+		arg.EventGroup,
+		arg.Channel,
+		arg.Enabled,
+		arg.UpdatedAt,
+	)
+	return err
 }
 
 const upsertSynonym = `-- name: UpsertSynonym :exec

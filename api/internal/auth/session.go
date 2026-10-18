@@ -41,7 +41,7 @@ func (s *Service) Authenticate(cookies Cookies) func(http.Handler) http.Handler 
 				next.ServeHTTP(w, r)
 				return
 			}
-			p, refreshed, err := s.resolve(r.Context(), c.Value)
+			p, refreshed, err := s.resolve(r.Context(), c.Value, !passive(r))
 			if err != nil {
 				slog.ErrorContext(r.Context(), "session lookup failed", "error", err.Error())
 				httpx.WriteError(w, r, err)
@@ -62,7 +62,12 @@ func (s *Service) Authenticate(cookies Cookies) func(http.Handler) http.Handler 
 	}
 }
 
-func (s *Service) resolve(ctx context.Context, token string) (*access.Principal, *Session, error) {
+// an open notification stream or the unread badge polling is not activity, it never keeps an idle session alive (BR-ACC-04)
+func passive(r *http.Request) bool {
+	return r.Method == http.MethodGet && (r.URL.Path == "/api/v1/notifications/stream" || r.URL.Path == "/api/v1/notifications/unread-count")
+}
+
+func (s *Service) resolve(ctx context.Context, token string, touch bool) (*access.Principal, *Session, error) {
 	row, err := s.q.GetSessionByTokenHash(ctx, ids.HashToken(token))
 	if db.IsNoRows(err) {
 		return nil, nil, nil
@@ -90,6 +95,7 @@ func (s *Service) resolve(ctx context.Context, token string) (*access.Principal,
 	}
 	var refreshed *Session
 	switch {
+	case !touch:
 	case role == access.Member && now.Sub(row.LastSeenAt) >= memberTouchEvery:
 		expires := now.Add(memberSessionTTL)
 		if err := s.q.TouchSession(ctx, sqlc.TouchSessionParams{Now: now, ExpiresAt: expires, ID: row.SessionID}); err != nil {

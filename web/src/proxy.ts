@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 
-const protectedPrefixes = ["/beranda", "/lapor", "/laporan", "/barang-temuan", "/profil", "/petugas", "/admin"]
+const protectedPrefixes = ["/beranda", "/lapor", "/laporan", "/barang-temuan", "/notifikasi", "/profil", "/petugas", "/admin"]
 
 // only checks that a session cookie exists, the layouts ask api whether it is valid and which role it has
 export function proxy(request: NextRequest) {
