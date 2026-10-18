@@ -6,6 +6,10 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+### Security
+
+- The API pins the go1.26.9 toolchain, which fixes the HTTP/2 HPACK race GO-2026-6617, and lifts `golang.org/x/image` from a 2019 snapshot to v0.47.0, closing eight TIFF and BMP decoding denial of service advisories reachable through image decoding, plus `moby/go-archive` to v0.3.3 for the integration tests. `govulncheck` reports no reachable vulnerability.
+
 ### Changed
 
 - The data model lists the `custody_keep` and `close_note` columns of found reports that the migrations already carry.
