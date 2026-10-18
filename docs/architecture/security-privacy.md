@@ -98,7 +98,7 @@ STRIDE over the flows of architecture overview section 5.
 | Passwords | argon2id `m=19456 KiB, t=2, p=1`, 16 byte salt, PHC string. Rehash on login when parameters change. 10 to 128 characters, no composition rules, common list rejected |
 | Session token | 32 random bytes, base64url, cookie `simpan_session`, `Path=/`, `HttpOnly`, `Secure`, `SameSite=Lax`. Rotated on sign in and on role change |
 | Tokens in links | 32 random bytes, stored as SHA-256, single use, expiries per FR-AUTH |
-| Handover code | 6 digits from `crypto/rand`, stored as HMAC-SHA256 with `HANDOVER_PEPPER`, compared in constant time, 5 attempts |
+| Handover code | 6 digits derived by HMAC-SHA256 under `HANDOVER_PEPPER` from the claim id and a stored random nonce, so the database holds no code or code digest, compared in constant time, 5 attempts |
 | Authorisation | section 4 of permissions, enforced in three layers |
 | Input validation | OpenAPI schema validation of every request, then domain validation. Unknown fields rejected |
 | Output | role specific response types, so forbidden fields cannot be serialised |

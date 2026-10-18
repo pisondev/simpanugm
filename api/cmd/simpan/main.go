@@ -28,6 +28,7 @@ import (
 
 	"github.com/pisondev/simpanugm/api/internal/access"
 	"github.com/pisondev/simpanugm/api/internal/auth"
+	"github.com/pisondev/simpanugm/api/internal/claims"
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/maintenance"
 	"github.com/pisondev/simpanugm/api/internal/masterdata"
@@ -201,6 +202,7 @@ func worker(ctx context.Context) error {
 	river.AddWorker(workers, &notify.DigestWorker{Q: sqlc.New(pool), Jobs: insert, Clock: c, BaseURL: cfg.PublicBaseURL})
 	river.AddWorker(workers, &maintenance.PurgeWorker{Media: svcs.Media, Auth: svcs.Auth, Q: sqlc.New(pool), Clock: c})
 	matching.AddWorkers(workers, svcs.Engine)
+	river.AddWorker(workers, &claims.ExpireWorker{S: svcs.Claims})
 	// scoring needs an active fusion version, a fresh database gets the embedded one
 	if err := matching.EnsureDefaultFusion(ctx, sqlc.New(pool), c.Now()); err != nil {
 		return err
@@ -214,7 +216,7 @@ func worker(ctx context.Context) error {
 		queues[name] = river.QueueConfig{MaxWorkers: n}
 	}
 	client, err := river.NewClient(riverpgxv5.New(pool), &river.Config{
-		Queues: queues, Workers: workers, PeriodicJobs: slices.Concat(maintenance.Periodic(), notify.Periodic(), matching.Periodic()),
+		Queues: queues, Workers: workers, PeriodicJobs: slices.Concat(maintenance.Periodic(), notify.Periodic(), matching.Periodic(), claims.Periodic()),
 		CompletedJobRetentionPeriod: time.Hour, Logger: slog.Default(),
 	})
 	if err != nil {

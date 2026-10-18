@@ -51,7 +51,7 @@ func NewService(pool *pgxpool.Pool, store storage.Store, c clock.Clock) *Service
 type Keys map[string]string
 
 func (s *Service) Upload(ctx context.Context, p *access.Principal, purpose string, r io.Reader) (sqlc.Medium, error) {
-	if purpose != "lost_report" && purpose != "found_report" {
+	if purpose != "lost_report" && purpose != "found_report" && purpose != "claim_evidence" {
 		return sqlc.Medium{}, apperr.Validation(apperr.FieldError{Field: "purpose", Code: "invalid", Message: "Tujuan unggahan tidak valid"})
 	}
 	if ok, wait := s.uploads.Allow(p.UserID.String()); !ok {
@@ -123,6 +123,7 @@ type Target struct {
 	Purpose string
 	LostID  *uuid.UUID
 	FoundID *uuid.UUID
+	ClaimID *uuid.UUID
 }
 
 // ids become the exact ordered photo set of the report
@@ -133,7 +134,7 @@ func (s *Service) Attach(ctx context.Context, q *sqlc.Queries, p *access.Princip
 	if len(slices.Compact(slices.Clone(sortedIDs(ids)))) != len(ids) {
 		return nil, apperr.Unprocessable("media_duplicate", "Foto ganda", "Foto ini sudah ditambahkan")
 	}
-	current, err := q.ListReportMedia(ctx, sqlc.ListReportMediaParams{LostReportID: t.LostID, FoundReportID: t.FoundID})
+	current, err := q.ListReportMedia(ctx, sqlc.ListReportMediaParams{LostReportID: t.LostID, FoundReportID: t.FoundID, ClaimID: t.ClaimID})
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +148,8 @@ func (s *Service) Attach(ctx context.Context, q *sqlc.Queries, p *access.Princip
 	}
 	belongs := func(m sqlc.Medium) bool {
 		return (t.LostID != nil && m.LostReportID != nil && *m.LostReportID == *t.LostID) ||
-			(t.FoundID != nil && m.FoundReportID != nil && *m.FoundReportID == *t.FoundID)
+			(t.FoundID != nil && m.FoundReportID != nil && *m.FoundReportID == *t.FoundID) ||
+			(t.ClaimID != nil && m.ClaimID != nil && *m.ClaimID == *t.ClaimID)
 	}
 	for _, id := range ids {
 		m, ok := byID[id]
@@ -168,7 +170,7 @@ func (s *Service) Attach(ctx context.Context, q *sqlc.Queries, p *access.Princip
 		}
 	}
 	for i, id := range ids {
-		err := q.AttachMedia(ctx, sqlc.AttachMediaParams{LostReportID: t.LostID, FoundReportID: t.FoundID, Position: int16(i), Now: now, ID: id})
+		err := q.AttachMedia(ctx, sqlc.AttachMediaParams{LostReportID: t.LostID, FoundReportID: t.FoundID, ClaimID: t.ClaimID, Position: int16(i), Now: now, ID: id})
 		if db.IsUniqueViolation(err, "") {
 			return nil, apperr.Unprocessable("media_duplicate", "Foto ganda", "Foto ini sudah ditambahkan")
 		}
@@ -187,6 +189,11 @@ func sortedIDs(in []uuid.UUID) []uuid.UUID {
 
 func (s *Service) Photos(ctx context.Context, q *sqlc.Queries, lost, found *uuid.UUID) ([]sqlc.Medium, error) {
 	return q.ListReportMedia(ctx, sqlc.ListReportMediaParams{LostReportID: lost, FoundReportID: found})
+}
+
+// the evidence images of a claim
+func (s *Service) Evidence(ctx context.Context, q *sqlc.Queries, claim uuid.UUID) ([]sqlc.Medium, error) {
+	return q.ListReportMedia(ctx, sqlc.ListReportMediaParams{ClaimID: &claim})
 }
 
 func (s *Service) DeleteStaged(ctx context.Context, p *access.Principal, id uuid.UUID) error {
@@ -282,6 +289,12 @@ func CanView(p *access.Principal, row sqlc.GetMediaForAccessRow, variant string)
 		return true
 	case row.FoundFinderID != nil && *row.FoundFinderID == p.UserID:
 		return true
+	case row.Claimant && row.State == "ready" && row.FoundReportID != nil:
+		// a claimant sees the item they are claiming, but an identity card only blurred until the handover
+		if row.Sensitivity == "identity" {
+			return variant == "thumb_blur"
+		}
+		return variant == "display" || variant == "thumb" || variant == "thumb_blur"
 	case row.CandidateOwner && row.State == "ready":
 		if row.Sensitivity == "identity" {
 			return variant == "thumb_blur"

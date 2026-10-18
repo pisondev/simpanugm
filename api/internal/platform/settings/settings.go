@@ -23,6 +23,10 @@ var defaults = map[string]any{
 	"custody.retention_days.valuable": 60,
 	"custody.retention_days.identity": 30,
 	"claim.max_open":                  3,
+	"claim.reject_flag_count":         3,
+	"claim.reject_flag_window_days":   30,
+	"claim.info_timeout_days":         7,
+	"claim.approved_timeout_days":     7,
 	"notify.match_throttle_hours":     6,
 	"analytics.min_cell_count":        3,
 }

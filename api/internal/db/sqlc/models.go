@@ -65,6 +65,66 @@ type CategoryCompatibility struct {
 	EditedAt  *time.Time
 }
 
+type Claim struct {
+	ID                     uuid.UUID
+	Code                   string
+	ClaimantID             *uuid.UUID
+	CreatedBy              uuid.UUID
+	LostReportID           uuid.UUID
+	FoundReportID          uuid.UUID
+	MatchID                *uuid.UUID
+	Source                 string
+	Statement              string
+	Answers                []byte
+	PreferredVisit         *string
+	Status                 string
+	ReviewerID             *uuid.UUID
+	DecisionReason         *string
+	DecisionNote           *string
+	InternalNote           *string
+	DecidedBy              *uuid.UUID
+	DecidedAt              *time.Time
+	HandoverNonce          []byte
+	HandoverCodeIssuedAt   *time.Time
+	HandoverFailedAttempts int16
+	HandoverLockedAt       *time.Time
+	ApprovedExpiresAt      *time.Time
+	ExpiringNotifiedAt     *time.Time
+	InfoRequestedAt        *time.Time
+	HandedOverAt           *time.Time
+	HandedOverBy           *uuid.UUID
+	RecipientIDType        *string
+	RecipientIDLast4       *string
+	RecipientNameConfirmed *bool
+	ReopenedAt             *time.Time
+	Version                int32
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+}
+
+type ClaimCheck struct {
+	ClaimID    uuid.UUID
+	ItemKey    string
+	Position   int16
+	Label      string
+	Required   bool
+	InfoOnly   bool
+	Suggestion []byte
+	Result     string
+	Note       *string
+	DecidedBy  *uuid.UUID
+	DecidedAt  *time.Time
+}
+
+type ClaimMessage struct {
+	ID         uuid.UUID
+	ClaimID    uuid.UUID
+	AuthorID   *uuid.UUID
+	AuthorRole string
+	Body       string
+	CreatedAt  time.Time
+}
+
 type CodeSequence struct {
 	Prefix    string
 	Yymm      string
@@ -85,6 +145,15 @@ type CustodyEvent struct {
 	ToPostID      *uuid.UUID
 	OfficerID     *uuid.UUID
 	Note          *string
+	CreatedAt     time.Time
+}
+
+type Disposition struct {
+	FoundReportID uuid.UUID
+	Kind          string
+	Recipient     *string
+	Note          string
+	OfficerID     uuid.UUID
 	CreatedAt     time.Time
 }
 
@@ -269,6 +338,7 @@ type Medium struct {
 	CreatedAt     time.Time
 	AttachedAt    *time.Time
 	DeletedAt     *time.Time
+	ClaimID       *uuid.UUID
 }
 
 type ModelVersion struct {

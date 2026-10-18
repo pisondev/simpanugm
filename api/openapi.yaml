@@ -22,6 +22,7 @@ tags:
   - name: admin
   - name: matching
   - name: assist
+  - name: claims
 
 paths:
   /auth/register:
@@ -1210,6 +1211,313 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AssistDescription' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims:
+    post:
+      tags: [claims]
+      operationId: createClaim
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimCreate' }
+      responses:
+        '201':
+          description: Claim submitted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+    get:
+      tags: [claims]
+      operationId: listClaims
+      parameters:
+        - $ref: '#/components/parameters/StatusFilter'
+        - name: post_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: found_report_id
+          in: query
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Members see their own claims, officers the queue of their posts
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClaimList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    get:
+      tags: [claims]
+      operationId: getClaim
+      responses:
+        '200':
+          description: The claim, projected for the caller
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/pick-up:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [claims]
+      operationId: pickUpClaim
+      responses:
+        '200':
+          description: K2
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/request-info:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [claims]
+      operationId: requestClaimInfo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimMessageCreate' }
+      responses:
+        '200':
+          description: K3
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/respond:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [claims]
+      operationId: respondToClaim
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimRespond' }
+      responses:
+        '200':
+          description: K4
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/checks:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    get:
+      tags: [claims]
+      operationId: getClaimChecks
+      responses:
+        '200':
+          description: The verification checklist of AI-08. Opening it is an access logged read
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClaimCheckList' }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      tags: [claims]
+      operationId: putClaimChecks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimCheckUpdate' }
+      responses:
+        '200':
+          description: Results stored
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClaimCheckList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/approve:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [claims]
+      operationId: approveClaim
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimApprove' }
+      responses:
+        '200':
+          description: K6, the handover code is issued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/reject:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [claims]
+      operationId: rejectClaim
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimReject' }
+      responses:
+        '200':
+          description: K10
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/revoke:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [claims]
+      operationId: revokeClaim
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimReason' }
+      responses:
+        '200':
+          description: K13
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/reopen:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [claims]
+      operationId: reopenClaim
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimReason' }
+      responses:
+        '200':
+          description: K15
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/withdraw:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [claims]
+      operationId: withdrawClaim
+      responses:
+        '200':
+          description: K14
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/handover-code:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [claims]
+      operationId: regenerateHandoverCode
+      responses:
+        '200':
+          description: A new code, shown to the claimant only (BR-HND-02)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/messages:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    get:
+      tags: [claims]
+      operationId: listClaimMessages
+      responses:
+        '200':
+          description: The thread between claimant and officers
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClaimMessageList' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [claims]
+      operationId: postClaimMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimMessageCreate' }
+      responses:
+        '201':
+          description: Posted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClaimMessage' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /claims/{id}/internal-note:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    patch:
+      tags: [claims]
+      operationId: setClaimInternalNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimInternalNote' }
+      responses:
+        '200':
+          description: Officers only
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports/{id}/handover:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [custody]
+      operationId: handoverFoundReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/HandoverRequest' }
+      responses:
+        '200':
+          description: C5, K11, F8 and L8 in one transaction
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Claim' }
         default: { $ref: '#/components/responses/Problem' }
 
 components:
@@ -2585,3 +2893,289 @@ components:
         colours: { $ref: '#/components/schemas/AssistFieldOutcome' }
         brand: { $ref: '#/components/schemas/AssistFieldOutcome' }
         description: { $ref: '#/components/schemas/AssistFieldOutcome' }
+
+    ClaimStatus:
+      type: string
+      enum: [submitted, under_review, info_requested, on_hold, approved, handed_over, rejected, withdrawn, expired]
+
+    ClaimSource:
+      type: string
+      enum: [candidate, listing, officer_invite, proxy]
+
+    RejectionReason:
+      type: string
+      enum: [details_mismatch, insufficient_evidence, item_already_returned, duplicate_claim, suspected_fraud, other]
+
+    ClaimAnswerInput:
+      type: object
+      additionalProperties: false
+      required: [key, answer]
+      properties:
+        key: { type: string, maxLength: 40 }
+        answer: { type: string, maxLength: 500 }
+
+    ClaimCreate:
+      type: object
+      additionalProperties: false
+      required: [found_report_id, statement, answers, evidence_media_ids]
+      properties:
+        found_report_id: { type: string, format: uuid }
+        lost_report_id: { type: string, format: uuid, description: absent when the claim comes from the public listing and a lost report is created from lost_report }
+        match_id: { type: string, format: uuid }
+        lost_report: { $ref: '#/components/schemas/LostReportCreate' }
+        statement: { type: string, minLength: 30, maxLength: 1000 }
+        answers:
+          type: array
+          maxItems: 10
+          items: { $ref: '#/components/schemas/ClaimAnswerInput' }
+        evidence_media_ids:
+          type: array
+          maxItems: 3
+          items: { type: string, format: uuid }
+        preferred_visit: { type: string, maxLength: 100 }
+
+    ClaimAnswer:
+      type: object
+      required: [key, question, answer]
+      properties:
+        key: { type: string }
+        question: { type: string }
+        answer: { type: string }
+
+    ClaimFound:
+      type: object
+      required: [id, code, item_name, category, description, colours, found_at, found_location_name, custody_status, status, photos]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        item_name: { type: string }
+        category: { $ref: '#/components/schemas/CategoryRef' }
+        description: { type: string }
+        colours:
+          type: array
+          items: { type: string }
+        brand: { type: string, nullable: true }
+        found_at: { type: string, format: date-time }
+        found_location_name: { type: string }
+        holding_post: { $ref: '#/components/schemas/NamedRef' }
+        intended_post: { $ref: '#/components/schemas/NamedRef' }
+        custody_status: { $ref: '#/components/schemas/CustodyStatus' }
+        status: { $ref: '#/components/schemas/FoundStatus' }
+        photos:
+          type: array
+          items: { $ref: '#/components/schemas/CandidatePhoto' }
+        hidden_details: { type: string, nullable: true, description: 'officers only, access logged' }
+        storage_slot: { type: string, nullable: true, description: officers only }
+
+    ClaimLost:
+      type: object
+      required: [id, code, item_name, colours, lost_from, lost_until]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        item_name: { type: string }
+        colours:
+          type: array
+          items: { type: string }
+        brand: { type: string, nullable: true }
+        lost_from: { type: string, format: date-time }
+        lost_until: { type: string, format: date-time }
+        private_details: { type: string, nullable: true, description: 'officers only, access logged' }
+
+    ClaimPerson:
+      type: object
+      required: [full_name]
+      properties:
+        id: { type: string, format: uuid }
+        full_name: { type: string }
+        email: { type: string, description: officers only }
+        phone: { type: string, nullable: true, description: officers only }
+
+    ClaimCheckSuggestion:
+      type: object
+      properties:
+        level: { type: string }
+        text: { type: string }
+        links:
+          type: array
+          items: { type: string }
+
+    ClaimCheck:
+      type: object
+      required: [item_key, label, required, info_only, suggestion, result]
+      properties:
+        item_key: { type: string }
+        label: { type: string }
+        required: { type: boolean }
+        info_only: { type: boolean }
+        suggestion: { $ref: '#/components/schemas/ClaimCheckSuggestion' }
+        result: { type: string, enum: [pending, pass, fail, not_applicable] }
+        note: { type: string, nullable: true }
+
+    ClaimCheckList:
+      type: object
+      required: [items, complete]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ClaimCheck' }
+        complete: { type: boolean, description: every required item is pass or not_applicable with a note }
+
+    ClaimCheckUpdate:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          maxItems: 30
+          items:
+            type: object
+            additionalProperties: false
+            required: [item_key, result]
+            properties:
+              item_key: { type: string, maxLength: 60 }
+              result: { type: string, enum: [pending, pass, fail, not_applicable] }
+              note: { type: string, maxLength: 500 }
+
+    Claim:
+      type: object
+      required: [id, code, status, source, found_report, lost_report, statement, answers, evidence, handover_locked, actions, version, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        status: { $ref: '#/components/schemas/ClaimStatus' }
+        source: { $ref: '#/components/schemas/ClaimSource' }
+        found_report: { $ref: '#/components/schemas/ClaimFound' }
+        lost_report: { $ref: '#/components/schemas/ClaimLost' }
+        claimant: { $ref: '#/components/schemas/ClaimPerson' }
+        visitor_name: { type: string, nullable: true, description: the walk in visitor of a proxy claim }
+        statement: { type: string }
+        answers:
+          type: array
+          items: { $ref: '#/components/schemas/ClaimAnswer' }
+        preferred_visit: { type: string, nullable: true }
+        evidence:
+          type: array
+          items: { $ref: '#/components/schemas/PhotoRef' }
+        decision_reason: { $ref: '#/components/schemas/RejectionReason' }
+        decision_note: { type: string, nullable: true }
+        internal_note: { type: string, nullable: true, description: officers only }
+        reviewer: { $ref: '#/components/schemas/NamedRef' }
+        handover_code: { type: string, nullable: true, description: 'the claimant only, while the claim is approved' }
+        handover_locked: { type: boolean }
+        approved_expires_at: { type: string, format: date-time, nullable: true }
+        info_requested_at: { type: string, format: date-time, nullable: true }
+        handed_over_at: { type: string, format: date-time, nullable: true }
+        actions:
+          type: array
+          description: what the caller may do next
+          items: { type: string }
+        version: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ClaimSummary:
+      type: object
+      required: [id, code, status, source, found_code, found_item_name, lost_code, lost_item_name, claimant_name, custody_status, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        status: { $ref: '#/components/schemas/ClaimStatus' }
+        source: { $ref: '#/components/schemas/ClaimSource' }
+        found_code: { type: string }
+        found_item_name: { type: string }
+        lost_code: { type: string }
+        lost_item_name: { type: string }
+        claimant_name: { type: string }
+        custody_status: { $ref: '#/components/schemas/CustodyStatus' }
+        holding_post_name: { type: string, nullable: true }
+        thumb_media_id: { type: string, format: uuid, nullable: true }
+        approved_expires_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ClaimList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ClaimSummary' }
+        next_cursor: { type: string, nullable: true }
+
+    ClaimMessageCreate:
+      type: object
+      additionalProperties: false
+      required: [message]
+      properties:
+        message: { type: string, minLength: 1, maxLength: 2000 }
+
+    ClaimRespond:
+      type: object
+      additionalProperties: false
+      required: [message]
+      properties:
+        message: { type: string, minLength: 1, maxLength: 2000 }
+        evidence_media_ids:
+          type: array
+          maxItems: 3
+          items: { type: string, format: uuid }
+
+    ClaimMessage:
+      type: object
+      required: [id, author_role, author_name, body, mine, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        author_role: { type: string, enum: [member, officer, admin, system] }
+        author_name: { type: string }
+        body: { type: string }
+        mine: { type: boolean }
+        created_at: { type: string, format: date-time }
+
+    ClaimMessageList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ClaimMessage' }
+
+    ClaimApprove:
+      type: object
+      additionalProperties: false
+      properties:
+        decision_note: { type: string, maxLength: 1000 }
+
+    ClaimReject:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason: { $ref: '#/components/schemas/RejectionReason' }
+        note: { type: string, maxLength: 1000 }
+
+    ClaimReason:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 5, maxLength: 500 }
+
+    ClaimInternalNote:
+      type: object
+      additionalProperties: false
+      required: [note]
+      properties:
+        note: { type: string, maxLength: 2000 }
+
+    HandoverRequest:
+      type: object
+      additionalProperties: false
+      required: [claim_id, recipient_id_type, recipient_id_last4, name_confirmed]
+      properties:
+        claim_id: { type: string, format: uuid }
+        code: { type: string, pattern: '^[0-9]{6}$', description: absent for a walk in visitor claim }
+        recipient_id_type: { type: string, enum: [ktm, ktp, sim, passport, other] }
+        recipient_id_last4: { type: string, minLength: 4, maxLength: 4 }
+        name_confirmed: { type: boolean }

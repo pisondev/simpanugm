@@ -21,6 +21,16 @@ func (m Machine) Step(from, event, to string) (string, error) {
 	return "", apperr.InvalidTransition(from)
 }
 
+// the id of the numbered transition that moves a record from one status to another, whatever the event
+func (m Machine) Between(from, to string) (string, bool) {
+	for _, r := range m.Rows {
+		if r.From == from && r.To == to {
+			return r.ID, true
+		}
+	}
+	return "", false
+}
+
 func (m Machine) Allows(from, event string) bool {
 	for _, r := range m.Rows {
 		if r.From == from && r.Event == event {

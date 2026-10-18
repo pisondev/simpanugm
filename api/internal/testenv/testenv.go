@@ -200,6 +200,7 @@ func New(t testing.TB, opts ...Option) *Env {
 	cfg := config.Config{
 		AppEnv: "test", PublicBaseURL: srv.URL, DatabaseURL: d.AppURL, StorageDriver: "fs",
 		SessionCookieSecure: false, TrustedProxies: []string{"10.0.0.0/8"}, WorkerQueues: "default=1",
+		HandoverPepper: "test-handover-pepper-0123456789",
 	}
 	for _, o := range opts {
 		o(&cfg)

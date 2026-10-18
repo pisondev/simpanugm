@@ -10,7 +10,13 @@ SELECT m.*, lr.reporter_id AS lost_reporter_id, fr.finder_id AS found_finder_id,
            SELECT 1 FROM matches mt JOIN lost_reports ol ON ol.id = mt.lost_report_id
            WHERE mt.found_report_id = m.found_report_id AND ol.reporter_id = sqlc.arg(viewer)::uuid
              AND mt.status = 'active' AND mt.tier IN ('high', 'medium') AND mt.rank_for_lost IS NOT NULL AND mt.owner_dismissed_at IS NULL
-       )::bool AS candidate_owner
+             OR mt.status = 'confirmed'
+       )::bool AS candidate_owner,
+       EXISTS (
+           SELECT 1 FROM claims cl
+           WHERE cl.found_report_id = m.found_report_id AND cl.claimant_id = sqlc.arg(viewer)::uuid
+             AND cl.status IN ('submitted', 'under_review', 'info_requested', 'on_hold', 'approved', 'handed_over')
+       )::bool AS claimant
 FROM media m
 LEFT JOIN lost_reports lr ON lr.id = m.lost_report_id
 LEFT JOIN categories lc ON lc.id = lr.category_id
@@ -25,6 +31,7 @@ SELECT * FROM media WHERE id = ANY(sqlc.arg(ids)::uuid[]) ORDER BY id FOR UPDATE
 UPDATE media
 SET lost_report_id = sqlc.narg(lost_report_id),
     found_report_id = sqlc.narg(found_report_id),
+    claim_id = sqlc.narg(claim_id),
     state = 'ready',
     position = sqlc.arg(position),
     attached_at = coalesce(attached_at, sqlc.arg(now)::timestamptz)
@@ -33,7 +40,8 @@ WHERE id = sqlc.arg(id);
 -- name: ListReportMedia :many
 SELECT * FROM media
 WHERE state = 'ready'
-  AND (lost_report_id = sqlc.narg(lost_report_id)::uuid OR found_report_id = sqlc.narg(found_report_id)::uuid)
+  AND (lost_report_id = sqlc.narg(lost_report_id)::uuid OR found_report_id = sqlc.narg(found_report_id)::uuid
+       OR claim_id = sqlc.narg(claim_id)::uuid)
 ORDER BY position, created_at;
 
 -- name: MarkMediaDeleted :exec

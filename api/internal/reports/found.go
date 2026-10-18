@@ -188,7 +188,7 @@ func (s *Service) CreateFound(ctx context.Context, p *access.Principal, key stri
 			params.CustodyKeep = in.CustodyMode == "keep"
 			params.IntendedPostID = in.IntendedPostID
 		}
-		if params.Code, err = nextCode(ctx, q, "FND", now); err != nil {
+		if params.Code, err = NextCode(ctx, q, "FND", now); err != nil {
 			return err
 		}
 		id = ids.New()

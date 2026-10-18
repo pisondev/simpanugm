@@ -54,6 +54,17 @@ const (
 	UserInvite           Permission = "user.invite"
 	UserUpdateRole       Permission = "user.update_role"
 	UserAssignPost       Permission = "user.assign_post"
+	ClaimCreate          Permission = "claim.create"
+	ClaimRead            Permission = "claim.read"
+	ClaimWithdraw        Permission = "claim.withdraw"
+	ClaimMessage         Permission = "claim.message"
+	ClaimReview          Permission = "claim.review"
+	ClaimApprove         Permission = "claim.approve"
+	ClaimInternalNote    Permission = "claim.internal_note"
+	CustodyHandover      Permission = "custody.handover"
+	CustodyTransfer      Permission = "custody.transfer"
+	CustodyExtend        Permission = "custody.extend"
+	CustodyDispose       Permission = "custody.dispose"
 )
 
 var memberPerms = []Permission{
@@ -64,10 +75,12 @@ var memberPerms = []Permission{
 	MediaUpload, MediaRead, MediaDelete,
 	MasterdataRead,
 	MatchRead, MatchFeedback, MatchDismiss, AssistAnalyze,
+	ClaimCreate, ClaimRead, ClaimWithdraw, ClaimMessage,
 }
 
 var officerPerms = append(slices.Clone(memberPerms),
 	ReportProxyCreate, CustodyReceive, CustodyInventoryRead, SearchReports, OfficerQueueRead, MatchRematch,
+	ClaimReview, ClaimApprove, ClaimInternalNote, CustodyHandover, CustodyTransfer, CustodyExtend, CustodyDispose,
 )
 
 var adminPerms = append(slices.Clone(officerPerms),
@@ -184,6 +197,24 @@ var Operations = map[string]Rule{
 	"rematchReport":              {Permission: MatchRematch},
 	"assistAnalyzeImage":         {Permission: AssistAnalyze},
 	"assistDescribe":             {Permission: AssistAnalyze},
+	"createClaim":                {Permission: ClaimCreate, Verified: true},
+	"listClaims":                 {Permission: ClaimRead},
+	"getClaim":                   {Permission: ClaimRead},
+	"pickUpClaim":                {Permission: ClaimReview},
+	"requestClaimInfo":           {Permission: ClaimReview},
+	"respondToClaim":             {Permission: ClaimWithdraw},
+	"getClaimChecks":             {Permission: ClaimReview},
+	"putClaimChecks":             {Permission: ClaimReview},
+	"approveClaim":               {Permission: ClaimApprove},
+	"rejectClaim":                {Permission: ClaimReview},
+	"revokeClaim":                {Permission: ClaimApprove},
+	"reopenClaim":                {Permission: ClaimReview},
+	"withdrawClaim":              {Permission: ClaimWithdraw},
+	"regenerateHandoverCode":     {Permission: CustodyHandover},
+	"listClaimMessages":          {Permission: ClaimMessage},
+	"postClaimMessage":           {Permission: ClaimMessage},
+	"setClaimInternalNote":       {Permission: ClaimInternalNote},
+	"handoverFoundReport":        {Permission: CustodyHandover},
 	"adminListCategories":        {Permission: MasterdataManage},
 	"adminCreateCategory":        {Permission: MasterdataManage},
 	"adminUpdateCategory":        {Permission: MasterdataManage},

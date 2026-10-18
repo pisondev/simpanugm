@@ -9,6 +9,7 @@ func base() Config {
 	return Config{
 		AppEnv: "development", PublicBaseURL: "http://localhost:8000", StorageDriver: "fs", SMTPTLS: "none",
 		SessionCookieSecure: true, WorkerQueues: "default=10,ml=2", TrustedProxies: []string{"10.0.0.0/8"},
+		HandoverPepper: "unit-test-pepper-0123456789",
 	}
 }
 

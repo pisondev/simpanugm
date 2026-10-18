@@ -60,11 +60,13 @@ RFC 9457 problem details, `application/problem+json`.
 | 415 | `media_invalid_type` | not JPEG, PNG or WebP by signature |
 | 422 | `validation_failed` | field errors in `errors` |
 | 422 | `email_domain_not_allowed` | BR-ACC-01 |
-| 422 | `claim_limit_reached`, `claim_restricted`, `claim_own_item`, `claim_duplicate` | BR-CLM-01 to BR-CLM-04 |
+| 422 | `claim_limit_reached`, `claim_exists`, `claim_rejected_before`, `found_not_claimable`, `lost_not_open` | BR-CLM-01, BR-CLM-02, FR-CLAIM-02 |
+| 403 | `claim_restricted`, `own_found_report`, `same_officer` | BR-CLM-04, BR-CLM-03, BR-CLM-09 |
+| 422 | `custody_not_received` | approve or hand over before the post holds the item, BR-CLM-07 |
 | 422 | `report_limit_reached` | BR-LST-07, BR-FND-04 |
 | 422 | `media_too_small`, `media_limit_reached`, `media_duplicate` | BR-MED |
-| 422 | `handover_code_invalid` | with `remaining_attempts` |
-| 423 | `handover_code_locked` | BR-HND-02 |
+| 422 | `handover_code_wrong` | a wrong code, counted before the error is returned |
+| 422 | `handover_locked` | BR-HND-02, until an officer regenerates the code |
 | 422 | `idempotency_key_reused` | same key, different request |
 | 429 | `rate_limited` | with `Retry-After` |
 | 503 | `assist_unavailable` | inference service down or slow, assistant only |

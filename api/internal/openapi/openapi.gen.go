@@ -99,6 +99,141 @@ func (e CandidatePhotoVariant) Valid() bool {
 	}
 }
 
+// Defines values for ClaimCheckResult.
+const (
+	ClaimCheckResultFail          ClaimCheckResult = "fail"
+	ClaimCheckResultNotApplicable ClaimCheckResult = "not_applicable"
+	ClaimCheckResultPass          ClaimCheckResult = "pass"
+	ClaimCheckResultPending       ClaimCheckResult = "pending"
+)
+
+// Valid indicates whether the value is a known member of the ClaimCheckResult enum.
+func (e ClaimCheckResult) Valid() bool {
+	switch e {
+	case ClaimCheckResultFail:
+		return true
+	case ClaimCheckResultNotApplicable:
+		return true
+	case ClaimCheckResultPass:
+		return true
+	case ClaimCheckResultPending:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ClaimCheckUpdateItemsResult.
+const (
+	ClaimCheckUpdateItemsResultFail          ClaimCheckUpdateItemsResult = "fail"
+	ClaimCheckUpdateItemsResultNotApplicable ClaimCheckUpdateItemsResult = "not_applicable"
+	ClaimCheckUpdateItemsResultPass          ClaimCheckUpdateItemsResult = "pass"
+	ClaimCheckUpdateItemsResultPending       ClaimCheckUpdateItemsResult = "pending"
+)
+
+// Valid indicates whether the value is a known member of the ClaimCheckUpdateItemsResult enum.
+func (e ClaimCheckUpdateItemsResult) Valid() bool {
+	switch e {
+	case ClaimCheckUpdateItemsResultFail:
+		return true
+	case ClaimCheckUpdateItemsResultNotApplicable:
+		return true
+	case ClaimCheckUpdateItemsResultPass:
+		return true
+	case ClaimCheckUpdateItemsResultPending:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ClaimMessageAuthorRole.
+const (
+	ClaimMessageAuthorRoleAdmin   ClaimMessageAuthorRole = "admin"
+	ClaimMessageAuthorRoleMember  ClaimMessageAuthorRole = "member"
+	ClaimMessageAuthorRoleOfficer ClaimMessageAuthorRole = "officer"
+	ClaimMessageAuthorRoleSystem  ClaimMessageAuthorRole = "system"
+)
+
+// Valid indicates whether the value is a known member of the ClaimMessageAuthorRole enum.
+func (e ClaimMessageAuthorRole) Valid() bool {
+	switch e {
+	case ClaimMessageAuthorRoleAdmin:
+		return true
+	case ClaimMessageAuthorRoleMember:
+		return true
+	case ClaimMessageAuthorRoleOfficer:
+		return true
+	case ClaimMessageAuthorRoleSystem:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ClaimSource.
+const (
+	Candidate     ClaimSource = "candidate"
+	Listing       ClaimSource = "listing"
+	OfficerInvite ClaimSource = "officer_invite"
+	Proxy         ClaimSource = "proxy"
+)
+
+// Valid indicates whether the value is a known member of the ClaimSource enum.
+func (e ClaimSource) Valid() bool {
+	switch e {
+	case Candidate:
+		return true
+	case Listing:
+		return true
+	case OfficerInvite:
+		return true
+	case Proxy:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ClaimStatus.
+const (
+	ClaimStatusApproved      ClaimStatus = "approved"
+	ClaimStatusExpired       ClaimStatus = "expired"
+	ClaimStatusHandedOver    ClaimStatus = "handed_over"
+	ClaimStatusInfoRequested ClaimStatus = "info_requested"
+	ClaimStatusOnHold        ClaimStatus = "on_hold"
+	ClaimStatusRejected      ClaimStatus = "rejected"
+	ClaimStatusSubmitted     ClaimStatus = "submitted"
+	ClaimStatusUnderReview   ClaimStatus = "under_review"
+	ClaimStatusWithdrawn     ClaimStatus = "withdrawn"
+)
+
+// Valid indicates whether the value is a known member of the ClaimStatus enum.
+func (e ClaimStatus) Valid() bool {
+	switch e {
+	case ClaimStatusApproved:
+		return true
+	case ClaimStatusExpired:
+		return true
+	case ClaimStatusHandedOver:
+		return true
+	case ClaimStatusInfoRequested:
+		return true
+	case ClaimStatusOnHold:
+		return true
+	case ClaimStatusRejected:
+		return true
+	case ClaimStatusSubmitted:
+		return true
+	case ClaimStatusUnderReview:
+		return true
+	case ClaimStatusWithdrawn:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CloseFoundReportRequestReason.
 const (
 	ReportedInError  CloseFoundReportRequestReason = "reported_in_error"
@@ -234,18 +369,45 @@ func (e FoundStatus) Valid() bool {
 	}
 }
 
+// Defines values for HandoverRequestRecipientIdType.
+const (
+	HandoverRequestRecipientIdTypeKtm      HandoverRequestRecipientIdType = "ktm"
+	HandoverRequestRecipientIdTypeKtp      HandoverRequestRecipientIdType = "ktp"
+	HandoverRequestRecipientIdTypeOther    HandoverRequestRecipientIdType = "other"
+	HandoverRequestRecipientIdTypePassport HandoverRequestRecipientIdType = "passport"
+	HandoverRequestRecipientIdTypeSim      HandoverRequestRecipientIdType = "sim"
+)
+
+// Valid indicates whether the value is a known member of the HandoverRequestRecipientIdType enum.
+func (e HandoverRequestRecipientIdType) Valid() bool {
+	switch e {
+	case HandoverRequestRecipientIdTypeKtm:
+		return true
+	case HandoverRequestRecipientIdTypeKtp:
+		return true
+	case HandoverRequestRecipientIdTypeOther:
+		return true
+	case HandoverRequestRecipientIdTypePassport:
+		return true
+	case HandoverRequestRecipientIdTypeSim:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for HistoryEntryActorKind.
 const (
-	System HistoryEntryActorKind = "system"
-	User   HistoryEntryActorKind = "user"
+	HistoryEntryActorKindSystem HistoryEntryActorKind = "system"
+	HistoryEntryActorKindUser   HistoryEntryActorKind = "user"
 )
 
 // Valid indicates whether the value is a known member of the HistoryEntryActorKind enum.
 func (e HistoryEntryActorKind) Valid() bool {
 	switch e {
-	case System:
+	case HistoryEntryActorKindSystem:
 		return true
-	case User:
+	case HistoryEntryActorKindUser:
 		return true
 	default:
 		return false
@@ -510,6 +672,36 @@ func (e NotificationPreferenceGroup) Valid() bool {
 	case NotificationPreferenceGroupFound:
 		return true
 	case NotificationPreferenceGroupMatch:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RejectionReason.
+const (
+	RejectionReasonDetailsMismatch      RejectionReason = "details_mismatch"
+	RejectionReasonDuplicateClaim       RejectionReason = "duplicate_claim"
+	RejectionReasonInsufficientEvidence RejectionReason = "insufficient_evidence"
+	RejectionReasonItemAlreadyReturned  RejectionReason = "item_already_returned"
+	RejectionReasonOther                RejectionReason = "other"
+	RejectionReasonSuspectedFraud       RejectionReason = "suspected_fraud"
+)
+
+// Valid indicates whether the value is a known member of the RejectionReason enum.
+func (e RejectionReason) Valid() bool {
+	switch e {
+	case RejectionReasonDetailsMismatch:
+		return true
+	case RejectionReasonDuplicateClaim:
+		return true
+	case RejectionReasonInsufficientEvidence:
+		return true
+	case RejectionReasonItemAlreadyReturned:
+		return true
+	case RejectionReasonOther:
+		return true
+	case RejectionReasonSuspectedFraud:
 		return true
 	default:
 		return false
@@ -831,6 +1023,239 @@ type CategoryUpdate struct {
 	VerificationQuestions *[]QuestionInput `json:"verification_questions,omitempty"`
 }
 
+// Claim defines model for Claim.
+type Claim struct {
+	// Actions what the caller may do next
+	Actions           []string         `json:"actions"`
+	Answers           []ClaimAnswer    `json:"answers"`
+	ApprovedExpiresAt *time.Time       `json:"approved_expires_at,omitempty"`
+	Claimant          *ClaimPerson     `json:"claimant,omitempty"`
+	Code              string           `json:"code"`
+	CreatedAt         time.Time        `json:"created_at"`
+	DecisionNote      *string          `json:"decision_note,omitempty"`
+	DecisionReason    *RejectionReason `json:"decision_reason,omitempty"`
+	Evidence          []PhotoRef       `json:"evidence"`
+	FoundReport       ClaimFound       `json:"found_report"`
+	HandedOverAt      *time.Time       `json:"handed_over_at,omitempty"`
+
+	// HandoverCode the claimant only, while the claim is approved
+	HandoverCode    *string            `json:"handover_code,omitempty"`
+	HandoverLocked  bool               `json:"handover_locked"`
+	Id              openapi_types.UUID `json:"id"`
+	InfoRequestedAt *time.Time         `json:"info_requested_at,omitempty"`
+
+	// InternalNote officers only
+	InternalNote   *string     `json:"internal_note,omitempty"`
+	LostReport     ClaimLost   `json:"lost_report"`
+	PreferredVisit *string     `json:"preferred_visit,omitempty"`
+	Reviewer       *NamedRef   `json:"reviewer,omitempty"`
+	Source         ClaimSource `json:"source"`
+	Statement      string      `json:"statement"`
+	Status         ClaimStatus `json:"status"`
+	UpdatedAt      time.Time   `json:"updated_at"`
+	Version        int         `json:"version"`
+
+	// VisitorName the walk in visitor of a proxy claim
+	VisitorName *string `json:"visitor_name,omitempty"`
+}
+
+// ClaimAnswer defines model for ClaimAnswer.
+type ClaimAnswer struct {
+	Answer   string `json:"answer"`
+	Key      string `json:"key"`
+	Question string `json:"question"`
+}
+
+// ClaimAnswerInput defines model for ClaimAnswerInput.
+type ClaimAnswerInput struct {
+	Answer string `json:"answer"`
+	Key    string `json:"key"`
+}
+
+// ClaimApprove defines model for ClaimApprove.
+type ClaimApprove struct {
+	DecisionNote *string `json:"decision_note,omitempty"`
+}
+
+// ClaimCheck defines model for ClaimCheck.
+type ClaimCheck struct {
+	InfoOnly   bool                 `json:"info_only"`
+	ItemKey    string               `json:"item_key"`
+	Label      string               `json:"label"`
+	Note       *string              `json:"note,omitempty"`
+	Required   bool                 `json:"required"`
+	Result     ClaimCheckResult     `json:"result"`
+	Suggestion ClaimCheckSuggestion `json:"suggestion"`
+}
+
+// ClaimCheckResult defines model for ClaimCheck.Result.
+type ClaimCheckResult string
+
+// ClaimCheckList defines model for ClaimCheckList.
+type ClaimCheckList struct {
+	// Complete every required item is pass or not_applicable with a note
+	Complete bool         `json:"complete"`
+	Items    []ClaimCheck `json:"items"`
+}
+
+// ClaimCheckSuggestion defines model for ClaimCheckSuggestion.
+type ClaimCheckSuggestion struct {
+	Level *string   `json:"level,omitempty"`
+	Links *[]string `json:"links,omitempty"`
+	Text  *string   `json:"text,omitempty"`
+}
+
+// ClaimCheckUpdate defines model for ClaimCheckUpdate.
+type ClaimCheckUpdate struct {
+	Items []struct {
+		ItemKey string                      `json:"item_key"`
+		Note    *string                     `json:"note,omitempty"`
+		Result  ClaimCheckUpdateItemsResult `json:"result"`
+	} `json:"items"`
+}
+
+// ClaimCheckUpdateItemsResult defines model for ClaimCheckUpdate.Items.Result.
+type ClaimCheckUpdateItemsResult string
+
+// ClaimCreate defines model for ClaimCreate.
+type ClaimCreate struct {
+	Answers          []ClaimAnswerInput   `json:"answers"`
+	EvidenceMediaIds []openapi_types.UUID `json:"evidence_media_ids"`
+	FoundReportId    openapi_types.UUID   `json:"found_report_id"`
+	LostReport       *LostReportCreate    `json:"lost_report,omitempty"`
+
+	// LostReportId absent when the claim comes from the public listing and a lost report is created from lost_report
+	LostReportId   *openapi_types.UUID `json:"lost_report_id,omitempty"`
+	MatchId        *openapi_types.UUID `json:"match_id,omitempty"`
+	PreferredVisit *string             `json:"preferred_visit,omitempty"`
+	Statement      string              `json:"statement"`
+}
+
+// ClaimFound defines model for ClaimFound.
+type ClaimFound struct {
+	Brand             *string       `json:"brand,omitempty"`
+	Category          CategoryRef   `json:"category"`
+	Code              string        `json:"code"`
+	Colours           []string      `json:"colours"`
+	CustodyStatus     CustodyStatus `json:"custody_status"`
+	Description       string        `json:"description"`
+	FoundAt           time.Time     `json:"found_at"`
+	FoundLocationName string        `json:"found_location_name"`
+
+	// HiddenDetails officers only, access logged
+	HiddenDetails *string            `json:"hidden_details,omitempty"`
+	HoldingPost   *NamedRef          `json:"holding_post,omitempty"`
+	Id            openapi_types.UUID `json:"id"`
+	IntendedPost  *NamedRef          `json:"intended_post,omitempty"`
+	ItemName      string             `json:"item_name"`
+	Photos        []CandidatePhoto   `json:"photos"`
+	Status        FoundStatus        `json:"status"`
+
+	// StorageSlot officers only
+	StorageSlot *string `json:"storage_slot,omitempty"`
+}
+
+// ClaimInternalNote defines model for ClaimInternalNote.
+type ClaimInternalNote struct {
+	Note string `json:"note"`
+}
+
+// ClaimList defines model for ClaimList.
+type ClaimList struct {
+	Items      []ClaimSummary `json:"items"`
+	NextCursor *string        `json:"next_cursor,omitempty"`
+}
+
+// ClaimLost defines model for ClaimLost.
+type ClaimLost struct {
+	Brand     *string            `json:"brand,omitempty"`
+	Code      string             `json:"code"`
+	Colours   []string           `json:"colours"`
+	Id        openapi_types.UUID `json:"id"`
+	ItemName  string             `json:"item_name"`
+	LostFrom  time.Time          `json:"lost_from"`
+	LostUntil time.Time          `json:"lost_until"`
+
+	// PrivateDetails officers only, access logged
+	PrivateDetails *string `json:"private_details,omitempty"`
+}
+
+// ClaimMessage defines model for ClaimMessage.
+type ClaimMessage struct {
+	AuthorName string                 `json:"author_name"`
+	AuthorRole ClaimMessageAuthorRole `json:"author_role"`
+	Body       string                 `json:"body"`
+	CreatedAt  time.Time              `json:"created_at"`
+	Id         openapi_types.UUID     `json:"id"`
+	Mine       bool                   `json:"mine"`
+}
+
+// ClaimMessageAuthorRole defines model for ClaimMessage.AuthorRole.
+type ClaimMessageAuthorRole string
+
+// ClaimMessageCreate defines model for ClaimMessageCreate.
+type ClaimMessageCreate struct {
+	Message string `json:"message"`
+}
+
+// ClaimMessageList defines model for ClaimMessageList.
+type ClaimMessageList struct {
+	Items []ClaimMessage `json:"items"`
+}
+
+// ClaimPerson defines model for ClaimPerson.
+type ClaimPerson struct {
+	// Email officers only
+	Email    *string             `json:"email,omitempty"`
+	FullName string              `json:"full_name"`
+	Id       *openapi_types.UUID `json:"id,omitempty"`
+
+	// Phone officers only
+	Phone *string `json:"phone,omitempty"`
+}
+
+// ClaimReason defines model for ClaimReason.
+type ClaimReason struct {
+	Reason string `json:"reason"`
+}
+
+// ClaimReject defines model for ClaimReject.
+type ClaimReject struct {
+	Note   *string         `json:"note,omitempty"`
+	Reason RejectionReason `json:"reason"`
+}
+
+// ClaimRespond defines model for ClaimRespond.
+type ClaimRespond struct {
+	EvidenceMediaIds *[]openapi_types.UUID `json:"evidence_media_ids,omitempty"`
+	Message          string                `json:"message"`
+}
+
+// ClaimSource defines model for ClaimSource.
+type ClaimSource string
+
+// ClaimStatus defines model for ClaimStatus.
+type ClaimStatus string
+
+// ClaimSummary defines model for ClaimSummary.
+type ClaimSummary struct {
+	ApprovedExpiresAt *time.Time          `json:"approved_expires_at,omitempty"`
+	ClaimantName      string              `json:"claimant_name"`
+	Code              string              `json:"code"`
+	CreatedAt         time.Time           `json:"created_at"`
+	CustodyStatus     CustodyStatus       `json:"custody_status"`
+	FoundCode         string              `json:"found_code"`
+	FoundItemName     string              `json:"found_item_name"`
+	HoldingPostName   *string             `json:"holding_post_name,omitempty"`
+	Id                openapi_types.UUID  `json:"id"`
+	LostCode          string              `json:"lost_code"`
+	LostItemName      string              `json:"lost_item_name"`
+	Source            ClaimSource         `json:"source"`
+	Status            ClaimStatus         `json:"status"`
+	ThumbMediaId      *openapi_types.UUID `json:"thumb_media_id,omitempty"`
+	UpdatedAt         time.Time           `json:"updated_at"`
+}
+
 // CloseFoundReportRequest defines model for CloseFoundReportRequest.
 type CloseFoundReportRequest struct {
 	Note   string                        `json:"note"`
@@ -1038,6 +1463,20 @@ type FoundReportUpdate struct {
 
 // FoundStatus defines model for FoundStatus.
 type FoundStatus string
+
+// HandoverRequest defines model for HandoverRequest.
+type HandoverRequest struct {
+	ClaimId openapi_types.UUID `json:"claim_id"`
+
+	// Code absent for a walk in visitor claim
+	Code             *string                        `json:"code,omitempty"`
+	NameConfirmed    bool                           `json:"name_confirmed"`
+	RecipientIdLast4 string                         `json:"recipient_id_last4"`
+	RecipientIdType  HandoverRequestRecipientIdType `json:"recipient_id_type"`
+}
+
+// HandoverRequestRecipientIdType defines model for HandoverRequest.RecipientIdType.
+type HandoverRequestRecipientIdType string
 
 // HistoryEntry defines model for HistoryEntry.
 type HistoryEntry struct {
@@ -1558,6 +1997,9 @@ type RegisterRequest struct {
 	PrivacyVersion string  `json:"privacy_version"`
 }
 
+// RejectionReason defines model for RejectionReason.
+type RejectionReason string
+
 // Role defines model for Role.
 type Role string
 
@@ -1707,6 +2149,26 @@ type AdminListUsersParams struct {
 // LogoutParams defines parameters for Logout.
 type LogoutParams struct {
 	All *bool `form:"all,omitempty" json:"all,omitempty"`
+}
+
+// ListClaimsParams defines parameters for ListClaims.
+type ListClaimsParams struct {
+	Status        *StatusFilter       `form:"status,omitempty" json:"status,omitempty"`
+	PostId        *openapi_types.UUID `form:"post_id,omitempty" json:"post_id,omitempty"`
+	FoundReportId *openapi_types.UUID `form:"found_report_id,omitempty" json:"found_report_id,omitempty"`
+	Cursor        *Cursor             `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit         *Limit              `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// CreateClaimParams defines parameters for CreateClaim.
+type CreateClaimParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// ApproveClaimParams defines parameters for ApproveClaim.
+type ApproveClaimParams struct {
+	// IfMatch The version from the last read, quoted or bare
+	IfMatch IfMatch `json:"If-Match"`
 }
 
 // ListFoundReportsParams defines parameters for ListFoundReports.
@@ -1881,6 +2343,36 @@ type RegisterJSONRequestBody = RegisterRequest
 // VerifyEmailJSONRequestBody defines body for VerifyEmail for application/json ContentType.
 type VerifyEmailJSONRequestBody = TokenRequest
 
+// CreateClaimJSONRequestBody defines body for CreateClaim for application/json ContentType.
+type CreateClaimJSONRequestBody = ClaimCreate
+
+// ApproveClaimJSONRequestBody defines body for ApproveClaim for application/json ContentType.
+type ApproveClaimJSONRequestBody = ClaimApprove
+
+// PutClaimChecksJSONRequestBody defines body for PutClaimChecks for application/json ContentType.
+type PutClaimChecksJSONRequestBody = ClaimCheckUpdate
+
+// SetClaimInternalNoteJSONRequestBody defines body for SetClaimInternalNote for application/json ContentType.
+type SetClaimInternalNoteJSONRequestBody = ClaimInternalNote
+
+// PostClaimMessageJSONRequestBody defines body for PostClaimMessage for application/json ContentType.
+type PostClaimMessageJSONRequestBody = ClaimMessageCreate
+
+// RejectClaimJSONRequestBody defines body for RejectClaim for application/json ContentType.
+type RejectClaimJSONRequestBody = ClaimReject
+
+// ReopenClaimJSONRequestBody defines body for ReopenClaim for application/json ContentType.
+type ReopenClaimJSONRequestBody = ClaimReason
+
+// RequestClaimInfoJSONRequestBody defines body for RequestClaimInfo for application/json ContentType.
+type RequestClaimInfoJSONRequestBody = ClaimMessageCreate
+
+// RespondToClaimJSONRequestBody defines body for RespondToClaim for application/json ContentType.
+type RespondToClaimJSONRequestBody = ClaimRespond
+
+// RevokeClaimJSONRequestBody defines body for RevokeClaim for application/json ContentType.
+type RevokeClaimJSONRequestBody = ClaimReason
+
 // CreateFoundReportJSONRequestBody defines body for CreateFoundReport for application/json ContentType.
 type CreateFoundReportJSONRequestBody = FoundReportCreate
 
@@ -1889,6 +2381,9 @@ type UpdateFoundReportJSONRequestBody = FoundReportUpdate
 
 // CloseFoundReportJSONRequestBody defines body for CloseFoundReport for application/json ContentType.
 type CloseFoundReportJSONRequestBody = CloseFoundReportRequest
+
+// HandoverFoundReportJSONRequestBody defines body for HandoverFoundReport for application/json ContentType.
+type HandoverFoundReportJSONRequestBody = HandoverRequest
 
 // ReceiveFoundReportJSONRequestBody defines body for ReceiveFoundReport for application/json ContentType.
 type ReceiveFoundReportJSONRequestBody = ReceiveFoundReportRequest
@@ -2013,6 +2508,57 @@ type ServerInterface interface {
 	// (GET /categories)
 	ListCategories(w http.ResponseWriter, r *http.Request)
 
+	// (GET /claims)
+	ListClaims(w http.ResponseWriter, r *http.Request, params ListClaimsParams)
+
+	// (POST /claims)
+	CreateClaim(w http.ResponseWriter, r *http.Request, params CreateClaimParams)
+
+	// (GET /claims/{id})
+	GetClaim(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /claims/{id}/approve)
+	ApproveClaim(w http.ResponseWriter, r *http.Request, id IdOrCode, params ApproveClaimParams)
+
+	// (GET /claims/{id}/checks)
+	GetClaimChecks(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (PUT /claims/{id}/checks)
+	PutClaimChecks(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /claims/{id}/handover-code)
+	RegenerateHandoverCode(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (PATCH /claims/{id}/internal-note)
+	SetClaimInternalNote(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (GET /claims/{id}/messages)
+	ListClaimMessages(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /claims/{id}/messages)
+	PostClaimMessage(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /claims/{id}/pick-up)
+	PickUpClaim(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /claims/{id}/reject)
+	RejectClaim(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /claims/{id}/reopen)
+	ReopenClaim(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /claims/{id}/request-info)
+	RequestClaimInfo(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /claims/{id}/respond)
+	RespondToClaim(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /claims/{id}/revoke)
+	RevokeClaim(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /claims/{id}/withdraw)
+	WithdrawClaim(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
 	// (GET /colours)
 	ListColours(w http.ResponseWriter, r *http.Request)
 
@@ -2033,6 +2579,9 @@ type ServerInterface interface {
 
 	// (POST /found-reports/{id}/close)
 	CloseFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /found-reports/{id}/handover)
+	HandoverFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode)
 
 	// (GET /found-reports/{id}/history)
 	GetFoundReportHistory(w http.ResponseWriter, r *http.Request, id IdOrCode)
@@ -2286,6 +2835,91 @@ func (_ Unimplemented) ListCategories(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// (GET /claims)
+func (_ Unimplemented) ListClaims(w http.ResponseWriter, r *http.Request, params ListClaimsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /claims)
+func (_ Unimplemented) CreateClaim(w http.ResponseWriter, r *http.Request, params CreateClaimParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /claims/{id})
+func (_ Unimplemented) GetClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /claims/{id}/approve)
+func (_ Unimplemented) ApproveClaim(w http.ResponseWriter, r *http.Request, id IdOrCode, params ApproveClaimParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /claims/{id}/checks)
+func (_ Unimplemented) GetClaimChecks(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PUT /claims/{id}/checks)
+func (_ Unimplemented) PutClaimChecks(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /claims/{id}/handover-code)
+func (_ Unimplemented) RegenerateHandoverCode(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /claims/{id}/internal-note)
+func (_ Unimplemented) SetClaimInternalNote(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /claims/{id}/messages)
+func (_ Unimplemented) ListClaimMessages(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /claims/{id}/messages)
+func (_ Unimplemented) PostClaimMessage(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /claims/{id}/pick-up)
+func (_ Unimplemented) PickUpClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /claims/{id}/reject)
+func (_ Unimplemented) RejectClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /claims/{id}/reopen)
+func (_ Unimplemented) ReopenClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /claims/{id}/request-info)
+func (_ Unimplemented) RequestClaimInfo(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /claims/{id}/respond)
+func (_ Unimplemented) RespondToClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /claims/{id}/revoke)
+func (_ Unimplemented) RevokeClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /claims/{id}/withdraw)
+func (_ Unimplemented) WithdrawClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (GET /colours)
 func (_ Unimplemented) ListColours(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -2318,6 +2952,11 @@ func (_ Unimplemented) UpdateFoundReport(w http.ResponseWriter, r *http.Request,
 
 // (POST /found-reports/{id}/close)
 func (_ Unimplemented) CloseFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /found-reports/{id}/handover)
+func (_ Unimplemented) HandoverFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -3075,6 +3714,554 @@ func (siw *ServerInterfaceWrapper) ListCategories(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
+// ListClaims operation middleware
+func (siw *ServerInterfaceWrapper) ListClaims(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListClaimsParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "array", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "post_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "post_id", r.URL.Query(), &params.PostId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "post_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "post_id", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "found_report_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "found_report_id", r.URL.Query(), &params.FoundReportId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "found_report_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "found_report_id", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListClaims(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateClaim operation middleware
+func (siw *ServerInterfaceWrapper) CreateClaim(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateClaimParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateClaim(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetClaim operation middleware
+func (siw *ServerInterfaceWrapper) GetClaim(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetClaim(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ApproveClaim operation middleware
+func (siw *ServerInterfaceWrapper) ApproveClaim(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ApproveClaimParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ApproveClaim(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetClaimChecks operation middleware
+func (siw *ServerInterfaceWrapper) GetClaimChecks(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetClaimChecks(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PutClaimChecks operation middleware
+func (siw *ServerInterfaceWrapper) PutClaimChecks(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutClaimChecks(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RegenerateHandoverCode operation middleware
+func (siw *ServerInterfaceWrapper) RegenerateHandoverCode(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RegenerateHandoverCode(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetClaimInternalNote operation middleware
+func (siw *ServerInterfaceWrapper) SetClaimInternalNote(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetClaimInternalNote(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListClaimMessages operation middleware
+func (siw *ServerInterfaceWrapper) ListClaimMessages(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListClaimMessages(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostClaimMessage operation middleware
+func (siw *ServerInterfaceWrapper) PostClaimMessage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostClaimMessage(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PickUpClaim operation middleware
+func (siw *ServerInterfaceWrapper) PickUpClaim(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PickUpClaim(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RejectClaim operation middleware
+func (siw *ServerInterfaceWrapper) RejectClaim(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RejectClaim(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ReopenClaim operation middleware
+func (siw *ServerInterfaceWrapper) ReopenClaim(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ReopenClaim(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RequestClaimInfo operation middleware
+func (siw *ServerInterfaceWrapper) RequestClaimInfo(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RequestClaimInfo(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RespondToClaim operation middleware
+func (siw *ServerInterfaceWrapper) RespondToClaim(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RespondToClaim(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeClaim operation middleware
+func (siw *ServerInterfaceWrapper) RevokeClaim(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeClaim(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// WithdrawClaim operation middleware
+func (siw *ServerInterfaceWrapper) WithdrawClaim(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.WithdrawClaim(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListColours operation middleware
 func (siw *ServerInterfaceWrapper) ListColours(w http.ResponseWriter, r *http.Request) {
 
@@ -3401,6 +4588,32 @@ func (siw *ServerInterfaceWrapper) CloseFoundReport(w http.ResponseWriter, r *ht
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CloseFoundReport(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// HandoverFoundReport operation middleware
+func (siw *ServerInterfaceWrapper) HandoverFoundReport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HandoverFoundReport(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -4858,6 +6071,60 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/assist/describe", wrapper.AssistDescribe)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/claims", wrapper.ListClaims)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/claims", wrapper.CreateClaim)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/claims/{id}", wrapper.GetClaim)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/claims/{id}/pick-up", wrapper.PickUpClaim)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/claims/{id}/request-info", wrapper.RequestClaimInfo)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/claims/{id}/respond", wrapper.RespondToClaim)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/claims/{id}/checks", wrapper.GetClaimChecks)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/claims/{id}/checks", wrapper.PutClaimChecks)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/claims/{id}/approve", wrapper.ApproveClaim)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/claims/{id}/reject", wrapper.RejectClaim)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/claims/{id}/revoke", wrapper.RevokeClaim)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/claims/{id}/reopen", wrapper.ReopenClaim)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/claims/{id}/withdraw", wrapper.WithdrawClaim)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/claims/{id}/handover-code", wrapper.RegenerateHandoverCode)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/claims/{id}/messages", wrapper.ListClaimMessages)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/claims/{id}/messages", wrapper.PostClaimMessage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/claims/{id}/internal-note", wrapper.SetClaimInternalNote)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/found-reports/{id}/handover", wrapper.HandoverFoundReport)
+	})
 
 	return r
 }
@@ -5988,6 +7255,680 @@ func (response ListCategoriesdefaultApplicationProblemPlusJSONResponse) VisitLis
 	return err
 }
 
+type ListClaimsRequestObject struct {
+	Params ListClaimsParams
+}
+
+type ListClaimsResponseObject interface {
+	VisitListClaimsResponse(w http.ResponseWriter) error
+}
+
+type ListClaims200JSONResponse ClaimList
+
+func (response ListClaims200JSONResponse) VisitListClaimsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListClaimsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListClaimsdefaultApplicationProblemPlusJSONResponse) VisitListClaimsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateClaimRequestObject struct {
+	Params CreateClaimParams
+	Body   *CreateClaimJSONRequestBody
+}
+
+type CreateClaimResponseObject interface {
+	VisitCreateClaimResponse(w http.ResponseWriter) error
+}
+
+type CreateClaim201JSONResponse Claim
+
+func (response CreateClaim201JSONResponse) VisitCreateClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateClaimdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateClaimdefaultApplicationProblemPlusJSONResponse) VisitCreateClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetClaimRequestObject struct {
+	Id IdOrCode `json:"id"`
+}
+
+type GetClaimResponseObject interface {
+	VisitGetClaimResponse(w http.ResponseWriter) error
+}
+
+type GetClaim200JSONResponse Claim
+
+func (response GetClaim200JSONResponse) VisitGetClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetClaimdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetClaimdefaultApplicationProblemPlusJSONResponse) VisitGetClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ApproveClaimRequestObject struct {
+	Id     IdOrCode `json:"id"`
+	Params ApproveClaimParams
+	Body   *ApproveClaimJSONRequestBody
+}
+
+type ApproveClaimResponseObject interface {
+	VisitApproveClaimResponse(w http.ResponseWriter) error
+}
+
+type ApproveClaim200JSONResponse Claim
+
+func (response ApproveClaim200JSONResponse) VisitApproveClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ApproveClaimdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ApproveClaimdefaultApplicationProblemPlusJSONResponse) VisitApproveClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetClaimChecksRequestObject struct {
+	Id IdOrCode `json:"id"`
+}
+
+type GetClaimChecksResponseObject interface {
+	VisitGetClaimChecksResponse(w http.ResponseWriter) error
+}
+
+type GetClaimChecks200JSONResponse ClaimCheckList
+
+func (response GetClaimChecks200JSONResponse) VisitGetClaimChecksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetClaimChecksdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetClaimChecksdefaultApplicationProblemPlusJSONResponse) VisitGetClaimChecksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutClaimChecksRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *PutClaimChecksJSONRequestBody
+}
+
+type PutClaimChecksResponseObject interface {
+	VisitPutClaimChecksResponse(w http.ResponseWriter) error
+}
+
+type PutClaimChecks200JSONResponse ClaimCheckList
+
+func (response PutClaimChecks200JSONResponse) VisitPutClaimChecksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutClaimChecksdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response PutClaimChecksdefaultApplicationProblemPlusJSONResponse) VisitPutClaimChecksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RegenerateHandoverCodeRequestObject struct {
+	Id IdOrCode `json:"id"`
+}
+
+type RegenerateHandoverCodeResponseObject interface {
+	VisitRegenerateHandoverCodeResponse(w http.ResponseWriter) error
+}
+
+type RegenerateHandoverCode200JSONResponse Claim
+
+func (response RegenerateHandoverCode200JSONResponse) VisitRegenerateHandoverCodeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RegenerateHandoverCodedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RegenerateHandoverCodedefaultApplicationProblemPlusJSONResponse) VisitRegenerateHandoverCodeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetClaimInternalNoteRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *SetClaimInternalNoteJSONRequestBody
+}
+
+type SetClaimInternalNoteResponseObject interface {
+	VisitSetClaimInternalNoteResponse(w http.ResponseWriter) error
+}
+
+type SetClaimInternalNote200JSONResponse Claim
+
+func (response SetClaimInternalNote200JSONResponse) VisitSetClaimInternalNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetClaimInternalNotedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response SetClaimInternalNotedefaultApplicationProblemPlusJSONResponse) VisitSetClaimInternalNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListClaimMessagesRequestObject struct {
+	Id IdOrCode `json:"id"`
+}
+
+type ListClaimMessagesResponseObject interface {
+	VisitListClaimMessagesResponse(w http.ResponseWriter) error
+}
+
+type ListClaimMessages200JSONResponse ClaimMessageList
+
+func (response ListClaimMessages200JSONResponse) VisitListClaimMessagesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListClaimMessagesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListClaimMessagesdefaultApplicationProblemPlusJSONResponse) VisitListClaimMessagesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostClaimMessageRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *PostClaimMessageJSONRequestBody
+}
+
+type PostClaimMessageResponseObject interface {
+	VisitPostClaimMessageResponse(w http.ResponseWriter) error
+}
+
+type PostClaimMessage201JSONResponse ClaimMessage
+
+func (response PostClaimMessage201JSONResponse) VisitPostClaimMessageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostClaimMessagedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response PostClaimMessagedefaultApplicationProblemPlusJSONResponse) VisitPostClaimMessageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PickUpClaimRequestObject struct {
+	Id IdOrCode `json:"id"`
+}
+
+type PickUpClaimResponseObject interface {
+	VisitPickUpClaimResponse(w http.ResponseWriter) error
+}
+
+type PickUpClaim200JSONResponse Claim
+
+func (response PickUpClaim200JSONResponse) VisitPickUpClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PickUpClaimdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response PickUpClaimdefaultApplicationProblemPlusJSONResponse) VisitPickUpClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RejectClaimRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *RejectClaimJSONRequestBody
+}
+
+type RejectClaimResponseObject interface {
+	VisitRejectClaimResponse(w http.ResponseWriter) error
+}
+
+type RejectClaim200JSONResponse Claim
+
+func (response RejectClaim200JSONResponse) VisitRejectClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RejectClaimdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RejectClaimdefaultApplicationProblemPlusJSONResponse) VisitRejectClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ReopenClaimRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *ReopenClaimJSONRequestBody
+}
+
+type ReopenClaimResponseObject interface {
+	VisitReopenClaimResponse(w http.ResponseWriter) error
+}
+
+type ReopenClaim200JSONResponse Claim
+
+func (response ReopenClaim200JSONResponse) VisitReopenClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ReopenClaimdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ReopenClaimdefaultApplicationProblemPlusJSONResponse) VisitReopenClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RequestClaimInfoRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *RequestClaimInfoJSONRequestBody
+}
+
+type RequestClaimInfoResponseObject interface {
+	VisitRequestClaimInfoResponse(w http.ResponseWriter) error
+}
+
+type RequestClaimInfo200JSONResponse Claim
+
+func (response RequestClaimInfo200JSONResponse) VisitRequestClaimInfoResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RequestClaimInfodefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RequestClaimInfodefaultApplicationProblemPlusJSONResponse) VisitRequestClaimInfoResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RespondToClaimRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *RespondToClaimJSONRequestBody
+}
+
+type RespondToClaimResponseObject interface {
+	VisitRespondToClaimResponse(w http.ResponseWriter) error
+}
+
+type RespondToClaim200JSONResponse Claim
+
+func (response RespondToClaim200JSONResponse) VisitRespondToClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RespondToClaimdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RespondToClaimdefaultApplicationProblemPlusJSONResponse) VisitRespondToClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeClaimRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *RevokeClaimJSONRequestBody
+}
+
+type RevokeClaimResponseObject interface {
+	VisitRevokeClaimResponse(w http.ResponseWriter) error
+}
+
+type RevokeClaim200JSONResponse Claim
+
+func (response RevokeClaim200JSONResponse) VisitRevokeClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeClaimdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RevokeClaimdefaultApplicationProblemPlusJSONResponse) VisitRevokeClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type WithdrawClaimRequestObject struct {
+	Id IdOrCode `json:"id"`
+}
+
+type WithdrawClaimResponseObject interface {
+	VisitWithdrawClaimResponse(w http.ResponseWriter) error
+}
+
+type WithdrawClaim200JSONResponse Claim
+
+func (response WithdrawClaim200JSONResponse) VisitWithdrawClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type WithdrawClaimdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response WithdrawClaimdefaultApplicationProblemPlusJSONResponse) VisitWithdrawClaimResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListColoursRequestObject struct {
 }
 
@@ -6253,6 +8194,46 @@ type CloseFoundReportdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response CloseFoundReportdefaultApplicationProblemPlusJSONResponse) VisitCloseFoundReportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type HandoverFoundReportRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *HandoverFoundReportJSONRequestBody
+}
+
+type HandoverFoundReportResponseObject interface {
+	VisitHandoverFoundReportResponse(w http.ResponseWriter) error
+}
+
+type HandoverFoundReport200JSONResponse Claim
+
+func (response HandoverFoundReport200JSONResponse) VisitHandoverFoundReportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type HandoverFoundReportdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response HandoverFoundReportdefaultApplicationProblemPlusJSONResponse) VisitHandoverFoundReportResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -7649,6 +9630,57 @@ type StrictServerInterface interface {
 	// (GET /categories)
 	ListCategories(ctx context.Context, request ListCategoriesRequestObject) (ListCategoriesResponseObject, error)
 
+	// (GET /claims)
+	ListClaims(ctx context.Context, request ListClaimsRequestObject) (ListClaimsResponseObject, error)
+
+	// (POST /claims)
+	CreateClaim(ctx context.Context, request CreateClaimRequestObject) (CreateClaimResponseObject, error)
+
+	// (GET /claims/{id})
+	GetClaim(ctx context.Context, request GetClaimRequestObject) (GetClaimResponseObject, error)
+
+	// (POST /claims/{id}/approve)
+	ApproveClaim(ctx context.Context, request ApproveClaimRequestObject) (ApproveClaimResponseObject, error)
+
+	// (GET /claims/{id}/checks)
+	GetClaimChecks(ctx context.Context, request GetClaimChecksRequestObject) (GetClaimChecksResponseObject, error)
+
+	// (PUT /claims/{id}/checks)
+	PutClaimChecks(ctx context.Context, request PutClaimChecksRequestObject) (PutClaimChecksResponseObject, error)
+
+	// (POST /claims/{id}/handover-code)
+	RegenerateHandoverCode(ctx context.Context, request RegenerateHandoverCodeRequestObject) (RegenerateHandoverCodeResponseObject, error)
+
+	// (PATCH /claims/{id}/internal-note)
+	SetClaimInternalNote(ctx context.Context, request SetClaimInternalNoteRequestObject) (SetClaimInternalNoteResponseObject, error)
+
+	// (GET /claims/{id}/messages)
+	ListClaimMessages(ctx context.Context, request ListClaimMessagesRequestObject) (ListClaimMessagesResponseObject, error)
+
+	// (POST /claims/{id}/messages)
+	PostClaimMessage(ctx context.Context, request PostClaimMessageRequestObject) (PostClaimMessageResponseObject, error)
+
+	// (POST /claims/{id}/pick-up)
+	PickUpClaim(ctx context.Context, request PickUpClaimRequestObject) (PickUpClaimResponseObject, error)
+
+	// (POST /claims/{id}/reject)
+	RejectClaim(ctx context.Context, request RejectClaimRequestObject) (RejectClaimResponseObject, error)
+
+	// (POST /claims/{id}/reopen)
+	ReopenClaim(ctx context.Context, request ReopenClaimRequestObject) (ReopenClaimResponseObject, error)
+
+	// (POST /claims/{id}/request-info)
+	RequestClaimInfo(ctx context.Context, request RequestClaimInfoRequestObject) (RequestClaimInfoResponseObject, error)
+
+	// (POST /claims/{id}/respond)
+	RespondToClaim(ctx context.Context, request RespondToClaimRequestObject) (RespondToClaimResponseObject, error)
+
+	// (POST /claims/{id}/revoke)
+	RevokeClaim(ctx context.Context, request RevokeClaimRequestObject) (RevokeClaimResponseObject, error)
+
+	// (POST /claims/{id}/withdraw)
+	WithdrawClaim(ctx context.Context, request WithdrawClaimRequestObject) (WithdrawClaimResponseObject, error)
+
 	// (GET /colours)
 	ListColours(ctx context.Context, request ListColoursRequestObject) (ListColoursResponseObject, error)
 
@@ -7669,6 +9701,9 @@ type StrictServerInterface interface {
 
 	// (POST /found-reports/{id}/close)
 	CloseFoundReport(ctx context.Context, request CloseFoundReportRequestObject) (CloseFoundReportResponseObject, error)
+
+	// (POST /found-reports/{id}/handover)
+	HandoverFoundReport(ctx context.Context, request HandoverFoundReportRequestObject) (HandoverFoundReportResponseObject, error)
 
 	// (GET /found-reports/{id}/history)
 	GetFoundReportHistory(ctx context.Context, request GetFoundReportHistoryRequestObject) (GetFoundReportHistoryResponseObject, error)
@@ -8664,6 +10699,519 @@ func (sh *strictHandler) ListCategories(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// ListClaims operation middleware
+func (sh *strictHandler) ListClaims(w http.ResponseWriter, r *http.Request, params ListClaimsParams) {
+	var request ListClaimsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListClaims(ctx, request.(ListClaimsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListClaims")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListClaimsResponseObject); ok {
+		if err := validResponse.VisitListClaimsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateClaim operation middleware
+func (sh *strictHandler) CreateClaim(w http.ResponseWriter, r *http.Request, params CreateClaimParams) {
+	var request CreateClaimRequestObject
+
+	request.Params = params
+
+	var body CreateClaimJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateClaim(ctx, request.(CreateClaimRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateClaim")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateClaimResponseObject); ok {
+		if err := validResponse.VisitCreateClaimResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetClaim operation middleware
+func (sh *strictHandler) GetClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request GetClaimRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetClaim(ctx, request.(GetClaimRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetClaim")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetClaimResponseObject); ok {
+		if err := validResponse.VisitGetClaimResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ApproveClaim operation middleware
+func (sh *strictHandler) ApproveClaim(w http.ResponseWriter, r *http.Request, id IdOrCode, params ApproveClaimParams) {
+	var request ApproveClaimRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	var body ApproveClaimJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ApproveClaim(ctx, request.(ApproveClaimRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ApproveClaim")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ApproveClaimResponseObject); ok {
+		if err := validResponse.VisitApproveClaimResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetClaimChecks operation middleware
+func (sh *strictHandler) GetClaimChecks(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request GetClaimChecksRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetClaimChecks(ctx, request.(GetClaimChecksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetClaimChecks")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetClaimChecksResponseObject); ok {
+		if err := validResponse.VisitGetClaimChecksResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PutClaimChecks operation middleware
+func (sh *strictHandler) PutClaimChecks(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request PutClaimChecksRequestObject
+
+	request.Id = id
+
+	var body PutClaimChecksJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PutClaimChecks(ctx, request.(PutClaimChecksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PutClaimChecks")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PutClaimChecksResponseObject); ok {
+		if err := validResponse.VisitPutClaimChecksResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RegenerateHandoverCode operation middleware
+func (sh *strictHandler) RegenerateHandoverCode(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request RegenerateHandoverCodeRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RegenerateHandoverCode(ctx, request.(RegenerateHandoverCodeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RegenerateHandoverCode")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RegenerateHandoverCodeResponseObject); ok {
+		if err := validResponse.VisitRegenerateHandoverCodeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SetClaimInternalNote operation middleware
+func (sh *strictHandler) SetClaimInternalNote(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request SetClaimInternalNoteRequestObject
+
+	request.Id = id
+
+	var body SetClaimInternalNoteJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SetClaimInternalNote(ctx, request.(SetClaimInternalNoteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SetClaimInternalNote")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SetClaimInternalNoteResponseObject); ok {
+		if err := validResponse.VisitSetClaimInternalNoteResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListClaimMessages operation middleware
+func (sh *strictHandler) ListClaimMessages(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request ListClaimMessagesRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListClaimMessages(ctx, request.(ListClaimMessagesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListClaimMessages")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListClaimMessagesResponseObject); ok {
+		if err := validResponse.VisitListClaimMessagesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostClaimMessage operation middleware
+func (sh *strictHandler) PostClaimMessage(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request PostClaimMessageRequestObject
+
+	request.Id = id
+
+	var body PostClaimMessageJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostClaimMessage(ctx, request.(PostClaimMessageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostClaimMessage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostClaimMessageResponseObject); ok {
+		if err := validResponse.VisitPostClaimMessageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PickUpClaim operation middleware
+func (sh *strictHandler) PickUpClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request PickUpClaimRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PickUpClaim(ctx, request.(PickUpClaimRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PickUpClaim")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PickUpClaimResponseObject); ok {
+		if err := validResponse.VisitPickUpClaimResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RejectClaim operation middleware
+func (sh *strictHandler) RejectClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request RejectClaimRequestObject
+
+	request.Id = id
+
+	var body RejectClaimJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RejectClaim(ctx, request.(RejectClaimRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RejectClaim")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RejectClaimResponseObject); ok {
+		if err := validResponse.VisitRejectClaimResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ReopenClaim operation middleware
+func (sh *strictHandler) ReopenClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request ReopenClaimRequestObject
+
+	request.Id = id
+
+	var body ReopenClaimJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ReopenClaim(ctx, request.(ReopenClaimRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ReopenClaim")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ReopenClaimResponseObject); ok {
+		if err := validResponse.VisitReopenClaimResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RequestClaimInfo operation middleware
+func (sh *strictHandler) RequestClaimInfo(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request RequestClaimInfoRequestObject
+
+	request.Id = id
+
+	var body RequestClaimInfoJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RequestClaimInfo(ctx, request.(RequestClaimInfoRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RequestClaimInfo")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RequestClaimInfoResponseObject); ok {
+		if err := validResponse.VisitRequestClaimInfoResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RespondToClaim operation middleware
+func (sh *strictHandler) RespondToClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request RespondToClaimRequestObject
+
+	request.Id = id
+
+	var body RespondToClaimJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RespondToClaim(ctx, request.(RespondToClaimRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RespondToClaim")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RespondToClaimResponseObject); ok {
+		if err := validResponse.VisitRespondToClaimResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RevokeClaim operation middleware
+func (sh *strictHandler) RevokeClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request RevokeClaimRequestObject
+
+	request.Id = id
+
+	var body RevokeClaimJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RevokeClaim(ctx, request.(RevokeClaimRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RevokeClaim")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RevokeClaimResponseObject); ok {
+		if err := validResponse.VisitRevokeClaimResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// WithdrawClaim operation middleware
+func (sh *strictHandler) WithdrawClaim(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request WithdrawClaimRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.WithdrawClaim(ctx, request.(WithdrawClaimRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "WithdrawClaim")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(WithdrawClaimResponseObject); ok {
+		if err := validResponse.VisitWithdrawClaimResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListColours operation middleware
 func (sh *strictHandler) ListColours(w http.ResponseWriter, r *http.Request) {
 	var request ListColoursRequestObject
@@ -8859,6 +11407,39 @@ func (sh *strictHandler) CloseFoundReport(w http.ResponseWriter, r *http.Request
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(CloseFoundReportResponseObject); ok {
 		if err := validResponse.VisitCloseFoundReportResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// HandoverFoundReport operation middleware
+func (sh *strictHandler) HandoverFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request HandoverFoundReportRequestObject
+
+	request.Id = id
+
+	var body HandoverFoundReportJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.HandoverFoundReport(ctx, request.(HandoverFoundReportRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "HandoverFoundReport")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(HandoverFoundReportResponseObject); ok {
+		if err := validResponse.VisitHandoverFoundReportResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

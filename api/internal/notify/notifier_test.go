@@ -67,7 +67,7 @@ func TestEveryCatalogEntryRendersAndStaysInIndonesian(t *testing.T) {
 	t.Parallel()
 	data := map[string]string{
 		"lost_code": "LST-2611-0007", "found_code": "FND-2611-0012", "claim_code": "CLM-2611-0001",
-		"item_name": "Dompet cokelat", "post_name": "Pos Perpustakaan", "count": "3", "score": "81%",
+		"item_name": "Dompet cokelat", "post_name": "Pos Perpustakaan", "count": "3", "score": "81%", "reason_label": "Detail tidak cocok",
 	}
 	dashes := string([]rune{0x2013, 0x2014})
 	for e, s := range catalog {

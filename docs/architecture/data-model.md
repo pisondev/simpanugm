@@ -418,7 +418,7 @@ Indexes: `(lost_report_id, status, overall desc)`, `(found_report_id, status, ov
 | decision_note | text? | shown to the claimant |
 | internal_note | text? | officers only |
 | decided_by, decided_at | | |
-| handover_code_hmac | bytea? | BR-HND-01 |
+| handover_nonce | bytea? | BR-HND-01. Random per issue, the code is `HMAC(pepper, claim id and nonce)` reduced to 6 digits, so no code or digest of one is stored |
 | handover_code_issued_at | tstz? | |
 | handover_failed_attempts | smallint | default 0 |
 | handover_locked_at | tstz? | BR-HND-02 |

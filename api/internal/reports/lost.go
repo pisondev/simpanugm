@@ -189,7 +189,7 @@ func (s *Service) CreateLost(ctx context.Context, p *access.Principal, key strin
 			}
 			reporter = &p.UserID
 		}
-		code, err := nextCode(ctx, q, "LST", now)
+		code, err := NextCode(ctx, q, "LST", now)
 		if err != nil {
 			return err
 		}

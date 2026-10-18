@@ -57,8 +57,8 @@ func outcome(o *openapi.AssistOutcome) []byte {
 	return raw
 }
 
-func (h *Handlers) CreateLostReport(ctx context.Context, req openapi.CreateLostReportRequestObject) (openapi.CreateLostReportResponseObject, error) {
-	b := req.Body
+// LostInputFrom maps the request body of createLostReport, the claim form uses it for a claim from the public listing
+func LostInputFrom(b openapi.LostReportCreate) LostInput {
 	in := LostInput{
 		CategoryID: b.CategoryId, ItemName: b.ItemName, Description: b.Description, PrivateDetails: b.PrivateDetails,
 		Colours: b.Colours, Brand: b.Brand, LostFrom: b.LostFrom.UTC(), LostUntil: b.LostUntil.UTC(),
@@ -70,7 +70,11 @@ func (h *Handlers) CreateLostReport(ctx context.Context, req openapi.CreateLostR
 	if b.Proxy != nil {
 		in.ProxyName, in.ProxyPhone = &b.Proxy.Name, b.Proxy.Phone
 	}
-	out, err := h.svc.CreateLost(ctx, access.FromContext(ctx), req.Params.IdempotencyKey, in)
+	return in
+}
+
+func (h *Handlers) CreateLostReport(ctx context.Context, req openapi.CreateLostReportRequestObject) (openapi.CreateLostReportResponseObject, error) {
+	out, err := h.svc.CreateLost(ctx, access.FromContext(ctx), req.Params.IdempotencyKey, LostInputFrom(*req.Body))
 	if err != nil {
 		return nil, err
 	}

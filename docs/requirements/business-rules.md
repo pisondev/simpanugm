@@ -116,7 +116,7 @@ Lost reports are never listed publicly.
 | BR-CUS-04 | Items of sensitivity `identity` can only be disposed of as `transferred_to_unit`, meaning handed to the issuing office such as the faculty academic office for a KTM |
 | BR-CUS-05 | The post officers receive a retention warning 7 days before the due date |
 | BR-CUS-06 | Retention can be extended once per item, by at most 30 days, with a reason |
-| BR-HND-01 | Approval generates a 6 digit numeric handover code from a cryptographic random source. Only an HMAC-SHA256 of the code with the server pepper is stored. Regenerating the code invalidates the previous one |
+| BR-HND-01 | Approval issues a 6 digit numeric handover code. A random nonce is stored and the code is derived from it with HMAC-SHA256 under the server pepper, so the code itself is never stored and is shown only to the claimant. Regenerating the code replaces the nonce and invalidates the previous one |
 | BR-HND-02 | Five wrong code entries for a claim lock the code. An officer must verify identity in person and regenerate it. Every attempt is audited |
 | BR-HND-03 | The officer confirms with a checkbox that the name on the ID matches the claimant account name, and records the ID type and its last four characters |
 | BR-HND-04 | For a walk in visitor claim, the code step is replaced by BR-CLM-09 and a match of the ID name with the recorded visitor name |

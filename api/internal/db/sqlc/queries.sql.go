@@ -317,19 +317,50 @@ func (q *Queries) AdminListZones(ctx context.Context) ([]Zone, error) {
 	return items, nil
 }
 
+const approveClaim = `-- name: ApproveClaim :exec
+UPDATE claims
+SET status = 'approved', decided_by = $2, decided_at = $3, decision_note = $6, decision_reason = NULL,
+    handover_nonce = $4, handover_code_issued_at = $3, handover_failed_attempts = 0, handover_locked_at = NULL,
+    approved_expires_at = $5, expiring_notified_at = NULL, updated_at = $3, version = version + 1
+WHERE id = $1
+`
+
+type ApproveClaimParams struct {
+	ID                uuid.UUID
+	DecidedBy         *uuid.UUID
+	DecidedAt         *time.Time
+	HandoverNonce     []byte
+	ApprovedExpiresAt *time.Time
+	DecisionNote      *string
+}
+
+func (q *Queries) ApproveClaim(ctx context.Context, arg ApproveClaimParams) error {
+	_, err := q.db.Exec(ctx, approveClaim,
+		arg.ID,
+		arg.DecidedBy,
+		arg.DecidedAt,
+		arg.HandoverNonce,
+		arg.ApprovedExpiresAt,
+		arg.DecisionNote,
+	)
+	return err
+}
+
 const attachMedia = `-- name: AttachMedia :exec
 UPDATE media
 SET lost_report_id = $1,
     found_report_id = $2,
+    claim_id = $3,
     state = 'ready',
-    position = $3,
-    attached_at = coalesce(attached_at, $4::timestamptz)
-WHERE id = $5
+    position = $4,
+    attached_at = coalesce(attached_at, $5::timestamptz)
+WHERE id = $6
 `
 
 type AttachMediaParams struct {
 	LostReportID  *uuid.UUID
 	FoundReportID *uuid.UUID
+	ClaimID       *uuid.UUID
 	Position      int16
 	Now           time.Time
 	ID            uuid.UUID
@@ -339,6 +370,7 @@ func (q *Queries) AttachMedia(ctx context.Context, arg AttachMediaParams) error 
 	_, err := q.db.Exec(ctx, attachMedia,
 		arg.LostReportID,
 		arg.FoundReportID,
+		arg.ClaimID,
 		arg.Position,
 		arg.Now,
 		arg.ID,
@@ -376,6 +408,30 @@ func (q *Queries) CandidatePhotos(ctx context.Context, ids []uuid.UUID) ([]Candi
 		return nil, err
 	}
 	return items, nil
+}
+
+const candidatesOfFound = `-- name: CandidatesOfFound :one
+SELECT count(*)::int FROM matches
+WHERE found_report_id = $1 AND status = 'active' AND tier IN ('high', 'medium') AND rank_for_found IS NOT NULL
+`
+
+func (q *Queries) CandidatesOfFound(ctx context.Context, foundReportID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, candidatesOfFound, foundReportID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const candidatesOfLost = `-- name: CandidatesOfLost :one
+SELECT count(*)::int FROM matches
+WHERE lost_report_id = $1 AND status = 'active' AND tier IN ('high', 'medium') AND rank_for_lost IS NOT NULL AND owner_dismissed_at IS NULL
+`
+
+func (q *Queries) CandidatesOfLost(ctx context.Context, lostReportID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, candidatesOfLost, lostReportID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const categoryForUpdate = `-- name: CategoryForUpdate :one
@@ -447,6 +503,84 @@ func (q *Queries) ChangeUserEmail(ctx context.Context, arg ChangeUserEmailParams
 	return err
 }
 
+const claimCodeFailed = `-- name: ClaimCodeFailed :one
+UPDATE claims
+SET handover_failed_attempts = handover_failed_attempts + 1,
+    handover_locked_at = CASE WHEN handover_failed_attempts + 1 >= $1::int THEN $2::timestamptz ELSE handover_locked_at END,
+    updated_at = $2
+WHERE id = $3
+RETURNING handover_failed_attempts, handover_locked_at
+`
+
+type ClaimCodeFailedParams struct {
+	MaxAttempts int32
+	Now         time.Time
+	ID          uuid.UUID
+}
+
+type ClaimCodeFailedRow struct {
+	HandoverFailedAttempts int16
+	HandoverLockedAt       *time.Time
+}
+
+func (q *Queries) ClaimCodeFailed(ctx context.Context, arg ClaimCodeFailedParams) (ClaimCodeFailedRow, error) {
+	row := q.db.QueryRow(ctx, claimCodeFailed, arg.MaxAttempts, arg.Now, arg.ID)
+	var i ClaimCodeFailedRow
+	err := row.Scan(&i.HandoverFailedAttempts, &i.HandoverLockedAt)
+	return i, err
+}
+
+const claimForUpdate = `-- name: ClaimForUpdate :one
+SELECT id, code, claimant_id, created_by, lost_report_id, found_report_id, match_id, source, statement, answers, preferred_visit, status, reviewer_id, decision_reason, decision_note, internal_note, decided_by, decided_at, handover_nonce, handover_code_issued_at, handover_failed_attempts, handover_locked_at, approved_expires_at, expiring_notified_at, info_requested_at, handed_over_at, handed_over_by, recipient_id_type, recipient_id_last4, recipient_name_confirmed, reopened_at, version, created_at, updated_at FROM claims WHERE id = $1::uuid OR code = $2::text FOR UPDATE
+`
+
+type ClaimForUpdateParams struct {
+	ID   *uuid.UUID
+	Code *string
+}
+
+func (q *Queries) ClaimForUpdate(ctx context.Context, arg ClaimForUpdateParams) (Claim, error) {
+	row := q.db.QueryRow(ctx, claimForUpdate, arg.ID, arg.Code)
+	var i Claim
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.ClaimantID,
+		&i.CreatedBy,
+		&i.LostReportID,
+		&i.FoundReportID,
+		&i.MatchID,
+		&i.Source,
+		&i.Statement,
+		&i.Answers,
+		&i.PreferredVisit,
+		&i.Status,
+		&i.ReviewerID,
+		&i.DecisionReason,
+		&i.DecisionNote,
+		&i.InternalNote,
+		&i.DecidedBy,
+		&i.DecidedAt,
+		&i.HandoverNonce,
+		&i.HandoverCodeIssuedAt,
+		&i.HandoverFailedAttempts,
+		&i.HandoverLockedAt,
+		&i.ApprovedExpiresAt,
+		&i.ExpiringNotifiedAt,
+		&i.InfoRequestedAt,
+		&i.HandedOverAt,
+		&i.HandedOverBy,
+		&i.RecipientIDType,
+		&i.RecipientIDLast4,
+		&i.RecipientNameConfirmed,
+		&i.ReopenedAt,
+		&i.Version,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const claimIdempotencyKey = `-- name: ClaimIdempotencyKey :execrows
 INSERT INTO idempotency_keys (user_id, key, endpoint, request_hash, created_at, expires_at)
 VALUES ($1, $2, $3, $4, $5, $6)
@@ -475,6 +609,289 @@ func (q *Queries) ClaimIdempotencyKey(ctx context.Context, arg ClaimIdempotencyK
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const claimView = `-- name: ClaimView :one
+SELECT c.id, c.code, c.claimant_id, c.created_by, c.lost_report_id, c.found_report_id, c.match_id, c.source, c.statement, c.answers, c.preferred_visit, c.status, c.reviewer_id, c.decision_reason, c.decision_note, c.internal_note, c.decided_by, c.decided_at, c.handover_nonce, c.handover_code_issued_at, c.handover_failed_attempts, c.handover_locked_at, c.approved_expires_at, c.expiring_notified_at, c.info_requested_at, c.handed_over_at, c.handed_over_by, c.recipient_id_type, c.recipient_id_last4, c.recipient_name_confirmed, c.reopened_at, c.version, c.created_at, c.updated_at,
+       fr.code AS found_code, fr.item_name AS found_item_name, fr.description AS found_description, fr.hidden_details,
+       fr.colours AS found_colours, fr.brand AS found_brand, fr.found_at, fr.custody_status, fr.status AS found_status,
+       fr.holding_post_id, fr.intended_post_id, fr.storage_slot, fr.finder_id, fr.category_id AS found_category_id,
+       fc.slug AS found_category_slug, fc.name AS found_category_name, fc.sensitivity AS found_sensitivity,
+       coalesce(fp.name, fc.name)::text AS found_category_parent, fc.verification_questions,
+       fl.name AS found_location_name,
+       lr.code AS lost_code, lr.item_name AS lost_item_name, lr.status AS lost_status, lr.reporter_id AS lost_reporter_id,
+       lr.proxy_name, lr.colours AS lost_colours, lr.brand AS lost_brand, lr.private_details, lr.lost_from, lr.lost_until,
+       cu.full_name AS claimant_name, cu.email AS claimant_email, cu.phone AS claimant_phone,
+       ru.full_name AS reviewer_name, cr.full_name AS creator_name,
+       hp.name AS holding_post_name, ip.name AS intended_post_name
+FROM claims c
+JOIN found_reports fr ON fr.id = c.found_report_id
+JOIN categories fc ON fc.id = fr.category_id
+LEFT JOIN categories fp ON fp.id = fc.parent_id
+JOIN locations fl ON fl.id = fr.found_location_id
+JOIN lost_reports lr ON lr.id = c.lost_report_id
+LEFT JOIN users cu ON cu.id = c.claimant_id
+LEFT JOIN users ru ON ru.id = c.reviewer_id
+LEFT JOIN users cr ON cr.id = c.created_by
+LEFT JOIN posts hp ON hp.id = fr.holding_post_id
+LEFT JOIN posts ip ON ip.id = fr.intended_post_id
+WHERE c.id = $1::uuid OR c.code = $2::text
+`
+
+type ClaimViewParams struct {
+	ID   *uuid.UUID
+	Code *string
+}
+
+type ClaimViewRow struct {
+	ID                     uuid.UUID
+	Code                   string
+	ClaimantID             *uuid.UUID
+	CreatedBy              uuid.UUID
+	LostReportID           uuid.UUID
+	FoundReportID          uuid.UUID
+	MatchID                *uuid.UUID
+	Source                 string
+	Statement              string
+	Answers                []byte
+	PreferredVisit         *string
+	Status                 string
+	ReviewerID             *uuid.UUID
+	DecisionReason         *string
+	DecisionNote           *string
+	InternalNote           *string
+	DecidedBy              *uuid.UUID
+	DecidedAt              *time.Time
+	HandoverNonce          []byte
+	HandoverCodeIssuedAt   *time.Time
+	HandoverFailedAttempts int16
+	HandoverLockedAt       *time.Time
+	ApprovedExpiresAt      *time.Time
+	ExpiringNotifiedAt     *time.Time
+	InfoRequestedAt        *time.Time
+	HandedOverAt           *time.Time
+	HandedOverBy           *uuid.UUID
+	RecipientIDType        *string
+	RecipientIDLast4       *string
+	RecipientNameConfirmed *bool
+	ReopenedAt             *time.Time
+	Version                int32
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+	FoundCode              string
+	FoundItemName          string
+	FoundDescription       string
+	HiddenDetails          *string
+	FoundColours           []string
+	FoundBrand             *string
+	FoundAt                time.Time
+	CustodyStatus          string
+	FoundStatus            string
+	HoldingPostID          *uuid.UUID
+	IntendedPostID         *uuid.UUID
+	StorageSlot            *string
+	FinderID               *uuid.UUID
+	FoundCategoryID        uuid.UUID
+	FoundCategorySlug      string
+	FoundCategoryName      string
+	FoundSensitivity       *string
+	FoundCategoryParent    string
+	VerificationQuestions  []byte
+	FoundLocationName      string
+	LostCode               string
+	LostItemName           string
+	LostStatus             string
+	LostReporterID         *uuid.UUID
+	ProxyName              *string
+	LostColours            []string
+	LostBrand              *string
+	PrivateDetails         *string
+	LostFrom               time.Time
+	LostUntil              time.Time
+	ClaimantName           *string
+	ClaimantEmail          *string
+	ClaimantPhone          *string
+	ReviewerName           *string
+	CreatorName            *string
+	HoldingPostName        *string
+	IntendedPostName       *string
+}
+
+// everything a claim page shows, joined once
+func (q *Queries) ClaimView(ctx context.Context, arg ClaimViewParams) (ClaimViewRow, error) {
+	row := q.db.QueryRow(ctx, claimView, arg.ID, arg.Code)
+	var i ClaimViewRow
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.ClaimantID,
+		&i.CreatedBy,
+		&i.LostReportID,
+		&i.FoundReportID,
+		&i.MatchID,
+		&i.Source,
+		&i.Statement,
+		&i.Answers,
+		&i.PreferredVisit,
+		&i.Status,
+		&i.ReviewerID,
+		&i.DecisionReason,
+		&i.DecisionNote,
+		&i.InternalNote,
+		&i.DecidedBy,
+		&i.DecidedAt,
+		&i.HandoverNonce,
+		&i.HandoverCodeIssuedAt,
+		&i.HandoverFailedAttempts,
+		&i.HandoverLockedAt,
+		&i.ApprovedExpiresAt,
+		&i.ExpiringNotifiedAt,
+		&i.InfoRequestedAt,
+		&i.HandedOverAt,
+		&i.HandedOverBy,
+		&i.RecipientIDType,
+		&i.RecipientIDLast4,
+		&i.RecipientNameConfirmed,
+		&i.ReopenedAt,
+		&i.Version,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.FoundCode,
+		&i.FoundItemName,
+		&i.FoundDescription,
+		&i.HiddenDetails,
+		&i.FoundColours,
+		&i.FoundBrand,
+		&i.FoundAt,
+		&i.CustodyStatus,
+		&i.FoundStatus,
+		&i.HoldingPostID,
+		&i.IntendedPostID,
+		&i.StorageSlot,
+		&i.FinderID,
+		&i.FoundCategoryID,
+		&i.FoundCategorySlug,
+		&i.FoundCategoryName,
+		&i.FoundSensitivity,
+		&i.FoundCategoryParent,
+		&i.VerificationQuestions,
+		&i.FoundLocationName,
+		&i.LostCode,
+		&i.LostItemName,
+		&i.LostStatus,
+		&i.LostReporterID,
+		&i.ProxyName,
+		&i.LostColours,
+		&i.LostBrand,
+		&i.PrivateDetails,
+		&i.LostFrom,
+		&i.LostUntil,
+		&i.ClaimantName,
+		&i.ClaimantEmail,
+		&i.ClaimantPhone,
+		&i.ReviewerName,
+		&i.CreatorName,
+		&i.HoldingPostName,
+		&i.IntendedPostName,
+	)
+	return i, err
+}
+
+const claimantRejectedCount90 = `-- name: ClaimantRejectedCount90 :one
+SELECT count(*)::int FROM claims WHERE claimant_id = $1 AND status = 'rejected' AND decided_at >= $2
+`
+
+type ClaimantRejectedCount90Params struct {
+	ClaimantID *uuid.UUID
+	DecidedAt  *time.Time
+}
+
+// history of the claimant for V8
+func (q *Queries) ClaimantRejectedCount90(ctx context.Context, arg ClaimantRejectedCount90Params) (int32, error) {
+	row := q.db.QueryRow(ctx, claimantRejectedCount90, arg.ClaimantID, arg.DecidedAt)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const claimsDueToExpire = `-- name: ClaimsDueToExpire :many
+SELECT id FROM claims
+WHERE (status = 'info_requested' AND info_requested_at <= $1::timestamptz)
+   OR (status = 'approved' AND approved_expires_at <= $2::timestamptz)
+ORDER BY updated_at
+LIMIT 200
+`
+
+type ClaimsDueToExpireParams struct {
+	InfoBefore time.Time
+	Now        time.Time
+}
+
+func (q *Queries) ClaimsDueToExpire(ctx context.Context, arg ClaimsDueToExpireParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, claimsDueToExpire, arg.InfoBefore, arg.Now)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const claimsExpiringSoon = `-- name: ClaimsExpiringSoon :many
+SELECT c.id FROM claims c
+WHERE c.status = 'approved' AND c.approved_expires_at <= $1::timestamptz AND c.approved_expires_at > $2::timestamptz
+  AND c.expiring_notified_at IS NULL
+ORDER BY c.approved_expires_at
+LIMIT 200
+`
+
+type ClaimsExpiringSoonParams struct {
+	Until time.Time
+	Now   time.Time
+}
+
+func (q *Queries) ClaimsExpiringSoon(ctx context.Context, arg ClaimsExpiringSoonParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, claimsExpiringSoon, arg.Until, arg.Now)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const clearClaimRestriction = `-- name: ClearClaimRestriction :exec
+UPDATE users SET claim_restricted_at = NULL, updated_at = $2 WHERE id = $1
+`
+
+type ClearClaimRestrictionParams struct {
+	ID        uuid.UUID
+	UpdatedAt time.Time
+}
+
+func (q *Queries) ClearClaimRestriction(ctx context.Context, arg ClearClaimRestrictionParams) error {
+	_, err := q.db.Exec(ctx, clearClaimRestriction, arg.ID, arg.UpdatedAt)
+	return err
 }
 
 const clearRanksBelowFloor = `-- name: ClearRanksBelowFloor :exec
@@ -638,6 +1055,18 @@ type CountFoundByFinderSinceParams struct {
 
 func (q *Queries) CountFoundByFinderSince(ctx context.Context, arg CountFoundByFinderSinceParams) (int32, error) {
 	row := q.db.QueryRow(ctx, countFoundByFinderSince, arg.FinderID, arg.CreatedAt)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const countOpenClaimsOf = `-- name: CountOpenClaimsOf :one
+SELECT count(*)::int FROM claims
+WHERE claimant_id = $1 AND status IN ('submitted', 'under_review', 'info_requested', 'approved', 'on_hold')
+`
+
+func (q *Queries) CountOpenClaimsOf(ctx context.Context, claimantID *uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, countOpenClaimsOf, claimantID)
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -901,6 +1330,20 @@ func (q *Queries) DeleteOldNotifications(ctx context.Context, createdAt time.Tim
 	return result.RowsAffected(), nil
 }
 
+const deleteStaleClaimChecks = `-- name: DeleteStaleClaimChecks :exec
+DELETE FROM claim_checks WHERE claim_id = $1 AND NOT (item_key = ANY($2::text[]))
+`
+
+type DeleteStaleClaimChecksParams struct {
+	ClaimID uuid.UUID
+	Keep    []string
+}
+
+func (q *Queries) DeleteStaleClaimChecks(ctx context.Context, arg DeleteStaleClaimChecksParams) error {
+	_, err := q.db.Exec(ctx, deleteStaleClaimChecks, arg.ClaimID, arg.Keep)
+	return err
+}
+
 const deleteUnverifiedUsersBefore = `-- name: DeleteUnverifiedUsersBefore :execrows
 DELETE FROM users
 WHERE users.status = 'pending_verification'
@@ -1010,6 +1453,30 @@ func (q *Queries) EmbeddingFingerprint(ctx context.Context, arg EmbeddingFingerp
 	return fingerprint, err
 }
 
+const endClaim = `-- name: EndClaim :exec
+UPDATE claims
+SET status = $2, decision_note = coalesce($4, decision_note), handover_nonce = NULL, approved_expires_at = NULL,
+    expiring_notified_at = NULL, updated_at = $3, version = version + 1
+WHERE id = $1
+`
+
+type EndClaimParams struct {
+	ID           uuid.UUID
+	Status       string
+	UpdatedAt    time.Time
+	DecisionNote *string
+}
+
+func (q *Queries) EndClaim(ctx context.Context, arg EndClaimParams) error {
+	_, err := q.db.Exec(ctx, endClaim,
+		arg.ID,
+		arg.Status,
+		arg.UpdatedAt,
+		arg.DecisionNote,
+	)
+	return err
+}
+
 const existingFoundOfLost = `-- name: ExistingFoundOfLost :many
 SELECT found_report_id FROM matches WHERE lost_report_id = $1 AND status IN ('active', 'superseded')
 `
@@ -1093,6 +1560,37 @@ func (q *Queries) FinderHint(ctx context.Context, foundReportID uuid.UUID) ([]Fi
 	return items, nil
 }
 
+const forceFoundStatus = `-- name: ForceFoundStatus :exec
+UPDATE found_reports SET status = $2 WHERE id = $1
+`
+
+type ForceFoundStatusParams struct {
+	ID     uuid.UUID
+	Status string
+}
+
+func (q *Queries) ForceFoundStatus(ctx context.Context, arg ForceFoundStatusParams) error {
+	_, err := q.db.Exec(ctx, forceFoundStatus, arg.ID, arg.Status)
+	return err
+}
+
+const forceLostStatus = `-- name: ForceLostStatus :exec
+
+UPDATE lost_reports SET status = $2, last_activity_at = $3 WHERE id = $1
+`
+
+type ForceLostStatusParams struct {
+	ID             uuid.UUID
+	Status         string
+	LastActivityAt time.Time
+}
+
+// Reports after a claim moves
+func (q *Queries) ForceLostStatus(ctx context.Context, arg ForceLostStatusParams) error {
+	_, err := q.db.Exec(ctx, forceLostStatus, arg.ID, arg.Status, arg.LastActivityAt)
+	return err
+}
+
 const foundForMatching = `-- name: FoundForMatching :many
 SELECT fr.id, fr.code, fr.status, fr.hidden_at, fr.category_id, c.parent_id, c.name AS category_name, pc.name AS parent_name,
        c.sensitivity, fr.item_name, fr.description, fr.hidden_details, fr.colours, fr.brand, fr.found_at, fr.updated_at,
@@ -1169,6 +1667,37 @@ func (q *Queries) FoundForMatching(ctx context.Context, ids []uuid.UUID) ([]Foun
 			&i.VisibleText,
 			&i.HasPhotos,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const foundMediaAttributes = `-- name: FoundMediaAttributes :many
+SELECT ia.colours, ia.brands, ia.category_scores FROM image_attributes ia JOIN media m ON m.id = ia.media_id
+WHERE m.found_report_id = $1 AND m.state = 'ready'
+`
+
+type FoundMediaAttributesRow struct {
+	Colours        []byte
+	Brands         []byte
+	CategoryScores []byte
+}
+
+func (q *Queries) FoundMediaAttributes(ctx context.Context, foundReportID *uuid.UUID) ([]FoundMediaAttributesRow, error) {
+	rows, err := q.db.Query(ctx, foundMediaAttributes, foundReportID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FoundMediaAttributesRow{}
+	for rows.Next() {
+		var i FoundMediaAttributesRow
+		if err := rows.Scan(&i.Colours, &i.Brands, &i.CategoryScores); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -1403,6 +1932,57 @@ func (q *Queries) GetCategory(ctx context.Context, id uuid.UUID) (GetCategoryRow
 		&i.EditedAt,
 		&i.ParentName,
 		&i.ParentActive,
+	)
+	return i, err
+}
+
+const getClaim = `-- name: GetClaim :one
+SELECT id, code, claimant_id, created_by, lost_report_id, found_report_id, match_id, source, statement, answers, preferred_visit, status, reviewer_id, decision_reason, decision_note, internal_note, decided_by, decided_at, handover_nonce, handover_code_issued_at, handover_failed_attempts, handover_locked_at, approved_expires_at, expiring_notified_at, info_requested_at, handed_over_at, handed_over_by, recipient_id_type, recipient_id_last4, recipient_name_confirmed, reopened_at, version, created_at, updated_at FROM claims WHERE id = $1::uuid OR code = $2::text
+`
+
+type GetClaimParams struct {
+	ID   *uuid.UUID
+	Code *string
+}
+
+func (q *Queries) GetClaim(ctx context.Context, arg GetClaimParams) (Claim, error) {
+	row := q.db.QueryRow(ctx, getClaim, arg.ID, arg.Code)
+	var i Claim
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.ClaimantID,
+		&i.CreatedBy,
+		&i.LostReportID,
+		&i.FoundReportID,
+		&i.MatchID,
+		&i.Source,
+		&i.Statement,
+		&i.Answers,
+		&i.PreferredVisit,
+		&i.Status,
+		&i.ReviewerID,
+		&i.DecisionReason,
+		&i.DecisionNote,
+		&i.InternalNote,
+		&i.DecidedBy,
+		&i.DecidedAt,
+		&i.HandoverNonce,
+		&i.HandoverCodeIssuedAt,
+		&i.HandoverFailedAttempts,
+		&i.HandoverLockedAt,
+		&i.ApprovedExpiresAt,
+		&i.ExpiringNotifiedAt,
+		&i.InfoRequestedAt,
+		&i.HandedOverAt,
+		&i.HandedOverBy,
+		&i.RecipientIDType,
+		&i.RecipientIDLast4,
+		&i.RecipientNameConfirmed,
+		&i.ReopenedAt,
+		&i.Version,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -1652,13 +2232,19 @@ func (q *Queries) GetLostReport(ctx context.Context, arg GetLostReportParams) (G
 }
 
 const getMediaForAccess = `-- name: GetMediaForAccess :one
-SELECT m.id, m.uploaded_by, m.purpose, m.lost_report_id, m.found_report_id, m.state, m.mime, m.width, m.height, m.bytes, m.sha256, m.phash, m.storage_keys, m.position, m.created_at, m.attached_at, m.deleted_at, lr.reporter_id AS lost_reporter_id, fr.finder_id AS found_finder_id,
+SELECT m.id, m.uploaded_by, m.purpose, m.lost_report_id, m.found_report_id, m.state, m.mime, m.width, m.height, m.bytes, m.sha256, m.phash, m.storage_keys, m.position, m.created_at, m.attached_at, m.deleted_at, m.claim_id, lr.reporter_id AS lost_reporter_id, fr.finder_id AS found_finder_id,
        coalesce(lc.sensitivity, fc.sensitivity, '')::text AS sensitivity,
        EXISTS (
            SELECT 1 FROM matches mt JOIN lost_reports ol ON ol.id = mt.lost_report_id
            WHERE mt.found_report_id = m.found_report_id AND ol.reporter_id = $1::uuid
              AND mt.status = 'active' AND mt.tier IN ('high', 'medium') AND mt.rank_for_lost IS NOT NULL AND mt.owner_dismissed_at IS NULL
-       )::bool AS candidate_owner
+             OR mt.status = 'confirmed'
+       )::bool AS candidate_owner,
+       EXISTS (
+           SELECT 1 FROM claims cl
+           WHERE cl.found_report_id = m.found_report_id AND cl.claimant_id = $1::uuid
+             AND cl.status IN ('submitted', 'under_review', 'info_requested', 'on_hold', 'approved', 'handed_over')
+       )::bool AS claimant
 FROM media m
 LEFT JOIN lost_reports lr ON lr.id = m.lost_report_id
 LEFT JOIN categories lc ON lc.id = lr.category_id
@@ -1690,10 +2276,12 @@ type GetMediaForAccessRow struct {
 	CreatedAt      time.Time
 	AttachedAt     *time.Time
 	DeletedAt      *time.Time
+	ClaimID        *uuid.UUID
 	LostReporterID *uuid.UUID
 	FoundFinderID  *uuid.UUID
 	Sensitivity    string
 	CandidateOwner bool
+	Claimant       bool
 }
 
 // candidate_owner: the viewer owns a lost report for which this found photo is a visible candidate (BR-VIS 5.2)
@@ -1718,10 +2306,12 @@ func (q *Queries) GetMediaForAccess(ctx context.Context, arg GetMediaForAccessPa
 		&i.CreatedAt,
 		&i.AttachedAt,
 		&i.DeletedAt,
+		&i.ClaimID,
 		&i.LostReporterID,
 		&i.FoundFinderID,
 		&i.Sensitivity,
 		&i.CandidateOwner,
+		&i.Claimant,
 	)
 	return i, err
 }
@@ -1996,6 +2586,51 @@ func (q *Queries) GetZone(ctx context.Context, id uuid.UUID) (Zone, error) {
 	return i, err
 }
 
+const handOverClaim = `-- name: HandOverClaim :exec
+UPDATE claims
+SET status = 'handed_over', handed_over_at = $2, handed_over_by = $3, recipient_id_type = $4, recipient_id_last4 = $5,
+    recipient_name_confirmed = $6, handover_nonce = NULL, approved_expires_at = NULL, updated_at = $2, version = version + 1
+WHERE id = $1
+`
+
+type HandOverClaimParams struct {
+	ID                     uuid.UUID
+	HandedOverAt           *time.Time
+	HandedOverBy           *uuid.UUID
+	RecipientIDType        *string
+	RecipientIDLast4       *string
+	RecipientNameConfirmed *bool
+}
+
+func (q *Queries) HandOverClaim(ctx context.Context, arg HandOverClaimParams) error {
+	_, err := q.db.Exec(ctx, handOverClaim,
+		arg.ID,
+		arg.HandedOverAt,
+		arg.HandedOverBy,
+		arg.RecipientIDType,
+		arg.RecipientIDLast4,
+		arg.RecipientNameConfirmed,
+	)
+	return err
+}
+
+const hasRejectedClaim = `-- name: HasRejectedClaim :one
+SELECT EXISTS (SELECT 1 FROM claims WHERE claimant_id = $1 AND found_report_id = $2 AND status = 'rejected')::bool
+`
+
+type HasRejectedClaimParams struct {
+	ClaimantID    *uuid.UUID
+	FoundReportID uuid.UUID
+}
+
+// BR-CLM-02: a rejected claim blocks a new one until an officer reopens it
+func (q *Queries) HasRejectedClaim(ctx context.Context, arg HasRejectedClaimParams) (bool, error) {
+	row := q.db.QueryRow(ctx, hasRejectedClaim, arg.ClaimantID, arg.FoundReportID)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const highMatchesOfFound = `-- name: HighMatchesOfFound :many
 SELECT m.id, lr.code AS lost_code FROM matches m
 JOIN lost_reports lr ON lr.id = m.lost_report_id
@@ -2177,6 +2812,105 @@ func (q *Queries) InsertCategory(ctx context.Context, arg InsertCategoryParams) 
 		arg.ClipPrompts,
 		arg.SortOrder,
 		arg.Now,
+	)
+	return err
+}
+
+const insertClaim = `-- name: InsertClaim :exec
+INSERT INTO claims (
+    id, code, claimant_id, created_by, lost_report_id, found_report_id, match_id, source, statement, answers, preferred_visit,
+    status, created_at, updated_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6,
+    $7, $8, $9, $10, $11,
+    'submitted', $12, $12
+)
+`
+
+type InsertClaimParams struct {
+	ID             uuid.UUID
+	Code           string
+	ClaimantID     *uuid.UUID
+	CreatedBy      uuid.UUID
+	LostReportID   uuid.UUID
+	FoundReportID  uuid.UUID
+	MatchID        *uuid.UUID
+	Source         string
+	Statement      string
+	Answers        []byte
+	PreferredVisit *string
+	Now            time.Time
+}
+
+func (q *Queries) InsertClaim(ctx context.Context, arg InsertClaimParams) error {
+	_, err := q.db.Exec(ctx, insertClaim,
+		arg.ID,
+		arg.Code,
+		arg.ClaimantID,
+		arg.CreatedBy,
+		arg.LostReportID,
+		arg.FoundReportID,
+		arg.MatchID,
+		arg.Source,
+		arg.Statement,
+		arg.Answers,
+		arg.PreferredVisit,
+		arg.Now,
+	)
+	return err
+}
+
+const insertClaimCheck = `-- name: InsertClaimCheck :exec
+INSERT INTO claim_checks (claim_id, item_key, position, label, required, info_only, suggestion)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT (claim_id, item_key) DO UPDATE
+SET label = excluded.label, required = excluded.required, info_only = excluded.info_only, suggestion = excluded.suggestion
+`
+
+type InsertClaimCheckParams struct {
+	ClaimID    uuid.UUID
+	ItemKey    string
+	Position   int16
+	Label      string
+	Required   bool
+	InfoOnly   bool
+	Suggestion []byte
+}
+
+func (q *Queries) InsertClaimCheck(ctx context.Context, arg InsertClaimCheckParams) error {
+	_, err := q.db.Exec(ctx, insertClaimCheck,
+		arg.ClaimID,
+		arg.ItemKey,
+		arg.Position,
+		arg.Label,
+		arg.Required,
+		arg.InfoOnly,
+		arg.Suggestion,
+	)
+	return err
+}
+
+const insertClaimMessage = `-- name: InsertClaimMessage :exec
+INSERT INTO claim_messages (id, claim_id, author_id, author_role, body, created_at) VALUES ($1, $2, $3, $4, $5, $6)
+`
+
+type InsertClaimMessageParams struct {
+	ID         uuid.UUID
+	ClaimID    uuid.UUID
+	AuthorID   *uuid.UUID
+	AuthorRole string
+	Body       string
+	CreatedAt  time.Time
+}
+
+func (q *Queries) InsertClaimMessage(ctx context.Context, arg InsertClaimMessageParams) error {
+	_, err := q.db.Exec(ctx, insertClaimMessage,
+		arg.ID,
+		arg.ClaimID,
+		arg.AuthorID,
+		arg.AuthorRole,
+		arg.Body,
+		arg.CreatedAt,
 	)
 	return err
 }
@@ -2891,6 +3625,181 @@ func (q *Queries) ListCategories(ctx context.Context) ([]Category, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.EditedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClaimChecks = `-- name: ListClaimChecks :many
+SELECT claim_id, item_key, position, label, required, info_only, suggestion, result, note, decided_by, decided_at FROM claim_checks WHERE claim_id = $1 ORDER BY position
+`
+
+func (q *Queries) ListClaimChecks(ctx context.Context, claimID uuid.UUID) ([]ClaimCheck, error) {
+	rows, err := q.db.Query(ctx, listClaimChecks, claimID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ClaimCheck{}
+	for rows.Next() {
+		var i ClaimCheck
+		if err := rows.Scan(
+			&i.ClaimID,
+			&i.ItemKey,
+			&i.Position,
+			&i.Label,
+			&i.Required,
+			&i.InfoOnly,
+			&i.Suggestion,
+			&i.Result,
+			&i.Note,
+			&i.DecidedBy,
+			&i.DecidedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClaimMessages = `-- name: ListClaimMessages :many
+SELECT m.id, m.author_id, m.author_role, m.body, m.created_at, coalesce(u.full_name, 'Sistem')::text AS author_name
+FROM claim_messages m LEFT JOIN users u ON u.id = m.author_id
+WHERE m.claim_id = $1 ORDER BY m.created_at, m.id
+`
+
+type ListClaimMessagesRow struct {
+	ID         uuid.UUID
+	AuthorID   *uuid.UUID
+	AuthorRole string
+	Body       string
+	CreatedAt  time.Time
+	AuthorName string
+}
+
+func (q *Queries) ListClaimMessages(ctx context.Context, claimID uuid.UUID) ([]ListClaimMessagesRow, error) {
+	rows, err := q.db.Query(ctx, listClaimMessages, claimID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListClaimMessagesRow{}
+	for rows.Next() {
+		var i ListClaimMessagesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AuthorID,
+			&i.AuthorRole,
+			&i.Body,
+			&i.CreatedAt,
+			&i.AuthorName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClaims = `-- name: ListClaims :many
+SELECT c.id, c.code, c.status, c.source, c.created_at, c.updated_at, c.approved_expires_at,
+       fr.code AS found_code, fr.item_name AS found_item_name, fr.custody_status, fr.holding_post_id,
+       lr.code AS lost_code, lr.item_name AS lost_item_name,
+       coalesce(cu.full_name, lr.proxy_name, '')::text AS claimant_name,
+       hp.name AS holding_post_name,
+       coalesce(thumb.id, '00000000-0000-0000-0000-000000000000'::uuid) AS thumb_media_id
+FROM claims c
+JOIN found_reports fr ON fr.id = c.found_report_id
+JOIN lost_reports lr ON lr.id = c.lost_report_id
+LEFT JOIN users cu ON cu.id = c.claimant_id
+LEFT JOIN posts hp ON hp.id = fr.holding_post_id
+LEFT JOIN LATERAL (SELECT m.id FROM media m WHERE m.found_report_id = fr.id AND m.state = 'ready' ORDER BY m.position LIMIT 1) thumb ON true
+WHERE ($1::uuid IS NULL OR c.claimant_id = $1::uuid)
+  AND (cardinality($2::text[]) = 0 OR c.status = ANY($2::text[]))
+  AND ($3::uuid IS NULL OR fr.holding_post_id = $3::uuid OR fr.intended_post_id = $3::uuid)
+  AND ($4::uuid IS NULL OR c.found_report_id = $4::uuid)
+  AND ($5::timestamptz IS NULL
+       OR (c.created_at, c.id) < ($5::timestamptz, $6::uuid))
+ORDER BY c.created_at DESC, c.id DESC
+LIMIT $7
+`
+
+type ListClaimsParams struct {
+	ClaimantID    *uuid.UUID
+	Statuses      []string
+	PostID        *uuid.UUID
+	FoundID       *uuid.UUID
+	CursorCreated *time.Time
+	CursorID      *uuid.UUID
+	RowLimit      int32
+}
+
+type ListClaimsRow struct {
+	ID                uuid.UUID
+	Code              string
+	Status            string
+	Source            string
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	ApprovedExpiresAt *time.Time
+	FoundCode         string
+	FoundItemName     string
+	CustodyStatus     string
+	HoldingPostID     *uuid.UUID
+	LostCode          string
+	LostItemName      string
+	ClaimantName      string
+	HoldingPostName   *string
+	ThumbMediaID      uuid.UUID
+}
+
+func (q *Queries) ListClaims(ctx context.Context, arg ListClaimsParams) ([]ListClaimsRow, error) {
+	rows, err := q.db.Query(ctx, listClaims,
+		arg.ClaimantID,
+		arg.Statuses,
+		arg.PostID,
+		arg.FoundID,
+		arg.CursorCreated,
+		arg.CursorID,
+		arg.RowLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListClaimsRow{}
+	for rows.Next() {
+		var i ListClaimsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.Status,
+			&i.Source,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ApprovedExpiresAt,
+			&i.FoundCode,
+			&i.FoundItemName,
+			&i.CustodyStatus,
+			&i.HoldingPostID,
+			&i.LostCode,
+			&i.LostItemName,
+			&i.ClaimantName,
+			&i.HoldingPostName,
+			&i.ThumbMediaID,
 		); err != nil {
 			return nil, err
 		}
@@ -3682,19 +4591,21 @@ func (q *Queries) ListPublicFoundReports(ctx context.Context, arg ListPublicFoun
 }
 
 const listReportMedia = `-- name: ListReportMedia :many
-SELECT id, uploaded_by, purpose, lost_report_id, found_report_id, state, mime, width, height, bytes, sha256, phash, storage_keys, position, created_at, attached_at, deleted_at FROM media
+SELECT id, uploaded_by, purpose, lost_report_id, found_report_id, state, mime, width, height, bytes, sha256, phash, storage_keys, position, created_at, attached_at, deleted_at, claim_id FROM media
 WHERE state = 'ready'
-  AND (lost_report_id = $1::uuid OR found_report_id = $2::uuid)
+  AND (lost_report_id = $1::uuid OR found_report_id = $2::uuid
+       OR claim_id = $3::uuid)
 ORDER BY position, created_at
 `
 
 type ListReportMediaParams struct {
 	LostReportID  *uuid.UUID
 	FoundReportID *uuid.UUID
+	ClaimID       *uuid.UUID
 }
 
 func (q *Queries) ListReportMedia(ctx context.Context, arg ListReportMediaParams) ([]Medium, error) {
-	rows, err := q.db.Query(ctx, listReportMedia, arg.LostReportID, arg.FoundReportID)
+	rows, err := q.db.Query(ctx, listReportMedia, arg.LostReportID, arg.FoundReportID, arg.ClaimID)
 	if err != nil {
 		return nil, err
 	}
@@ -3720,6 +4631,7 @@ func (q *Queries) ListReportMedia(ctx context.Context, arg ListReportMediaParams
 			&i.CreatedAt,
 			&i.AttachedAt,
 			&i.DeletedAt,
+			&i.ClaimID,
 		); err != nil {
 			return nil, err
 		}
@@ -4051,8 +4963,35 @@ func (q *Queries) LocationIDBySlug(ctx context.Context, slug string) (uuid.UUID,
 	return id, err
 }
 
+const lockFoundStatus = `-- name: LockFoundStatus :one
+SELECT status, custody_status FROM found_reports WHERE id = $1 FOR UPDATE
+`
+
+type LockFoundStatusRow struct {
+	Status        string
+	CustodyStatus string
+}
+
+func (q *Queries) LockFoundStatus(ctx context.Context, id uuid.UUID) (LockFoundStatusRow, error) {
+	row := q.db.QueryRow(ctx, lockFoundStatus, id)
+	var i LockFoundStatusRow
+	err := row.Scan(&i.Status, &i.CustodyStatus)
+	return i, err
+}
+
+const lockLostStatus = `-- name: LockLostStatus :one
+SELECT status FROM lost_reports WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) LockLostStatus(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, lockLostStatus, id)
+	var status string
+	err := row.Scan(&status)
+	return status, err
+}
+
 const lockMedia = `-- name: LockMedia :many
-SELECT id, uploaded_by, purpose, lost_report_id, found_report_id, state, mime, width, height, bytes, sha256, phash, storage_keys, position, created_at, attached_at, deleted_at FROM media WHERE id = ANY($1::uuid[]) ORDER BY id FOR UPDATE
+SELECT id, uploaded_by, purpose, lost_report_id, found_report_id, state, mime, width, height, bytes, sha256, phash, storage_keys, position, created_at, attached_at, deleted_at, claim_id FROM media WHERE id = ANY($1::uuid[]) ORDER BY id FOR UPDATE
 `
 
 func (q *Queries) LockMedia(ctx context.Context, ids []uuid.UUID) ([]Medium, error) {
@@ -4082,6 +5021,7 @@ func (q *Queries) LockMedia(ctx context.Context, ids []uuid.UUID) ([]Medium, err
 			&i.CreatedAt,
 			&i.AttachedAt,
 			&i.DeletedAt,
+			&i.ClaimID,
 		); err != nil {
 			return nil, err
 		}
@@ -4483,6 +5423,20 @@ func (q *Queries) MarkAuthTokenUsed(ctx context.Context, arg MarkAuthTokenUsedPa
 	return err
 }
 
+const markClaimExpiringNotified = `-- name: MarkClaimExpiringNotified :exec
+UPDATE claims SET expiring_notified_at = $2 WHERE id = $1
+`
+
+type MarkClaimExpiringNotifiedParams struct {
+	ID                 uuid.UUID
+	ExpiringNotifiedAt *time.Time
+}
+
+func (q *Queries) MarkClaimExpiringNotified(ctx context.Context, arg MarkClaimExpiringNotifiedParams) error {
+	_, err := q.db.Exec(ctx, markClaimExpiringNotified, arg.ID, arg.ExpiringNotifiedAt)
+	return err
+}
+
 const markEmailVerified = `-- name: MarkEmailVerified :exec
 UPDATE users
 SET email_verified_at = coalesce(email_verified_at, $1::timestamptz),
@@ -4874,6 +5828,102 @@ func (q *Queries) OfficerDismissMatch(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const openClaimCountOfFound = `-- name: OpenClaimCountOfFound :one
+SELECT count(*)::int AS open, count(*) FILTER (WHERE status = 'approved')::int AS approved FROM claims
+WHERE found_report_id = $1 AND status IN ('submitted', 'under_review', 'info_requested', 'approved', 'on_hold')
+`
+
+type OpenClaimCountOfFoundRow struct {
+	Open     int32
+	Approved int32
+}
+
+func (q *Queries) OpenClaimCountOfFound(ctx context.Context, foundReportID uuid.UUID) (OpenClaimCountOfFoundRow, error) {
+	row := q.db.QueryRow(ctx, openClaimCountOfFound, foundReportID)
+	var i OpenClaimCountOfFoundRow
+	err := row.Scan(&i.Open, &i.Approved)
+	return i, err
+}
+
+const openClaimCountOfLost = `-- name: OpenClaimCountOfLost :one
+SELECT count(*)::int AS open, count(*) FILTER (WHERE status = 'approved')::int AS approved FROM claims
+WHERE lost_report_id = $1 AND status IN ('submitted', 'under_review', 'info_requested', 'approved', 'on_hold')
+`
+
+type OpenClaimCountOfLostRow struct {
+	Open     int32
+	Approved int32
+}
+
+func (q *Queries) OpenClaimCountOfLost(ctx context.Context, lostReportID uuid.UUID) (OpenClaimCountOfLostRow, error) {
+	row := q.db.QueryRow(ctx, openClaimCountOfLost, lostReportID)
+	var i OpenClaimCountOfLostRow
+	err := row.Scan(&i.Open, &i.Approved)
+	return i, err
+}
+
+const openClaimsOfFound = `-- name: OpenClaimsOfFound :many
+SELECT id, code, claimant_id, created_by, lost_report_id, found_report_id, match_id, source, statement, answers, preferred_visit, status, reviewer_id, decision_reason, decision_note, internal_note, decided_by, decided_at, handover_nonce, handover_code_issued_at, handover_failed_attempts, handover_locked_at, approved_expires_at, expiring_notified_at, info_requested_at, handed_over_at, handed_over_by, recipient_id_type, recipient_id_last4, recipient_name_confirmed, reopened_at, version, created_at, updated_at FROM claims
+WHERE found_report_id = $1 AND status IN ('submitted', 'under_review', 'info_requested', 'approved', 'on_hold')
+ORDER BY created_at, id
+FOR UPDATE
+`
+
+func (q *Queries) OpenClaimsOfFound(ctx context.Context, foundReportID uuid.UUID) ([]Claim, error) {
+	rows, err := q.db.Query(ctx, openClaimsOfFound, foundReportID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Claim{}
+	for rows.Next() {
+		var i Claim
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.ClaimantID,
+			&i.CreatedBy,
+			&i.LostReportID,
+			&i.FoundReportID,
+			&i.MatchID,
+			&i.Source,
+			&i.Statement,
+			&i.Answers,
+			&i.PreferredVisit,
+			&i.Status,
+			&i.ReviewerID,
+			&i.DecisionReason,
+			&i.DecisionNote,
+			&i.InternalNote,
+			&i.DecidedBy,
+			&i.DecidedAt,
+			&i.HandoverNonce,
+			&i.HandoverCodeIssuedAt,
+			&i.HandoverFailedAttempts,
+			&i.HandoverLockedAt,
+			&i.ApprovedExpiresAt,
+			&i.ExpiringNotifiedAt,
+			&i.InfoRequestedAt,
+			&i.HandedOverAt,
+			&i.HandedOverBy,
+			&i.RecipientIDType,
+			&i.RecipientIDLast4,
+			&i.RecipientNameConfirmed,
+			&i.ReopenedAt,
+			&i.Version,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const openReportsForSweep = `-- name: OpenReportsForSweep :many
 SELECT 'lost'::text AS report_type, id FROM lost_reports WHERE status IN ('reported', 'potential_match', 'under_verification') AND hidden_at IS NULL
 UNION ALL
@@ -4895,6 +5945,41 @@ func (q *Queries) OpenReportsForSweep(ctx context.Context) ([]OpenReportsForSwee
 	for rows.Next() {
 		var i OpenReportsForSweepRow
 		if err := rows.Scan(&i.ReportType, &i.ID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const otherOpenClaimsOfFound = `-- name: OtherOpenClaimsOfFound :many
+SELECT id, code FROM claims
+WHERE found_report_id = $1 AND id <> $2 AND status IN ('submitted', 'under_review', 'info_requested', 'approved', 'on_hold')
+`
+
+type OtherOpenClaimsOfFoundParams struct {
+	FoundReportID uuid.UUID
+	ID            uuid.UUID
+}
+
+type OtherOpenClaimsOfFoundRow struct {
+	ID   uuid.UUID
+	Code string
+}
+
+func (q *Queries) OtherOpenClaimsOfFound(ctx context.Context, arg OtherOpenClaimsOfFoundParams) ([]OtherOpenClaimsOfFoundRow, error) {
+	rows, err := q.db.Query(ctx, otherOpenClaimsOfFound, arg.FoundReportID, arg.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []OtherOpenClaimsOfFoundRow{}
+	for rows.Next() {
+		var i OtherOpenClaimsOfFoundRow
+		if err := rows.Scan(&i.ID, &i.Code); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -4941,6 +6026,43 @@ func (q *Queries) PairForUpdate(ctx context.Context, arg PairForUpdateParams) (P
 	return i, err
 }
 
+const pairScores = `-- name: PairScores :one
+SELECT id, s_semantic, s_attr, s_time, s_location, overall, tier, flags FROM matches WHERE lost_report_id = $1 AND found_report_id = $2
+`
+
+type PairScoresParams struct {
+	LostReportID  uuid.UUID
+	FoundReportID uuid.UUID
+}
+
+type PairScoresRow struct {
+	ID        uuid.UUID
+	SSemantic *float64
+	SAttr     *float64
+	STime     *float64
+	SLocation *float64
+	Overall   float64
+	Tier      *string
+	Flags     []string
+}
+
+// the pair's scores for the checklist, null when the pair was never stored
+func (q *Queries) PairScores(ctx context.Context, arg PairScoresParams) (PairScoresRow, error) {
+	row := q.db.QueryRow(ctx, pairScores, arg.LostReportID, arg.FoundReportID)
+	var i PairScoresRow
+	err := row.Scan(
+		&i.ID,
+		&i.SSemantic,
+		&i.SAttr,
+		&i.STime,
+		&i.SLocation,
+		&i.Overall,
+		&i.Tier,
+		&i.Flags,
+	)
+	return i, err
+}
+
 const parentCategoryIDBySlug = `-- name: ParentCategoryIDBySlug :one
 SELECT id FROM categories WHERE slug = $1 AND parent_id IS NULL
 `
@@ -4950,6 +6072,21 @@ func (q *Queries) ParentCategoryIDBySlug(ctx context.Context, slug string) (uuid
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const pickUpClaim = `-- name: PickUpClaim :exec
+UPDATE claims SET status = 'under_review', reviewer_id = $2, updated_at = $3, version = version + 1 WHERE id = $1
+`
+
+type PickUpClaimParams struct {
+	ID         uuid.UUID
+	ReviewerID *uuid.UUID
+	UpdatedAt  time.Time
+}
+
+func (q *Queries) PickUpClaim(ctx context.Context, arg PickUpClaimParams) error {
+	_, err := q.db.Exec(ctx, pickUpClaim, arg.ID, arg.ReviewerID, arg.UpdatedAt)
+	return err
 }
 
 const postForUpdate = `-- name: PostForUpdate :one
@@ -5037,6 +6174,106 @@ func (q *Queries) ReceiveIntoCustody(ctx context.Context, arg ReceiveIntoCustody
 	var version int32
 	err := row.Scan(&version)
 	return version, err
+}
+
+const regenerateHandoverCode = `-- name: RegenerateHandoverCode :exec
+UPDATE claims
+SET handover_nonce = $2, handover_code_issued_at = $3, handover_failed_attempts = 0, handover_locked_at = NULL,
+    approved_expires_at = $4, expiring_notified_at = NULL, updated_at = $3, version = version + 1
+WHERE id = $1
+`
+
+type RegenerateHandoverCodeParams struct {
+	ID                   uuid.UUID
+	HandoverNonce        []byte
+	HandoverCodeIssuedAt *time.Time
+	ApprovedExpiresAt    *time.Time
+}
+
+func (q *Queries) RegenerateHandoverCode(ctx context.Context, arg RegenerateHandoverCodeParams) error {
+	_, err := q.db.Exec(ctx, regenerateHandoverCode,
+		arg.ID,
+		arg.HandoverNonce,
+		arg.HandoverCodeIssuedAt,
+		arg.ApprovedExpiresAt,
+	)
+	return err
+}
+
+const rejectClaim = `-- name: RejectClaim :exec
+UPDATE claims
+SET status = 'rejected', decision_reason = $2, decision_note = $4, decided_by = $5, decided_at = $3,
+    handover_nonce = NULL, approved_expires_at = NULL, updated_at = $3, version = version + 1
+WHERE id = $1
+`
+
+type RejectClaimParams struct {
+	ID             uuid.UUID
+	DecisionReason *string
+	DecidedAt      *time.Time
+	DecisionNote   *string
+	DecidedBy      *uuid.UUID
+}
+
+func (q *Queries) RejectClaim(ctx context.Context, arg RejectClaimParams) error {
+	_, err := q.db.Exec(ctx, rejectClaim,
+		arg.ID,
+		arg.DecisionReason,
+		arg.DecidedAt,
+		arg.DecisionNote,
+		arg.DecidedBy,
+	)
+	return err
+}
+
+const rejectedClaimsSince = `-- name: RejectedClaimsSince :one
+SELECT count(*)::int FROM claims
+WHERE claimant_id = $1 AND status = 'rejected' AND decision_reason IN ('details_mismatch', 'insufficient_evidence', 'suspected_fraud')
+  AND decided_at >= $2
+`
+
+type RejectedClaimsSinceParams struct {
+	ClaimantID *uuid.UUID
+	DecidedAt  *time.Time
+}
+
+func (q *Queries) RejectedClaimsSince(ctx context.Context, arg RejectedClaimsSinceParams) (int32, error) {
+	row := q.db.QueryRow(ctx, rejectedClaimsSince, arg.ClaimantID, arg.DecidedAt)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const releaseFoundReport = `-- name: ReleaseFoundReport :exec
+UPDATE found_reports SET status = 'returned', custody_status = 'released', updated_at = $2, version = version + 1 WHERE id = $1
+`
+
+type ReleaseFoundReportParams struct {
+	ID        uuid.UUID
+	UpdatedAt time.Time
+}
+
+func (q *Queries) ReleaseFoundReport(ctx context.Context, arg ReleaseFoundReportParams) error {
+	_, err := q.db.Exec(ctx, releaseFoundReport, arg.ID, arg.UpdatedAt)
+	return err
+}
+
+const reopenClaim = `-- name: ReopenClaim :exec
+UPDATE claims
+SET status = 'under_review', decision_reason = NULL, handover_nonce = NULL, approved_expires_at = NULL, expiring_notified_at = NULL,
+    reopened_at = $2, updated_at = $2, version = version + 1
+WHERE id = $1
+`
+
+type ReopenClaimParams struct {
+	ID         uuid.UUID
+	ReopenedAt *time.Time
+}
+
+// K13 and K15 return a claim to review
+func (q *Queries) ReopenClaim(ctx context.Context, arg ReopenClaimParams) error {
+	_, err := q.db.Exec(ctx, reopenClaim, arg.ID, arg.ReopenedAt)
+	return err
 }
 
 const reportMediaForEmbedding = `-- name: ReportMediaForEmbedding :many
@@ -5149,6 +6386,20 @@ type RerankLostParams struct {
 // ranks count only pairs whose counterpart is still open, a closed or hidden counterpart loses its rank here
 func (q *Queries) RerankLost(ctx context.Context, arg RerankLostParams) error {
 	_, err := q.db.Exec(ctx, rerankLost, arg.TopK, arg.ReportID)
+	return err
+}
+
+const returnLostReport = `-- name: ReturnLostReport :exec
+UPDATE lost_reports SET status = 'returned', last_activity_at = $2, updated_at = $2, version = version + 1 WHERE id = $1
+`
+
+type ReturnLostReportParams struct {
+	ID             uuid.UUID
+	LastActivityAt time.Time
+}
+
+func (q *Queries) ReturnLostReport(ctx context.Context, arg ReturnLostReportParams) error {
+	_, err := q.db.Exec(ctx, returnLostReport, arg.ID, arg.LastActivityAt)
 	return err
 }
 
@@ -5363,6 +6614,106 @@ func (q *Queries) SearchReports(ctx context.Context, arg SearchReportsParams) ([
 	return items, nil
 }
 
+const setClaimCheck = `-- name: SetClaimCheck :execrows
+UPDATE claim_checks SET result = $3, note = $6, decided_by = $4, decided_at = $5
+WHERE claim_id = $1 AND item_key = $2
+`
+
+type SetClaimCheckParams struct {
+	ClaimID   uuid.UUID
+	ItemKey   string
+	Result    string
+	DecidedBy *uuid.UUID
+	DecidedAt *time.Time
+	Note      *string
+}
+
+func (q *Queries) SetClaimCheck(ctx context.Context, arg SetClaimCheckParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setClaimCheck,
+		arg.ClaimID,
+		arg.ItemKey,
+		arg.Result,
+		arg.DecidedBy,
+		arg.DecidedAt,
+		arg.Note,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const setClaimInfoRequested = `-- name: SetClaimInfoRequested :exec
+UPDATE claims SET status = 'info_requested', info_requested_at = $2, updated_at = $2, version = version + 1 WHERE id = $1
+`
+
+type SetClaimInfoRequestedParams struct {
+	ID              uuid.UUID
+	InfoRequestedAt *time.Time
+}
+
+func (q *Queries) SetClaimInfoRequested(ctx context.Context, arg SetClaimInfoRequestedParams) error {
+	_, err := q.db.Exec(ctx, setClaimInfoRequested, arg.ID, arg.InfoRequestedAt)
+	return err
+}
+
+const setClaimInternalNote = `-- name: SetClaimInternalNote :exec
+UPDATE claims SET internal_note = $2, updated_at = $3 WHERE id = $1
+`
+
+type SetClaimInternalNoteParams struct {
+	ID           uuid.UUID
+	InternalNote *string
+	UpdatedAt    time.Time
+}
+
+func (q *Queries) SetClaimInternalNote(ctx context.Context, arg SetClaimInternalNoteParams) error {
+	_, err := q.db.Exec(ctx, setClaimInternalNote, arg.ID, arg.InternalNote, arg.UpdatedAt)
+	return err
+}
+
+const setClaimOnHold = `-- name: SetClaimOnHold :exec
+UPDATE claims SET status = 'on_hold', updated_at = $2, version = version + 1 WHERE id = $1
+`
+
+type SetClaimOnHoldParams struct {
+	ID        uuid.UUID
+	UpdatedAt time.Time
+}
+
+func (q *Queries) SetClaimOnHold(ctx context.Context, arg SetClaimOnHoldParams) error {
+	_, err := q.db.Exec(ctx, setClaimOnHold, arg.ID, arg.UpdatedAt)
+	return err
+}
+
+const setClaimRestricted = `-- name: SetClaimRestricted :exec
+UPDATE users SET claim_restricted_at = $2, updated_at = $2 WHERE id = $1 AND claim_restricted_at IS NULL
+`
+
+type SetClaimRestrictedParams struct {
+	ID                uuid.UUID
+	ClaimRestrictedAt *time.Time
+}
+
+func (q *Queries) SetClaimRestricted(ctx context.Context, arg SetClaimRestrictedParams) error {
+	_, err := q.db.Exec(ctx, setClaimRestricted, arg.ID, arg.ClaimRestrictedAt)
+	return err
+}
+
+const setClaimUnderReview = `-- name: SetClaimUnderReview :exec
+UPDATE claims SET status = 'under_review', info_requested_at = NULL, updated_at = $2, version = version + 1 WHERE id = $1
+`
+
+type SetClaimUnderReviewParams struct {
+	ID        uuid.UUID
+	UpdatedAt time.Time
+}
+
+func (q *Queries) SetClaimUnderReview(ctx context.Context, arg SetClaimUnderReviewParams) error {
+	_, err := q.db.Exec(ctx, setClaimUnderReview, arg.ID, arg.UpdatedAt)
+	return err
+}
+
 const setEmailStatus = `-- name: SetEmailStatus :exec
 UPDATE notifications SET email_status = $2 WHERE id = $1
 `
@@ -5466,6 +6817,28 @@ type SetLostStatusBySystemParams struct {
 
 func (q *Queries) SetLostStatusBySystem(ctx context.Context, arg SetLostStatusBySystemParams) error {
 	_, err := q.db.Exec(ctx, setLostStatusBySystem, arg.ID, arg.Status)
+	return err
+}
+
+const setPairStatus = `-- name: SetPairStatus :exec
+UPDATE matches SET status = $3, version = version + 1
+WHERE lost_report_id = $1 AND found_report_id = $2 AND status = ANY($4::text[])
+`
+
+type SetPairStatusParams struct {
+	LostReportID  uuid.UUID
+	FoundReportID uuid.UUID
+	Status        string
+	FromStatuses  []string
+}
+
+func (q *Queries) SetPairStatus(ctx context.Context, arg SetPairStatusParams) error {
+	_, err := q.db.Exec(ctx, setPairStatus,
+		arg.LostReportID,
+		arg.FoundReportID,
+		arg.Status,
+		arg.FromStatuses,
+	)
 	return err
 }
 
@@ -6407,6 +7780,31 @@ func (q *Queries) UpsertZone(ctx context.Context, arg UpsertZoneParams) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const userBrief = `-- name: UserBrief :one
+SELECT id, full_name, email, phone, nim_nip FROM users WHERE id = $1
+`
+
+type UserBriefRow struct {
+	ID       uuid.UUID
+	FullName string
+	Email    string
+	Phone    *string
+	NimNip   *string
+}
+
+func (q *Queries) UserBrief(ctx context.Context, id uuid.UUID) (UserBriefRow, error) {
+	row := q.db.QueryRow(ctx, userBrief, id)
+	var i UserBriefRow
+	err := row.Scan(
+		&i.ID,
+		&i.FullName,
+		&i.Email,
+		&i.Phone,
+		&i.NimNip,
+	)
+	return i, err
 }
 
 const versionByName = `-- name: VersionByName :one

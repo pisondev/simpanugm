@@ -31,6 +31,24 @@ const (
 	CustodyRetentionAlert Event = "custody.retention_warning"
 	CustodyUnclaimed      Event = "custody.unclaimed"
 	ClaimSubmitted        Event = "claim.submitted"
+	ClaimSubmittedAck     Event = "claim.submitted_ack"
+	ClaimInfoRequested    Event = "claim.info_requested"
+	ClaimInfoProvided     Event = "claim.info_provided"
+	ClaimMessage          Event = "claim.message"
+	ClaimApproved         Event = "claim.approved"
+	ClaimOnHold           Event = "claim.on_hold"
+	ClaimResumed          Event = "claim.resumed"
+	ClaimRejected         Event = "claim.rejected"
+	ClaimExpiring         Event = "claim.expiring"
+	ClaimExpired          Event = "claim.expired"
+	ClaimHandedOver       Event = "claim.handed_over"
+	CustodyReleased       Event = "custody.released"
+	FoundReminder24h      Event = "found.custody_reminder_24h"
+	FoundReminder48h      Event = "found.custody_reminder_48h"
+	FoundOverdue          Event = "found.custody_overdue"
+	LostStaleReminder     Event = "lost.stale_reminder"
+	LostExpired           Event = "lost.expired"
+	LostConfirmReceipt    Event = "lost.confirm_receipt"
 )
 
 var catalog = map[Event]Spec{
@@ -83,6 +101,96 @@ var catalog = map[Event]Spec{
 		App: true, Digest: true,
 		Title: "Klaim baru",
 		Body:  "Klaim baru {{.claim_code}} untuk {{.found_code}}.",
+	},
+	ClaimSubmittedAck: {
+		App:   true,
+		Title: "Klaim terkirim",
+		Body:  "Klaim {{.claim_code}} terkirim. Petugas akan memeriksa.",
+	},
+	ClaimInfoRequested: {
+		App: true, Email: true,
+		Title: "Perlu info tambahan",
+		Body:  "Petugas membutuhkan info tambahan untuk klaim {{.claim_code}}.",
+	},
+	ClaimInfoProvided: {
+		App:   true,
+		Title: "Klaim dibalas",
+		Body:  "Pengklaim {{.claim_code}} sudah membalas.",
+	},
+	ClaimMessage: {
+		App: true, Optional: true,
+		Title: "Pesan baru pada klaim",
+		Body:  "Pesan baru pada klaim {{.claim_code}}.",
+	},
+	ClaimApproved: {
+		App: true, Email: true,
+		Title: "Klaim disetujui",
+		Body:  "Klaim disetujui. Datang ke {{.post_name}} dengan KTM atau KTP. Kode serah terima ada di aplikasi.",
+	},
+	ClaimOnHold: {
+		App:   true,
+		Title: "Klaim ditunda",
+		Body:  "Klaimmu ditunda karena ada klaim lain yang sedang diproses.",
+	},
+	ClaimResumed: {
+		App:   true,
+		Title: "Klaim diperiksa lagi",
+		Body:  "Klaimmu kembali diperiksa.",
+	},
+	ClaimRejected: {
+		App: true, Email: true,
+		Title: "Klaim ditolak",
+		Body:  "Klaim {{.claim_code}} ditolak: {{.reason_label}}.",
+	},
+	ClaimExpiring: {
+		App: true, Email: true,
+		Title: "Klaim segera kedaluwarsa",
+		Body:  "Klaim disetujui akan kedaluwarsa besok. Segera ambil barang di {{.post_name}}.",
+	},
+	ClaimExpired: {
+		App: true, Email: true,
+		Title: "Klaim kedaluwarsa",
+		Body:  "Klaim {{.claim_code}} kedaluwarsa.",
+	},
+	ClaimHandedOver: {
+		App: true, Email: true,
+		Title: "Serah terima selesai",
+		Body:  "Serah terima selesai. Semoga barangmu aman.",
+	},
+	CustodyReleased: {
+		App: true, Digest: true,
+		Title: "Barang diserahkan",
+		Body:  "{{.found_code}} diserahkan kepada pemiliknya di {{.post_name}}.",
+	},
+	FoundReminder24h: {
+		App: true, Email: true,
+		Title: "Serahkan barang temuanmu",
+		Body:  "Barang temuan {{.item_name}} belum diserahkan ke pos. Serahkan ke {{.post_name}} agar pemilik bisa mengambilnya.",
+	},
+	FoundReminder48h: {
+		App: true, Email: true,
+		Title: "Batas waktu penyimpanan habis",
+		Body:  "Batas waktu penyimpanan oleh penemu sudah habis. Mohon serahkan hari ini ke {{.post_name}}.",
+	},
+	FoundOverdue: {
+		App:   true,
+		Title: "Barang belum diserahkan penemu",
+		Body:  "{{.found_code}} belum diserahkan penemu selama 48 jam.",
+	},
+	LostStaleReminder: {
+		App: true, Email: true, Quiet: true,
+		Title: "Masih mencari barangmu?",
+		Body:  "Masih mencari {{.item_name}}? Pilih tetap buka atau tutup laporan.",
+	},
+	LostExpired: {
+		App: true, Email: true, Quiet: true,
+		Title: "Laporan ditutup",
+		Body:  "Laporan {{.lost_code}} ditutup karena tidak ada aktivitas. Kamu bisa membukanya lagi dalam 30 hari.",
+	},
+	LostConfirmReceipt: {
+		App:   true,
+		Title: "Konfirmasi barang diterima",
+		Body:  "Sudah menerima barangmu? Konfirmasi agar kasus ditutup.",
 	},
 }
 

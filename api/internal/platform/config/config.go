@@ -23,6 +23,9 @@ type Config struct {
 	StorageDriver string `env:"STORAGE_DRIVER" envDefault:"fs"`
 	StorageFSRoot string `env:"STORAGE_FS_ROOT" envDefault:"./var/media"`
 
+	// BR-HND-01, the pepper of the handover codes, at least 16 characters
+	HandoverPepper string `env:"HANDOVER_PEPPER"`
+
 	MLBaseURL       string `env:"ML_BASE_URL"`
 	MLInternalToken string `env:"ML_INTERNAL_TOKEN"`
 
@@ -65,6 +68,9 @@ func (c Config) validate() error {
 	case "starttls", "tls", "none":
 	default:
 		errs = append(errs, fmt.Errorf("SMTP_TLS %q must be starttls, tls or none", c.SMTPTLS))
+	}
+	if len(c.HandoverPepper) < 16 && c.AppEnv != "test" {
+		errs = append(errs, errors.New("HANDOVER_PEPPER must be at least 16 characters"))
 	}
 	if c.FeatureFakeClock && c.AppEnv != "e2e" {
 		errs = append(errs, errors.New("FEATURE_FAKE_CLOCK is allowed only when APP_ENV=e2e"))

@@ -79,7 +79,7 @@ func refOf(idOrCode string) (*uuid.UUID, *string, error) {
 }
 
 // codes take the WIB month, BR-ID-01
-func nextCode(ctx context.Context, q *sqlc.Queries, prefix string, now time.Time) (string, error) {
+func NextCode(ctx context.Context, q *sqlc.Queries, prefix string, now time.Time) (string, error) {
 	yymm := now.In(clock.WIB()).Format("0601")
 	n, err := q.NextCodeSequence(ctx, sqlc.NextCodeSequenceParams{Prefix: prefix, Yymm: yymm})
 	if err != nil {
