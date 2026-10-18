@@ -11,6 +11,9 @@ Lecturers: Dr. Muhammad Ardi Putra, S.Kom. and Prof. Dr. Drs. Azhari, MT.
 | Irfan Fadilah Rafif | AI Engineer | `ml/`, matching engine design, evaluation harness, model lifecycle, AI-12 review | pairs on the Go scoring, presents the AI engineering in the demo |
 | Axelle Chandra | Data Engineer | `data/`, evaluation dataset, seeds, synonyms and brands, analytics views, schema review | admin and analytics pages in `web` in Sprint 4, retention rules review |
 
+GitHub accounts: Pison `@pisondev`, Axelle `@jeelichan`. Irfan's account is added to
+`.github/CODEOWNERS` for `ml/` once he confirms it, until then `ml/` reviews go to Pison.
+
 ## 2. Responsibility matrix
 
 R does the work, A answers for it, C is consulted, I is informed.

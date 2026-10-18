@@ -61,12 +61,17 @@ decide whether `main` stays deployable.
 
 ## 3. End to end journeys
 
-Each journey runs on a fresh stack seeded with `simpan seed --demo` and a fake clock
-endpoint enabled only in the `e2e` environment.
+Each journey runs on a fresh stack seeded with the development overlay. Journeys create
+their own accounts through the interface, Mailpit and `simpan admin create`, so no test
+depends on a printed demo password. The fake clock endpoint, enabled only in the `e2e`
+environment, arrives with J6. Registration is limited to 5 per hour per IP (BR-SEC-01)
+and the whole suite shares one IP, so it registers at most five accounts and `make e2e`
+restarts `api` first to reset the in memory limiters.
 
 | Journey | Covers |
 |---|---|
-| J1 Register, verify through Mailpit, sign in | US-01, US-02 |
+| J1 Register, verify through Mailpit, sign in, on a phone and a desktop | US-01, US-02 |
+| S1 Sprint 1 exit: admin from the command line invites an officer, a member files a lost report and a found report with a photo, the officer receives the item and finds both by code and by text | US-04, US-08, US-13, US-30, US-32, US-37 |
 | J2 Owner files a lost report without photo, sees candidates after a seeded found report | US-08, US-19, US-20 |
 | J3 Finder files a found report with photo and assistant, sees the hint, officer receives it | US-13, US-14, US-23, US-30 |
 | J4 Owner claims, officer requests info, owner replies, officer approves | US-25, US-26, US-27 |

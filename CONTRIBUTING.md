@@ -15,6 +15,8 @@ requirement.
 | `deploy/`, `.github/`, root files | Pison | any member |
 | `docs/` | the owner of the area the page describes | any member |
 
+`.github/CODEOWNERS` requests the owner's review automatically.
+
 Editing outside your area is allowed through a pull request that the owner approves. The
 owner is the one who answers for the area at review time, not the only one who may type
 in it.
@@ -90,11 +92,12 @@ In short: reachable from the real UI or API, unit and integration tests pass, do
 make check          # runs the same lint, typecheck and test steps as CI, for every area
 ```
 
-The `Makefile` lands in Sprint 1. Until then there is nothing to run.
+The targets are listed in [docs/engineering/local-development.md](docs/engineering/local-development.md)
+section 4. `make e2e` runs the browser journeys against the stack started by `make dev`.
 
 ## 8. Issues and the board
 
 Work is tracked as GitHub issues on the project board with the columns Backlog, Ready,
 In progress, In review, Done. Every issue carries one area label, one priority label
 (`P0` Must, `P1` Should, `P2` Could) and the story id in the title, for example
-`US-07 Owner sees ranked candidates`.
+`US-08 File a lost report`.
