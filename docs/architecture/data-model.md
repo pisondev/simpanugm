@@ -239,6 +239,7 @@ Indexes: `(reporter_id, status)`, `(status, lost_until)`, trigram GIN on
 | found_location_id | uuid | FK locations |
 | location_note | text? | |
 | custody_status | text | state machine C |
+| custody_keep | boolean | the finder chose to keep the item, at most 48 hours, only for sensitivity `normal` (BR-FND-02) |
 | intended_post_id | uuid? | FK posts |
 | holding_post_id | uuid? | FK posts |
 | storage_slot | text? | up to 40 |
@@ -248,6 +249,7 @@ Indexes: `(reporter_id, status)`, `(status, lost_until)`, trigram GIN on
 | overdue_flagged_at | tstz? | BR-FND-03 |
 | status | text | state machine F |
 | close_reason | text? | `returned`, `returned_directly`, `reported_in_error`, `disposed`, `duplicate` |
+| close_note | text? | 5 to 500, required when the finder closes the report (BR-FND-05) |
 | closed_at, duplicate_of, hidden_at, hidden_reason, assist_outcome, anonymised_at | | as lost |
 | version, created_at, updated_at | | |
 

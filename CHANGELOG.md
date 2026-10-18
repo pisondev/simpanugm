@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Changed
 
+- The data model lists the `custody_keep` and `close_note` columns of found reports that the migrations already carry.
 - `GET /api/v1/posts` is public, so the help page lists posts and opening hours before sign in. Every other master data read still needs a session.
 
 ### Fixed
