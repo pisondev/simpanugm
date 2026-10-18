@@ -25,6 +25,7 @@ const (
 	PasswordReset    Event = "account.password_reset"
 	PasswordChanged  Event = "account.password_changed"
 	Invite           Event = "account.invite"
+	EmailChange      Event = "account.email_change"
 	emailQueue             = "email"
 	emailMaxAttempts       = 5
 )
@@ -35,6 +36,7 @@ var subjects = map[Event]string{ //nolint:gosec // email subjects, not credentia
 	PasswordReset:   "Atur ulang kata sandi SimpanUGM",
 	PasswordChanged: "Kata sandi SimpanUGM diubah",
 	Invite:          "Undangan akun SimpanUGM",
+	EmailChange:     "Konfirmasi email baru SimpanUGM",
 }
 
 //go:embed templates/*.tmpl

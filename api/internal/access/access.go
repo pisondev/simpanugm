@@ -169,6 +169,12 @@ var Operations = map[string]Rule{
 	"streamNotifications":        {Permission: AccountSelfRead},
 	"getNotificationPreferences": {Permission: AccountSelfRead},
 	"putNotificationPreferences": {Permission: AccountSelfUpdate},
+	"updateMe":                   {Permission: AccountSelfUpdate},
+	"startEmailChange":           {Permission: AccountSelfUpdate},
+	"confirmEmailChange":         {Public: true},
+	"changePassword":             {Permission: AccountSelfUpdate},
+	"listMySessions":             {Permission: AccountSessions},
+	"revokeMySession":            {Permission: AccountSessions},
 }
 
 func Check(p *Principal, operationID string) error {

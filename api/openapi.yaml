@@ -166,6 +166,21 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Me' }
         default: { $ref: '#/components/responses/Problem' }
+    patch:
+      tags: [account]
+      operationId: updateMe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProfileUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        default: { $ref: '#/components/responses/Problem' }
 
   /categories:
     get:
@@ -675,6 +690,78 @@ paths:
           content:
             text/event-stream:
               schema: { type: string }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /me/email:
+    post:
+      tags: [account]
+      operationId: startEmailChange
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailChangeRequest' }
+      responses:
+        '202':
+          description: A confirmation link goes to the new address when it can be used. The answer is the same when it cannot
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ack' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/email/confirm:
+    post:
+      tags: [account]
+      operationId: confirmEmailChange
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TokenRequest' }
+      responses:
+        '200':
+          description: The account now uses the new address
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ack' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /me/password:
+    put:
+      tags: [account]
+      operationId: changePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PasswordChangeRequest' }
+      responses:
+        '204':
+          description: Changed, every other session is signed out
+        default: { $ref: '#/components/responses/Problem' }
+
+  /me/sessions:
+    get:
+      tags: [account]
+      operationId: listMySessions
+      responses:
+        '200':
+          description: Active sessions, the current one flagged
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /me/sessions/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    delete:
+      tags: [account]
+      operationId: revokeMySession
+      responses:
+        '204':
+          description: Revoked
         default: { $ref: '#/components/responses/Problem' }
 
   /me/notification-preferences:
@@ -1615,3 +1702,47 @@ components:
           type: array
           maxItems: 3
           items: { $ref: '#/components/schemas/NotificationPreference' }
+
+    ProfileUpdate:
+      type: object
+      additionalProperties: false
+      description: A present field replaces the stored value, an empty phone or NIM clears it
+      properties:
+        full_name: { type: string, maxLength: 100 }
+        phone: { type: string, maxLength: 20 }
+        nim_nip: { type: string, maxLength: 30 }
+
+    EmailChangeRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: { type: string, maxLength: 254 }
+        password: { type: string, maxLength: 128 }
+
+    PasswordChangeRequest:
+      type: object
+      additionalProperties: false
+      required: [current_password, new_password]
+      properties:
+        current_password: { type: string, maxLength: 128 }
+        new_password: { type: string, maxLength: 128 }
+
+    SessionInfo:
+      type: object
+      required: [id, created_at, last_seen_at, device, ip_hint, current]
+      properties:
+        id: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+        last_seen_at: { type: string, format: date-time }
+        device: { type: string }
+        ip_hint: { type: string }
+        current: { type: boolean }
+
+    SessionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/SessionInfo' }

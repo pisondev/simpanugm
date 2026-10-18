@@ -18,6 +18,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Fixed
 
+- Resending a verification link or starting an email change no longer fails for an account without earlier tokens of that kind: the issue statistics default to the epoch instead of minus infinity, which Go cannot represent.
 - `api/internal/media` and `api/internal/platform/storage` are in the repository: unanchored `media/` and `storage/` ignore rules had kept them out, so a fresh clone did not build. The rules are anchored to the root now.
 - The API image starts again: it is built with the `nodynamic` tag, so `gen2brain/webp` stays on its WebAssembly encoder instead of linking libc through purego, which `distroless/static` cannot load. A root `.dockerignore` replaces the one in `api/` that the root build context never read.
 - The fetch test compares resolved paths, so it also passes on Windows where temporary directories have short names.
@@ -25,6 +26,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Profile and security pages: edit name, phone and NIM or NIP, change the email through a confirmation link sent to the new address, change the password with the current one while every other session signs out, and list or revoke signed in devices with a readable device label and the network prefix of the address (US-05).
 - In app notifications with a live stream: a bell with the unread count and the latest items, a Notifikasi page and phone tab, Server Sent Events woken by PostgreSQL `LISTEN` and resumed with `Last-Event-ID`, read and read all, optional groups switchable per channel in Profil, Notifikasi, emails that wait for the end of the quiet hours, a 07:00 officer digest sent only when it has content, and 180 day retention. The finder is now notified when a post receives the item (US-30). Passive requests never keep an idle staff session alive.
 - Continuous integration per area: the API workflow checks format, vet, lint, that generated code matches `openapi.yaml` and the queries, known vulnerabilities, unit and integration tests; the web workflow checks the generated client, format, lint, types, unit tests and the build; the ML workflow runs ruff, mypy and pytest; the end to end workflow starts the stack and runs the Playwright journeys. Dependabot groups weekly updates, `CODEOWNERS` routes reviews to the area owner.
 - Development stack: one `make dev` builds the images, starts PostgreSQL 18 with pgvector, migrates, seeds with the development overlay, then runs api, worker, ml, web, Mailpit and Caddy on one origin at port 8000, every service with a health check. `make env` writes random local secrets, host ports are configurable, and the root `Makefile` carries the generate, check, test and end to end targets.

@@ -63,6 +63,21 @@ func (q *Queries) AttachMedia(ctx context.Context, arg AttachMediaParams) error 
 	return err
 }
 
+const changeUserEmail = `-- name: ChangeUserEmail :exec
+UPDATE users SET email = $2, email_verified_at = $3, version = version + 1, updated_at = $3 WHERE id = $1
+`
+
+type ChangeUserEmailParams struct {
+	ID              uuid.UUID
+	Email           string
+	EmailVerifiedAt *time.Time
+}
+
+func (q *Queries) ChangeUserEmail(ctx context.Context, arg ChangeUserEmailParams) error {
+	_, err := q.db.Exec(ctx, changeUserEmail, arg.ID, arg.Email, arg.EmailVerifiedAt)
+	return err
+}
+
 const claimIdempotencyKey = `-- name: ClaimIdempotencyKey :execrows
 INSERT INTO idempotency_keys (user_id, key, endpoint, request_hash, created_at, expires_at)
 VALUES ($1, $2, $3, $4, $5, $6)
@@ -1373,6 +1388,52 @@ func (q *Queries) LastNotificationOf(ctx context.Context, arg LastNotificationOf
 	var created_at time.Time
 	err := row.Scan(&created_at)
 	return created_at, err
+}
+
+const listActiveSessions = `-- name: ListActiveSessions :many
+SELECT id, created_at, last_seen_at, ip, user_agent FROM sessions
+WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > $2::timestamptz
+  AND (idle_expires_at IS NULL OR idle_expires_at > $2::timestamptz)
+ORDER BY last_seen_at DESC
+`
+
+type ListActiveSessionsParams struct {
+	UserID uuid.UUID
+	Now    time.Time
+}
+
+type ListActiveSessionsRow struct {
+	ID         uuid.UUID
+	CreatedAt  time.Time
+	LastSeenAt time.Time
+	Ip         *netip.Addr
+	UserAgent  *string
+}
+
+func (q *Queries) ListActiveSessions(ctx context.Context, arg ListActiveSessionsParams) ([]ListActiveSessionsRow, error) {
+	rows, err := q.db.Query(ctx, listActiveSessions, arg.UserID, arg.Now)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListActiveSessionsRow{}
+	for rows.Next() {
+		var i ListActiveSessionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.LastSeenAt,
+			&i.Ip,
+			&i.UserAgent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAuditForEntity = `-- name: ListAuditForEntity :many
@@ -2715,6 +2776,24 @@ func (q *Queries) ReceiveIntoCustody(ctx context.Context, arg ReceiveIntoCustody
 	return version, err
 }
 
+const revokeOtherSessions = `-- name: RevokeOtherSessions :execrows
+UPDATE sessions SET revoked_at = $3 WHERE user_id = $1 AND id <> $2 AND revoked_at IS NULL
+`
+
+type RevokeOtherSessionsParams struct {
+	UserID    uuid.UUID
+	ID        uuid.UUID
+	RevokedAt *time.Time
+}
+
+func (q *Queries) RevokeOtherSessions(ctx context.Context, arg RevokeOtherSessionsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, revokeOtherSessions, arg.UserID, arg.ID, arg.RevokedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const revokeSession = `-- name: RevokeSession :exec
 UPDATE sessions SET revoked_at = $2 WHERE id = $1 AND revoked_at IS NULL
 `
@@ -2727,6 +2806,24 @@ type RevokeSessionParams struct {
 func (q *Queries) RevokeSession(ctx context.Context, arg RevokeSessionParams) error {
 	_, err := q.db.Exec(ctx, revokeSession, arg.ID, arg.RevokedAt)
 	return err
+}
+
+const revokeUserSession = `-- name: RevokeUserSession :execrows
+UPDATE sessions SET revoked_at = $3 WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL
+`
+
+type RevokeUserSessionParams struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	RevokedAt *time.Time
+}
+
+func (q *Queries) RevokeUserSession(ctx context.Context, arg RevokeUserSessionParams) (int64, error) {
+	result, err := q.db.Exec(ctx, revokeUserSession, arg.ID, arg.UserID, arg.RevokedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const revokeUserSessions = `-- name: RevokeUserSessions :execrows
@@ -2979,7 +3076,7 @@ func (q *Queries) SignalRecipient(ctx context.Context, recipientID string) error
 
 const tokenIssueStats = `-- name: TokenIssueStats :one
 SELECT count(*)::int AS issued_today,
-       coalesce(max(created_at), '-infinity'::timestamptz)::timestamptz AS last_issued_at
+       coalesce(max(created_at), 'epoch'::timestamptz)::timestamptz AS last_issued_at
 FROM auth_tokens
 WHERE user_id = $1 AND purpose = $2 AND created_at > $3::timestamptz
 `
@@ -3154,6 +3251,52 @@ type UpdatePasswordHashParams struct {
 func (q *Queries) UpdatePasswordHash(ctx context.Context, arg UpdatePasswordHashParams) error {
 	_, err := q.db.Exec(ctx, updatePasswordHash, arg.ID, arg.PasswordHash, arg.UpdatedAt)
 	return err
+}
+
+const updateProfile = `-- name: UpdateProfile :one
+UPDATE users SET full_name = $2, phone = $3, nim_nip = $4, version = version + 1, updated_at = $5
+WHERE id = $1
+RETURNING id, email, full_name, nim_nip, phone, password_hash, role, status, email_verified_at, claim_restricted_at, privacy_version, privacy_accepted_at, invited_by, last_login_at, deleted_at, version, created_at, updated_at
+`
+
+type UpdateProfileParams struct {
+	ID        uuid.UUID
+	FullName  string
+	Phone     *string
+	NimNip    *string
+	UpdatedAt time.Time
+}
+
+func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateProfile,
+		arg.ID,
+		arg.FullName,
+		arg.Phone,
+		arg.NimNip,
+		arg.UpdatedAt,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.FullName,
+		&i.NimNip,
+		&i.Phone,
+		&i.PasswordHash,
+		&i.Role,
+		&i.Status,
+		&i.EmailVerifiedAt,
+		&i.ClaimRestrictedAt,
+		&i.PrivacyVersion,
+		&i.PrivacyAcceptedAt,
+		&i.InvitedBy,
+		&i.LastLoginAt,
+		&i.DeletedAt,
+		&i.Version,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const updateUserRole = `-- name: UpdateUserRole :exec

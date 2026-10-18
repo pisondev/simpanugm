@@ -88,10 +88,11 @@ Permission names are from [permissions.md](../requirements/permissions.md).
 | POST | `/auth/invitations/accept` | public | Set the password of an invited account |
 | GET | `/me` | session | Profile, role, flags, posts, effective permissions |
 | PATCH | `/me` | `account.self.update` | Name, phone, NIM or NIP |
-| POST | `/me/email` | `account.self.update` | Start an email change |
-| PUT | `/me/password` | `account.self.update` | Change password with the current one |
+| POST | `/me/email` | `account.self.update` | Start an email change, `{email, password}`. The link goes to the new address |
+| POST | `/auth/email/confirm` | public | Consume the email change token from that link |
+| PUT | `/me/password` | `account.self.update` | Change password with the current one, every other session ends |
 | GET, PUT | `/me/notification-preferences` | `account.self.update` | Optional channels per group |
-| GET | `/me/sessions` | `account.sessions.manage` | Active sessions |
+| GET | `/me/sessions` | `account.sessions.manage` | Active sessions with a device label and the network prefix of the address |
 | DELETE | `/me/sessions/{id}` | `account.sessions.manage` | Revoke one |
 | POST | `/me/deletion` | `account.self.delete` | Request account deletion |
 

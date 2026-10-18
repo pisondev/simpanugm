@@ -121,7 +121,7 @@ data for building coordinates. Fallbacks are in [prd.md](../product/prd.md) sect
 | FR-AUTH-08 | The system shall reset a password through an emailed single use link valid for 30 minutes, and revoke every session of the user after a successful reset | M | 0.1 |
 | FR-AUTH-09 | The system shall let an administrator invite an officer or administrator by email. The invitation link is valid for 72 hours and leads to a set password page | M | 0.1 |
 | FR-AUTH-10 | The system shall let a user view and edit name, phone and NIM or NIP. Changing the email requires verifying the new address before it takes effect | M | 0.1 |
-| FR-AUTH-11 | The system shall list the user's active sessions with device, approximate location from IP, created and last seen time, and let the user revoke any of them | S | 0.1 |
+| FR-AUTH-11 | The system shall list the user's active sessions with device, approximate location from IP, created and last seen time, and let the user revoke any of them. Version 0.2 shows the network prefix of the address, a city lookup needs a GeoIP database and follows in 1.1 | S | 0.1 |
 | FR-AUTH-12 | The system shall deny sign in to a suspended account and revoke its sessions at the moment of suspension | M | 0.1 |
 | FR-AUTH-13 | The system shall let a user request deletion of their account. Deletion anonymises personal data per BR-RET-05 and keeps non personal case records for statistics | M | 1.0 |
 | FR-AUTH-14 | The system shall require acceptance of the privacy notice at registration and record the version accepted and the time | M | 0.1 |

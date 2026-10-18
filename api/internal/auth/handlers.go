@@ -212,3 +212,55 @@ func (h *Handlers) AdminUpdateUser(ctx context.Context, req openapi.AdminUpdateU
 	}
 	return openapi.AdminUpdateUser200JSONResponse(adminUser(u, posts)), nil
 }
+
+func (h *Handlers) UpdateMe(ctx context.Context, req openapi.UpdateMeRequestObject) (openapi.UpdateMeResponseObject, error) {
+	u, err := h.svc.UpdateProfile(ctx, access.FromContext(ctx), ProfileInput{FullName: req.Body.FullName, Phone: req.Body.Phone, NimNip: req.Body.NimNip})
+	if err != nil {
+		return nil, err
+	}
+	me, err := h.me(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	return openapi.UpdateMe200JSONResponse(me), nil
+}
+
+func (h *Handlers) StartEmailChange(ctx context.Context, req openapi.StartEmailChangeRequestObject) (openapi.StartEmailChangeResponseObject, error) {
+	if err := h.svc.StartEmailChange(ctx, access.FromContext(ctx), req.Body.Email, req.Body.Password); err != nil {
+		return nil, err
+	}
+	return openapi.StartEmailChange202JSONResponse(ack("Jika alamat itu bisa dipakai, tautan konfirmasi sudah dikirim ke sana.")), nil
+}
+
+func (h *Handlers) ConfirmEmailChange(ctx context.Context, req openapi.ConfirmEmailChangeRequestObject) (openapi.ConfirmEmailChangeResponseObject, error) {
+	if err := h.svc.ConfirmEmailChange(ctx, req.Body.Token); err != nil {
+		return nil, err
+	}
+	return openapi.ConfirmEmailChange200JSONResponse(ack("Email akunmu sudah diganti.")), nil
+}
+
+func (h *Handlers) ChangePassword(ctx context.Context, req openapi.ChangePasswordRequestObject) (openapi.ChangePasswordResponseObject, error) {
+	if err := h.svc.ChangePassword(ctx, access.FromContext(ctx), req.Body.CurrentPassword, req.Body.NewPassword); err != nil {
+		return nil, err
+	}
+	return openapi.ChangePassword204Response{}, nil
+}
+
+func (h *Handlers) ListMySessions(ctx context.Context, _ openapi.ListMySessionsRequestObject) (openapi.ListMySessionsResponseObject, error) {
+	rows, err := h.svc.Sessions(ctx, access.FromContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+	out := openapi.SessionList{Items: make([]openapi.SessionInfo, 0, len(rows))}
+	for _, s := range rows {
+		out.Items = append(out.Items, openapi.SessionInfo{Id: s.ID, CreatedAt: s.CreatedAt, LastSeenAt: s.LastSeenAt, Device: s.Device, IpHint: s.IPHint, Current: s.Current})
+	}
+	return openapi.ListMySessions200JSONResponse(out), nil
+}
+
+func (h *Handlers) RevokeMySession(ctx context.Context, req openapi.RevokeMySessionRequestObject) (openapi.RevokeMySessionResponseObject, error) {
+	if err := h.svc.RevokeSession(ctx, access.FromContext(ctx), req.Id); err != nil {
+		return nil, err
+	}
+	return openapi.RevokeMySession204Response{}, nil
+}

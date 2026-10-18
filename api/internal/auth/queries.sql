@@ -77,7 +77,7 @@ WHERE user_id = sqlc.arg(user_id) AND purpose = sqlc.arg(purpose) AND used_at IS
 
 -- name: TokenIssueStats :one
 SELECT count(*)::int AS issued_today,
-       coalesce(max(created_at), '-infinity'::timestamptz)::timestamptz AS last_issued_at
+       coalesce(max(created_at), 'epoch'::timestamptz)::timestamptz AS last_issued_at
 FROM auth_tokens
 WHERE user_id = sqlc.arg(user_id) AND purpose = sqlc.arg(purpose) AND created_at > sqlc.arg(since)::timestamptz;
 
@@ -126,3 +126,23 @@ WHERE users.status = 'pending_verification'
 
 -- name: DeleteExpiredSessions :execrows
 DELETE FROM sessions WHERE expires_at < $1;
+
+-- name: UpdateProfile :one
+UPDATE users SET full_name = $2, phone = $3, nim_nip = $4, version = version + 1, updated_at = $5
+WHERE id = $1
+RETURNING *;
+
+-- name: ChangeUserEmail :exec
+UPDATE users SET email = $2, email_verified_at = $3, version = version + 1, updated_at = $3 WHERE id = $1;
+
+-- name: ListActiveSessions :many
+SELECT id, created_at, last_seen_at, ip, user_agent FROM sessions
+WHERE user_id = sqlc.arg(user_id) AND revoked_at IS NULL AND expires_at > sqlc.arg(now)::timestamptz
+  AND (idle_expires_at IS NULL OR idle_expires_at > sqlc.arg(now)::timestamptz)
+ORDER BY last_seen_at DESC;
+
+-- name: RevokeUserSession :execrows
+UPDATE sessions SET revoked_at = $3 WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL;
+
+-- name: RevokeOtherSessions :execrows
+UPDATE sessions SET revoked_at = $3 WHERE user_id = $1 AND id <> $2 AND revoked_at IS NULL;
