@@ -465,6 +465,13 @@
       "saveEdit": "Simpan perubahan",
       "created": "Terima kasih. Laporan temuan sudah terkirim.",
       "updated": "Perubahan disimpan."
+    },
+    "assist": {
+      "loading": "Menyiapkan saran dari foto...",
+      "unavailable": "Saran otomatis sedang tidak tersedia",
+      "tag": "Saran otomatis",
+      "alternatives": "Mungkin juga:",
+      "redraft": "Buat ulang dari foto"
     }
   },
   "report": {

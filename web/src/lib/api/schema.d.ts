@@ -993,6 +993,38 @@ export interface paths {
         patch: operations["adminUpdatePost"];
         trace?: never;
     };
+    "/assist/analyze-image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["assistAnalyzeImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assist/describe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["assistDescribe"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1215,6 +1247,7 @@ export interface components {
             location_note?: string;
             media_ids: string[];
             proxy?: components["schemas"]["ProxyLostInput"];
+            assist_outcome?: components["schemas"]["AssistOutcome"];
         };
         /** @description Every field is optional. A present field replaces the stored value. An empty string clears an optional text */
         LostReportUpdate: {
@@ -1336,6 +1369,7 @@ export interface components {
             media_ids: string[];
             custody: components["schemas"]["CustodyChoice"];
             proxy?: components["schemas"]["ProxyFoundInput"];
+            assist_outcome?: components["schemas"]["AssistOutcome"];
         };
         /** @description Every field is optional. A present field replaces the stored value. An empty string clears an optional text */
         FoundReportUpdate: {
@@ -1881,6 +1915,42 @@ export interface components {
             phone?: string;
             opening_hours?: components["schemas"]["OpeningHours"];
             active?: boolean;
+        };
+        AssistAnalyzeRequest: {
+            /** Format: uuid */
+            media_id: string;
+            /** @enum {string} */
+            report_type: "lost" | "found";
+        };
+        CategorySuggestion: {
+            category: components["schemas"]["CategoryRef"];
+            score: number;
+        };
+        AssistSuggestions: {
+            categories: components["schemas"]["CategorySuggestion"][];
+            colours: string[];
+            brand?: string | null;
+            /** @description masked per BR-PRV-03; the form does not show it for identity categories */
+            visible_text?: string | null;
+        };
+        AssistDescribeRequest: {
+            /** Format: uuid */
+            category_id: string;
+            colours?: string[];
+            brand?: string;
+            visible_text?: string;
+        };
+        AssistDescription: {
+            description: string;
+        };
+        /** @enum {string} */
+        AssistFieldOutcome: "accepted" | "edited" | "ignored";
+        /** @description AI-03, what the reporter did with each suggestion, kept for AI-12 */
+        AssistOutcome: {
+            category?: components["schemas"]["AssistFieldOutcome"];
+            colours?: components["schemas"]["AssistFieldOutcome"];
+            brand?: components["schemas"]["AssistFieldOutcome"];
+            description?: components["schemas"]["AssistFieldOutcome"];
         };
     };
     responses: {
@@ -3636,6 +3706,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminPost"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    assistAnalyzeImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistAnalyzeRequest"];
+            };
+        };
+        responses: {
+            /** @description AI-03 suggestions for the report form, visible text masked per BR-PRV-03 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistSuggestions"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    assistDescribe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistDescribeRequest"];
+            };
+        };
+        responses: {
+            /** @description AI-04 template draft of a public description */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistDescription"];
                 };
             };
             default: components["responses"]["Problem"];

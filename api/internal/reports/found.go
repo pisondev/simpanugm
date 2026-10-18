@@ -44,6 +44,7 @@ type FoundInput struct {
 	CustodyMode     string      `json:"custody_mode"`
 	IntendedPostID  *uuid.UUID  `json:"intended_post_id"`
 	Proxy           *ProxyFound `json:"proxy"`
+	AssistOutcome   []byte      `json:"-"`
 }
 
 type FoundPatch struct {
@@ -159,7 +160,7 @@ func (s *Service) CreateFound(ctx context.Context, p *access.Principal, key stri
 		params := sqlc.InsertFoundReportParams{
 			Code: "", CreatedBy: &p.UserID, CategoryID: in.CategoryID, ItemName: in.ItemName, Description: in.Description,
 			HiddenDetails: in.HiddenDetails, Colours: in.Colours, Brand: in.Brand, FoundAt: in.FoundAt,
-			FoundLocationID: in.FoundLocationID, LocationNote: in.LocationNote, CreatedAt: now,
+			FoundLocationID: in.FoundLocationID, LocationNote: in.LocationNote, CreatedAt: now, AssistOutcome: in.AssistOutcome,
 		}
 		custodyEvent, custodyTo := "member_submit", "with_finder"
 		if proxy {

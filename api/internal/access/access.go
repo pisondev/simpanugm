@@ -182,6 +182,8 @@ var Operations = map[string]Rule{
 	"submitMatchFeedback":        {Permission: MatchFeedback},
 	"dismissMatch":               {Permission: MatchDismiss},
 	"rematchReport":              {Permission: MatchRematch},
+	"assistAnalyzeImage":         {Permission: AssistAnalyze},
+	"assistDescribe":             {Permission: AssistAnalyze},
 	"adminListCategories":        {Permission: MasterdataManage},
 	"adminCreateCategory":        {Permission: MasterdataManage},
 	"adminUpdateCategory":        {Permission: MasterdataManage},

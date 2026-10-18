@@ -21,6 +21,7 @@ tags:
   - name: account
   - name: admin
   - name: matching
+  - name: assist
 
 paths:
   /auth/register:
@@ -1177,6 +1178,40 @@ paths:
               schema: { $ref: '#/components/schemas/AdminPost' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /assist/analyze-image:
+    post:
+      tags: [assist]
+      operationId: assistAnalyzeImage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssistAnalyzeRequest' }
+      responses:
+        '200':
+          description: AI-03 suggestions for the report form, visible text masked per BR-PRV-03
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssistSuggestions' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /assist/describe:
+    post:
+      tags: [assist]
+      operationId: assistDescribe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssistDescribeRequest' }
+      responses:
+        '200':
+          description: AI-04 template draft of a public description
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssistDescription' }
+        default: { $ref: '#/components/responses/Problem' }
+
 components:
   securitySchemes:
     cookieAuth:
@@ -1579,6 +1614,7 @@ components:
           maxItems: 5
           items: { type: string, format: uuid }
         proxy: { $ref: '#/components/schemas/ProxyLostInput' }
+        assist_outcome: { $ref: '#/components/schemas/AssistOutcome' }
 
     LostReportUpdate:
       type: object
@@ -1744,6 +1780,7 @@ components:
           items: { type: string, format: uuid }
         custody: { $ref: '#/components/schemas/CustodyChoice' }
         proxy: { $ref: '#/components/schemas/ProxyFoundInput' }
+        assist_outcome: { $ref: '#/components/schemas/AssistOutcome' }
 
     FoundReportUpdate:
       type: object
@@ -2485,3 +2522,66 @@ components:
         phone: { type: string, maxLength: 30, description: an empty string removes the number }
         opening_hours: { $ref: '#/components/schemas/OpeningHours' }
         active: { type: boolean }
+
+    AssistAnalyzeRequest:
+      type: object
+      additionalProperties: false
+      required: [media_id, report_type]
+      properties:
+        media_id: { type: string, format: uuid }
+        report_type: { type: string, enum: [lost, found] }
+
+    CategorySuggestion:
+      type: object
+      required: [category, score]
+      properties:
+        category: { $ref: '#/components/schemas/CategoryRef' }
+        score: { type: number }
+
+    AssistSuggestions:
+      type: object
+      required: [categories, colours]
+      properties:
+        categories:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/CategorySuggestion' }
+        colours:
+          type: array
+          maxItems: 2
+          items: { type: string }
+        brand: { type: string, nullable: true }
+        visible_text: { type: string, nullable: true, description: 'masked per BR-PRV-03; the form does not show it for identity categories' }
+
+    AssistDescribeRequest:
+      type: object
+      additionalProperties: false
+      required: [category_id]
+      properties:
+        category_id: { type: string, format: uuid }
+        colours:
+          type: array
+          maxItems: 2
+          items: { type: string, maxLength: 30 }
+        brand: { type: string, maxLength: 40 }
+        visible_text: { type: string, maxLength: 200 }
+
+    AssistDescription:
+      type: object
+      required: [description]
+      properties:
+        description: { type: string }
+
+    AssistFieldOutcome:
+      type: string
+      enum: [accepted, edited, ignored]
+
+    AssistOutcome:
+      type: object
+      additionalProperties: false
+      description: AI-03, what the reporter did with each suggestion, kept for AI-12
+      properties:
+        category: { $ref: '#/components/schemas/AssistFieldOutcome' }
+        colours: { $ref: '#/components/schemas/AssistFieldOutcome' }
+        brand: { $ref: '#/components/schemas/AssistFieldOutcome' }
+        description: { $ref: '#/components/schemas/AssistFieldOutcome' }

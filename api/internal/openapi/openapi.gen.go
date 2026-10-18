@@ -42,6 +42,45 @@ func (e AccountStatus) Valid() bool {
 	}
 }
 
+// Defines values for AssistAnalyzeRequestReportType.
+const (
+	AssistAnalyzeRequestReportTypeFound AssistAnalyzeRequestReportType = "found"
+	AssistAnalyzeRequestReportTypeLost  AssistAnalyzeRequestReportType = "lost"
+)
+
+// Valid indicates whether the value is a known member of the AssistAnalyzeRequestReportType enum.
+func (e AssistAnalyzeRequestReportType) Valid() bool {
+	switch e {
+	case AssistAnalyzeRequestReportTypeFound:
+		return true
+	case AssistAnalyzeRequestReportTypeLost:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AssistFieldOutcome.
+const (
+	Accepted AssistFieldOutcome = "accepted"
+	Edited   AssistFieldOutcome = "edited"
+	Ignored  AssistFieldOutcome = "ignored"
+)
+
+// Valid indicates whether the value is a known member of the AssistFieldOutcome enum.
+func (e AssistFieldOutcome) Valid() bool {
+	switch e {
+	case Accepted:
+		return true
+	case Edited:
+		return true
+	case Ignored:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CandidatePhotoVariant.
 const (
 	Display   CandidatePhotoVariant = "display"
@@ -682,6 +721,49 @@ type AdminZoneList struct {
 	Items []AdminZone `json:"items"`
 }
 
+// AssistAnalyzeRequest defines model for AssistAnalyzeRequest.
+type AssistAnalyzeRequest struct {
+	MediaId    openapi_types.UUID             `json:"media_id"`
+	ReportType AssistAnalyzeRequestReportType `json:"report_type"`
+}
+
+// AssistAnalyzeRequestReportType defines model for AssistAnalyzeRequest.ReportType.
+type AssistAnalyzeRequestReportType string
+
+// AssistDescribeRequest defines model for AssistDescribeRequest.
+type AssistDescribeRequest struct {
+	Brand       *string            `json:"brand,omitempty"`
+	CategoryId  openapi_types.UUID `json:"category_id"`
+	Colours     *[]string          `json:"colours,omitempty"`
+	VisibleText *string            `json:"visible_text,omitempty"`
+}
+
+// AssistDescription defines model for AssistDescription.
+type AssistDescription struct {
+	Description string `json:"description"`
+}
+
+// AssistFieldOutcome defines model for AssistFieldOutcome.
+type AssistFieldOutcome string
+
+// AssistOutcome AI-03, what the reporter did with each suggestion, kept for AI-12
+type AssistOutcome struct {
+	Brand       *AssistFieldOutcome `json:"brand,omitempty"`
+	Category    *AssistFieldOutcome `json:"category,omitempty"`
+	Colours     *AssistFieldOutcome `json:"colours,omitempty"`
+	Description *AssistFieldOutcome `json:"description,omitempty"`
+}
+
+// AssistSuggestions defines model for AssistSuggestions.
+type AssistSuggestions struct {
+	Brand      *string              `json:"brand,omitempty"`
+	Categories []CategorySuggestion `json:"categories"`
+	Colours    []string             `json:"colours"`
+
+	// VisibleText masked per BR-PRV-03; the form does not show it for identity categories
+	VisibleText *string `json:"visible_text,omitempty"`
+}
+
 // CandidatePhoto defines model for CandidatePhoto.
 type CandidatePhoto struct {
 	MediaId openapi_types.UUID    `json:"media_id"`
@@ -728,6 +810,12 @@ type CategoryRef struct {
 	ParentName  string             `json:"parent_name"`
 	Sensitivity Sensitivity        `json:"sensitivity"`
 	Slug        string             `json:"slug"`
+}
+
+// CategorySuggestion defines model for CategorySuggestion.
+type CategorySuggestion struct {
+	Category CategoryRef `json:"category"`
+	Score    float32     `json:"score"`
 }
 
 // CategoryUpdate defines model for CategoryUpdate.
@@ -895,6 +983,8 @@ type FoundReport struct {
 
 // FoundReportCreate defines model for FoundReportCreate.
 type FoundReportCreate struct {
+	// AssistOutcome AI-03, what the reporter did with each suggestion, kept for AI-12
+	AssistOutcome   *AssistOutcome       `json:"assist_outcome,omitempty"`
 	Brand           *string              `json:"brand,omitempty"`
 	CategoryId      openapi_types.UUID   `json:"category_id"`
 	Colours         []string             `json:"colours"`
@@ -1108,6 +1198,8 @@ type LostReport struct {
 
 // LostReportCreate defines model for LostReportCreate.
 type LostReportCreate struct {
+	// AssistOutcome AI-03, what the reporter did with each suggestion, kept for AI-12
+	AssistOutcome   *AssistOutcome       `json:"assist_outcome,omitempty"`
 	Brand           *string              `json:"brand,omitempty"`
 	CategoryId      openapi_types.UUID   `json:"category_id"`
 	Colours         []string             `json:"colours"`
@@ -1762,6 +1854,12 @@ type AdminCreateZoneJSONRequestBody = ZoneCreate
 // AdminUpdateZoneJSONRequestBody defines body for AdminUpdateZone for application/json ContentType.
 type AdminUpdateZoneJSONRequestBody = ZoneUpdate
 
+// AssistAnalyzeImageJSONRequestBody defines body for AssistAnalyzeImage for application/json ContentType.
+type AssistAnalyzeImageJSONRequestBody = AssistAnalyzeRequest
+
+// AssistDescribeJSONRequestBody defines body for AssistDescribe for application/json ContentType.
+type AssistDescribeJSONRequestBody = AssistDescribeRequest
+
 // ConfirmEmailChangeJSONRequestBody defines body for ConfirmEmailChange for application/json ContentType.
 type ConfirmEmailChangeJSONRequestBody = TokenRequest
 
@@ -1878,6 +1976,12 @@ type ServerInterface interface {
 
 	// (PATCH /admin/zones/{id})
 	AdminUpdateZone(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
+	// (POST /assist/analyze-image)
+	AssistAnalyzeImage(w http.ResponseWriter, r *http.Request)
+
+	// (POST /assist/describe)
+	AssistDescribe(w http.ResponseWriter, r *http.Request)
 
 	// (POST /auth/email/confirm)
 	ConfirmEmailChange(w http.ResponseWriter, r *http.Request)
@@ -2119,6 +2223,16 @@ func (_ Unimplemented) AdminCreateZone(w http.ResponseWriter, r *http.Request) {
 
 // (PATCH /admin/zones/{id})
 func (_ Unimplemented) AdminUpdateZone(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /assist/analyze-image)
+func (_ Unimplemented) AssistAnalyzeImage(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /assist/describe)
+func (_ Unimplemented) AssistDescribe(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2765,6 +2879,34 @@ func (siw *ServerInterfaceWrapper) AdminUpdateZone(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminUpdateZone(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AssistAnalyzeImage operation middleware
+func (siw *ServerInterfaceWrapper) AssistAnalyzeImage(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AssistAnalyzeImage(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AssistDescribe operation middleware
+func (siw *ServerInterfaceWrapper) AssistDescribe(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AssistDescribe(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -4710,6 +4852,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Patch(options.BaseURL+"/admin/posts/{id}", wrapper.AdminUpdatePost)
 	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/assist/analyze-image", wrapper.AssistAnalyzeImage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/assist/describe", wrapper.AssistDescribe)
+	})
 
 	return r
 }
@@ -5369,6 +5517,84 @@ type AdminUpdateZonedefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response AdminUpdateZonedefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateZoneResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AssistAnalyzeImageRequestObject struct {
+	Body *AssistAnalyzeImageJSONRequestBody
+}
+
+type AssistAnalyzeImageResponseObject interface {
+	VisitAssistAnalyzeImageResponse(w http.ResponseWriter) error
+}
+
+type AssistAnalyzeImage200JSONResponse AssistSuggestions
+
+func (response AssistAnalyzeImage200JSONResponse) VisitAssistAnalyzeImageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AssistAnalyzeImagedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AssistAnalyzeImagedefaultApplicationProblemPlusJSONResponse) VisitAssistAnalyzeImageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AssistDescribeRequestObject struct {
+	Body *AssistDescribeJSONRequestBody
+}
+
+type AssistDescribeResponseObject interface {
+	VisitAssistDescribeResponse(w http.ResponseWriter) error
+}
+
+type AssistDescribe200JSONResponse AssistDescription
+
+func (response AssistDescribe200JSONResponse) VisitAssistDescribeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AssistDescribedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AssistDescribedefaultApplicationProblemPlusJSONResponse) VisitAssistDescribeResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -7387,6 +7613,12 @@ type StrictServerInterface interface {
 	// (PATCH /admin/zones/{id})
 	AdminUpdateZone(ctx context.Context, request AdminUpdateZoneRequestObject) (AdminUpdateZoneResponseObject, error)
 
+	// (POST /assist/analyze-image)
+	AssistAnalyzeImage(ctx context.Context, request AssistAnalyzeImageRequestObject) (AssistAnalyzeImageResponseObject, error)
+
+	// (POST /assist/describe)
+	AssistDescribe(ctx context.Context, request AssistDescribeRequestObject) (AssistDescribeResponseObject, error)
+
 	// (POST /auth/email/confirm)
 	ConfirmEmailChange(ctx context.Context, request ConfirmEmailChangeRequestObject) (ConfirmEmailChangeResponseObject, error)
 
@@ -8072,6 +8304,68 @@ func (sh *strictHandler) AdminUpdateZone(w http.ResponseWriter, r *http.Request,
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(AdminUpdateZoneResponseObject); ok {
 		if err := validResponse.VisitAdminUpdateZoneResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AssistAnalyzeImage operation middleware
+func (sh *strictHandler) AssistAnalyzeImage(w http.ResponseWriter, r *http.Request) {
+	var request AssistAnalyzeImageRequestObject
+
+	var body AssistAnalyzeImageJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AssistAnalyzeImage(ctx, request.(AssistAnalyzeImageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AssistAnalyzeImage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AssistAnalyzeImageResponseObject); ok {
+		if err := validResponse.VisitAssistAnalyzeImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AssistDescribe operation middleware
+func (sh *strictHandler) AssistDescribe(w http.ResponseWriter, r *http.Request) {
+	var request AssistDescribeRequestObject
+
+	var body AssistDescribeJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AssistDescribe(ctx, request.(AssistDescribeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AssistDescribe")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AssistDescribeResponseObject); ok {
+		if err := validResponse.VisitAssistDescribeResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

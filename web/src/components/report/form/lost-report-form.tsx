@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query"
 import { TriangleAlert } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { Controller, type FieldPath, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -22,6 +22,7 @@ import { formatRange } from "@/lib/format"
 import { isoToWib, lostWindow, todayInWib, windowProblem } from "@/lib/time"
 
 import { Detail, DetailList } from "../detail-list"
+import { AssistNote, CategoryAlternatives, SuggestedTag } from "./assist-ui"
 import { CategoryPicker, leaves } from "./category-picker"
 import { ColourPicker } from "./colour-picker"
 import { Field } from "./field"
@@ -29,6 +30,7 @@ import { LocationPicker } from "./location-picker"
 import { LostWindowFields } from "./lost-window-fields"
 import { busy, maxPhotos, type PhotoItem, PhotoPicker, photoFromId, readyIds } from "./photo-picker"
 import { Stepper } from "./stepper"
+import { type AssistFields, useAssist } from "./use-assist"
 import { useReportDraft } from "./use-report-draft"
 
 type Mode = "create" | "edit" | "proxy"
@@ -206,6 +208,15 @@ export function LostReportForm({ mode, categories, colours, initial }: Props) {
   const onReview = step >= steps.length
   const current = steps[step]
   const locationUnknown = useWatch({ control, name: "location_unknown" })
+  const read = useCallback(() => {
+    const v = form.getValues()
+    return { category_id: v.category_id, colours: v.colours, brand: v.brand, description: v.description }
+  }, [form])
+  const write = useCallback(
+    (patch: Partial<AssistFields>) => (Object.keys(patch) as (keyof AssistFields)[]).forEach((k) => form.setValue(k, patch[k] as never, { shouldDirty: true })),
+    [form],
+  )
+  const assist = useAssist({ enabled: mode !== "edit", reportType: "lost", mediaId: readyIds(photos)[0], read, write })
 
   const draft = useReportDraft({
     enabled: mode !== "edit",
@@ -269,6 +280,7 @@ export function LostReportForm({ mode, categories, colours, initial }: Props) {
         private_details: v.private_details || undefined,
         media_ids: readyIds(photos),
         proxy: proxy ? { name: v.proxy_name, phone: v.proxy_phone || undefined } : undefined,
+        assist_outcome: assist.outcome({ category_id: v.category_id, colours: v.colours, brand: v.brand, description: v.description }),
       }
       return call(api.POST("/lost-reports", { params: { header: { "Idempotency-Key": draft.key.current } }, body }))
     },
@@ -397,20 +409,29 @@ export function LostReportForm({ mode, categories, colours, initial }: Props) {
 
       {current === "detail" ? (
         <div className="flex flex-col gap-5">
+          <AssistNote assist={assist} />
           <Controller
             control={control}
             name="category_id"
             render={({ field }) => (
-              <Field id="category" label={t("category.label")} error={errors.category_id?.message}>
+              <Field
+                id="category"
+                label={t("category.label")}
+                hint={assist.suggested("category", field.value) ? <SuggestedTag show /> : undefined}
+                error={errors.category_id?.message}
+              >
                 {(aria) => (
-                  <CategoryPicker
-                    tree={categories}
-                    value={field.value}
-                    onChange={field.onChange}
-                    id={aria.id}
-                    describedBy={aria["aria-describedby"]}
-                    invalid={aria["aria-invalid"]}
-                  />
+                  <>
+                    <CategoryPicker
+                      tree={categories}
+                      value={field.value}
+                      onChange={field.onChange}
+                      id={aria.id}
+                      describedBy={aria["aria-describedby"]}
+                      invalid={aria["aria-invalid"]}
+                    />
+                    <CategoryAlternatives assist={assist} onPick={assist.pick} />
+                  </>
                 )}
               </Field>
             )}
@@ -430,12 +451,28 @@ export function LostReportForm({ mode, categories, colours, initial }: Props) {
             control={control}
             name="colours"
             render={({ field }) => (
-              <Field id="colours" as="fieldset" label={t("colours.label")} hint={t("colours.hint")} optionalLabel={tc("optional")}>
+              <Field
+                id="colours"
+                as="fieldset"
+                label={t("colours.label")}
+                hint={
+                  <>
+                    {t("colours.hint")} <SuggestedTag show={assist.suggested("colours", field.value)} />
+                  </>
+                }
+                optionalLabel={tc("optional")}
+              >
                 {(aria) => <ColourPicker palette={colours} value={field.value} onChange={field.onChange} describedBy={aria["aria-describedby"]} />}
               </Field>
             )}
           />
-          <Field id="brand" label={t("brand.label")} optionalLabel={tc("optional")} error={errors.brand?.message}>
+          <Field
+            id="brand"
+            label={t("brand.label")}
+            hint={assist.suggested("brand", values.brand) ? <SuggestedTag show /> : undefined}
+            optionalLabel={tc("optional")}
+            error={errors.brand?.message}
+          >
             {(aria) => <Input {...aria} placeholder={t("brand.placeholder")} maxLength={40} {...register("brand")} />}
           </Field>
         </div>

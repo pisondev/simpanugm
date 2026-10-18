@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query"
 import { Info, TriangleAlert } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Controller, type FieldPath, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -24,6 +24,7 @@ import { foundTimeProblem, isoToWib, nowTimeInWib, todayInWib, wibToIso } from "
 import { cn } from "@/lib/utils"
 
 import { Detail, DetailList } from "../detail-list"
+import { AssistNote, CategoryAlternatives, RedraftButton, SuggestedTag } from "./assist-ui"
 import { CategoryPicker, leaves } from "./category-picker"
 import { ColourPicker } from "./colour-picker"
 import { Field } from "./field"
@@ -31,6 +32,7 @@ import { LocationPicker } from "./location-picker"
 import { busy, type PhotoItem, PhotoPicker, photoFromId, readyIds } from "./photo-picker"
 import { PostPicker } from "./post-picker"
 import { Stepper } from "./stepper"
+import { type AssistFields, useAssist } from "./use-assist"
 import { useReportDraft } from "./use-report-draft"
 
 type Mode = "create" | "edit" | "proxy"
@@ -232,6 +234,15 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
   })
 
   const values = useWatch({ control })
+  const read = useCallback(() => {
+    const v = form.getValues()
+    return { category_id: v.category_id, colours: v.colours, brand: v.brand, description: v.description }
+  }, [form])
+  const write = useCallback(
+    (patch: Partial<AssistFields>) => (Object.keys(patch) as (keyof AssistFields)[]).forEach((k) => form.setValue(k, patch[k] as never, { shouldDirty: true })),
+    [form],
+  )
+  const assist = useAssist({ enabled: mode !== "edit", reportType: "found", mediaId: readyIds(photos)[0], read, write, drafts: true })
   const category = leafList.find((l) => l.id === values.category_id)
   const mustHandOver = category ? category.sensitivity !== "normal" : false
   const locationId = values.location?.[0]?.location_id
@@ -315,6 +326,7 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
               condition_note: v.proxy_condition || undefined,
             }
           : undefined,
+        assist_outcome: assist.outcome({ category_id: v.category_id, colours: v.colours, brand: v.brand, description: v.description }),
       }
       return call(api.POST("/found-reports", { params: { header: { "Idempotency-Key": draft.key.current } }, body }))
     },
@@ -403,20 +415,29 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
 
       {current === "detail" ? (
         <div className="flex flex-col gap-5">
+          <AssistNote assist={assist} />
           <Controller
             control={control}
             name="category_id"
             render={({ field }) => (
-              <Field id="category" label={t("category.label")} error={errors.category_id?.message}>
+              <Field
+                id="category"
+                label={t("category.label")}
+                hint={assist.suggested("category", field.value) ? <SuggestedTag show /> : undefined}
+                error={errors.category_id?.message}
+              >
                 {(aria) => (
-                  <CategoryPicker
-                    tree={categories}
-                    value={field.value}
-                    onChange={field.onChange}
-                    id={aria.id}
-                    describedBy={aria["aria-describedby"]}
-                    invalid={aria["aria-invalid"]}
-                  />
+                  <>
+                    <CategoryPicker
+                      tree={categories}
+                      value={field.value}
+                      onChange={field.onChange}
+                      id={aria.id}
+                      describedBy={aria["aria-describedby"]}
+                      invalid={aria["aria-invalid"]}
+                    />
+                    <CategoryAlternatives assist={assist} onPick={assist.pick} />
+                  </>
                 )}
               </Field>
             )}
@@ -427,21 +448,47 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
           <Field
             id="description"
             label={t("description.label")}
-            hint={tc("chars", { count: values.description?.length ?? 0, max: 500 })}
+            hint={
+              <>
+                {tc("chars", { count: values.description?.length ?? 0, max: 500 })}{" "}
+                {assist.suggested("description", values.description) ? <SuggestedTag show /> : null}
+              </>
+            }
             error={errors.description?.message}
           >
-            {(aria) => <Textarea {...aria} rows={4} placeholder={t("description.foundPlaceholder")} maxLength={500} {...register("description")} />}
+            {(aria) => (
+              <>
+                <Textarea {...aria} rows={4} placeholder={t("description.foundPlaceholder")} maxLength={500} {...register("description")} />
+                <RedraftButton assist={assist} />
+              </>
+            )}
           </Field>
           <Controller
             control={control}
             name="colours"
             render={({ field }) => (
-              <Field id="colours" as="fieldset" label={t("colours.label")} hint={t("colours.hint")} optionalLabel={tc("optional")}>
+              <Field
+                id="colours"
+                as="fieldset"
+                label={t("colours.label")}
+                hint={
+                  <>
+                    {t("colours.hint")} <SuggestedTag show={assist.suggested("colours", field.value)} />
+                  </>
+                }
+                optionalLabel={tc("optional")}
+              >
                 {(aria) => <ColourPicker palette={colours} value={field.value} onChange={field.onChange} describedBy={aria["aria-describedby"]} />}
               </Field>
             )}
           />
-          <Field id="brand" label={t("brand.label")} optionalLabel={tc("optional")} error={errors.brand?.message}>
+          <Field
+            id="brand"
+            label={t("brand.label")}
+            hint={assist.suggested("brand", values.brand) ? <SuggestedTag show /> : undefined}
+            optionalLabel={tc("optional")}
+            error={errors.brand?.message}
+          >
             {(aria) => <Input {...aria} placeholder={t("brand.placeholder")} maxLength={40} {...register("brand")} />}
           </Field>
         </div>

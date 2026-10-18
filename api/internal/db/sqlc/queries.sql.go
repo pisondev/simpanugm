@@ -2215,11 +2215,11 @@ const insertFoundReport = `-- name: InsertFoundReport :exec
 INSERT INTO found_reports (
     id, code, finder_id, created_by, proxy_finder_name, category_id, item_name, description, hidden_details,
     colours, brand, found_at, found_location_id, location_note, custody_status, custody_keep, intended_post_id,
-    holding_post_id, storage_slot, received_at, received_by, retention_due_at, status, created_at, updated_at
+    holding_post_id, storage_slot, received_at, received_by, retention_due_at, status, created_at, updated_at, assist_outcome
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9,
     $10, $11, $12, $13, $14, $15, $16, $17,
-    $18, $19, $20, $21, $22, 'reported', $23, $23
+    $18, $19, $20, $21, $22, 'reported', $23, $23, $24
 )
 `
 
@@ -2247,6 +2247,7 @@ type InsertFoundReportParams struct {
 	ReceivedBy      *uuid.UUID
 	RetentionDueAt  *time.Time
 	CreatedAt       time.Time
+	AssistOutcome   []byte
 }
 
 func (q *Queries) InsertFoundReport(ctx context.Context, arg InsertFoundReportParams) error {
@@ -2274,6 +2275,7 @@ func (q *Queries) InsertFoundReport(ctx context.Context, arg InsertFoundReportPa
 		arg.ReceivedBy,
 		arg.RetentionDueAt,
 		arg.CreatedAt,
+		arg.AssistOutcome,
 	)
 	return err
 }
@@ -2336,11 +2338,11 @@ const insertLostReport = `-- name: InsertLostReport :exec
 INSERT INTO lost_reports (
     id, code, reporter_id, created_by, proxy_name, proxy_phone, category_id, item_name, description,
     private_details, colours, brand, lost_from, lost_until, location_unknown, location_note, status,
-    last_activity_at, created_at, updated_at
+    last_activity_at, created_at, updated_at, assist_outcome
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9,
     $10, $11, $12, $13, $14, $15, $16, 'reported',
-    $17, $17, $17
+    $17, $17, $17, $18
 )
 `
 
@@ -2362,6 +2364,7 @@ type InsertLostReportParams struct {
 	LocationUnknown bool
 	LocationNote    *string
 	LastActivityAt  time.Time
+	AssistOutcome   []byte
 }
 
 func (q *Queries) InsertLostReport(ctx context.Context, arg InsertLostReportParams) error {
@@ -2383,6 +2386,7 @@ func (q *Queries) InsertLostReport(ctx context.Context, arg InsertLostReportPara
 		arg.LocationUnknown,
 		arg.LocationNote,
 		arg.LastActivityAt,
+		arg.AssistOutcome,
 	)
 	return err
 }

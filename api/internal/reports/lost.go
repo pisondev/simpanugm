@@ -40,6 +40,7 @@ type LostInput struct {
 	MediaIDs        []uuid.UUID `json:"media_ids"`
 	ProxyName       *string     `json:"proxy_name"`
 	ProxyPhone      *string     `json:"proxy_phone"`
+	AssistOutcome   []byte      `json:"-"`
 }
 
 type LostPatch struct {
@@ -197,7 +198,7 @@ func (s *Service) CreateLost(ctx context.Context, p *access.Principal, key strin
 			ID: id, Code: code, ReporterID: reporter, CreatedBy: &p.UserID, ProxyName: in.ProxyName, ProxyPhone: in.ProxyPhone,
 			CategoryID: in.CategoryID, ItemName: in.ItemName, Description: in.Description, PrivateDetails: in.PrivateDetails,
 			Colours: in.Colours, Brand: in.Brand, LostFrom: in.LostFrom, LostUntil: in.LostUntil,
-			LocationUnknown: in.LocationUnknown, LocationNote: in.LocationNote, LastActivityAt: now,
+			LocationUnknown: in.LocationUnknown, LocationNote: in.LocationNote, LastActivityAt: now, AssistOutcome: in.AssistOutcome,
 		}); err != nil {
 			return err
 		}

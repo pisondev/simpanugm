@@ -23,6 +23,7 @@ type FakeML struct {
 	mu       sync.Mutex
 	status   int
 	text     string
+	analysis map[string]any
 	revision string
 	Calls    map[string]int
 }
@@ -58,6 +59,9 @@ func (f *FakeML) ShowText(s string) { f.mu.Lock(); f.text = s; f.mu.Unlock() }
 
 // a different revision is a different model version
 func (f *FakeML) Revision(r string) { f.mu.Lock(); f.revision = r; f.mu.Unlock() }
+
+// replaces the categories, colours and brands that /v1/analyze/image answers with
+func (f *FakeML) Analysis(a map[string]any) { f.mu.Lock(); f.analysis = a; f.mu.Unlock() }
 
 func (f *FakeML) state() (string, string) {
 	f.mu.Lock()
@@ -164,9 +168,16 @@ func (f *FakeML) analyze(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	text, _ := f.state()
-	writeJSON(w, map[string]any{
+	f.mu.Lock()
+	extra := f.analysis
+	f.mu.Unlock()
+	out := map[string]any{
 		"categories": []any{}, "colours": []any{}, "brands": []any{},
 		"text":     map[string]any{"value": text, "masked": false},
 		"versions": map[string]string{"ocr": "test"},
-	})
+	}
+	for k, v := range extra {
+		out[k] = v
+	}
+	writeJSON(w, out)
 }

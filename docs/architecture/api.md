@@ -113,7 +113,7 @@ Permission names are from [permissions.md](../requirements/permissions.md).
 | POST | `/media` | `media.upload` | Upload one image as `file`, with `purpose`. Returns `{id, state: "staged"}` |
 | GET | `/media/{id}` | `media.read` | Image bytes, `?variant=thumb|display|original|thumb_blur`, `Cache-Control: private` |
 | DELETE | `/media/{id}` | `media.delete` | Remove a photo from an editable report |
-| POST | `/assist/analyze-image` | `assist.analyze` | `{media_id, report_type}` returns suggestions (AI-03) |
+| POST | `/assist/analyze-image` | `assist.analyze` | `{media_id, report_type}` of the caller's own staged photo returns up to three known leaf categories, up to two palette colours, a brand when the OCR match scores 0.85 or more, and the masked visible text (AI-03). `503 assist_unavailable` when ml is missing, down or slower than 8 s; report creation accepts an `assist_outcome` object with `accepted`, `edited` or `ignored` per field |
 | POST | `/assist/describe` | `assist.analyze` | `{category_id, colours, brand, visible_text}` returns the template draft (AI-04) |
 | POST | `/assist/duplicates` | `assist.analyze` | Draft found report fields and media ids, returns similar reports (AI-06) |
 

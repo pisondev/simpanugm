@@ -2,6 +2,7 @@ package reports
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
@@ -44,12 +45,24 @@ func statuses(s *openapi.StatusFilter) []string {
 	return *s
 }
 
+// what the reporter did with each assistant suggestion, stored as sent after the contract validated its shape
+func outcome(o *openapi.AssistOutcome) []byte {
+	if o == nil {
+		return nil
+	}
+	raw, err := json.Marshal(o)
+	if err != nil {
+		return nil
+	}
+	return raw
+}
+
 func (h *Handlers) CreateLostReport(ctx context.Context, req openapi.CreateLostReportRequestObject) (openapi.CreateLostReportResponseObject, error) {
 	b := req.Body
 	in := LostInput{
 		CategoryID: b.CategoryId, ItemName: b.ItemName, Description: b.Description, PrivateDetails: b.PrivateDetails,
 		Colours: b.Colours, Brand: b.Brand, LostFrom: b.LostFrom.UTC(), LostUntil: b.LostUntil.UTC(),
-		LocationUnknown: b.LocationUnknown, LocationNote: b.LocationNote, MediaIDs: b.MediaIds,
+		LocationUnknown: b.LocationUnknown, LocationNote: b.LocationNote, MediaIDs: b.MediaIds, AssistOutcome: outcome(b.AssistOutcome),
 	}
 	if pl := places(&b.Places); pl != nil {
 		in.Places = *pl
@@ -130,7 +143,7 @@ func (h *Handlers) CreateFoundReport(ctx context.Context, req openapi.CreateFoun
 	in := FoundInput{
 		CategoryID: b.CategoryId, ItemName: b.ItemName, Description: b.Description, HiddenDetails: b.HiddenDetails,
 		Colours: b.Colours, Brand: b.Brand, FoundAt: b.FoundAt.UTC(), FoundLocationID: b.FoundLocationId,
-		LocationNote: b.LocationNote, MediaIDs: b.MediaIds,
+		LocationNote: b.LocationNote, MediaIDs: b.MediaIds, AssistOutcome: outcome(b.AssistOutcome),
 		CustodyMode: string(b.Custody.Mode), IntendedPostID: b.Custody.IntendedPostId,
 	}
 	if b.Proxy != nil {

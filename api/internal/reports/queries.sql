@@ -7,11 +7,11 @@ RETURNING last_value;
 INSERT INTO lost_reports (
     id, code, reporter_id, created_by, proxy_name, proxy_phone, category_id, item_name, description,
     private_details, colours, brand, lost_from, lost_until, location_unknown, location_note, status,
-    last_activity_at, created_at, updated_at
+    last_activity_at, created_at, updated_at, assist_outcome
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9,
     $10, $11, $12, $13, $14, $15, $16, 'reported',
-    $17, $17, $17
+    $17, $17, $17, sqlc.narg(assist_outcome)
 );
 
 -- name: GetLostReport :one
@@ -97,11 +97,11 @@ SELECT count(*)::int FROM lost_reports WHERE reporter_id = $1 AND status <> 'clo
 INSERT INTO found_reports (
     id, code, finder_id, created_by, proxy_finder_name, category_id, item_name, description, hidden_details,
     colours, brand, found_at, found_location_id, location_note, custody_status, custody_keep, intended_post_id,
-    holding_post_id, storage_slot, received_at, received_by, retention_due_at, status, created_at, updated_at
+    holding_post_id, storage_slot, received_at, received_by, retention_due_at, status, created_at, updated_at, assist_outcome
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9,
     $10, $11, $12, $13, $14, $15, $16, $17,
-    $18, $19, $20, $21, $22, 'reported', $23, $23
+    $18, $19, $20, $21, $22, 'reported', $23, $23, sqlc.narg(assist_outcome)
 );
 
 -- name: GetFoundReport :one
