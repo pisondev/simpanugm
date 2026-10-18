@@ -102,7 +102,7 @@ Permission names are from [permissions.md](../requirements/permissions.md).
 | GET | `/categories` | `masterdata.read` | Tree with sensitivity and verification questions |
 | GET | `/zones` | `masterdata.read` | Zones with centroids |
 | GET | `/locations` | `masterdata.read` | `?q=` search by name and alias, `?zone_id=` |
-| GET | `/posts` | `masterdata.read` | Posts with opening hours, `?near_location_id=` sorts by distance |
+| GET | `/posts` | public | Posts with opening hours, `?near_location_id=` sorts by distance. Public because `/bantuan` lists them before sign in |
 | GET | `/colours` | `masterdata.read` | Palette |
 
 ### 2.3 Media and assistant

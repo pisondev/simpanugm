@@ -65,6 +65,13 @@ func TestMasterdataReadsAndConditionalRequests(t *testing.T) {
 		}
 	}
 
+	if r := e.Client().JSON(http.MethodGet, "/api/v1/posts", nil); r.Status != http.StatusOK {
+		t.Fatalf("anonymous posts for the help page: %d", r.Status)
+	}
+	if r := e.Client().JSON(http.MethodGet, "/api/v1/zones", nil); r.Status != http.StatusUnauthorized {
+		t.Fatalf("anonymous zones: %d", r.Status)
+	}
+
 	first := c.JSON(http.MethodGet, "/api/v1/zones", nil)
 	tag := first.Header.Get("ETag")
 	if tag == "" {

@@ -215,6 +215,8 @@ paths:
     get:
       tags: [masterdata]
       operationId: listPosts
+      description: Public, the help page lists posts and opening hours before sign in
+      security: []
       parameters:
         - name: near_location_id
           in: query

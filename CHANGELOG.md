@@ -6,6 +6,10 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- `GET /api/v1/posts` is public, so the help page lists posts and opening hours before sign in. Every other master data read still needs a session.
+
 ### Fixed
 
 - The fetch test compares resolved paths, so it also passes on Windows where temporary directories have short names.

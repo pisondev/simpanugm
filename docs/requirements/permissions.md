@@ -104,7 +104,7 @@ Two account flags further restrict a role: `unverified` (BR-ACC-02) and
 |---|---|---|---|
 | `search.reports` | | all | all |
 | `officer.queue.read`, `officer.board.read` | | post, switch to all | all |
-| `masterdata.read` | all | all | all |
+| `masterdata.read` | all | all | all. The post list alone is public, for the help page |
 | `masterdata.manage` | | | all |
 | `settings.read` | | | all |
 | `settings.manage` | | | all |

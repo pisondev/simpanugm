@@ -130,7 +130,7 @@ var Operations = map[string]Rule{
 	"listCategories":         {Permission: MasterdataRead},
 	"listZones":              {Permission: MasterdataRead},
 	"listLocations":          {Permission: MasterdataRead},
-	"listPosts":              {Permission: MasterdataRead},
+	"listPosts":              {Public: true},
 	"listColours":            {Permission: MasterdataRead},
 	"uploadMedia":            {Permission: MediaUpload, Verified: true},
 	"getMedia":               {Permission: MediaRead},
