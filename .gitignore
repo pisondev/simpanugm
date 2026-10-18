@@ -73,6 +73,7 @@ storage/
 uploads/
 
 # local runtime state
+deploy/env/*.env
 deploy/volumes/
 *.dump
 *.sql.gz

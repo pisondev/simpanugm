@@ -1,0 +1,42 @@
+{
+	admin off
+}
+
+# :8000 locally, the host name on staging and production so Caddy obtains a certificate
+{$SITE_ADDRESS::8000} {
+	encode zstd gzip
+
+	@noRequestId not header X-Request-Id *
+	request_header @noRequestId X-Request-Id {http.request.uuid}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(self), geolocation=(), microphone=()"
+		X-Frame-Options DENY
+		-Server
+	}
+
+	@media path /api/v1/media /api/v1/media/*
+	request_body @media {
+		max_size 11MB
+	}
+	request_body {
+		max_size 1MB
+	}
+
+	handle /api/* {
+		reverse_proxy api:8090 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

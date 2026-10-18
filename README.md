@@ -7,10 +7,10 @@ AI matching engine ranks the most likely pairs from photos, descriptions, locati
 time, and campus security officers verify ownership before anything is handed back. The
 AI ranks, people decide.
 
-> Status: **planning complete; data foundation in progress.** The `data/` area already
-> contains the seed foundation, collection pipeline, shared fixtures, analytics reference
-> SQL, and CI checks. The `api`, `web`, `ml`, and `deploy` implementations remain planned
-> for Sprint 1 onward. See [docs/project/project-plan.md](docs/project/project-plan.md).
+> Status: **Sprint 1 foundation running.** `make dev` starts the whole stack: the Go API
+> with accounts, master data, reports, photos, custody and search, the Next.js app for
+> members, officers and admins, the inference service skeleton, and the `data/` seed
+> foundation. AI matching follows in Sprint 2. See [docs/project/project-plan.md](docs/project/project-plan.md).
 
 ## What it does
 

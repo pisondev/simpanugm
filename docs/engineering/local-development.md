@@ -3,8 +3,7 @@
 The whole system runs locally with Docker Compose. Services that you are actively
 changing can run on the host with live reload while the rest stay in containers.
 
-> The commands below become available in Sprint 1, when `Makefile`, `deploy/compose.yaml`
-> and the service skeletons land.
+> Available since v0.1.0. Targets that belong to later sprints are marked with their sprint.
 
 ## 1. Prerequisites
 
@@ -13,7 +12,7 @@ changing can run on the host with live reload while the rest stay in containers.
 | Git | 2.40 or newer | `git --version` |
 | Docker Desktop with the WSL 2 backend, or Docker Engine on Linux | Engine 27 or newer, Compose v2 | `docker compose version` |
 | Go | 1.26 or newer. Older toolchains must be upgraded | `go version` |
-| Node.js | 22 LTS | `node --version` |
+| Node.js | 22 LTS, 22.22.2 or newer, the floor of jsdom 30 | `node --version` |
 | pnpm | 10, through Corepack | `corepack enable && pnpm --version` |
 | Python | 3.12 | `python --version` |
 | uv | latest | `uv --version` |
@@ -22,6 +21,8 @@ changing can run on the host with live reload while the rest stay in containers.
 On Windows, work inside a WSL 2 Ubuntu distribution with the repository cloned into the
 Linux file system (`~/code/simpanugm`), not under `/mnt/c`. File watching and Docker bind
 mounts are an order of magnitude faster there, and `make` is available out of the box.
+Native Windows also works: install GNU make with `winget install ezwinports.make` and run
+the targets from Git Bash. The whole Sprint 1 stack was verified that way.
 
 Disk: about 6 GB for images and model weights after the first `make dev`.
 
@@ -44,14 +45,14 @@ Report creation works meanwhile, matching catches up.
 | Service | URL on the host | Notes |
 |---|---|---|
 | Caddy, the app | <http://localhost:8000> | same origin as production, use this, not the ports below |
-| web | <http://localhost:3000> | direct, for debugging only |
+| web | <http://localhost:3000> | direct, for debugging only, `WEB_HOST_PORT` moves it |
 | api | <http://localhost:8090> | direct, `/healthz`, `/readyz` |
 | api metrics | <http://localhost:9091/metrics> | |
 | ml | <http://localhost:8100/docs> | FastAPI docs, needs the dev token |
-| PostgreSQL | `localhost:5433` | 5433 so it does not collide with a PostgreSQL installed on the host |
+| PostgreSQL | `localhost:5433` | 5433 so it does not collide with a PostgreSQL installed on the host, `POSTGRES_HOST_PORT` moves it |
 | Mailpit | <http://localhost:8025> | every email sent locally lands here |
-| Prometheus | <http://localhost:9090> | profile `observability` |
-| Grafana | <http://localhost:3001> | profile `observability`, admin password in `deploy/env/grafana.env` |
+| Prometheus | <http://localhost:9090> | profile `observability`, Sprint 4 |
+| Grafana | <http://localhost:3001> | profile `observability`, admin password in `deploy/env/grafana.env`, Sprint 4 |
 
 Port 8080 is avoided on purpose because it is commonly taken by other local services.
 
@@ -59,28 +60,29 @@ Port 8080 is avoided on purpose because it is commonly taken by other local serv
 
 | Target | Does |
 |---|---|
-| `make env` | create local env files with random secrets |
-| `make dev` | compose up with dev overrides, migrate, seed |
-| `make down` | stop the stack, keep volumes |
+| `make env` | create `deploy/env/*.env` from the templates with random secrets, existing files are kept |
+| `make dev` | build and start the stack with dev overrides, migrate, seed with the dev overlay, wait for health |
+| `make up`, `make down`, `make ps` | start without building, stop keeping volumes, list services |
 | `make reset` | stop and delete volumes, then `make dev` |
 | `make logs s=api` | follow logs of one service |
-| `make migrate`, `make migrate-down` | apply or roll back one migration |
-| `make seed`, `make seed-demo` | master data, demo data |
-| `make gen` | regenerate sqlc code, Go server from `openapi.yaml`, TypeScript client, `ml/openapi.json` |
-| `make check` | lint, typecheck and unit tests for every area, the pre push gate |
-| `make test-api`, `make test-web`, `make test-ml`, `make test-data` | one area including integration tests |
-| `make e2e` | Playwright against a fresh stack |
-| `make eval-data`, `make eval-check`, `make eval` | evaluation dataset download, checks, run |
-| `make load` | k6 scenarios against the local stack |
-| `make obs` | start Prometheus and Grafana |
+| `make migrate`, `make migrate-down`, `make migrate-status` | apply all, roll back one, show the state |
+| `make seed`, `make seed-demo` | master data, plus demo accounts whose passwords are printed once |
+| `make admin email=... name=...` | the first administrator, prints the link to set the password |
+| `make gen` | regenerate sqlc code, the Go server from `openapi.yaml`, the TypeScript client |
+| `make check` | format, lint, types and unit tests for every area, the pre push gate |
+| `make test-api`, `make test-api-integration`, `make test-web`, `make test-ml`, `make test-data` | one area |
+| `make e2e` | restart `api` for fresh rate limiters, then Playwright against the running stack |
+| `make eval-data`, `make eval-check`, `make eval` | evaluation dataset download, checks, run. Sprint 2 |
+| `make load` | k6 scenarios against the local stack. Sprint 3 |
+| `make obs` | start Prometheus and Grafana. Sprint 4 |
 
 ## 5. Working on one service with live reload
 
 | Service | Command | What changes |
 |---|---|---|
-| api | `make dev-api` | stops the `api` and `worker` containers and runs both on the host with `air` against the containerised database |
-| web | `make dev-web` | stops the `web` container and runs `pnpm dev` on the host. Caddy proxies to the host |
-| ml | `make dev-ml` | stops the `ml` container and runs Uvicorn with reload on the host, reusing the downloaded weights |
+| web | `docker compose ... stop web`, then `API_INTERNAL_URL=http://localhost:8090 pnpm dev` in `web/` | the dev server on <http://localhost:3000> proxies `/api` to the published api port |
+| api | `go run -tags nodynamic ./cmd/simpan serve` in `api/` with the variables of section 6.1 pointing at `localhost` | stop the `api` container first. `make dev-api` with `air` follows in Sprint 2 |
+| ml | `uv run uvicorn app.main:create_app --factory --reload --port 8100` in `ml/` | stop the `ml` container first. `make dev-ml` follows in Sprint 2 |
 
 ## 6. Environment variables
 
@@ -143,4 +145,7 @@ a message naming it. Templates live in `deploy/env/*.env.example`.
 | `ml` stays unready | weights still downloading, `make logs s=ml`. Behind a proxy set `HTTPS_PROXY` in `deploy/env/ml.env` |
 | Times look seven hours off | something formatted UTC without the zone. Display must go through `lib/format.ts`, which pins `Asia/Jakarta` |
 | `make gen` produces a diff in CI | someone edited generated code or forgot to regenerate after changing `openapi.yaml` or a `queries.sql` |
-| Port 5433 in use | set `POSTGRES_HOST_PORT` in `deploy/env/compose.env` |
+| Port 5433, 3000 or 8000 in use | set `POSTGRES_HOST_PORT`, `WEB_HOST_PORT` or `HTTP_PORT` in `deploy/env/compose.env` |
+| `exec /simpan: no such file or directory` | the image was built without `-tags nodynamic`, so the binary links libc. Rebuild with the Dockerfile as committed |
+| Registration answers "Terlalu banyak percobaan" while testing | BR-SEC-01 allows 5 registrations per hour per IP and everything local shares one IP. `make e2e` restarts `api`, which resets the in memory limiters |
+| `pnpm test` fails to start with an undici error | Node.js is older than 22.22.2 |

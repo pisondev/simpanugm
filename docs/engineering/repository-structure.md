@@ -10,6 +10,7 @@ simpanugm/
   .github/
     workflows/            ci-api.yml, ci-web.yml, ci-ml.yml, ci-data.yml, e2e.yml, release.yml, deploy.yml
     ISSUE_TEMPLATE/
+    CODEOWNERS
     dependabot.yml
     pull_request_template.md
   api/                    Go service and worker
@@ -21,6 +22,7 @@ simpanugm/
   Makefile                one entry point for every task, see local-development section 4
   README.md  CHANGELOG.md  CONTRIBUTING.md  SECURITY.md
   .editorconfig  .gitattributes  .gitignore
+  .dockerignore           for the api image, which builds from the root to copy data/seed
 ```
 
 ## 2. `api/`
@@ -159,13 +161,13 @@ data/
 
 ```
 deploy/
-  compose.yaml            every service, networks, volumes, health checks
-  compose.dev.yaml        development overrides: Mailpit, published ports, hot reload mounts
-  compose.prod.yaml       production overrides: images by digest, resource limits, restart policy
+  compose.yaml            every service, volumes, health checks, the migrate and seed steps
+  compose.dev.yaml        development overrides: Mailpit, published ports, the dev seed overlay
   caddy/Caddyfile
-  env/                    api.env.example, web.env.example, ml.env.example
-  prometheus/prometheus.yml  prometheus/alerts.yml
-  grafana/provisioning/  grafana/dashboards/
-  backup/                 backup.sh, restore.sh, restic excludes
+  env/                    compose, api, web and ml templates, the real files are ignored
+  postgres/               01-init.sh and init.sql, roles and extensions on first start
+  dev-seed/               starter campus overlay, used only where data/seed has no reviewed file
+  scripts/make-env.sh     random development secrets for make env
   README.md
+  Sprint 4: compose.prod.yaml, prometheus/, grafana/, backup/, scripts/deploy.sh
 ```

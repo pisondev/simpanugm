@@ -1,0 +1,35 @@
+# development overrides: direct ports for debugging, mail capture, the starter campus overlay
+services:
+  postgres:
+    ports:
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
+
+  seed:
+    command: ["seed", "--overlay", "/app/dev-seed"]
+
+  api:
+    ports:
+      - "8090:8090"
+      - "9091:9091"
+    depends_on:
+      mailpit:
+        condition: service_started
+
+  worker:
+    depends_on:
+      mailpit:
+        condition: service_started
+
+  ml:
+    ports:
+      - "8100:8100"
+
+  web:
+    ports:
+      - "${WEB_HOST_PORT:-3000}:3000"
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    ports:
+      - "8025:8025"

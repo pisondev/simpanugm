@@ -1,0 +1,118 @@
+# the stack shared by every environment, compose.dev.yaml adds development ports and mail capture
+name: simpanugm
+
+# migrate, seed and worker run the image that the api service builds, building it once avoids a tag race
+x-api-image: &api-image
+  image: ${API_IMAGE:-simpanugm-api:local}
+  pull_policy: never
+  env_file: env/api.env
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg18
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run make env first}
+      SIMPAN_OWNER_PASSWORD: ${SIMPAN_OWNER_PASSWORD:?run make env first}
+      SIMPAN_APP_PASSWORD: ${SIMPAN_APP_PASSWORD:?run make env first}
+      SIMPAN_READONLY_PASSWORD: ${SIMPAN_READONLY_PASSWORD:?run make env first}
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./postgres/01-init.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql.tpl:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d simpan"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    <<: *api-image
+    command: ["migrate", "up"]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  seed:
+    <<: *api-image
+    command: ["seed"]
+    restart: "no"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  api:
+    <<: *api-image
+    pull_policy: missing
+    build:
+      context: ..
+      dockerfile: api/Dockerfile
+    command: ["serve"]
+    restart: unless-stopped
+    volumes:
+      - media:/var/lib/simpan/media
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "/simpan", "healthcheck", "http://127.0.0.1:8090/readyz"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  worker:
+    <<: *api-image
+    command: ["worker"]
+    restart: unless-stopped
+    volumes:
+      - media:/var/lib/simpan/media
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  ml:
+    image: ${ML_IMAGE:-simpanugm-ml:local}
+    build:
+      context: ../ml
+    restart: unless-stopped
+    env_file: env/ml.env
+    volumes:
+      - ml-models:/models
+
+  web:
+    image: ${WEB_IMAGE:-simpanugm-web:local}
+    build:
+      context: ../web
+    restart: unless-stopped
+    env_file: env/web.env
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:8000}
+    ports:
+      - "${HTTP_PORT:-8000}:8000"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  media:
+  ml-models:
+  caddy-data:
