@@ -163,6 +163,8 @@ s_sem  = norm(cos(lost e5, found e5), e5)
 s_attr = mean of the available attribute scores
 s_text = 0.75 * s_sem + 0.25 * s_attr     if any attribute score is available
 s_text = s_sem                             otherwise
+s_text = s_attr                            when no e5 embedding exists yet, for example without inference
+s_text missing                             when neither exists, its weight then drops out like any missing component
 ```
 
 | Attribute | Available when | Score |
@@ -321,14 +323,28 @@ CPU is never oversubscribed.
 | `ai.embed_image` | `ml` | photo attached to a report. Variants and hashes already exist, they are produced during the upload request | stores image embedding | upsert by image id and model version |
 | `ai.analyze_image` | `ml` | photo attached to a report | stores attributes and masked text | upsert by image id and model version |
 | `ai.embed_text` | `ml` | report created or text changed, and after every `ai.analyze_image` of the report | stores both text embeddings | upsert by report and model version, skipped if the text hash is unchanged |
-| `match.report` | `default` | after `ai.embed_text`, or on demand | retrieval, scoring, upsert of matches, status effects | unique per report while pending, so bursts of edits coalesce |
-| `match.notify` | `default` | after `match.report` produced a new high candidate | applies BR-NTF-01 and creates notifications | by match id and throttle window |
+| `match.report` | `default` | report created, edited or closed, after `ai.embed_text`, or on demand | retrieval, scoring, upsert of matches, status effects | unique per report while waiting or running, so bursts of edits coalesce |
+| `match.notify` | `default` | after `match.report` made a medium or high candidate visible to the owner | applies BR-NTF-01 and creates notifications | unique per lost report, `notified_tier` per match |
 | `match.sweep` | `default` | daily 02:00 WIB, and on model activation | enqueues `match.report` for every open report | periodic |
 | `ai.backfill` | `ml` | model activation | re-embeds every open report and image with the new version, then a sweep | resumable by cursor |
 
 `match.report` waits for the report's embeddings: when an embedding job is still pending
-it snoozes for 10 s, up to 6 times, then scores with what exists and records the missing
-components. The budget behind NFR-PERF-03, for a report with two photos:
+it snoozes for 10 s, up to 60 s after it was queued, then scores with what exists and records
+the missing components. River keeps a running job in its uniqueness check, so an edit or an
+embedding that lands while a scoring runs cannot queue a second one. The job therefore
+compares the report's `updated_at` and a fingerprint of its stored embeddings before and
+after, and snoozes for 1 s to run once more when either moved.
+
+A closed or hidden report keeps its rows: the job moves its active pairs to `superseded`
+(M2), ranks the counterparts again and checks their statuses. Ranks only count pairs whose
+counterpart is still open, and `rank_for_lost` skips pairs the owner dismissed, so the next
+candidate moves up.
+
+Inference failures map to River outcomes: a timeout, a refused connection, a 5xx or a 429
+is retried with backoff, a 404 or 501 cancels the job because only a deploy can fix it, and
+a model revision other than the active version is recorded as a `candidate` version and
+cancels the job (model-lifecycle section 2). The budget behind NFR-PERF-03, for a report with
+two photos:
 
 | Step | Typical |
 |---|---|

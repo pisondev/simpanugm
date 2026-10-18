@@ -363,11 +363,13 @@ Partial unique index on `(component)` where `status = 'active'`.
 | s_visual, s_semantic, s_attr, s_text, s_location, s_time | num? | null when the component is missing |
 | category_factor | num | |
 | overall | num | |
-| tier | text | `high`, `medium`, `low` |
-| rank_for_lost, rank_for_found | smallint? | 1 to 10 |
+| tier | text? | `high`, `medium`, `low`, null once a rescoring drops the pair below the storage floor |
+| rank_for_lost, rank_for_found | smallint? | 1 to 10, only among pairs whose counterpart is still open |
 | flags | text[] | for example `{name_hit}` |
+| explanation | jsonb | the public facts behind the reason lines: distance, place, time relation, shared colour and brand, categories. Never words from hidden details or visible text (BR-VIS-04) |
 | status | text | state machine M |
-| owner_dismissed_at | tstz? | |
+| owner_dismissed_at | tstz? | hides the pair from the owner and from `rank_for_lost` |
+| notified_tier | text? | the tier the owner was last told about, BR-NTF-01 folds anything newer into the next notification |
 | pinned_by, pinned_at | uuid?, tstz? | AI-07 |
 | fusion_version_id | uuid | FK model_versions |
 | component_versions | jsonb | per component version id |

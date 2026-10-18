@@ -12,6 +12,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Changed
 
+- Lost reports carry their real `candidate_count`. The owner of a lost report with a visible candidate may open that found item's display photo, or only its blurred thumbnail for an identity item (BR-VIS 5.2).
 - Dependabot proposes only patch and digest updates for the Go, Python and Node base images. A runtime upgrade changes code, CI and docs together, so it is made by hand.
 - The data model lists the `custody_keep` and `close_note` columns of found reports that the migrations already carry.
 - `GET /api/v1/posts` is public, so the help page lists posts and opening hours before sign in. Every other master data read still needs a session.
@@ -26,6 +27,8 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Matching engine v1 (US-14, US-18 to US-22): every lost and found report is scored when it is created, edited or closed, against the structured pool and the image, cross modal and text generators, with the fusion of matching-engine sections 6 and 7, the identity name rule, top ten ranks per side and the L2, L3, F2 and F3 status effects. Owners see medium and high candidates with a tier, a percentage, four score bars and Indonesian reason lines, can mark one as theirs or hide it, and hear about strong candidates at most once per throttle window. Finders learn that an owner may be looking, officers see every component number with a switch for weak candidates, and can rematch and dismiss. With an inference service configured, embedding and image analysis jobs record the model version of every vector and refuse a revision that is not active, without one matching runs on the structured signals. A 02:00 sweep rescores every open report.
+- Integration test helpers: `testenv.Drain` works queued River jobs with the real workers, `testenv.NewFakeML` serves deterministic vectors with switchable failures, and `testenv.WithML` points the inference client at it.
 - Profile and security pages: edit name, phone and NIM or NIP, change the email through a confirmation link sent to the new address, change the password with the current one while every other session signs out, and list or revoke signed in devices with a readable device label and the network prefix of the address (US-05).
 - In app notifications with a live stream: a bell with the unread count and the latest items, a Notifikasi page and phone tab, Server Sent Events woken by PostgreSQL `LISTEN` and resumed with `Last-Event-ID`, read and read all, optional groups switchable per channel in Profil, Notifikasi, emails that wait for the end of the quiet hours, a 07:00 officer digest sent only when it has content, and 180 day retention. The finder is now notified when a post receives the item (US-30). Passive requests never keep an idle staff session alive.
 - Continuous integration per area: the API workflow checks format, vet, lint, that generated code matches `openapi.yaml` and the queries, known vulnerabilities, unit and integration tests; the web workflow checks the generated client, format, lint, types, unit tests and the build; the ML workflow runs ruff, mypy and pytest; the end to end workflow starts the stack and runs the Playwright journeys. Dependabot groups weekly updates, `CODEOWNERS` routes reviews to the area owner.

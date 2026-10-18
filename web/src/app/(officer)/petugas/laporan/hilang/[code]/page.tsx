@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { OfficerCandidates } from "@/components/matching/officer-candidates"
 import { LostReportView } from "@/components/report/lost-report-view"
 import { load, serverApi } from "@/lib/api/server"
 import { requestTime } from "@/lib/clock"
@@ -8,13 +9,24 @@ export async function generateMetadata({ params }: PageProps<"/petugas/laporan/h
   return { title: (await params).code }
 }
 
-export default async function OfficerLostPage({ params }: PageProps<"/petugas/laporan/hilang/[code]">) {
+export default async function OfficerLostPage({ params, searchParams }: PageProps<"/petugas/laporan/hilang/[code]">) {
   const now = await requestTime()
-  const { code } = await params
+  const [{ code }, query] = await Promise.all([params, searchParams])
+  const showLow = query.rendah === "1"
   const api = await serverApi()
-  const [report, history] = await Promise.all([
+  const [report, history, matches] = await Promise.all([
     load(api.GET("/lost-reports/{id}", { params: { path: { id: code } } })),
     load(api.GET("/lost-reports/{id}/history", { params: { path: { id: code } } })),
+    load(api.GET("/lost-reports/{id}/matches", { params: { path: { id: code }, query: { include_low: showLow } } })),
   ])
-  return <LostReportView report={report} history={history.items} staff now={now.getTime()} />
+  const candidates = (
+    <OfficerCandidates
+      items={matches.items}
+      side="lost"
+      reportId={report.id}
+      showLow={showLow}
+      toggleHref={showLow ? `/petugas/laporan/hilang/${report.code}` : `/petugas/laporan/hilang/${report.code}?rendah=1`}
+    />
+  )
+  return <LostReportView report={report} history={history.items} staff now={now.getTime()} candidates={candidates} />
 }

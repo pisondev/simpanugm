@@ -46,7 +46,7 @@ func lostView(row sqlc.GetLostReportRow, places []sqlc.ListLostPlacesRow, photos
 		LocationUnknown: r.LocationUnknown, LocationNote: r.LocationNote, Photos: photoRefs(photos),
 		Places: make([]openapi.PlaceRef, 0, len(places)), Proxy: r.ProxyName != nil,
 		Editable:       boolPtr(lostEditable(r) && (isOwnerLost(p, r) || p.IsStaff())),
-		CandidateCount: 0, Version: int(r.Version), CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
+		CandidateCount: int(row.CandidateCount), Version: int(r.Version), CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
 	}
 	for _, pl := range places {
 		ref := openapi.PlaceRef{Zone: &openapi.NamedRef{Id: pl.ZoneID, Name: pl.ZoneName}}
@@ -106,7 +106,7 @@ func thumb(id uuid.UUID) *uuid.UUID {
 func lostSummary(r sqlc.ListLostReportsRow, p *access.Principal) openapi.LostReportSummary {
 	out := openapi.LostReportSummary{
 		Id: r.ID, Code: r.Code, Status: openapi.LostStatus(r.Status), ItemName: r.ItemName, CategoryName: r.CategoryName,
-		LostUntil: r.LostUntil, CandidateCount: 0, ThumbMediaId: thumb(r.ThumbMediaID), UpdatedAt: r.UpdatedAt,
+		LostUntil: r.LostUntil, CandidateCount: int(r.CandidateCount), ThumbMediaId: thumb(r.ThumbMediaID), UpdatedAt: r.UpdatedAt,
 	}
 	if p.IsStaff() && r.ReporterName != "" {
 		name := r.ReporterName

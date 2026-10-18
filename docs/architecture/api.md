@@ -130,7 +130,7 @@ Permission names are from [permissions.md](../requirements/permissions.md).
 | POST | `/lost-reports/{id}/keep-open` | `report.lost.update` | Answer to the stale reminder |
 | POST | `/lost-reports/{id}/confirm-receipt` | `report.lost.update` | L9 by the owner |
 | GET | `/lost-reports/{id}/history` | `report.history.read` | Status timeline |
-| GET | `/lost-reports/{id}/matches` | `match.read` | Candidates projected by role. Officers may add `?tier=low` |
+| GET | `/lost-reports/{id}/matches` | `match.read` | Candidates projected by role. The owner sees active medium and high candidates in rank order, officers add `?include_low=true` for tier low (BR-VIS-01) |
 
 ### 2.5 Found reports
 
@@ -143,16 +143,16 @@ Permission names are from [permissions.md](../requirements/permissions.md).
 | PATCH | `/found-reports/{id}` | `report.found.update` | Edit with `If-Match` |
 | POST | `/found-reports/{id}/close` | `report.found.close` | Finder close, F13 |
 | GET | `/found-reports/{id}/history` | `report.history.read` | Status and custody timeline |
-| GET | `/found-reports/{id}/match-hint` | own | AI-05 hint for the finder |
-| GET | `/found-reports/{id}/matches` | `match.read` officer | Candidates for officers |
+| GET | `/found-reports/{id}/match-hint` | finder or officer | AI-05: item name and category of lost reports with an active high candidate, nothing else |
+| GET | `/found-reports/{id}/matches` | `officer.queue.read` | Candidates for officers, `?include_low=true` as above |
 
 ### 2.6 Matches
 
 | Method | Path | Permission | Purpose |
 |---|---|---|---|
-| GET | `/matches/{id}` | `match.read` | Candidate detail with explanation, projected by role |
-| POST | `/matches/{id}/feedback` | `match.feedback` | `{verdict, reason}` |
-| POST | `/matches/{id}/dismiss` | `match.dismiss` | Owner scope or global by role |
+| GET | `/matches/{id}` | `match.read` | Candidate detail with explanation, projected by role. The officer detail adds the hidden details, an access logged read |
+| POST | `/matches/{id}/feedback` | `match.feedback` | `{verdict: relevant or not_relevant, reason?}`, a label for the evaluation set |
+| POST | `/matches/{id}/dismiss` | `match.dismiss` | `{reason?}`. The owner hides the pair for themselves, an officer moves it to `dismissed` (M4). Both store a `not_relevant` label and settle both reports |
 | POST | `/matches/{id}/pin` | officer | AI-07 |
 | POST | `/matches/{id}/invite-claim` | officer | `match.officer_invites_claim` |
 | POST | `/reports/{type}/{id}/rematch` | `match.rematch` | On demand rescoring |
@@ -295,32 +295,40 @@ Location: /api/v1/lost-reports/0192f1b2-0c3d-7e4f-a5b6-c7d8e9f0a1b2
 {
   "items": [
     {
-      "match_id": "0192f1c4-...",
+      "id": "0192f1c4-...",
       "rank": 1,
       "tier": "high",
       "overall": 0.8124,
+      "status": "active",
       "found_report": {
+        "id": "0192f1c3-...",
         "code": "FND-2611-0012",
         "item_name": "Dompet cokelat",
-        "category": { "slug": "dompet", "name": "Dompet" },
+        "category": { "id": "...", "slug": "dompet", "name": "Dompet", "parent_name": "Dompet dan Tas Kecil", "sensitivity": "valuable" },
         "description": "Dompet lipat warna cokelat ditemukan di meja baca lantai 2.",
-        "found_location": { "name": "Perpustakaan Pusat" },
+        "colours": ["cokelat"],
         "found_at": "2026-11-02T05:40:00Z",
-        "holding_post": { "name": "Pos Lost and Found Perpustakaan" },
+        "found_location": { "id": "...", "name": "Perpustakaan Pusat", "zone_id": "...", "zone_name": "Klaster Sosio Humaniora" },
+        "holding_post": { "id": "...", "name": "Pos Lost and Found Perpustakaan" },
+        "custody_status": "in_custody",
         "photos": [{ "media_id": "0192f1c5-...", "variant": "display" }]
       },
+      "lost_report": { "id": "...", "code": "LST-2611-0007", "item_name": "Dompet kulit cokelat", "category": { "...": "..." }, "lost_from": "...", "lost_until": "..." },
       "explanation": {
-        "visual": { "mode": "cross_modal", "level": "high", "reason": "Deskripsimu sangat cocok dengan foto barang temuan." },
-        "text": { "level": "high", "reason": "Deskripsi sangat mirip.", "chips": ["Warna sama: cokelat"] },
-        "location": { "level": "high", "reason": "Ditemukan di lokasi yang sama." },
-        "time": { "level": "high", "reason": "Ditemukan dalam rentang waktu kehilangan." },
-        "category": { "same": true, "reason": "Kategori sama." }
-      }
+        "visual_mode": "cross_modal",
+        "visual": { "level": "high", "reason": "Deskripsimu sangat cocok dengan foto barang temuan.", "missing": false },
+        "text": { "level": "high", "reason": "Deskripsi sangat mirip.", "chips": ["Warna sama: cokelat"], "missing": false },
+        "location": { "level": "high", "reason": "Ditemukan di lokasi yang sama.", "missing": false },
+        "time": { "reason": "Ditemukan dalam rentang waktu kehilangan.", "missing": false },
+        "category": { "reason": "Kategori sama.", "missing": false }
+      },
+      "scored_at": "2026-11-02T07:01:20Z"
     }
-  ],
-  "next_cursor": null
+  ]
 }
 ```
 
-The officer projection of the same match adds the numeric components, the hidden details,
-the finder, `flags`, and the versions.
+A photo of an `identity` item reaches the owner as `thumb_blur` only, and the media
+endpoint refuses its other variants to that owner. The officer projection of the same match
+adds `scores` with every component number, `flags`, `component_versions`, the owner name on
+`lost_report`, and on `GET /matches/{id}` the hidden details.

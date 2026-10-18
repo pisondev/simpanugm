@@ -218,6 +218,9 @@ func (s *Service) CreateLost(ctx context.Context, p *access.Principal, key strin
 			Changes: map[string]any{"code": code, "proxy": proxy}}); err != nil {
 			return err
 		}
+		if err := s.matching.ReportChanged(ctx, tx, "lost", id, in.MediaIDs); err != nil {
+			return err
+		}
 		return idem.Complete(ctx, q, k, id)
 	})
 	if err != nil {
@@ -327,10 +330,19 @@ func (s *Service) UpdateLost(ctx context.Context, p *access.Principal, ref, ifMa
 				return err
 			}
 		}
+		var added []uuid.UUID
 		if patch.MediaIDs != nil {
+			before, err := s.media.Photos(ctx, q, &r.ID, nil)
+			if err != nil {
+				return err
+			}
+			added = addedMedia(before, *patch.MediaIDs)
 			if removed, err = s.media.Attach(ctx, q, p, media.Target{Purpose: "lost_report", LostID: &r.ID}, *patch.MediaIDs); err != nil {
 				return err
 			}
+		}
+		if err := s.matching.ReportChanged(ctx, tx, "lost", r.ID, added); err != nil {
+			return err
 		}
 		return audit.Record(ctx, q, now, audit.Entry{Action: "lost_report.update", EntityType: "lost_report", EntityID: r.ID,
 			Changes: map[string]any{"fields": changed}})
@@ -448,6 +460,9 @@ func (s *Service) CloseLost(ctx context.Context, p *access.Principal, ref, reaso
 			why = reason + ": " + *n
 		}
 		if err := s.history(ctx, q, "lost_report", r.ID, r.Status, "closed", tid, &why); err != nil {
+			return err
+		}
+		if err := s.matching.ReportClosed(ctx, tx, "lost", r.ID); err != nil {
 			return err
 		}
 		return audit.Record(ctx, q, now, audit.Entry{Action: "lost_report.close", EntityType: "lost_report", EntityID: r.ID,

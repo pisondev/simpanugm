@@ -175,6 +175,13 @@ var Operations = map[string]Rule{
 	"changePassword":             {Permission: AccountSelfUpdate},
 	"listMySessions":             {Permission: AccountSessions},
 	"revokeMySession":            {Permission: AccountSessions},
+	"listLostReportMatches":      {Permission: MatchRead},
+	"listFoundReportMatches":     {Permission: OfficerQueueRead},
+	"getFoundReportMatchHint":    {Permission: ReportFoundRead},
+	"getMatch":                   {Permission: MatchRead},
+	"submitMatchFeedback":        {Permission: MatchFeedback},
+	"dismissMatch":               {Permission: MatchDismiss},
+	"rematchReport":              {Permission: MatchRematch},
 }
 
 func Check(p *Principal, operationID string) error {

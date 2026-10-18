@@ -29,6 +29,7 @@ decide whether `main` stays deployable.
 | Concurrency | two concurrent approvals of one claim: exactly one succeeds, the other gets `stale_version` |
 | Idempotency | a repeated `Idempotency-Key` returns the first response and creates one row |
 | Jobs | each worker is idempotent: running it twice leaves the same state |
+| Workers in integration tests | `testenv.Drain` works the due jobs of one kind with the real worker and records the River outcome, `testenv.NewFakeML` stands in for inference with deterministic vectors and switchable failures. Matching tests move the fake clock to their own stretch of time, so reports other tests left in the shared database never become their candidates |
 | Media | signature check, size limits, EXIF removal with a GPS tagged fixture, variant sizes, perceptual hash of a known image |
 | Migrations | up, down, up on an empty database in CI |
 | Audit | every state changing endpoint writes exactly the expected audit rows, and `simpan_app` cannot update or delete them |
@@ -72,7 +73,7 @@ restarts `api` first to reset the in memory limiters.
 |---|---|
 | J1 Register, verify through Mailpit, sign in, on a phone and a desktop | US-01, US-02 |
 | S1 Sprint 1 exit: admin from the command line invites an officer, a member files a lost report and a found report with a photo, the officer receives the item and finds both by code and by text | US-04, US-08, US-13, US-30, US-32, US-37 |
-| J2 Owner files a lost report without photo, sees candidates after a seeded found report | US-08, US-19, US-20 |
+| J2 Owner files a lost report without photo, sees candidates after a found report an officer records at the desk, reads why and hides one. It continues S1 with the same accounts to stay within the registration limit | US-08, US-19, US-20, US-21 |
 | J3 Finder files a found report with photo and assistant, sees the hint, officer receives it | US-13, US-14, US-23, US-30 |
 | J4 Owner claims, officer requests info, owner replies, officer approves | US-25, US-26, US-27 |
 | J5 Handover with a wrong code, then the right one, owner confirms receipt | US-31 |

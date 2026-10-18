@@ -135,6 +135,25 @@ type IdempotencyKey struct {
 	ExpiresAt   time.Time
 }
 
+type ImageAttribute struct {
+	MediaID        uuid.UUID
+	Versions       []byte
+	CategoryScores []byte
+	Colours        []byte
+	VisibleText    *string
+	Brands         []byte
+	CreatedAt      time.Time
+}
+
+type ImageEmbedding struct {
+	MediaID        uuid.UUID
+	ModelVersionID uuid.UUID
+	ReportType     string
+	ReportID       uuid.UUID
+	Embedding      string
+	CreatedAt      time.Time
+}
+
 type Location struct {
 	ID        uuid.UUID
 	ZoneID    uuid.UUID
@@ -188,6 +207,46 @@ type LostReportPlace struct {
 	ZoneID       *uuid.UUID
 }
 
+type Match struct {
+	ID                uuid.UUID
+	LostReportID      uuid.UUID
+	FoundReportID     uuid.UUID
+	VisualMode        string
+	SVisual           *float64
+	SSemantic         *float64
+	SAttr             *float64
+	SText             *float64
+	SLocation         *float64
+	STime             *float64
+	CategoryFactor    float64
+	Overall           float64
+	Tier              *string
+	RankForLost       *int16
+	RankForFound      *int16
+	Flags             []string
+	Explanation       []byte
+	Status            string
+	OwnerDismissedAt  *time.Time
+	NotifiedTier      *string
+	PinnedBy          *uuid.UUID
+	PinnedAt          *time.Time
+	FusionVersionID   uuid.UUID
+	ComponentVersions []byte
+	FirstScoredAt     time.Time
+	ScoredAt          time.Time
+	Version           int32
+}
+
+type MatchFeedback struct {
+	ID        uuid.UUID
+	MatchID   uuid.UUID
+	ActorID   *uuid.UUID
+	ActorRole string
+	Verdict   string
+	Reason    *string
+	CreatedAt time.Time
+}
+
 type Medium struct {
 	ID            uuid.UUID
 	UploadedBy    uuid.UUID
@@ -206,6 +265,22 @@ type Medium struct {
 	CreatedAt     time.Time
 	AttachedAt    *time.Time
 	DeletedAt     *time.Time
+}
+
+type ModelVersion struct {
+	ID           uuid.UUID
+	Component    string
+	Name         string
+	Identity     []byte
+	Config       []byte
+	ConfigSha256 []byte
+	EvalRunID    *string
+	Metrics      []byte
+	Status       string
+	ActivatedAt  *time.Time
+	ActivatedBy  *uuid.UUID
+	RetiredAt    *time.Time
+	CreatedAt    time.Time
 }
 
 type Notification struct {
@@ -285,6 +360,26 @@ type SystemSetting struct {
 	Value     []byte
 	UpdatedBy *uuid.UUID
 	UpdatedAt time.Time
+}
+
+type TextEmbeddingsClip struct {
+	ReportType     string
+	ReportID       uuid.UUID
+	ModelVersionID uuid.UUID
+	Embedding      string
+	TextSha256     []byte
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+type TextEmbeddingsE5 struct {
+	ReportType     string
+	ReportID       uuid.UUID
+	ModelVersionID uuid.UUID
+	Embedding      string
+	TextSha256     []byte
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type User struct {

@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"slices"
 	"syscall"
 	"time"
 	_ "time/tzdata"
@@ -30,6 +31,7 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/maintenance"
 	"github.com/pisondev/simpanugm/api/internal/masterdata"
+	"github.com/pisondev/simpanugm/api/internal/matching"
 	"github.com/pisondev/simpanugm/api/internal/notify"
 	"github.com/pisondev/simpanugm/api/internal/platform/clock"
 	"github.com/pisondev/simpanugm/api/internal/platform/config"
@@ -198,6 +200,11 @@ func worker(ctx context.Context) error {
 	river.AddWorker(workers, &notify.EmailWorker{Sender: sender, Q: sqlc.New(pool)})
 	river.AddWorker(workers, &notify.DigestWorker{Q: sqlc.New(pool), Jobs: insert, Clock: c, BaseURL: cfg.PublicBaseURL})
 	river.AddWorker(workers, &maintenance.PurgeWorker{Media: svcs.Media, Auth: svcs.Auth, Q: sqlc.New(pool), Clock: c})
+	matching.AddWorkers(workers, svcs.Engine)
+	// scoring needs an active fusion version, a fresh database gets the embedded one
+	if err := matching.EnsureDefaultFusion(ctx, sqlc.New(pool), c.Now()); err != nil {
+		return err
+	}
 	counts, err := cfg.Queues()
 	if err != nil {
 		return err
@@ -207,7 +214,7 @@ func worker(ctx context.Context) error {
 		queues[name] = river.QueueConfig{MaxWorkers: n}
 	}
 	client, err := river.NewClient(riverpgxv5.New(pool), &river.Config{
-		Queues: queues, Workers: workers, PeriodicJobs: append(maintenance.Periodic(), notify.Periodic()...),
+		Queues: queues, Workers: workers, PeriodicJobs: slices.Concat(maintenance.Periodic(), notify.Periodic(), matching.Periodic()),
 		CompletedJobRetentionPeriod: time.Hour, Logger: slog.Default(),
 	})
 	if err != nil {
@@ -320,6 +327,9 @@ func seed(ctx context.Context, args []string) error {
 	}
 	sum, err := masterdata.ApplySeed(ctx, pool, set)
 	if err != nil {
+		return err
+	}
+	if err := matching.EnsureDefaultFusion(ctx, sqlc.New(pool), time.Now()); err != nil {
 		return err
 	}
 	abs, _ := filepath.Abs(*dir)

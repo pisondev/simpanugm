@@ -710,6 +710,137 @@ export interface paths {
         patch: operations["adminUpdateUser"];
         trace?: never;
     };
+    "/lost-reports/{id}/matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get: operations["listLostReportMatches"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/found-reports/{id}/matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get: operations["listFoundReportMatches"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/found-reports/{id}/match-hint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get: operations["getFoundReportMatchHint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/matches/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get: operations["getMatch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/matches/{id}/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitMatchFeedback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/matches/{id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["dismissMatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/{type}/{id}/rematch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "lost" | "found";
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["rematchReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1298,6 +1429,111 @@ export interface components {
         SessionList: {
             items: components["schemas"]["SessionInfo"][];
         };
+        /** @enum {string} */
+        MatchTier: "high" | "medium" | "low";
+        ExplanationLine: {
+            /** @enum {string|null} */
+            level?: "high" | "medium" | "low" | null;
+            reason: string;
+            chips?: string[];
+            missing: boolean;
+        };
+        MatchExplanation: {
+            /** @enum {string} */
+            visual_mode: "image" | "cross_modal" | "none";
+            visual: components["schemas"]["ExplanationLine"];
+            text: components["schemas"]["ExplanationLine"];
+            location: components["schemas"]["ExplanationLine"];
+            time: components["schemas"]["ExplanationLine"];
+            category: components["schemas"]["ExplanationLine"];
+        };
+        MatchScores: {
+            visual?: number | null;
+            semantic?: number | null;
+            attributes?: number | null;
+            text?: number | null;
+            location?: number | null;
+            time?: number | null;
+            category_factor: number;
+        };
+        CandidatePhoto: {
+            /** Format: uuid */
+            media_id: string;
+            /** @enum {string} */
+            variant: "display" | "thumb_blur";
+        };
+        FoundCandidate: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            item_name: string;
+            category: components["schemas"]["CategoryRef"];
+            description: string;
+            colours: string[];
+            brand?: string | null;
+            /** Format: date-time */
+            found_at: string;
+            found_location: components["schemas"]["LocationRef"];
+            holding_post?: components["schemas"]["NamedRef"];
+            custody_status: components["schemas"]["CustodyStatus"];
+            photos: components["schemas"]["CandidatePhoto"][];
+            /** @description officers only */
+            hidden_details?: string | null;
+        };
+        LostCandidate: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            item_name: string;
+            category: components["schemas"]["CategoryRef"];
+            /** Format: date-time */
+            lost_from: string;
+            /** Format: date-time */
+            lost_until: string;
+            /** @description officers only */
+            owner_name?: string | null;
+        };
+        MatchCandidate: {
+            /** Format: uuid */
+            id: string;
+            rank?: number | null;
+            tier: components["schemas"]["MatchTier"];
+            overall: number;
+            /** @enum {string} */
+            status: "active" | "superseded" | "dismissed" | "confirmed" | "rejected";
+            found_report: components["schemas"]["FoundCandidate"];
+            lost_report: components["schemas"]["LostCandidate"];
+            explanation: components["schemas"]["MatchExplanation"];
+            scores?: components["schemas"]["MatchScores"];
+            /** @description officers only */
+            flags?: string[];
+            /** @description officers only */
+            component_versions?: {
+                [key: string]: string;
+            };
+            /** Format: date-time */
+            first_scored_at?: string;
+            /** Format: date-time */
+            scored_at: string;
+        };
+        MatchList: {
+            items: components["schemas"]["MatchCandidate"][];
+        };
+        MatchHint: {
+            items: components["schemas"]["MatchHintItem"][];
+        };
+        MatchHintItem: {
+            item_name: string;
+            category_name: string;
+        };
+        MatchFeedbackRequest: {
+            /** @enum {string} */
+            verdict: "relevant" | "not_relevant";
+            reason?: string;
+        };
+        DismissMatchRequest: {
+            reason?: string;
+        };
     };
     responses: {
         /** @description RFC 9457 problem details */
@@ -1321,6 +1557,8 @@ export interface components {
         StatusFilter: string[];
         Cursor: string;
         Limit: number;
+        /** @description Officers only, adds candidates of tier low (BR-VIS-01) */
+        IncludeLow: boolean;
     };
     requestBodies: never;
     headers: never;
@@ -2533,6 +2771,182 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listLostReportMatches: {
+        parameters: {
+            query?: {
+                /** @description Officers only, adds candidates of tier low (BR-VIS-01) */
+                include_low?: components["parameters"]["IncludeLow"];
+            };
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Candidates projected by role. The owner sees active medium and high candidates in rank order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listFoundReportMatches: {
+        parameters: {
+            query?: {
+                /** @description Officers only, adds candidates of tier low (BR-VIS-01) */
+                include_low?: components["parameters"]["IncludeLow"];
+            };
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Candidates of a found report, officers only */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getFoundReportMatchHint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description AI-05, the item name and category of lost reports with an active high candidate, for the finder */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchHint"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getMatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One candidate with its explanation, projected by role */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchCandidate"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    submitMatchFeedback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MatchFeedbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Stored */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    dismissMatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DismissMatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Hidden for the owner, or for everyone when an officer dismisses */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    rematchReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "lost" | "found";
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rescoring queued */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ack"];
                 };
             };
             default: components["responses"]["Problem"];

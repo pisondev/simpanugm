@@ -529,6 +529,83 @@
       "done": "Laporan sudah ditutup."
     }
   },
+  "matching": {
+    "title": "Kandidat",
+    "sectionTitle": "Kandidat barang temuan",
+    "tier": {
+      "high": "Sangat mirip",
+      "medium": "Mirip",
+      "low": "Kurang mirip"
+    },
+    "overall": "Skor kecocokan",
+    "bars": {
+      "visual": "Kemiripan foto",
+      "visualCrossModal": "Kecocokan deskripsi dengan foto",
+      "text": "Kemiripan deskripsi",
+      "location": "Kedekatan lokasi",
+      "time": "Kedekatan waktu",
+      "category": "Kategori"
+    },
+    "level": {
+      "high": "Tinggi",
+      "medium": "Sedang",
+      "low": "Rendah",
+      "missing": "Belum ada"
+    },
+    "foundAt": "Ditemukan {when}",
+    "foundPlace": "di {place}",
+    "holdingPost": "Disimpan di {post}",
+    "withFinder": "Masih dibawa penemu",
+    "empty": "Belum ada kandidat yang cukup mirip. Kami akan memberi tahu kamu saat ada.",
+    "blurredNote": "Foto kartu identitas disamarkan untuk melindungi pemiliknya. Petugas menunjukkan barang aslinya saat verifikasi.",
+    "back": "Kembali ke laporan",
+    "whyTitle": "Kenapa kandidat ini muncul",
+    "itemTitle": "Barang temuan",
+    "nextStepTitle": "Langkah berikutnya",
+    "nextStepInCustody": "Datangi {post} dengan membawa kode {code} dan bukti kepemilikan. Petugas akan memeriksa kecocokannya.",
+    "nextStepWithFinder": "Barang masih dibawa penemu. Kami akan memberi tahu kamu saat barang sudah diterima pos.",
+    "maybeMine": "Sepertinya milik saya",
+    "maybeMineDone": "Terima kasih, tanggapanmu tersimpan.",
+    "notMine": "Bukan milik saya",
+    "notMineTitle": "Sembunyikan kandidat ini?",
+    "notMineBody": "Kandidat ini tidak akan muncul lagi untukmu. Alasanmu membantu kami memperbaiki pencocokan.",
+    "reason": "Alasan (opsional)",
+    "reasonPlaceholder": "Contoh: warnanya berbeda",
+    "notMineConfirm": "Ya, sembunyikan",
+    "notMineDone": "Kandidat disembunyikan.",
+    "hintTitle": "Kemungkinan pemiliknya sedang mencari",
+    "hintBody": "Ada laporan kehilangan yang sangat mirip dengan barang ini. Serahkan ke pos agar pemiliknya bisa segera mengambil.",
+    "hintItem": "{name} | {category}",
+    "officer": {
+      "title": "Kandidat pencocokan",
+      "showLow": "Tampilkan yang kurang mirip",
+      "hideLow": "Sembunyikan yang kurang mirip",
+      "rematch": "Cocokkan ulang",
+      "rematchDone": "Pencocokan ulang dijadwalkan. Muat ulang halaman dalam beberapa detik.",
+      "dismiss": "Tolak",
+      "dismissTitle": "Tolak kandidat ini?",
+      "dismissBody": "Kandidat hilang dari daftar pemilik dan petugas. Penolakan dicatat sebagai label untuk evaluasi model.",
+      "dismissConfirm": "Ya, tolak kandidat",
+      "dismissDone": "Kandidat ditolak.",
+      "empty": "Belum ada kandidat.",
+      "lost": "Laporan hilang",
+      "found": "Laporan temuan",
+      "owner": "Pemilik",
+      "tier": "Tingkat",
+      "overall": "Skor",
+      "reasons": "Alasan",
+      "actions": "Aksi",
+      "nameHit": "Nama cocok",
+      "scores": {
+        "visual": "Foto",
+        "semantic": "Semantik",
+        "attributes": "Atribut",
+        "location": "Lokasi",
+        "time": "Waktu",
+        "category": "Kategori"
+      }
+    }
+  },
   "publicFound": {
     "title": "Barang Temuan",
     "lead": "Daftar barang yang ditemukan di kampus. Foto dan deskripsi tidak ditampilkan untuk mencegah klaim palsu. Jika kamu mengenali barangmu, buat laporan kehilangan agar dicocokkan.",

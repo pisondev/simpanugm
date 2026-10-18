@@ -14,9 +14,10 @@ import { Timeline } from "./timeline"
 // matching normally answers within seconds, after two minutes the calm empty text replaces the spinner
 const searchingWindowMs = 2 * 60_000
 
-type Props = { report: LostReport; history: HistoryEntry[]; actions?: ReactNode; staff?: boolean; now: number }
+type Props = { report: LostReport; history: HistoryEntry[]; actions?: ReactNode; staff?: boolean; now: number; candidates?: ReactNode }
 
-export function LostReportView({ report, history, actions, staff = false, now }: Props) {
+// information-architecture 5: status and the next action, candidates, then the fields, then the timeline
+export function LostReportView({ report, history, actions, staff = false, now, candidates }: Props) {
   const t = useTranslations("report")
   const tc = useTranslations("common")
   const ts = useTranslations("status")
@@ -53,6 +54,8 @@ export function LostReportView({ report, history, actions, staff = false, now }:
           <p>{report.candidate_count > 0 ? t("candidateCount", { count: report.candidate_count }) : searching ? t("searching") : t("noCandidates")}</p>
         </section>
       ) : null}
+
+      {candidates}
 
       {report.status === "closed" && report.close_reason ? (
         <p className="rounded-xl border bg-card p-4">

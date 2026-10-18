@@ -34,6 +34,29 @@ func (q *Queries) ActivateInvitedUser(ctx context.Context, arg ActivateInvitedUs
 	return err
 }
 
+const activeVersion = `-- name: ActiveVersion :one
+SELECT id, name, identity, config FROM model_versions WHERE component = $1 AND status = 'active'
+`
+
+type ActiveVersionRow struct {
+	ID       uuid.UUID
+	Name     string
+	Identity []byte
+	Config   []byte
+}
+
+func (q *Queries) ActiveVersion(ctx context.Context, component string) (ActiveVersionRow, error) {
+	row := q.db.QueryRow(ctx, activeVersion, component)
+	var i ActiveVersionRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Identity,
+		&i.Config,
+	)
+	return i, err
+}
+
 const attachMedia = `-- name: AttachMedia :exec
 UPDATE media
 SET lost_report_id = $1,
@@ -61,6 +84,67 @@ func (q *Queries) AttachMedia(ctx context.Context, arg AttachMediaParams) error 
 		arg.ID,
 	)
 	return err
+}
+
+const candidatePhotos = `-- name: CandidatePhotos :many
+SELECT id, found_report_id, position FROM media
+WHERE found_report_id = ANY($1::uuid[]) AND state = 'ready'
+ORDER BY found_report_id, position
+`
+
+type CandidatePhotosRow struct {
+	ID            uuid.UUID
+	FoundReportID *uuid.UUID
+	Position      int16
+}
+
+func (q *Queries) CandidatePhotos(ctx context.Context, ids []uuid.UUID) ([]CandidatePhotosRow, error) {
+	rows, err := q.db.Query(ctx, candidatePhotos, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CandidatePhotosRow{}
+	for rows.Next() {
+		var i CandidatePhotosRow
+		if err := rows.Scan(&i.ID, &i.FoundReportID, &i.Position); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const categoryPromptSet = `-- name: CategoryPromptSet :many
+SELECT slug, clip_prompts FROM categories WHERE parent_id IS NOT NULL AND active ORDER BY slug
+`
+
+type CategoryPromptSetRow struct {
+	Slug        string
+	ClipPrompts []string
+}
+
+func (q *Queries) CategoryPromptSet(ctx context.Context) ([]CategoryPromptSetRow, error) {
+	rows, err := q.db.Query(ctx, categoryPromptSet)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CategoryPromptSetRow{}
+	for rows.Next() {
+		var i CategoryPromptSetRow
+		if err := rows.Scan(&i.Slug, &i.ClipPrompts); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const changeUserEmail = `-- name: ChangeUserEmail :exec
@@ -108,6 +192,39 @@ func (q *Queries) ClaimIdempotencyKey(ctx context.Context, arg ClaimIdempotencyK
 	return result.RowsAffected(), nil
 }
 
+const clearRanksBelowFloor = `-- name: ClearRanksBelowFloor :exec
+UPDATE matches SET rank_for_lost = NULL, rank_for_found = NULL
+WHERE (lost_report_id = ANY($1::uuid[]) OR found_report_id = ANY($2::uuid[]))
+  AND status IN ('active', 'superseded') AND tier IS NULL
+`
+
+type ClearRanksBelowFloorParams struct {
+	LostIds  []uuid.UUID
+	FoundIds []uuid.UUID
+}
+
+func (q *Queries) ClearRanksBelowFloor(ctx context.Context, arg ClearRanksBelowFloorParams) error {
+	_, err := q.db.Exec(ctx, clearRanksBelowFloor, arg.LostIds, arg.FoundIds)
+	return err
+}
+
+const clipTextVector = `-- name: ClipTextVector :one
+SELECT embedding::text AS embedding FROM text_embeddings_clip WHERE report_type = $1 AND report_id = $2 AND model_version_id = $3
+`
+
+type ClipTextVectorParams struct {
+	ReportType     string
+	ReportID       uuid.UUID
+	ModelVersionID uuid.UUID
+}
+
+func (q *Queries) ClipTextVector(ctx context.Context, arg ClipTextVectorParams) (string, error) {
+	row := q.db.QueryRow(ctx, clipTextVector, arg.ReportType, arg.ReportID, arg.ModelVersionID)
+	var embedding string
+	err := row.Scan(&embedding)
+	return embedding, err
+}
+
 const closeFoundReport = `-- name: CloseFoundReport :one
 UPDATE found_reports
 SET status = 'closed',
@@ -142,6 +259,36 @@ func (q *Queries) CloseFoundReport(ctx context.Context, arg CloseFoundReportPara
 	var version int32
 	err := row.Scan(&version)
 	return version, err
+}
+
+const compatibilityFor = `-- name: CompatibilityFor :many
+SELECT category_a, category_b, factor::float8 AS factor FROM category_compatibility WHERE category_a = $1 OR category_b = $1
+`
+
+type CompatibilityForRow struct {
+	CategoryA uuid.UUID
+	CategoryB uuid.UUID
+	Factor    float64
+}
+
+func (q *Queries) CompatibilityFor(ctx context.Context, categoryA uuid.UUID) ([]CompatibilityForRow, error) {
+	rows, err := q.db.Query(ctx, compatibilityFor, categoryA)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CompatibilityForRow{}
+	for rows.Next() {
+		var i CompatibilityForRow
+		if err := rows.Scan(&i.CategoryA, &i.CategoryB, &i.Factor); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const countActiveAdmins = `-- name: CountActiveAdmins :one
@@ -320,6 +467,57 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const crossCosines = `-- name: CrossCosines :many
+SELECT t.report_id AS text_report_id, ie.report_id AS image_report_id, max(1 - (t.embedding <=> ie.embedding))::float8 AS cosine
+FROM text_embeddings_clip t
+JOIN image_embeddings ie ON ie.report_type = $1 AND ie.report_id = ANY($2::uuid[])
+                         AND ie.model_version_id = $3
+WHERE t.report_type = $4 AND t.report_id = ANY($5::uuid[]) AND t.model_version_id = $6
+GROUP BY t.report_id, ie.report_id
+`
+
+type CrossCosinesParams struct {
+	ImageType      string
+	ImageIds       []uuid.UUID
+	ImageVersionID uuid.UUID
+	TextType       string
+	TextIds        []uuid.UUID
+	TextVersionID  uuid.UUID
+}
+
+type CrossCosinesRow struct {
+	TextReportID  uuid.UUID
+	ImageReportID uuid.UUID
+	Cosine        float64
+}
+
+func (q *Queries) CrossCosines(ctx context.Context, arg CrossCosinesParams) ([]CrossCosinesRow, error) {
+	rows, err := q.db.Query(ctx, crossCosines,
+		arg.ImageType,
+		arg.ImageIds,
+		arg.ImageVersionID,
+		arg.TextType,
+		arg.TextIds,
+		arg.TextVersionID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CrossCosinesRow{}
+	for rows.Next() {
+		var i CrossCosinesRow
+		if err := rows.Scan(&i.TextReportID, &i.ImageReportID, &i.Cosine); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const deleteExpiredIdempotencyKey = `-- name: DeleteExpiredIdempotencyKey :exec
 DELETE FROM idempotency_keys WHERE user_id = $1 AND key = $2 AND expires_at < $3
 `
@@ -406,6 +604,445 @@ func (q *Queries) DeleteUnverifiedUsersBefore(ctx context.Context, before time.T
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const e5Cosines = `-- name: E5Cosines :many
+SELECT b.report_id AS candidate_id, (1 - (a.embedding <=> b.embedding))::float8 AS cosine
+FROM text_embeddings_e5 a
+JOIN text_embeddings_e5 b ON b.report_type = $1 AND b.report_id = ANY($2::uuid[])
+                          AND b.model_version_id = a.model_version_id
+WHERE a.report_type = $3 AND a.report_id = $4 AND a.model_version_id = $5
+`
+
+type E5CosinesParams struct {
+	CandidateType string
+	CandidateIds  []uuid.UUID
+	SourceType    string
+	SourceID      uuid.UUID
+	VersionID     uuid.UUID
+}
+
+type E5CosinesRow struct {
+	CandidateID uuid.UUID
+	Cosine      float64
+}
+
+func (q *Queries) E5Cosines(ctx context.Context, arg E5CosinesParams) ([]E5CosinesRow, error) {
+	rows, err := q.db.Query(ctx, e5Cosines,
+		arg.CandidateType,
+		arg.CandidateIds,
+		arg.SourceType,
+		arg.SourceID,
+		arg.VersionID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []E5CosinesRow{}
+	for rows.Next() {
+		var i E5CosinesRow
+		if err := rows.Scan(&i.CandidateID, &i.Cosine); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const e5Vector = `-- name: E5Vector :one
+SELECT embedding::text AS embedding FROM text_embeddings_e5 WHERE report_type = $1 AND report_id = $2 AND model_version_id = $3
+`
+
+type E5VectorParams struct {
+	ReportType     string
+	ReportID       uuid.UUID
+	ModelVersionID uuid.UUID
+}
+
+func (q *Queries) E5Vector(ctx context.Context, arg E5VectorParams) (string, error) {
+	row := q.db.QueryRow(ctx, e5Vector, arg.ReportType, arg.ReportID, arg.ModelVersionID)
+	var embedding string
+	err := row.Scan(&embedding)
+	return embedding, err
+}
+
+const embeddingFingerprint = `-- name: EmbeddingFingerprint :one
+SELECT coalesce(md5(string_agg(s.x, ',' ORDER BY s.x)), '')::text AS fingerprint FROM (
+    SELECT ie.media_id::text || ie.model_version_id::text AS x FROM image_embeddings ie
+    WHERE ie.report_type = $1::text AND ie.report_id = $2::uuid
+    UNION ALL
+    SELECT 'e5' || te.model_version_id::text || encode(te.text_sha256, 'hex') FROM text_embeddings_e5 te
+    WHERE te.report_type = $1::text AND te.report_id = $2::uuid
+    UNION ALL
+    SELECT 'clip' || tc.model_version_id::text || encode(tc.text_sha256, 'hex') FROM text_embeddings_clip tc
+    WHERE tc.report_type = $1::text AND tc.report_id = $2::uuid
+) s
+`
+
+type EmbeddingFingerprintParams struct {
+	ReportType string
+	ReportID   uuid.UUID
+}
+
+// changes whenever an embedding of the report is stored, so a scoring that raced an embedding job runs again
+func (q *Queries) EmbeddingFingerprint(ctx context.Context, arg EmbeddingFingerprintParams) (string, error) {
+	row := q.db.QueryRow(ctx, embeddingFingerprint, arg.ReportType, arg.ReportID)
+	var fingerprint string
+	err := row.Scan(&fingerprint)
+	return fingerprint, err
+}
+
+const existingFoundOfLost = `-- name: ExistingFoundOfLost :many
+SELECT found_report_id FROM matches WHERE lost_report_id = $1 AND status IN ('active', 'superseded')
+`
+
+func (q *Queries) ExistingFoundOfLost(ctx context.Context, lostReportID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, existingFoundOfLost, lostReportID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var found_report_id uuid.UUID
+		if err := rows.Scan(&found_report_id); err != nil {
+			return nil, err
+		}
+		items = append(items, found_report_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const existingLostOfFound = `-- name: ExistingLostOfFound :many
+SELECT lost_report_id FROM matches WHERE found_report_id = $1 AND status IN ('active', 'superseded')
+`
+
+func (q *Queries) ExistingLostOfFound(ctx context.Context, foundReportID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, existingLostOfFound, foundReportID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var lost_report_id uuid.UUID
+		if err := rows.Scan(&lost_report_id); err != nil {
+			return nil, err
+		}
+		items = append(items, lost_report_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const finderHint = `-- name: FinderHint :many
+SELECT lr.item_name, c.name AS category_name FROM matches m
+JOIN lost_reports lr ON lr.id = m.lost_report_id
+JOIN categories c ON c.id = lr.category_id
+WHERE m.found_report_id = $1 AND m.status = 'active' AND m.tier = 'high' AND m.rank_for_found IS NOT NULL
+ORDER BY m.overall DESC, m.id
+LIMIT 3
+`
+
+type FinderHintRow struct {
+	ItemName     string
+	CategoryName string
+}
+
+// AI-05: what the finder may learn, the item name and category of the lost report and nothing else (BR-VIS 5.1)
+func (q *Queries) FinderHint(ctx context.Context, foundReportID uuid.UUID) ([]FinderHintRow, error) {
+	rows, err := q.db.Query(ctx, finderHint, foundReportID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FinderHintRow{}
+	for rows.Next() {
+		var i FinderHintRow
+		if err := rows.Scan(&i.ItemName, &i.CategoryName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const foundForMatching = `-- name: FoundForMatching :many
+SELECT fr.id, fr.code, fr.status, fr.hidden_at, fr.category_id, c.parent_id, c.name AS category_name, pc.name AS parent_name,
+       c.sensitivity, fr.item_name, fr.description, fr.hidden_details, fr.colours, fr.brand, fr.found_at, fr.updated_at,
+       l.lat, l.lng, l.name AS location_name, fr.finder_id, fr.holding_post_id, fr.intended_post_id,
+       coalesce((SELECT string_agg(ia.visible_text, ' ') FROM image_attributes ia JOIN media m ON m.id = ia.media_id
+                 WHERE m.found_report_id = fr.id AND m.state = 'ready'), '')::text AS visible_text,
+       EXISTS (SELECT 1 FROM media m WHERE m.found_report_id = fr.id AND m.state = 'ready')::bool AS has_photos
+FROM found_reports fr
+JOIN categories c ON c.id = fr.category_id
+JOIN categories pc ON pc.id = c.parent_id
+JOIN locations l ON l.id = fr.found_location_id
+WHERE fr.id = ANY($1::uuid[])
+`
+
+type FoundForMatchingRow struct {
+	ID             uuid.UUID
+	Code           string
+	Status         string
+	HiddenAt       *time.Time
+	CategoryID     uuid.UUID
+	ParentID       *uuid.UUID
+	CategoryName   string
+	ParentName     string
+	Sensitivity    *string
+	ItemName       string
+	Description    string
+	HiddenDetails  *string
+	Colours        []string
+	Brand          *string
+	FoundAt        time.Time
+	UpdatedAt      time.Time
+	Lat            float64
+	Lng            float64
+	LocationName   string
+	FinderID       *uuid.UUID
+	HoldingPostID  *uuid.UUID
+	IntendedPostID *uuid.UUID
+	VisibleText    string
+	HasPhotos      bool
+}
+
+func (q *Queries) FoundForMatching(ctx context.Context, ids []uuid.UUID) ([]FoundForMatchingRow, error) {
+	rows, err := q.db.Query(ctx, foundForMatching, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FoundForMatchingRow{}
+	for rows.Next() {
+		var i FoundForMatchingRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.Status,
+			&i.HiddenAt,
+			&i.CategoryID,
+			&i.ParentID,
+			&i.CategoryName,
+			&i.ParentName,
+			&i.Sensitivity,
+			&i.ItemName,
+			&i.Description,
+			&i.HiddenDetails,
+			&i.Colours,
+			&i.Brand,
+			&i.FoundAt,
+			&i.UpdatedAt,
+			&i.Lat,
+			&i.Lng,
+			&i.LocationName,
+			&i.FinderID,
+			&i.HoldingPostID,
+			&i.IntendedPostID,
+			&i.VisibleText,
+			&i.HasPhotos,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const foundNearestE5 = `-- name: FoundNearestE5 :many
+SELECT t.report_id FROM text_embeddings_e5 t
+JOIN found_reports fr ON fr.id = t.report_id
+WHERE t.report_type = 'found' AND t.model_version_id = $1
+  AND fr.hidden_at IS NULL AND fr.status IN ('reported', 'potential_match', 'under_verification', 'unclaimed')
+  AND fr.found_at BETWEEN $2::timestamptz AND $3::timestamptz
+ORDER BY t.embedding <=> $4::text::vector
+LIMIT $5::int
+`
+
+type FoundNearestE5Params struct {
+	VersionID   uuid.UUID
+	WindowStart time.Time
+	WindowEnd   time.Time
+	Query       string
+	K           int32
+}
+
+func (q *Queries) FoundNearestE5(ctx context.Context, arg FoundNearestE5Params) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, foundNearestE5,
+		arg.VersionID,
+		arg.WindowStart,
+		arg.WindowEnd,
+		arg.Query,
+		arg.K,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var report_id uuid.UUID
+		if err := rows.Scan(&report_id); err != nil {
+			return nil, err
+		}
+		items = append(items, report_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const foundNearestImages = `-- name: FoundNearestImages :many
+SELECT nearest.report_id FROM (
+    SELECT ie.report_id, ie.embedding <=> $1::text::vector AS distance
+    FROM image_embeddings ie
+    JOIN found_reports fr ON fr.id = ie.report_id
+    WHERE ie.report_type = 'found' AND ie.model_version_id = $2
+      AND fr.hidden_at IS NULL AND fr.status IN ('reported', 'potential_match', 'under_verification', 'unclaimed')
+      AND fr.found_at BETWEEN $3::timestamptz AND $4::timestamptz
+    ORDER BY distance
+    LIMIT $5::int * 3
+) nearest
+GROUP BY nearest.report_id
+ORDER BY min(nearest.distance)
+LIMIT $5::int
+`
+
+type FoundNearestImagesParams struct {
+	Query       string
+	VersionID   uuid.UUID
+	WindowStart time.Time
+	WindowEnd   time.Time
+	K           int32
+}
+
+// the inner ORDER BY with LIMIT walks the HNSW index, the outer query keeps one row per report
+func (q *Queries) FoundNearestImages(ctx context.Context, arg FoundNearestImagesParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, foundNearestImages,
+		arg.Query,
+		arg.VersionID,
+		arg.WindowStart,
+		arg.WindowEnd,
+		arg.K,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var report_id uuid.UUID
+		if err := rows.Scan(&report_id); err != nil {
+			return nil, err
+		}
+		items = append(items, report_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const foundPoolStructured = `-- name: FoundPoolStructured :many
+SELECT fr.id FROM found_reports fr
+WHERE fr.hidden_at IS NULL AND fr.status IN ('reported', 'potential_match', 'under_verification', 'unclaimed')
+  AND fr.found_at BETWEEN $1::timestamptz AND $2::timestamptz
+  AND fr.category_id = $3
+ORDER BY abs(extract(epoch FROM fr.found_at - $4::timestamptz)), fr.id
+LIMIT $5::int
+`
+
+type FoundPoolStructuredParams struct {
+	WindowStart time.Time
+	WindowEnd   time.Time
+	CategoryID  uuid.UUID
+	Anchor      time.Time
+	K           int32
+}
+
+func (q *Queries) FoundPoolStructured(ctx context.Context, arg FoundPoolStructuredParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, foundPoolStructured,
+		arg.WindowStart,
+		arg.WindowEnd,
+		arg.CategoryID,
+		arg.Anchor,
+		arg.K,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const foundRefForMatches = `-- name: FoundRefForMatches :one
+SELECT id, code, finder_id, status, hidden_at FROM found_reports
+WHERE id = $1::uuid OR code = $2::text
+`
+
+type FoundRefForMatchesParams struct {
+	ID   *uuid.UUID
+	Code *string
+}
+
+type FoundRefForMatchesRow struct {
+	ID       uuid.UUID
+	Code     string
+	FinderID *uuid.UUID
+	Status   string
+	HiddenAt *time.Time
+}
+
+func (q *Queries) FoundRefForMatches(ctx context.Context, arg FoundRefForMatchesParams) (FoundRefForMatchesRow, error) {
+	row := q.db.QueryRow(ctx, foundRefForMatches, arg.ID, arg.Code)
+	var i FoundRefForMatchesRow
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.FinderID,
+		&i.Status,
+		&i.HiddenAt,
+	)
+	return i, err
+}
+
+const foundStatusForUpdate = `-- name: FoundStatusForUpdate :one
+SELECT status FROM found_reports WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) FoundStatusForUpdate(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, foundStatusForUpdate, id)
+	var status string
+	err := row.Scan(&status)
+	return status, err
 }
 
 const getCategory = `-- name: GetCategory :one
@@ -620,7 +1257,9 @@ const getLostReport = `-- name: GetLostReport :one
 SELECT lr.id, lr.code, lr.reporter_id, lr.created_by, lr.proxy_name, lr.proxy_phone, lr.category_id, lr.item_name, lr.description, lr.private_details, lr.colours, lr.brand, lr.lost_from, lr.lost_until, lr.location_unknown, lr.location_note, lr.status, lr.close_reason, lr.closed_at, lr.duplicate_of, lr.hidden_at, lr.hidden_reason, lr.assist_outcome, lr.last_activity_at, lr.stale_reminded_at, lr.anonymised_at, lr.version, lr.created_at, lr.updated_at,
        c.slug AS category_slug, c.name AS category_name, c.sensitivity AS category_sensitivity,
        coalesce(p.name, c.name)::text AS category_parent_name,
-       u.full_name AS reporter_full_name, u.email AS reporter_email, u.phone AS reporter_phone, u.nim_nip AS reporter_nim_nip
+       u.full_name AS reporter_full_name, u.email AS reporter_email, u.phone AS reporter_phone, u.nim_nip AS reporter_nim_nip,
+       (SELECT count(*) FROM matches mt WHERE mt.lost_report_id = lr.id AND mt.status = 'active' AND mt.tier IN ('high', 'medium')
+        AND mt.rank_for_lost IS NOT NULL AND mt.owner_dismissed_at IS NULL)::int AS candidate_count
 FROM lost_reports lr
 JOIN categories c ON c.id = lr.category_id
 LEFT JOIN categories p ON p.id = c.parent_id
@@ -643,6 +1282,7 @@ type GetLostReportRow struct {
 	ReporterEmail       *string
 	ReporterPhone       *string
 	ReporterNimNip      *string
+	CandidateCount      int32
 }
 
 func (q *Queries) GetLostReport(ctx context.Context, arg GetLostReportParams) (GetLostReportRow, error) {
@@ -686,20 +1326,31 @@ func (q *Queries) GetLostReport(ctx context.Context, arg GetLostReportParams) (G
 		&i.ReporterEmail,
 		&i.ReporterPhone,
 		&i.ReporterNimNip,
+		&i.CandidateCount,
 	)
 	return i, err
 }
 
 const getMediaForAccess = `-- name: GetMediaForAccess :one
 SELECT m.id, m.uploaded_by, m.purpose, m.lost_report_id, m.found_report_id, m.state, m.mime, m.width, m.height, m.bytes, m.sha256, m.phash, m.storage_keys, m.position, m.created_at, m.attached_at, m.deleted_at, lr.reporter_id AS lost_reporter_id, fr.finder_id AS found_finder_id,
-       coalesce(lc.sensitivity, fc.sensitivity, '')::text AS sensitivity
+       coalesce(lc.sensitivity, fc.sensitivity, '')::text AS sensitivity,
+       EXISTS (
+           SELECT 1 FROM matches mt JOIN lost_reports ol ON ol.id = mt.lost_report_id
+           WHERE mt.found_report_id = m.found_report_id AND ol.reporter_id = $1::uuid
+             AND mt.status = 'active' AND mt.tier IN ('high', 'medium') AND mt.rank_for_lost IS NOT NULL AND mt.owner_dismissed_at IS NULL
+       )::bool AS candidate_owner
 FROM media m
 LEFT JOIN lost_reports lr ON lr.id = m.lost_report_id
 LEFT JOIN categories lc ON lc.id = lr.category_id
 LEFT JOIN found_reports fr ON fr.id = m.found_report_id
 LEFT JOIN categories fc ON fc.id = fr.category_id
-WHERE m.id = $1
+WHERE m.id = $2
 `
+
+type GetMediaForAccessParams struct {
+	Viewer uuid.UUID
+	ID     uuid.UUID
+}
 
 type GetMediaForAccessRow struct {
 	ID             uuid.UUID
@@ -722,10 +1373,12 @@ type GetMediaForAccessRow struct {
 	LostReporterID *uuid.UUID
 	FoundFinderID  *uuid.UUID
 	Sensitivity    string
+	CandidateOwner bool
 }
 
-func (q *Queries) GetMediaForAccess(ctx context.Context, id uuid.UUID) (GetMediaForAccessRow, error) {
-	row := q.db.QueryRow(ctx, getMediaForAccess, id)
+// candidate_owner: the viewer owns a lost report for which this found photo is a visible candidate (BR-VIS 5.2)
+func (q *Queries) GetMediaForAccess(ctx context.Context, arg GetMediaForAccessParams) (GetMediaForAccessRow, error) {
+	row := q.db.QueryRow(ctx, getMediaForAccess, arg.Viewer, arg.ID)
 	var i GetMediaForAccessRow
 	err := row.Scan(
 		&i.ID,
@@ -748,6 +1401,32 @@ func (q *Queries) GetMediaForAccess(ctx context.Context, id uuid.UUID) (GetMedia
 		&i.LostReporterID,
 		&i.FoundFinderID,
 		&i.Sensitivity,
+		&i.CandidateOwner,
+	)
+	return i, err
+}
+
+const getMediaForEmbedding = `-- name: GetMediaForEmbedding :one
+SELECT id, state, storage_keys, lost_report_id, found_report_id FROM media WHERE id = $1
+`
+
+type GetMediaForEmbeddingRow struct {
+	ID            uuid.UUID
+	State         string
+	StorageKeys   []byte
+	LostReportID  *uuid.UUID
+	FoundReportID *uuid.UUID
+}
+
+func (q *Queries) GetMediaForEmbedding(ctx context.Context, id uuid.UUID) (GetMediaForEmbeddingRow, error) {
+	row := q.db.QueryRow(ctx, getMediaForEmbedding, id)
+	var i GetMediaForEmbeddingRow
+	err := row.Scan(
+		&i.ID,
+		&i.State,
+		&i.StorageKeys,
+		&i.LostReportID,
+		&i.FoundReportID,
 	)
 	return i, err
 }
@@ -994,6 +1673,121 @@ func (q *Queries) GetZone(ctx context.Context, id uuid.UUID) (Zone, error) {
 	return i, err
 }
 
+const highMatchesOfFound = `-- name: HighMatchesOfFound :many
+SELECT m.id, lr.code AS lost_code FROM matches m
+JOIN lost_reports lr ON lr.id = m.lost_report_id
+WHERE m.found_report_id = $1 AND m.status = 'active' AND m.tier = 'high'
+`
+
+type HighMatchesOfFoundRow struct {
+	ID       uuid.UUID
+	LostCode string
+}
+
+func (q *Queries) HighMatchesOfFound(ctx context.Context, foundReportID uuid.UUID) ([]HighMatchesOfFoundRow, error) {
+	rows, err := q.db.Query(ctx, highMatchesOfFound, foundReportID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []HighMatchesOfFoundRow{}
+	for rows.Next() {
+		var i HighMatchesOfFoundRow
+		if err := rows.Scan(&i.ID, &i.LostCode); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const imageCosines = `-- name: ImageCosines :many
+SELECT b.report_id AS candidate_id, max(1 - (a.embedding <=> b.embedding))::float8 AS cosine
+FROM image_embeddings a
+JOIN image_embeddings b ON b.report_type = $1 AND b.report_id = ANY($2::uuid[])
+                        AND b.model_version_id = a.model_version_id
+WHERE a.report_type = $3 AND a.report_id = $4 AND a.model_version_id = $5
+GROUP BY b.report_id
+`
+
+type ImageCosinesParams struct {
+	CandidateType string
+	CandidateIds  []uuid.UUID
+	SourceType    string
+	SourceID      uuid.UUID
+	VersionID     uuid.UUID
+}
+
+type ImageCosinesRow struct {
+	CandidateID uuid.UUID
+	Cosine      float64
+}
+
+func (q *Queries) ImageCosines(ctx context.Context, arg ImageCosinesParams) ([]ImageCosinesRow, error) {
+	rows, err := q.db.Query(ctx, imageCosines,
+		arg.CandidateType,
+		arg.CandidateIds,
+		arg.SourceType,
+		arg.SourceID,
+		arg.VersionID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ImageCosinesRow{}
+	for rows.Next() {
+		var i ImageCosinesRow
+		if err := rows.Scan(&i.CandidateID, &i.Cosine); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const imageVectors = `-- name: ImageVectors :many
+SELECT media_id, embedding::text AS embedding FROM image_embeddings
+WHERE report_type = $1 AND report_id = $2 AND model_version_id = $3
+`
+
+type ImageVectorsParams struct {
+	ReportType     string
+	ReportID       uuid.UUID
+	ModelVersionID uuid.UUID
+}
+
+type ImageVectorsRow struct {
+	MediaID   uuid.UUID
+	Embedding string
+}
+
+func (q *Queries) ImageVectors(ctx context.Context, arg ImageVectorsParams) ([]ImageVectorsRow, error) {
+	rows, err := q.db.Query(ctx, imageVectors, arg.ReportType, arg.ReportID, arg.ModelVersionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ImageVectorsRow{}
+	for rows.Next() {
+		var i ImageVectorsRow
+		if err := rows.Scan(&i.MediaID, &i.Embedding); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const insertAudit = `-- name: InsertAudit :exec
 INSERT INTO audit_logs (occurred_at, actor_id, actor_role, action, entity_type, entity_id, changes, request_id, ip, user_agent)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
@@ -1201,6 +1995,87 @@ func (q *Queries) InsertLostReport(ctx context.Context, arg InsertLostReportPara
 	return err
 }
 
+const insertMatch = `-- name: InsertMatch :exec
+INSERT INTO matches (id, lost_report_id, found_report_id, visual_mode, s_visual, s_semantic, s_attr, s_text, s_location, s_time,
+                     category_factor, overall, tier, flags, explanation, status, fusion_version_id, component_versions,
+                     first_scored_at, scored_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'superseded', $16, $17, $18, $18)
+ON CONFLICT (lost_report_id, found_report_id) DO NOTHING
+`
+
+type InsertMatchParams struct {
+	ID                uuid.UUID
+	LostReportID      uuid.UUID
+	FoundReportID     uuid.UUID
+	VisualMode        string
+	SVisual           *float64
+	SSemantic         *float64
+	SAttr             *float64
+	SText             *float64
+	SLocation         *float64
+	STime             *float64
+	CategoryFactor    float64
+	Overall           float64
+	Tier              *string
+	Flags             []string
+	Explanation       []byte
+	FusionVersionID   uuid.UUID
+	ComponentVersions []byte
+	FirstScoredAt     time.Time
+}
+
+func (q *Queries) InsertMatch(ctx context.Context, arg InsertMatchParams) error {
+	_, err := q.db.Exec(ctx, insertMatch,
+		arg.ID,
+		arg.LostReportID,
+		arg.FoundReportID,
+		arg.VisualMode,
+		arg.SVisual,
+		arg.SSemantic,
+		arg.SAttr,
+		arg.SText,
+		arg.SLocation,
+		arg.STime,
+		arg.CategoryFactor,
+		arg.Overall,
+		arg.Tier,
+		arg.Flags,
+		arg.Explanation,
+		arg.FusionVersionID,
+		arg.ComponentVersions,
+		arg.FirstScoredAt,
+	)
+	return err
+}
+
+const insertMatchFeedback = `-- name: InsertMatchFeedback :exec
+INSERT INTO match_feedback (id, match_id, actor_id, actor_role, verdict, reason, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type InsertMatchFeedbackParams struct {
+	ID        uuid.UUID
+	MatchID   uuid.UUID
+	ActorID   *uuid.UUID
+	ActorRole string
+	Verdict   string
+	Reason    *string
+	CreatedAt time.Time
+}
+
+func (q *Queries) InsertMatchFeedback(ctx context.Context, arg InsertMatchFeedbackParams) error {
+	_, err := q.db.Exec(ctx, insertMatchFeedback,
+		arg.ID,
+		arg.MatchID,
+		arg.ActorID,
+		arg.ActorRole,
+		arg.Verdict,
+		arg.Reason,
+		arg.CreatedAt,
+	)
+	return err
+}
+
 const insertMedia = `-- name: InsertMedia :exec
 INSERT INTO media (id, uploaded_by, purpose, state, mime, width, height, bytes, sha256, phash, storage_keys, created_at)
 VALUES ($1, $2, $3, 'staged', $4, $5, $6, $7, $8, $9, $10, $11)
@@ -1338,6 +2213,39 @@ func (q *Queries) InsertStatusHistory(ctx context.Context, arg InsertStatusHisto
 	return err
 }
 
+const insertVersion = `-- name: InsertVersion :exec
+INSERT INTO model_versions (id, component, name, identity, config, config_sha256, status, activated_at, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+ON CONFLICT (name) DO NOTHING
+`
+
+type InsertVersionParams struct {
+	ID           uuid.UUID
+	Component    string
+	Name         string
+	Identity     []byte
+	Config       []byte
+	ConfigSha256 []byte
+	Status       string
+	ActivatedAt  *time.Time
+	CreatedAt    time.Time
+}
+
+func (q *Queries) InsertVersion(ctx context.Context, arg InsertVersionParams) error {
+	_, err := q.db.Exec(ctx, insertVersion,
+		arg.ID,
+		arg.Component,
+		arg.Name,
+		arg.Identity,
+		arg.Config,
+		arg.ConfigSha256,
+		arg.Status,
+		arg.ActivatedAt,
+		arg.CreatedAt,
+	)
+	return err
+}
+
 const invalidateUserTokens = `-- name: InvalidateUserTokens :exec
 UPDATE auth_tokens SET used_at = $1::timestamptz
 WHERE user_id = $2 AND purpose = $3 AND used_at IS NULL
@@ -1368,6 +2276,23 @@ func (q *Queries) IsOfficerOfPost(ctx context.Context, arg IsOfficerOfPostParams
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const lastMatchNotification = `-- name: LastMatchNotification :one
+SELECT coalesce(max(created_at), 'epoch'::timestamptz)::timestamptz AS at FROM notifications
+WHERE recipient_id = $1 AND entity_id = $2 AND event IN ('match.high_for_owner', 'match.medium_digest_for_owner')
+`
+
+type LastMatchNotificationParams struct {
+	RecipientID uuid.UUID
+	EntityID    *uuid.UUID
+}
+
+func (q *Queries) LastMatchNotification(ctx context.Context, arg LastMatchNotificationParams) (time.Time, error) {
+	row := q.db.QueryRow(ctx, lastMatchNotification, arg.RecipientID, arg.EntityID)
+	var at time.Time
+	err := row.Scan(&at)
+	return at, err
 }
 
 const lastNotificationOf = `-- name: LastNotificationOf :one
@@ -1907,7 +2832,9 @@ func (q *Queries) ListLostPlaces(ctx context.Context, lostReportID uuid.UUID) ([
 const listLostReports = `-- name: ListLostReports :many
 SELECT lr.id, lr.code, lr.status, lr.item_name, c.name AS category_name, lr.lost_until, lr.updated_at, lr.created_at,
        coalesce(u.full_name, lr.proxy_name, '')::text AS reporter_name,
-       coalesce(thumb.id, '00000000-0000-0000-0000-000000000000'::uuid) AS thumb_media_id
+       coalesce(thumb.id, '00000000-0000-0000-0000-000000000000'::uuid) AS thumb_media_id,
+       (SELECT count(*) FROM matches mt WHERE mt.lost_report_id = lr.id AND mt.status = 'active' AND mt.tier IN ('high', 'medium')
+        AND mt.rank_for_lost IS NOT NULL AND mt.owner_dismissed_at IS NULL)::int AS candidate_count
 FROM lost_reports lr
 JOIN categories c ON c.id = lr.category_id
 LEFT JOIN users u ON u.id = lr.reporter_id
@@ -1932,16 +2859,17 @@ type ListLostReportsParams struct {
 }
 
 type ListLostReportsRow struct {
-	ID           uuid.UUID
-	Code         string
-	Status       string
-	ItemName     string
-	CategoryName string
-	LostUntil    time.Time
-	UpdatedAt    time.Time
-	CreatedAt    time.Time
-	ReporterName string
-	ThumbMediaID uuid.UUID
+	ID             uuid.UUID
+	Code           string
+	Status         string
+	ItemName       string
+	CategoryName   string
+	LostUntil      time.Time
+	UpdatedAt      time.Time
+	CreatedAt      time.Time
+	ReporterName   string
+	ThumbMediaID   uuid.UUID
+	CandidateCount int32
 }
 
 func (q *Queries) ListLostReports(ctx context.Context, arg ListLostReportsParams) ([]ListLostReportsRow, error) {
@@ -1970,6 +2898,7 @@ func (q *Queries) ListLostReports(ctx context.Context, arg ListLostReportsParams
 			&i.CreatedAt,
 			&i.ReporterName,
 			&i.ThumbMediaID,
+			&i.CandidateCount,
 		); err != nil {
 			return nil, err
 		}
@@ -2446,6 +3375,30 @@ func (q *Queries) ListStatusHistory(ctx context.Context, arg ListStatusHistoryPa
 	return items, nil
 }
 
+const listSynonyms = `-- name: ListSynonyms :many
+SELECT term, expansion FROM synonyms
+`
+
+func (q *Queries) ListSynonyms(ctx context.Context) ([]Synonym, error) {
+	rows, err := q.db.Query(ctx, listSynonyms)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Synonym{}
+	for rows.Next() {
+		var i Synonym
+		if err := rows.Scan(&i.Term, &i.Expansion); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserIDsForPosts = `-- name: ListUserIDsForPosts :many
 SELECT DISTINCT u.id FROM users u
 JOIN officer_posts op ON op.user_id = u.id
@@ -2637,6 +3590,365 @@ func (q *Queries) LockMedia(ctx context.Context, ids []uuid.UUID) ([]Medium, err
 	return items, nil
 }
 
+const lostForMatching = `-- name: LostForMatching :many
+SELECT lr.id, lr.code, lr.status, lr.hidden_at, lr.category_id, c.parent_id, c.name AS category_name, pc.name AS parent_name,
+       c.sensitivity, lr.item_name, lr.description, lr.private_details, lr.colours, lr.brand,
+       lr.lost_from, lr.lost_until, lr.location_unknown, lr.updated_at, lr.reporter_id,
+       coalesce(u.full_name, lr.proxy_name, '')::text AS owner_name,
+       EXISTS (SELECT 1 FROM media m WHERE m.lost_report_id = lr.id AND m.state = 'ready')::bool AS has_photos
+FROM lost_reports lr
+JOIN categories c ON c.id = lr.category_id
+JOIN categories pc ON pc.id = c.parent_id
+LEFT JOIN users u ON u.id = lr.reporter_id
+WHERE lr.id = ANY($1::uuid[])
+`
+
+type LostForMatchingRow struct {
+	ID              uuid.UUID
+	Code            string
+	Status          string
+	HiddenAt        *time.Time
+	CategoryID      uuid.UUID
+	ParentID        *uuid.UUID
+	CategoryName    string
+	ParentName      string
+	Sensitivity     *string
+	ItemName        string
+	Description     string
+	PrivateDetails  *string
+	Colours         []string
+	Brand           *string
+	LostFrom        time.Time
+	LostUntil       time.Time
+	LocationUnknown bool
+	UpdatedAt       time.Time
+	ReporterID      *uuid.UUID
+	OwnerName       string
+	HasPhotos       bool
+}
+
+func (q *Queries) LostForMatching(ctx context.Context, ids []uuid.UUID) ([]LostForMatchingRow, error) {
+	rows, err := q.db.Query(ctx, lostForMatching, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LostForMatchingRow{}
+	for rows.Next() {
+		var i LostForMatchingRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.Status,
+			&i.HiddenAt,
+			&i.CategoryID,
+			&i.ParentID,
+			&i.CategoryName,
+			&i.ParentName,
+			&i.Sensitivity,
+			&i.ItemName,
+			&i.Description,
+			&i.PrivateDetails,
+			&i.Colours,
+			&i.Brand,
+			&i.LostFrom,
+			&i.LostUntil,
+			&i.LocationUnknown,
+			&i.UpdatedAt,
+			&i.ReporterID,
+			&i.OwnerName,
+			&i.HasPhotos,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lostNearestClipText = `-- name: LostNearestClipText :many
+SELECT t.report_id FROM text_embeddings_clip t
+JOIN lost_reports lr ON lr.id = t.report_id
+WHERE t.report_type = 'lost' AND t.model_version_id = $1
+  AND lr.hidden_at IS NULL AND lr.status IN ('reported', 'potential_match', 'under_verification')
+  AND lr.lost_from - make_interval(hours => $2::int) <= $3::timestamptz
+  AND $3::timestamptz <= lr.lost_until + make_interval(days => $4::int)
+ORDER BY t.embedding <=> $5::text::vector
+LIMIT $6::int
+`
+
+type LostNearestClipTextParams struct {
+	VersionID uuid.UUID
+	BeforeH   int32
+	FoundAt   time.Time
+	AfterD    int32
+	Query     string
+	K         int32
+}
+
+func (q *Queries) LostNearestClipText(ctx context.Context, arg LostNearestClipTextParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, lostNearestClipText,
+		arg.VersionID,
+		arg.BeforeH,
+		arg.FoundAt,
+		arg.AfterD,
+		arg.Query,
+		arg.K,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var report_id uuid.UUID
+		if err := rows.Scan(&report_id); err != nil {
+			return nil, err
+		}
+		items = append(items, report_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lostNearestE5 = `-- name: LostNearestE5 :many
+SELECT t.report_id FROM text_embeddings_e5 t
+JOIN lost_reports lr ON lr.id = t.report_id
+WHERE t.report_type = 'lost' AND t.model_version_id = $1
+  AND lr.hidden_at IS NULL AND lr.status IN ('reported', 'potential_match', 'under_verification')
+  AND lr.lost_from - make_interval(hours => $2::int) <= $3::timestamptz
+  AND $3::timestamptz <= lr.lost_until + make_interval(days => $4::int)
+ORDER BY t.embedding <=> $5::text::vector
+LIMIT $6::int
+`
+
+type LostNearestE5Params struct {
+	VersionID uuid.UUID
+	BeforeH   int32
+	FoundAt   time.Time
+	AfterD    int32
+	Query     string
+	K         int32
+}
+
+func (q *Queries) LostNearestE5(ctx context.Context, arg LostNearestE5Params) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, lostNearestE5,
+		arg.VersionID,
+		arg.BeforeH,
+		arg.FoundAt,
+		arg.AfterD,
+		arg.Query,
+		arg.K,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var report_id uuid.UUID
+		if err := rows.Scan(&report_id); err != nil {
+			return nil, err
+		}
+		items = append(items, report_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lostNearestImages = `-- name: LostNearestImages :many
+SELECT nearest.report_id FROM (
+    SELECT ie.report_id, ie.embedding <=> $1::text::vector AS distance
+    FROM image_embeddings ie
+    JOIN lost_reports lr ON lr.id = ie.report_id
+    WHERE ie.report_type = 'lost' AND ie.model_version_id = $2
+      AND lr.hidden_at IS NULL AND lr.status IN ('reported', 'potential_match', 'under_verification')
+      AND lr.lost_from - make_interval(hours => $3::int) <= $4::timestamptz
+      AND $4::timestamptz <= lr.lost_until + make_interval(days => $5::int)
+    ORDER BY distance
+    LIMIT $6::int * 3
+) nearest
+GROUP BY nearest.report_id
+ORDER BY min(nearest.distance)
+LIMIT $6::int
+`
+
+type LostNearestImagesParams struct {
+	Query     string
+	VersionID uuid.UUID
+	BeforeH   int32
+	FoundAt   time.Time
+	AfterD    int32
+	K         int32
+}
+
+func (q *Queries) LostNearestImages(ctx context.Context, arg LostNearestImagesParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, lostNearestImages,
+		arg.Query,
+		arg.VersionID,
+		arg.BeforeH,
+		arg.FoundAt,
+		arg.AfterD,
+		arg.K,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var report_id uuid.UUID
+		if err := rows.Scan(&report_id); err != nil {
+			return nil, err
+		}
+		items = append(items, report_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lostPlacesForMatching = `-- name: LostPlacesForMatching :many
+SELECT p.lost_report_id, p.position, (p.zone_id IS NOT NULL)::bool AS zone_only,
+       coalesce(l.lat, z.centroid_lat)::float8 AS lat, coalesce(l.lng, z.centroid_lng)::float8 AS lng,
+       coalesce(l.name, z.name)::text AS name
+FROM lost_report_places p
+LEFT JOIN locations l ON l.id = p.location_id
+LEFT JOIN zones z ON z.id = p.zone_id
+WHERE p.lost_report_id = ANY($1::uuid[])
+ORDER BY p.lost_report_id, p.position
+`
+
+type LostPlacesForMatchingRow struct {
+	LostReportID uuid.UUID
+	Position     int16
+	ZoneOnly     bool
+	Lat          float64
+	Lng          float64
+	Name         string
+}
+
+func (q *Queries) LostPlacesForMatching(ctx context.Context, ids []uuid.UUID) ([]LostPlacesForMatchingRow, error) {
+	rows, err := q.db.Query(ctx, lostPlacesForMatching, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LostPlacesForMatchingRow{}
+	for rows.Next() {
+		var i LostPlacesForMatchingRow
+		if err := rows.Scan(
+			&i.LostReportID,
+			&i.Position,
+			&i.ZoneOnly,
+			&i.Lat,
+			&i.Lng,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lostPoolStructured = `-- name: LostPoolStructured :many
+SELECT lr.id FROM lost_reports lr
+WHERE lr.hidden_at IS NULL AND lr.status IN ('reported', 'potential_match', 'under_verification')
+  AND lr.lost_from - make_interval(hours => $1::int) <= $2::timestamptz
+  AND $2::timestamptz <= lr.lost_until + make_interval(days => $3::int)
+  AND lr.category_id = $4
+ORDER BY abs(extract(epoch FROM lr.lost_until - $2::timestamptz)), lr.id
+LIMIT $5::int
+`
+
+type LostPoolStructuredParams struct {
+	BeforeH    int32
+	FoundAt    time.Time
+	AfterD     int32
+	CategoryID uuid.UUID
+	K          int32
+}
+
+func (q *Queries) LostPoolStructured(ctx context.Context, arg LostPoolStructuredParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, lostPoolStructured,
+		arg.BeforeH,
+		arg.FoundAt,
+		arg.AfterD,
+		arg.CategoryID,
+		arg.K,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lostRefForMatches = `-- name: LostRefForMatches :one
+SELECT id, code, reporter_id, status, hidden_at FROM lost_reports
+WHERE id = $1::uuid OR code = $2::text
+`
+
+type LostRefForMatchesParams struct {
+	ID   *uuid.UUID
+	Code *string
+}
+
+type LostRefForMatchesRow struct {
+	ID         uuid.UUID
+	Code       string
+	ReporterID *uuid.UUID
+	Status     string
+	HiddenAt   *time.Time
+}
+
+func (q *Queries) LostRefForMatches(ctx context.Context, arg LostRefForMatchesParams) (LostRefForMatchesRow, error) {
+	row := q.db.QueryRow(ctx, lostRefForMatches, arg.ID, arg.Code)
+	var i LostRefForMatchesRow
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.ReporterID,
+		&i.Status,
+		&i.HiddenAt,
+	)
+	return i, err
+}
+
+const lostStatusForUpdate = `-- name: LostStatusForUpdate :one
+SELECT status FROM lost_reports WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) LostStatusForUpdate(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, lostStatusForUpdate, id)
+	var status string
+	err := row.Scan(&status)
+	return status, err
+}
+
 const markAllRead = `-- name: MarkAllRead :execrows
 UPDATE notifications SET read_at = $2 WHERE recipient_id = $1 AND read_at IS NULL
 `
@@ -2701,6 +4013,15 @@ func (q *Queries) MarkMediaDeleted(ctx context.Context, arg MarkMediaDeletedPara
 	return err
 }
 
+const markNotified = `-- name: MarkNotified :exec
+UPDATE matches SET notified_tier = tier WHERE id = ANY($1::uuid[]) AND tier IN ('high', 'medium')
+`
+
+func (q *Queries) MarkNotified(ctx context.Context, ids []uuid.UUID) error {
+	_, err := q.db.Exec(ctx, markNotified, ids)
+	return err
+}
+
 const markRead = `-- name: MarkRead :execrows
 UPDATE notifications SET read_at = $3 WHERE id = $1 AND recipient_id = $2 AND read_at IS NULL
 `
@@ -2719,6 +4040,291 @@ func (q *Queries) MarkRead(ctx context.Context, arg MarkReadParams) (int64, erro
 	return result.RowsAffected(), nil
 }
 
+const matchForAction = `-- name: MatchForAction :one
+SELECT m.id, m.lost_report_id, m.found_report_id, m.status, m.tier, m.rank_for_lost, m.owner_dismissed_at, lr.reporter_id
+FROM matches m JOIN lost_reports lr ON lr.id = m.lost_report_id
+WHERE m.id = $1
+FOR UPDATE OF m
+`
+
+type MatchForActionRow struct {
+	ID               uuid.UUID
+	LostReportID     uuid.UUID
+	FoundReportID    uuid.UUID
+	Status           string
+	Tier             *string
+	RankForLost      *int16
+	OwnerDismissedAt *time.Time
+	ReporterID       *uuid.UUID
+}
+
+func (q *Queries) MatchForAction(ctx context.Context, id uuid.UUID) (MatchForActionRow, error) {
+	row := q.db.QueryRow(ctx, matchForAction, id)
+	var i MatchForActionRow
+	err := row.Scan(
+		&i.ID,
+		&i.LostReportID,
+		&i.FoundReportID,
+		&i.Status,
+		&i.Tier,
+		&i.RankForLost,
+		&i.OwnerDismissedAt,
+		&i.ReporterID,
+	)
+	return i, err
+}
+
+const matchStates = `-- name: MatchStates :many
+SELECT id, lost_report_id, found_report_id, status, tier, rank_for_lost, rank_for_found FROM matches WHERE id = ANY($1::uuid[])
+`
+
+type MatchStatesRow struct {
+	ID            uuid.UUID
+	LostReportID  uuid.UUID
+	FoundReportID uuid.UUID
+	Status        string
+	Tier          *string
+	RankForLost   *int16
+	RankForFound  *int16
+}
+
+func (q *Queries) MatchStates(ctx context.Context, ids []uuid.UUID) ([]MatchStatesRow, error) {
+	rows, err := q.db.Query(ctx, matchStates, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []MatchStatesRow{}
+	for rows.Next() {
+		var i MatchStatesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.LostReportID,
+			&i.FoundReportID,
+			&i.Status,
+			&i.Tier,
+			&i.RankForLost,
+			&i.RankForFound,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const matchViews = `-- name: MatchViews :many
+SELECT m.id, m.lost_report_id, m.found_report_id, m.visual_mode, m.s_visual, m.s_semantic, m.s_attr, m.s_text, m.s_location,
+       m.s_time, m.category_factor, m.overall, m.tier, m.rank_for_lost, m.rank_for_found, m.flags, m.explanation, m.status,
+       m.owner_dismissed_at, m.component_versions, m.first_scored_at, m.scored_at,
+       fr.code AS found_code, fr.item_name AS found_item_name, fr.description AS found_description, fr.colours AS found_colours,
+       fr.brand AS found_brand, fr.found_at, fr.custody_status, fr.finder_id, fr.hidden_details,
+       fc.id AS found_category_id, fc.slug AS found_category_slug, fc.name AS found_category_name,
+       coalesce(fp.name, fc.name)::text AS found_category_parent, fc.sensitivity AS found_sensitivity,
+       l.id AS location_id, l.name AS location_name, z.id AS zone_id, z.name AS zone_name,
+       hp.id AS holding_post_id, hp.name AS holding_post_name,
+       lr.code AS lost_code, lr.item_name AS lost_item_name, lr.reporter_id, lr.lost_from, lr.lost_until,
+       lc.id AS lost_category_id, lc.slug AS lost_category_slug, lc.name AS lost_category_name,
+       coalesce(lp.name, lc.name)::text AS lost_category_parent, lc.sensitivity AS lost_sensitivity,
+       coalesce(u.full_name, lr.proxy_name, '')::text AS owner_name
+FROM matches m
+JOIN found_reports fr ON fr.id = m.found_report_id
+JOIN categories fc ON fc.id = fr.category_id
+LEFT JOIN categories fp ON fp.id = fc.parent_id
+JOIN locations l ON l.id = fr.found_location_id
+JOIN zones z ON z.id = l.zone_id
+LEFT JOIN posts hp ON hp.id = fr.holding_post_id
+JOIN lost_reports lr ON lr.id = m.lost_report_id
+JOIN categories lc ON lc.id = lr.category_id
+LEFT JOIN categories lp ON lp.id = lc.parent_id
+LEFT JOIN users u ON u.id = lr.reporter_id
+WHERE ($1::uuid IS NULL OR m.id = $1::uuid)
+  AND ($2::uuid IS NULL OR m.lost_report_id = $2::uuid)
+  AND ($3::uuid IS NULL OR m.found_report_id = $3::uuid)
+  AND m.status = ANY($4::text[])
+ORDER BY m.overall DESC, m.first_scored_at, m.id
+LIMIT 50
+`
+
+type MatchViewsParams struct {
+	MatchID  *uuid.UUID
+	LostID   *uuid.UUID
+	FoundID  *uuid.UUID
+	Statuses []string
+}
+
+type MatchViewsRow struct {
+	ID                  uuid.UUID
+	LostReportID        uuid.UUID
+	FoundReportID       uuid.UUID
+	VisualMode          string
+	SVisual             *float64
+	SSemantic           *float64
+	SAttr               *float64
+	SText               *float64
+	SLocation           *float64
+	STime               *float64
+	CategoryFactor      float64
+	Overall             float64
+	Tier                *string
+	RankForLost         *int16
+	RankForFound        *int16
+	Flags               []string
+	Explanation         []byte
+	Status              string
+	OwnerDismissedAt    *time.Time
+	ComponentVersions   []byte
+	FirstScoredAt       time.Time
+	ScoredAt            time.Time
+	FoundCode           string
+	FoundItemName       string
+	FoundDescription    string
+	FoundColours        []string
+	FoundBrand          *string
+	FoundAt             time.Time
+	CustodyStatus       string
+	FinderID            *uuid.UUID
+	HiddenDetails       *string
+	FoundCategoryID     uuid.UUID
+	FoundCategorySlug   string
+	FoundCategoryName   string
+	FoundCategoryParent string
+	FoundSensitivity    *string
+	LocationID          uuid.UUID
+	LocationName        string
+	ZoneID              uuid.UUID
+	ZoneName            string
+	HoldingPostID       *uuid.UUID
+	HoldingPostName     *string
+	LostCode            string
+	LostItemName        string
+	ReporterID          *uuid.UUID
+	LostFrom            time.Time
+	LostUntil           time.Time
+	LostCategoryID      uuid.UUID
+	LostCategorySlug    string
+	LostCategoryName    string
+	LostCategoryParent  string
+	LostSensitivity     *string
+	OwnerName           string
+}
+
+// one shape for every projection, the service filters by role
+func (q *Queries) MatchViews(ctx context.Context, arg MatchViewsParams) ([]MatchViewsRow, error) {
+	rows, err := q.db.Query(ctx, matchViews,
+		arg.MatchID,
+		arg.LostID,
+		arg.FoundID,
+		arg.Statuses,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []MatchViewsRow{}
+	for rows.Next() {
+		var i MatchViewsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.LostReportID,
+			&i.FoundReportID,
+			&i.VisualMode,
+			&i.SVisual,
+			&i.SSemantic,
+			&i.SAttr,
+			&i.SText,
+			&i.SLocation,
+			&i.STime,
+			&i.CategoryFactor,
+			&i.Overall,
+			&i.Tier,
+			&i.RankForLost,
+			&i.RankForFound,
+			&i.Flags,
+			&i.Explanation,
+			&i.Status,
+			&i.OwnerDismissedAt,
+			&i.ComponentVersions,
+			&i.FirstScoredAt,
+			&i.ScoredAt,
+			&i.FoundCode,
+			&i.FoundItemName,
+			&i.FoundDescription,
+			&i.FoundColours,
+			&i.FoundBrand,
+			&i.FoundAt,
+			&i.CustodyStatus,
+			&i.FinderID,
+			&i.HiddenDetails,
+			&i.FoundCategoryID,
+			&i.FoundCategorySlug,
+			&i.FoundCategoryName,
+			&i.FoundCategoryParent,
+			&i.FoundSensitivity,
+			&i.LocationID,
+			&i.LocationName,
+			&i.ZoneID,
+			&i.ZoneName,
+			&i.HoldingPostID,
+			&i.HoldingPostName,
+			&i.LostCode,
+			&i.LostItemName,
+			&i.ReporterID,
+			&i.LostFrom,
+			&i.LostUntil,
+			&i.LostCategoryID,
+			&i.LostCategorySlug,
+			&i.LostCategoryName,
+			&i.LostCategoryParent,
+			&i.LostSensitivity,
+			&i.OwnerName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const mediaMissingEmbedding = `-- name: MediaMissingEmbedding :many
+SELECT m.id FROM media m
+WHERE m.state = 'ready' AND (($1::text = 'lost' AND m.lost_report_id = $2)
+                             OR ($1::text = 'found' AND m.found_report_id = $2))
+  AND NOT EXISTS (SELECT 1 FROM image_embeddings ie WHERE ie.media_id = m.id AND ie.model_version_id = $3)
+`
+
+type MediaMissingEmbeddingParams struct {
+	ReportType string
+	ReportID   *uuid.UUID
+	VersionID  uuid.UUID
+}
+
+func (q *Queries) MediaMissingEmbedding(ctx context.Context, arg MediaMissingEmbeddingParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, mediaMissingEmbedding, arg.ReportType, arg.ReportID, arg.VersionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const nextCodeSequence = `-- name: NextCodeSequence :one
 INSERT INTO code_sequences (prefix, yymm, last_value) VALUES ($1, $2, 1)
 ON CONFLICT (prefix, yymm) DO UPDATE SET last_value = code_sequences.last_value + 1
@@ -2735,6 +4341,101 @@ func (q *Queries) NextCodeSequence(ctx context.Context, arg NextCodeSequencePara
 	var last_value int32
 	err := row.Scan(&last_value)
 	return last_value, err
+}
+
+const notificationExists = `-- name: NotificationExists :one
+SELECT EXISTS (SELECT 1 FROM notifications WHERE recipient_id = $1 AND event = $2 AND entity_id = $3)::bool
+`
+
+type NotificationExistsParams struct {
+	RecipientID uuid.UUID
+	Event       string
+	EntityID    *uuid.UUID
+}
+
+func (q *Queries) NotificationExists(ctx context.Context, arg NotificationExistsParams) (bool, error) {
+	row := q.db.QueryRow(ctx, notificationExists, arg.RecipientID, arg.Event, arg.EntityID)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const officerDismissMatch = `-- name: OfficerDismissMatch :exec
+UPDATE matches SET status = 'dismissed', rank_for_lost = NULL, rank_for_found = NULL, version = version + 1
+WHERE id = $1 AND status = 'active'
+`
+
+// M4
+func (q *Queries) OfficerDismissMatch(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, officerDismissMatch, id)
+	return err
+}
+
+const openReportsForSweep = `-- name: OpenReportsForSweep :many
+SELECT 'lost'::text AS report_type, id FROM lost_reports WHERE status IN ('reported', 'potential_match', 'under_verification') AND hidden_at IS NULL
+UNION ALL
+SELECT 'found'::text, id FROM found_reports WHERE status IN ('reported', 'potential_match', 'under_verification', 'unclaimed') AND hidden_at IS NULL
+`
+
+type OpenReportsForSweepRow struct {
+	ReportType string
+	ID         uuid.UUID
+}
+
+func (q *Queries) OpenReportsForSweep(ctx context.Context) ([]OpenReportsForSweepRow, error) {
+	rows, err := q.db.Query(ctx, openReportsForSweep)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []OpenReportsForSweepRow{}
+	for rows.Next() {
+		var i OpenReportsForSweepRow
+		if err := rows.Scan(&i.ReportType, &i.ID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const ownerDismissMatch = `-- name: OwnerDismissMatch :exec
+UPDATE matches SET owner_dismissed_at = $2, version = version + 1 WHERE id = $1 AND owner_dismissed_at IS NULL
+`
+
+type OwnerDismissMatchParams struct {
+	ID               uuid.UUID
+	OwnerDismissedAt *time.Time
+}
+
+func (q *Queries) OwnerDismissMatch(ctx context.Context, arg OwnerDismissMatchParams) error {
+	_, err := q.db.Exec(ctx, ownerDismissMatch, arg.ID, arg.OwnerDismissedAt)
+	return err
+}
+
+const pairForUpdate = `-- name: PairForUpdate :one
+SELECT id, status, tier FROM matches WHERE lost_report_id = $1 AND found_report_id = $2 FOR UPDATE
+`
+
+type PairForUpdateParams struct {
+	LostReportID  uuid.UUID
+	FoundReportID uuid.UUID
+}
+
+type PairForUpdateRow struct {
+	ID     uuid.UUID
+	Status string
+	Tier   *string
+}
+
+func (q *Queries) PairForUpdate(ctx context.Context, arg PairForUpdateParams) (PairForUpdateRow, error) {
+	row := q.db.QueryRow(ctx, pairForUpdate, arg.LostReportID, arg.FoundReportID)
+	var i PairForUpdateRow
+	err := row.Scan(&i.ID, &i.Status, &i.Tier)
+	return i, err
 }
 
 const receiveIntoCustody = `-- name: ReceiveIntoCustody :one
@@ -2774,6 +4475,119 @@ func (q *Queries) ReceiveIntoCustody(ctx context.Context, arg ReceiveIntoCustody
 	var version int32
 	err := row.Scan(&version)
 	return version, err
+}
+
+const reportMediaForEmbedding = `-- name: ReportMediaForEmbedding :many
+SELECT m.id, m.storage_keys FROM media m
+WHERE m.state = 'ready' AND (($1::text = 'lost' AND m.lost_report_id = $2)
+                             OR ($1::text = 'found' AND m.found_report_id = $2))
+ORDER BY m.position
+`
+
+type ReportMediaForEmbeddingParams struct {
+	ReportType string
+	ReportID   *uuid.UUID
+}
+
+type ReportMediaForEmbeddingRow struct {
+	ID          uuid.UUID
+	StorageKeys []byte
+}
+
+func (q *Queries) ReportMediaForEmbedding(ctx context.Context, arg ReportMediaForEmbeddingParams) ([]ReportMediaForEmbeddingRow, error) {
+	rows, err := q.db.Query(ctx, reportMediaForEmbedding, arg.ReportType, arg.ReportID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ReportMediaForEmbeddingRow{}
+	for rows.Next() {
+		var i ReportMediaForEmbeddingRow
+		if err := rows.Scan(&i.ID, &i.StorageKeys); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const reportsWithImageEmbeddings = `-- name: ReportsWithImageEmbeddings :many
+SELECT DISTINCT report_id FROM image_embeddings
+WHERE report_type = $1 AND report_id = ANY($2::uuid[]) AND model_version_id = $3
+`
+
+type ReportsWithImageEmbeddingsParams struct {
+	ReportType string
+	Ids        []uuid.UUID
+	VersionID  uuid.UUID
+}
+
+func (q *Queries) ReportsWithImageEmbeddings(ctx context.Context, arg ReportsWithImageEmbeddingsParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, reportsWithImageEmbeddings, arg.ReportType, arg.Ids, arg.VersionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var report_id uuid.UUID
+		if err := rows.Scan(&report_id); err != nil {
+			return nil, err
+		}
+		items = append(items, report_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const rerankFound = `-- name: RerankFound :exec
+WITH ranked AS (
+    SELECT mm.id, row_number() OVER (ORDER BY mm.overall DESC, mm.first_scored_at, mm.id) AS r
+    FROM matches mm JOIN lost_reports l ON l.id = mm.lost_report_id
+    WHERE mm.found_report_id = $2 AND mm.status IN ('active', 'superseded') AND mm.tier IS NOT NULL
+      AND l.hidden_at IS NULL AND l.status IN ('reported', 'potential_match', 'under_verification')
+)
+UPDATE matches m
+SET rank_for_found = (SELECT CASE WHEN ranked.r <= $1::int THEN ranked.r::smallint END FROM ranked WHERE ranked.id = m.id)
+WHERE m.found_report_id = $2 AND m.status IN ('active', 'superseded')
+`
+
+type RerankFoundParams struct {
+	TopK     int32
+	ReportID uuid.UUID
+}
+
+func (q *Queries) RerankFound(ctx context.Context, arg RerankFoundParams) error {
+	_, err := q.db.Exec(ctx, rerankFound, arg.TopK, arg.ReportID)
+	return err
+}
+
+const rerankLost = `-- name: RerankLost :exec
+WITH ranked AS (
+    SELECT mm.id, row_number() OVER (ORDER BY mm.overall DESC, mm.first_scored_at, mm.id) AS r
+    FROM matches mm JOIN found_reports f ON f.id = mm.found_report_id
+    WHERE mm.lost_report_id = $2 AND mm.status IN ('active', 'superseded') AND mm.tier IS NOT NULL
+      AND mm.owner_dismissed_at IS NULL AND f.hidden_at IS NULL AND f.status IN ('reported', 'potential_match', 'under_verification', 'unclaimed')
+)
+UPDATE matches m
+SET rank_for_lost = (SELECT CASE WHEN ranked.r <= $1::int THEN ranked.r::smallint END FROM ranked WHERE ranked.id = m.id)
+WHERE m.lost_report_id = $2 AND m.status IN ('active', 'superseded')
+`
+
+type RerankLostParams struct {
+	TopK     int32
+	ReportID uuid.UUID
+}
+
+// ranks count only pairs whose counterpart is still open, a closed or hidden counterpart loses its rank here
+func (q *Queries) RerankLost(ctx context.Context, arg RerankLostParams) error {
+	_, err := q.db.Exec(ctx, rerankLost, arg.TopK, arg.ReportID)
+	return err
 }
 
 const revokeOtherSessions = `-- name: RevokeOtherSessions :execrows
@@ -3001,6 +4815,20 @@ func (q *Queries) SetEmailStatus(ctx context.Context, arg SetEmailStatusParams) 
 	return err
 }
 
+const setFoundStatusBySystem = `-- name: SetFoundStatusBySystem :exec
+UPDATE found_reports SET status = $2 WHERE id = $1
+`
+
+type SetFoundStatusBySystemParams struct {
+	ID     uuid.UUID
+	Status string
+}
+
+func (q *Queries) SetFoundStatusBySystem(ctx context.Context, arg SetFoundStatusBySystemParams) error {
+	_, err := q.db.Exec(ctx, setFoundStatusBySystem, arg.ID, arg.Status)
+	return err
+}
+
 const setIdempotencyResource = `-- name: SetIdempotencyResource :exec
 UPDATE idempotency_keys SET resource_id = $3 WHERE user_id = $1 AND key = $2
 `
@@ -3065,6 +4893,66 @@ func (q *Queries) SetLostStatus(ctx context.Context, arg SetLostStatusParams) (i
 	return version, err
 }
 
+const setLostStatusBySystem = `-- name: SetLostStatusBySystem :exec
+UPDATE lost_reports SET status = $2 WHERE id = $1
+`
+
+type SetLostStatusBySystemParams struct {
+	ID     uuid.UUID
+	Status string
+}
+
+func (q *Queries) SetLostStatusBySystem(ctx context.Context, arg SetLostStatusBySystemParams) error {
+	_, err := q.db.Exec(ctx, setLostStatusBySystem, arg.ID, arg.Status)
+	return err
+}
+
+const settleStatuses = `-- name: SettleStatuses :many
+UPDATE matches
+SET status = CASE WHEN rank_for_lost IS NOT NULL OR rank_for_found IS NOT NULL THEN 'active' ELSE 'superseded' END
+WHERE (lost_report_id = ANY($1::uuid[]) OR found_report_id = ANY($2::uuid[]))
+  AND status IN ('active', 'superseded')
+  AND status <> CASE WHEN rank_for_lost IS NOT NULL OR rank_for_found IS NOT NULL THEN 'active' ELSE 'superseded' END
+RETURNING id, lost_report_id, found_report_id, status
+`
+
+type SettleStatusesParams struct {
+	LostIds  []uuid.UUID
+	FoundIds []uuid.UUID
+}
+
+type SettleStatusesRow struct {
+	ID            uuid.UUID
+	LostReportID  uuid.UUID
+	FoundReportID uuid.UUID
+	Status        string
+}
+
+func (q *Queries) SettleStatuses(ctx context.Context, arg SettleStatusesParams) ([]SettleStatusesRow, error) {
+	rows, err := q.db.Query(ctx, settleStatuses, arg.LostIds, arg.FoundIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SettleStatusesRow{}
+	for rows.Next() {
+		var i SettleStatusesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.LostReportID,
+			&i.FoundReportID,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const signalRecipient = `-- name: SignalRecipient :exec
 SELECT pg_notify('notifications', $1::text)
 `
@@ -3072,6 +4960,75 @@ SELECT pg_notify('notifications', $1::text)
 func (q *Queries) SignalRecipient(ctx context.Context, recipientID string) error {
 	_, err := q.db.Exec(ctx, signalRecipient, recipientID)
 	return err
+}
+
+const supersedeForFound = `-- name: SupersedeForFound :many
+UPDATE matches SET status = 'superseded', rank_for_lost = NULL, rank_for_found = NULL
+WHERE found_report_id = $1 AND status = 'active'
+RETURNING lost_report_id
+`
+
+func (q *Queries) SupersedeForFound(ctx context.Context, foundReportID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, supersedeForFound, foundReportID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var lost_report_id uuid.UUID
+		if err := rows.Scan(&lost_report_id); err != nil {
+			return nil, err
+		}
+		items = append(items, lost_report_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const supersedeForLost = `-- name: SupersedeForLost :many
+UPDATE matches SET status = 'superseded', rank_for_lost = NULL, rank_for_found = NULL
+WHERE lost_report_id = $1 AND status = 'active'
+RETURNING found_report_id
+`
+
+func (q *Queries) SupersedeForLost(ctx context.Context, lostReportID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, supersedeForLost, lostReportID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var found_report_id uuid.UUID
+		if err := rows.Scan(&found_report_id); err != nil {
+			return nil, err
+		}
+		items = append(items, found_report_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const textHashE5 = `-- name: TextHashE5 :one
+SELECT text_sha256 FROM text_embeddings_e5 WHERE report_type = $1 AND report_id = $2 AND model_version_id = $3
+`
+
+type TextHashE5Params struct {
+	ReportType     string
+	ReportID       uuid.UUID
+	ModelVersionID uuid.UUID
+}
+
+func (q *Queries) TextHashE5(ctx context.Context, arg TextHashE5Params) ([]byte, error) {
+	row := q.db.QueryRow(ctx, textHashE5, arg.ReportType, arg.ReportID, arg.ModelVersionID)
+	var text_sha256 []byte
+	err := row.Scan(&text_sha256)
+	return text_sha256, err
 }
 
 const tokenIssueStats = `-- name: TokenIssueStats :one
@@ -3122,6 +5079,38 @@ func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) erro
 		arg.ID,
 	)
 	return err
+}
+
+const unnotifiedCandidates = `-- name: UnnotifiedCandidates :many
+SELECT id, tier::text AS tier FROM matches
+WHERE lost_report_id = $1 AND status = 'active' AND tier IN ('high', 'medium') AND rank_for_lost IS NOT NULL
+  AND owner_dismissed_at IS NULL AND (notified_tier IS NULL OR (notified_tier = 'medium' AND tier = 'high'))
+`
+
+type UnnotifiedCandidatesRow struct {
+	ID   uuid.UUID
+	Tier string
+}
+
+// candidates the owner has not been told about yet, or has only been told about as medium
+func (q *Queries) UnnotifiedCandidates(ctx context.Context, lostReportID uuid.UUID) ([]UnnotifiedCandidatesRow, error) {
+	rows, err := q.db.Query(ctx, unnotifiedCandidates, lostReportID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []UnnotifiedCandidatesRow{}
+	for rows.Next() {
+		var i UnnotifiedCandidatesRow
+		if err := rows.Scan(&i.ID, &i.Tier); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateFoundReport = `-- name: UpdateFoundReport :one
@@ -3236,6 +5225,55 @@ func (q *Queries) UpdateLostReport(ctx context.Context, arg UpdateLostReportPara
 	var version int32
 	err := row.Scan(&version)
 	return version, err
+}
+
+const updateMatchScores = `-- name: UpdateMatchScores :exec
+UPDATE matches
+SET visual_mode = $2, s_visual = $3, s_semantic = $4, s_attr = $5, s_text = $6, s_location = $7, s_time = $8,
+    category_factor = $9, overall = $10, tier = $11, flags = $12, explanation = $13, fusion_version_id = $14,
+    component_versions = $15, scored_at = $16, version = version + 1
+WHERE id = $1 AND status IN ('active', 'superseded')
+`
+
+type UpdateMatchScoresParams struct {
+	ID                uuid.UUID
+	VisualMode        string
+	SVisual           *float64
+	SSemantic         *float64
+	SAttr             *float64
+	SText             *float64
+	SLocation         *float64
+	STime             *float64
+	CategoryFactor    float64
+	Overall           float64
+	Tier              *string
+	Flags             []string
+	Explanation       []byte
+	FusionVersionID   uuid.UUID
+	ComponentVersions []byte
+	ScoredAt          time.Time
+}
+
+func (q *Queries) UpdateMatchScores(ctx context.Context, arg UpdateMatchScoresParams) error {
+	_, err := q.db.Exec(ctx, updateMatchScores,
+		arg.ID,
+		arg.VisualMode,
+		arg.SVisual,
+		arg.SSemantic,
+		arg.SAttr,
+		arg.SText,
+		arg.SLocation,
+		arg.STime,
+		arg.CategoryFactor,
+		arg.Overall,
+		arg.Tier,
+		arg.Flags,
+		arg.Explanation,
+		arg.FusionVersionID,
+		arg.ComponentVersions,
+		arg.ScoredAt,
+	)
+	return err
 }
 
 const updatePasswordHash = `-- name: UpdatePasswordHash :exec
@@ -3359,6 +5397,63 @@ type UpsertCompatibilityParams struct {
 
 func (q *Queries) UpsertCompatibility(ctx context.Context, arg UpsertCompatibilityParams) error {
 	_, err := q.db.Exec(ctx, upsertCompatibility, arg.CategoryA, arg.CategoryB, arg.Factor)
+	return err
+}
+
+const upsertImageAttributes = `-- name: UpsertImageAttributes :exec
+INSERT INTO image_attributes (media_id, versions, category_scores, colours, visible_text, brands, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT (media_id) DO UPDATE SET versions = excluded.versions, category_scores = excluded.category_scores,
+    colours = excluded.colours, visible_text = excluded.visible_text, brands = excluded.brands, created_at = excluded.created_at
+`
+
+type UpsertImageAttributesParams struct {
+	MediaID        uuid.UUID
+	Versions       []byte
+	CategoryScores []byte
+	Colours        []byte
+	VisibleText    *string
+	Brands         []byte
+	CreatedAt      time.Time
+}
+
+func (q *Queries) UpsertImageAttributes(ctx context.Context, arg UpsertImageAttributesParams) error {
+	_, err := q.db.Exec(ctx, upsertImageAttributes,
+		arg.MediaID,
+		arg.Versions,
+		arg.CategoryScores,
+		arg.Colours,
+		arg.VisibleText,
+		arg.Brands,
+		arg.CreatedAt,
+	)
+	return err
+}
+
+const upsertImageEmbedding = `-- name: UpsertImageEmbedding :exec
+INSERT INTO image_embeddings (media_id, model_version_id, report_type, report_id, embedding, created_at)
+VALUES ($1, $2, $3, $4, $6::text::vector, $5)
+ON CONFLICT (media_id, model_version_id) DO UPDATE SET embedding = excluded.embedding
+`
+
+type UpsertImageEmbeddingParams struct {
+	MediaID        uuid.UUID
+	ModelVersionID uuid.UUID
+	ReportType     string
+	ReportID       uuid.UUID
+	CreatedAt      time.Time
+	Embedding      string
+}
+
+func (q *Queries) UpsertImageEmbedding(ctx context.Context, arg UpsertImageEmbeddingParams) error {
+	_, err := q.db.Exec(ctx, upsertImageEmbedding,
+		arg.MediaID,
+		arg.ModelVersionID,
+		arg.ReportType,
+		arg.ReportID,
+		arg.CreatedAt,
+		arg.Embedding,
+	)
 	return err
 }
 
@@ -3536,6 +5631,60 @@ func (q *Queries) UpsertSynonym(ctx context.Context, arg UpsertSynonymParams) er
 	return err
 }
 
+const upsertTextClip = `-- name: UpsertTextClip :exec
+INSERT INTO text_embeddings_clip (report_type, report_id, model_version_id, embedding, text_sha256, created_at, updated_at)
+VALUES ($1, $2, $3, $6::text::vector, $4, $5, $5)
+ON CONFLICT (report_type, report_id, model_version_id) DO UPDATE SET embedding = excluded.embedding, text_sha256 = excluded.text_sha256, updated_at = excluded.updated_at
+`
+
+type UpsertTextClipParams struct {
+	ReportType     string
+	ReportID       uuid.UUID
+	ModelVersionID uuid.UUID
+	TextSha256     []byte
+	CreatedAt      time.Time
+	Embedding      string
+}
+
+func (q *Queries) UpsertTextClip(ctx context.Context, arg UpsertTextClipParams) error {
+	_, err := q.db.Exec(ctx, upsertTextClip,
+		arg.ReportType,
+		arg.ReportID,
+		arg.ModelVersionID,
+		arg.TextSha256,
+		arg.CreatedAt,
+		arg.Embedding,
+	)
+	return err
+}
+
+const upsertTextE5 = `-- name: UpsertTextE5 :exec
+INSERT INTO text_embeddings_e5 (report_type, report_id, model_version_id, embedding, text_sha256, created_at, updated_at)
+VALUES ($1, $2, $3, $6::text::vector, $4, $5, $5)
+ON CONFLICT (report_type, report_id, model_version_id) DO UPDATE SET embedding = excluded.embedding, text_sha256 = excluded.text_sha256, updated_at = excluded.updated_at
+`
+
+type UpsertTextE5Params struct {
+	ReportType     string
+	ReportID       uuid.UUID
+	ModelVersionID uuid.UUID
+	TextSha256     []byte
+	CreatedAt      time.Time
+	Embedding      string
+}
+
+func (q *Queries) UpsertTextE5(ctx context.Context, arg UpsertTextE5Params) error {
+	_, err := q.db.Exec(ctx, upsertTextE5,
+		arg.ReportType,
+		arg.ReportID,
+		arg.ModelVersionID,
+		arg.TextSha256,
+		arg.CreatedAt,
+		arg.Embedding,
+	)
+	return err
+}
+
 const upsertZone = `-- name: UpsertZone :one
 INSERT INTO zones (id, slug, name, centroid_lat, centroid_lng)
 VALUES ($1, $2, $3, $4, $5)
@@ -3563,4 +5712,52 @@ func (q *Queries) UpsertZone(ctx context.Context, arg UpsertZoneParams) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const versionByName = `-- name: VersionByName :one
+SELECT id, component, name, status FROM model_versions WHERE name = $1
+`
+
+type VersionByNameRow struct {
+	ID        uuid.UUID
+	Component string
+	Name      string
+	Status    string
+}
+
+func (q *Queries) VersionByName(ctx context.Context, name string) (VersionByNameRow, error) {
+	row := q.db.QueryRow(ctx, versionByName, name)
+	var i VersionByNameRow
+	err := row.Scan(
+		&i.ID,
+		&i.Component,
+		&i.Name,
+		&i.Status,
+	)
+	return i, err
+}
+
+const visibleCandidatesOfFound = `-- name: VisibleCandidatesOfFound :one
+SELECT count(*)::int FROM matches
+WHERE found_report_id = $1 AND status = 'active' AND tier IN ('high', 'medium') AND rank_for_found IS NOT NULL
+`
+
+func (q *Queries) VisibleCandidatesOfFound(ctx context.Context, foundReportID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, visibleCandidatesOfFound, foundReportID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const visibleCandidatesOfLost = `-- name: VisibleCandidatesOfLost :one
+SELECT count(*)::int FROM matches
+WHERE lost_report_id = $1 AND status = 'active' AND tier IN ('high', 'medium') AND rank_for_lost IS NOT NULL AND owner_dismissed_at IS NULL
+`
+
+// what the owner and the post see, the same rule decides L2, L3, F2 and F3
+func (q *Queries) VisibleCandidatesOfLost(ctx context.Context, lostReportID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, visibleCandidatesOfLost, lostReportID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }

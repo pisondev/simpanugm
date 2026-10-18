@@ -13,6 +13,7 @@ sql:
       - internal/platform/idem/queries.sql
       - internal/platform/settings/queries.sql
       - internal/notify/queries.sql
+      - internal/matching/queries.sql
     gen:
       go:
         package: sqlc
@@ -37,6 +38,9 @@ sql:
               import: time
               type: Time
               pointer: true
+          # vectors cross the wire as text literals cast in SQL, no vector type is needed in Go
+          - db_type: vector
+            go_type: string
           - db_type: citext
             go_type: string
           - db_type: citext
@@ -54,5 +58,10 @@ sql:
               pointer: true
           - db_type: pg_catalog.numeric
             go_type: float64
+          - db_type: pg_catalog.numeric
+            nullable: true
+            go_type:
+              type: float64
+              pointer: true
           - db_type: pg_catalog.float8
             go_type: float64

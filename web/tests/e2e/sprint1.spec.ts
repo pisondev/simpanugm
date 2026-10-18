@@ -3,7 +3,8 @@ import { expect, test, type Browser, type Page } from "@playwright/test"
 import { bootstrapAdmin, expectAccessible, latestLink, photo, registerMember, setPassword, signIn, uniqueEmail } from "./helpers"
 
 // release v0.1.0 exit of project-plan Sprint 1: staff are invited, a member files both report types with a photo,
-// an officer receives the item into custody and finds reports by code and by text
+// an officer receives the item into custody and finds reports by code and by text. J2 continues with the same accounts
+// because the suite shares one address and BR-SEC-01 allows it five registrations an hour
 test.describe.configure({ mode: "serial" })
 
 const password = "kata sandi panjang 2026"
@@ -11,6 +12,8 @@ const officerEmail = uniqueEmail("petugas", "petugas.example.id")
 const memberEmail = uniqueEmail("anggota")
 let lostCode = ""
 let foundCode = ""
+// a stack that already ran the suite keeps older items, a name of this run picks ours among them
+const handedIn = `Tumbler biru ${Date.now() % 100000}`
 
 async function fresh(browser: Browser): Promise<Page> {
   const context = await browser.newContext()
@@ -115,7 +118,7 @@ test("the officer receives the item and finds both reports", async ({ browser })
   await expectAccessible(page)
 
   await page.goto("/petugas/inventaris")
-  await expect(page.getByRole("cell", { name: /Payung lipat hitam/ })).toBeVisible()
+  await expect(page.getByRole("cell", { name: new RegExp(`Payung lipat hitam ${foundCode}`) })).toBeVisible()
 
   await page.goto("/petugas/cari")
   await page.getByRole("searchbox").fill(lostCode)
@@ -126,4 +129,61 @@ test("the officer receives the item and finds both reports", async ({ browser })
   await page.goto("/petugas/cari?q=tumblr+biru")
   await expect(page.getByRole("link", { name: new RegExp(lostCode) })).toBeVisible()
   await expectAccessible(page)
+})
+
+// J2: the lost tumbler without a photo meets a matching item handed in at the desk (US-19, US-20, US-21)
+test("J2 an officer records a matching item handed in at the desk and sees the candidate", async ({ browser }) => {
+  const page = await fresh(browser)
+  await signIn(page, officerEmail, password)
+  await expect(page).toHaveURL(/\/petugas$/)
+  await page.goto("/petugas/lapor-temuan")
+  await page.locator('input[type="file"][multiple]').setInputFiles(await photo(page))
+  await expect(page.getByText(/Mengunggah|Menyiapkan/)).toHaveCount(0, { timeout: 20_000 })
+  await page.getByRole("button", { name: "Lanjut" }).click()
+  await pickCategory(page, "tumbler", "Tumbler")
+  await page.getByLabel("Nama barang").fill(handedIn)
+  await page.getByLabel("Deskripsi").fill("Tumbler biru tua dengan tutup hitam, diserahkan pengunjung di meja pos.")
+  await page.getByRole("button", { name: "Lanjut" }).click()
+  await pickPlace(page, "Tempat ditemukan", "perpus", /Perpustakaan Pusat UGM/)
+  await page.getByRole("button", { name: "Lanjut" }).click()
+  await page.getByText("Pos Lost and Found Perpustakaan Pusat").click()
+  await page.getByLabel("Rak atau slot penyimpanan").fill("Rak B2")
+  await page.getByRole("button", { name: "Lanjut" }).click()
+  await page.getByRole("button", { name: "Kirim laporan" }).click()
+  await expect(page).toHaveURL(/\/petugas\/laporan\/temuan\/FND-\d{4}-\d{4}$/)
+
+  // scoring runs in the worker, the table fills once it has
+  await expect(async () => {
+    await page.reload()
+    await expect(page.getByRole("link", { name: new RegExp(lostCode) })).toBeVisible({ timeout: 1_000 })
+  }).toPass({ timeout: 90_000, intervals: [2_000] })
+  await expect(page.getByRole("heading", { name: "Kandidat pencocokan" })).toBeVisible()
+  await expectAccessible(page)
+})
+
+test("J2 the owner sees the candidate, reads why, and hides it", async ({ browser }) => {
+  const page = await fresh(browser)
+  await signIn(page, memberEmail, password)
+  await expect(page).toHaveURL(/\/beranda$/)
+  await page.goto(`/laporan/hilang/${lostCode}`)
+  const candidate = page.getByRole("link", { name: new RegExp(handedIn) })
+  await expect(candidate).toBeVisible()
+  await expect(page.getByText(/\d+ kandidat ditemukan/)).toBeVisible()
+  await expectAccessible(page)
+
+  await candidate.click()
+  await expect(page.getByRole("heading", { name: handedIn, exact: true })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Kenapa kandidat ini muncul" })).toBeVisible()
+  await expect(page.getByRole("meter")).toHaveCount(4)
+  await expect(page.getByText("Ditemukan di lokasi yang sama.")).toBeVisible()
+  await expect(page.getByText("Kategori sama.")).toBeVisible()
+  await expectAccessible(page)
+
+  await page.getByRole("button", { name: "Bukan milik saya" }).click()
+  const dialog = page.getByRole("alertdialog")
+  await dialog.getByLabel("Alasan (opsional)").fill("Punya saya ada stiker kucing")
+  await dialog.getByRole("button", { name: "Ya, sembunyikan" }).click()
+  await expect(page).toHaveURL(new RegExp(`/laporan/hilang/${lostCode}$`))
+  await expect(page.getByText("Kandidat disembunyikan.")).toBeVisible()
+  await expect(page.getByRole("link", { name: new RegExp(handedIn) })).toHaveCount(0)
 })

@@ -14,6 +14,7 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/custody"
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/masterdata"
+	"github.com/pisondev/simpanugm/api/internal/matching/jobargs"
 	"github.com/pisondev/simpanugm/api/internal/media"
 	"github.com/pisondev/simpanugm/api/internal/notify"
 	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
@@ -43,10 +44,26 @@ type Service struct {
 	custody  *custody.Service
 	settings *settings.Store
 	notifier *notify.Notifier
+	matching *jobargs.Enqueuer
 }
 
-func NewService(pool *pgxpool.Pool, c clock.Clock, m *media.Service, md *masterdata.Service, cs *custody.Service, st *settings.Store, n *notify.Notifier) *Service {
-	return &Service{pool: pool, q: sqlc.New(pool), clock: c, media: m, md: md, custody: cs, settings: st, notifier: n}
+func NewService(pool *pgxpool.Pool, c clock.Clock, m *media.Service, md *masterdata.Service, cs *custody.Service, st *settings.Store, n *notify.Notifier, enq *jobargs.Enqueuer) *Service {
+	return &Service{pool: pool, q: sqlc.New(pool), clock: c, media: m, md: md, custody: cs, settings: st, notifier: n, matching: enq}
+}
+
+// photos in the new set that the report did not carry before, only those need embedding
+func addedMedia(before []sqlc.Medium, after []uuid.UUID) []uuid.UUID {
+	had := map[uuid.UUID]bool{}
+	for _, m := range before {
+		had[m.ID] = true
+	}
+	var out []uuid.UUID
+	for _, id := range after {
+		if !had[id] {
+			out = append(out, id)
+		}
+	}
+	return out
 }
 
 func IsCode(s string) bool { return codePattern.MatchString(s) }

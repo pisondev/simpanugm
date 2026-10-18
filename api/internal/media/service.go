@@ -190,7 +190,7 @@ func (s *Service) Photos(ctx context.Context, q *sqlc.Queries, lost, found *uuid
 }
 
 func (s *Service) DeleteStaged(ctx context.Context, p *access.Principal, id uuid.UUID) error {
-	row, err := s.q.GetMediaForAccess(ctx, id)
+	row, err := s.q.GetMediaForAccess(ctx, sqlc.GetMediaForAccessParams{ID: id, Viewer: p.UserID})
 	if db.IsNoRows(err) || (err == nil && (row.UploadedBy != p.UserID || row.State == "deleted")) {
 		return apperr.NotFound()
 	}
@@ -230,7 +230,7 @@ func (s *Service) Serve(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, apperr.BadRequest("Varian tidak dikenal."))
 		return
 	}
-	row, err := s.q.GetMediaForAccess(r.Context(), id)
+	row, err := s.q.GetMediaForAccess(r.Context(), sqlc.GetMediaForAccessParams{ID: id, Viewer: p.UserID})
 	if db.IsNoRows(err) {
 		httpx.WriteError(w, r, apperr.NotFound())
 		return
@@ -239,7 +239,7 @@ func (s *Service) Serve(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	if !CanView(p, row) {
+	if !CanView(p, row, variant) {
 		httpx.WriteError(w, r, apperr.NotFound())
 		return
 	}
@@ -269,8 +269,9 @@ func (s *Service) Serve(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// BR-VIS for v0.1 roles: uploader, report owner, staff
-func CanView(p *access.Principal, row sqlc.GetMediaForAccessRow) bool {
+// BR-VIS: uploader, report owner and staff see every variant. The owner of a lost report with this found item as a
+// visible candidate sees the display variant, or only the blurred thumbnail for sensitivity identity
+func CanView(p *access.Principal, row sqlc.GetMediaForAccessRow, variant string) bool {
 	if p == nil || row.State == "deleted" {
 		return false
 	}
@@ -281,6 +282,11 @@ func CanView(p *access.Principal, row sqlc.GetMediaForAccessRow) bool {
 		return true
 	case row.FoundFinderID != nil && *row.FoundFinderID == p.UserID:
 		return true
+	case row.CandidateOwner && row.State == "ready":
+		if row.Sensitivity == "identity" {
+			return variant == "thumb_blur"
+		}
+		return variant == "display" || variant == "thumb" || variant == "thumb_blur"
 	}
 	return false
 }

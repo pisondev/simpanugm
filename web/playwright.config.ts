@@ -15,7 +15,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [
-    // the long staff journey runs once, on desktop, the member pages are covered on a phone by J1
+    // the long journeys run once, on desktop, the member pages are covered on a phone by J1
     { name: "phone", use: { ...devices["Pixel 7"] }, testIgnore: /sprint1/ },
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
   ],

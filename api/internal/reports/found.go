@@ -221,6 +221,9 @@ func (s *Service) CreateFound(ctx context.Context, p *access.Principal, key stri
 			Changes: map[string]any{"code": params.Code, "proxy": proxy, "custody_status": custodyTo}}); err != nil {
 			return err
 		}
+		if err := s.matching.ReportChanged(ctx, tx, "found", id, in.MediaIDs); err != nil {
+			return err
+		}
 		return idem.Complete(ctx, q, k, id)
 	})
 	if err != nil {
@@ -333,10 +336,15 @@ func (s *Service) UpdateFound(ctx context.Context, p *access.Principal, ref, ifM
 		} else if err != nil {
 			return err
 		}
+		var added []uuid.UUID
 		if patch.MediaIDs != nil {
+			added = addedMedia(photos, *patch.MediaIDs)
 			if removed, err = s.media.Attach(ctx, q, p, media.Target{Purpose: "found_report", FoundID: &r.ID}, *patch.MediaIDs); err != nil {
 				return err
 			}
+		}
+		if err := s.matching.ReportChanged(ctx, tx, "found", r.ID, added); err != nil {
+			return err
 		}
 		return audit.Record(ctx, q, now, audit.Entry{Action: "found_report.update", EntityType: "found_report", EntityID: r.ID,
 			Changes: map[string]any{"fields": changed}})
@@ -464,6 +472,9 @@ func (s *Service) CloseFound(ctx context.Context, p *access.Principal, ref, reas
 			return err
 		}
 		if err := s.history(ctx, q, "custody", r.ID, r.CustodyStatus, custodyTo, cid, &reason); err != nil {
+			return err
+		}
+		if err := s.matching.ReportClosed(ctx, tx, "found", r.ID); err != nil {
 			return err
 		}
 		return audit.Record(ctx, q, now, audit.Entry{Action: "found_report.close", EntityType: "found_report", EntityID: r.ID,

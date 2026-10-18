@@ -29,7 +29,7 @@ func (h *Handlers) GetPostInventory(ctx context.Context, req openapi.GetPostInve
 			Id: it.ID, Code: it.Code, ItemName: it.ItemName, CategoryName: it.CategoryName,
 			Sensitivity: openapi.Sensitivity(it.Sensitivity), StorageSlot: it.StorageSlot,
 			ReceivedAt: it.ReceivedAt, RetentionDueAt: it.RetentionDueAt, AgeDays: it.AgeDays,
-			Status: openapi.FoundStatus(it.Status), ClaimState: openapi.None,
+			Status: openapi.FoundStatus(it.Status), ClaimState: openapi.InventoryItemClaimStateNone,
 		}
 		if it.ThumbMediaID != uuid.Nil {
 			id := it.ThumbMediaID

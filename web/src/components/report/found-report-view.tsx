@@ -13,7 +13,7 @@ import { OpenNow } from "./post-hours"
 import { StatusBadge } from "./status-badge"
 import { Timeline } from "./timeline"
 
-type Props = { report: FoundReport; history: HistoryEntry[]; post?: Post; actions?: ReactNode; staff?: boolean }
+type Props = { report: FoundReport; history: HistoryEntry[]; post?: Post; actions?: ReactNode; staff?: boolean; matching?: ReactNode }
 
 function PostCard({ post }: { post: Post }) {
   const t = useTranslations("report")
@@ -56,7 +56,7 @@ function PostCard({ post }: { post: Post }) {
   )
 }
 
-export function FoundReportView({ report, history, post, actions, staff = false }: Props) {
+export function FoundReportView({ report, history, post, actions, staff = false, matching }: Props) {
   const t = useTranslations("report")
   const tc = useTranslations("common")
   const ts = useTranslations("status")
@@ -110,6 +110,8 @@ export function FoundReportView({ report, history, post, actions, staff = false 
           <p className="mt-1">{t("inCustodyBody", { post: report.holding_post?.name ?? "" })}</p>
         </section>
       ) : null}
+
+      {matching}
 
       <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
         <div className="flex flex-col gap-6">

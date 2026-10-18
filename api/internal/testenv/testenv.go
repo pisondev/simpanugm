@@ -37,6 +37,7 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/auth"
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/masterdata"
+	"github.com/pisondev/simpanugm/api/internal/matching"
 	"github.com/pisondev/simpanugm/api/internal/notify"
 	"github.com/pisondev/simpanugm/api/internal/platform/clock"
 	"github.com/pisondev/simpanugm/api/internal/platform/config"
@@ -124,6 +125,9 @@ func start() (*Database, error) {
 	if _, err := masterdata.ApplySeed(ctx, pool, set); err != nil {
 		return nil, fmt.Errorf("apply seed: %w", err)
 	}
+	if err := matching.EnsureDefaultFusion(ctx, sqlc.New(pool), time.Now()); err != nil {
+		return nil, fmt.Errorf("fusion version: %w", err)
+	}
 	return d, nil
 }
 
@@ -163,9 +167,17 @@ type Env struct {
 	Jobs     *river.Client[pgx.Tx]
 	Server   *httptest.Server
 	Config   config.Config
+	// wall clock time the Env was built, job helpers ignore what earlier tests left in the shared queue
+	Started time.Time
 }
 
-func New(t testing.TB) *Env {
+// changes the configuration an Env is built with
+type Option func(*config.Config)
+
+// points the inference client at a fake, normally NewFakeML
+func WithML(url string) Option { return func(c *config.Config) { c.MLBaseURL = url } }
+
+func New(t testing.TB, opts ...Option) *Env {
 	t.Helper()
 	d := Shared(t)
 	ctx := context.Background()
@@ -189,7 +201,10 @@ func New(t testing.TB) *Env {
 		AppEnv: "test", PublicBaseURL: srv.URL, DatabaseURL: d.AppURL, StorageDriver: "fs",
 		SessionCookieSecure: false, TrustedProxies: []string{"10.0.0.0/8"}, WorkerQueues: "default=1",
 	}
-	env := &Env{T: t, DB: d, Pool: pool, Clock: clock.NewFake(time.Now().UTC().Truncate(time.Second)), Server: srv, Config: cfg, Jobs: jobs}
+	for _, o := range opts {
+		o(&cfg)
+	}
+	env := &Env{T: t, DB: d, Pool: pool, Clock: clock.NewFake(time.Now().UTC().Truncate(time.Second)), Server: srv, Config: cfg, Jobs: jobs, Started: dbNow(ctx, pool)}
 	deps := server.Deps{Config: cfg, Pool: pool, Clock: env.Clock, Store: store, Jobs: jobs}
 	env.Services = server.NewServices(deps)
 	handler, err = server.NewRouter(deps, env.Services)
@@ -471,4 +486,11 @@ func ExifGPS() []byte {
 	payload := append([]byte("Exif\x00\x00"), []byte("MM\x00\x2a\x00\x00\x00\x08GPSLatitude-7.7693GPSLongitude110.3779")...)
 	size := len(payload) + 2
 	return append([]byte{0xFF, 0xE1, byte(size >> 8), byte(size)}, payload...)
+}
+
+// river_job timestamps come from the database clock, so the cut-off does too
+func dbNow(ctx context.Context, pool *pgxpool.Pool) time.Time {
+	var now time.Time
+	_ = pool.QueryRow(ctx, "SELECT now()").Scan(&now)
+	return now
 }

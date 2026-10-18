@@ -2,6 +2,7 @@ import { Pencil } from "lucide-react"
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
+import { FinderHint } from "@/components/matching/finder-hint"
 import { CloseReportDialog } from "@/components/report/close-report-dialog"
 import { FoundReportView } from "@/components/report/found-report-view"
 import { ButtonLink } from "@/components/ui/button-link"
@@ -14,9 +15,10 @@ export async function generateMetadata({ params }: PageProps<"/laporan/temuan/[c
 export default async function FoundDetailPage({ params }: PageProps<"/laporan/temuan/[code]">) {
   const { code } = await params
   const [api, t] = await Promise.all([serverApi(), getTranslations("common")])
-  const [report, history] = await Promise.all([
+  const [report, history, hint] = await Promise.all([
     load(api.GET("/found-reports/{id}", { params: { path: { id: code } } })),
     load(api.GET("/found-reports/{id}/history", { params: { path: { id: code } } })),
+    load(api.GET("/found-reports/{id}/match-hint", { params: { path: { id: code } } })),
   ])
   const post =
     report.intended_post && report.custody_status === "with_finder"
@@ -31,5 +33,5 @@ export default async function FoundDetailPage({ params }: PageProps<"/laporan/te
       <CloseReportDialog kind="found" id={report.id} />
     </>
   ) : null
-  return <FoundReportView report={report} history={history.items} post={post} actions={actions} />
+  return <FoundReportView report={report} history={history.items} post={post} actions={actions} matching={<FinderHint items={hint.items} />} />
 }

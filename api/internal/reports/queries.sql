@@ -18,7 +18,9 @@ INSERT INTO lost_reports (
 SELECT sqlc.embed(lr),
        c.slug AS category_slug, c.name AS category_name, c.sensitivity AS category_sensitivity,
        coalesce(p.name, c.name)::text AS category_parent_name,
-       u.full_name AS reporter_full_name, u.email AS reporter_email, u.phone AS reporter_phone, u.nim_nip AS reporter_nim_nip
+       u.full_name AS reporter_full_name, u.email AS reporter_email, u.phone AS reporter_phone, u.nim_nip AS reporter_nim_nip,
+       (SELECT count(*) FROM matches mt WHERE mt.lost_report_id = lr.id AND mt.status = 'active' AND mt.tier IN ('high', 'medium')
+        AND mt.rank_for_lost IS NOT NULL AND mt.owner_dismissed_at IS NULL)::int AS candidate_count
 FROM lost_reports lr
 JOIN categories c ON c.id = lr.category_id
 LEFT JOIN categories p ON p.id = c.parent_id
@@ -71,7 +73,9 @@ ORDER BY pl.position;
 -- name: ListLostReports :many
 SELECT lr.id, lr.code, lr.status, lr.item_name, c.name AS category_name, lr.lost_until, lr.updated_at, lr.created_at,
        coalesce(u.full_name, lr.proxy_name, '')::text AS reporter_name,
-       coalesce(thumb.id, '00000000-0000-0000-0000-000000000000'::uuid) AS thumb_media_id
+       coalesce(thumb.id, '00000000-0000-0000-0000-000000000000'::uuid) AS thumb_media_id,
+       (SELECT count(*) FROM matches mt WHERE mt.lost_report_id = lr.id AND mt.status = 'active' AND mt.tier IN ('high', 'medium')
+        AND mt.rank_for_lost IS NOT NULL AND mt.owner_dismissed_at IS NULL)::int AS candidate_count
 FROM lost_reports lr
 JOIN categories c ON c.id = lr.category_id
 LEFT JOIN users u ON u.id = lr.reporter_id

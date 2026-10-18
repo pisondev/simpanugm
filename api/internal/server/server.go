@@ -22,7 +22,10 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/custody"
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/masterdata"
+	"github.com/pisondev/simpanugm/api/internal/matching"
+	"github.com/pisondev/simpanugm/api/internal/matching/jobargs"
 	"github.com/pisondev/simpanugm/api/internal/media"
+	"github.com/pisondev/simpanugm/api/internal/mlclient"
 	"github.com/pisondev/simpanugm/api/internal/notify"
 	"github.com/pisondev/simpanugm/api/internal/openapi"
 	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
@@ -60,6 +63,8 @@ type Services struct {
 	Custody    *custody.Service
 	Reports    *reports.Service
 	Search     *search.Service
+	Engine     *matching.Engine
+	Matching   *matching.Service
 }
 
 func NewServices(d Deps) *Services {
@@ -70,12 +75,17 @@ func NewServices(d Deps) *Services {
 	md := masterdata.NewService(d.Pool)
 	med := media.NewService(d.Pool, d.Store, d.Clock)
 	cs := custody.NewService(d.Pool, d.Clock, st)
+	ml := mlclient.New(d.Config.MLBaseURL, d.Config.MLInternalToken)
+	enq := &jobargs.Enqueuer{Jobs: d.Jobs, Inference: ml != nil}
+	engine := matching.NewEngine(d.Pool, d.Clock, ml, d.Store, notifier, st, d.Jobs)
 	return &Services{
 		Settings: st, Mailer: mailer, Notifier: notifier, Hub: hub, Notify: notify.NewService(d.Pool, d.Clock, hub),
 		Auth:       auth.NewService(d.Pool, d.Clock, mailer, st),
 		Masterdata: md, Media: med, Custody: cs,
-		Reports: reports.NewService(d.Pool, d.Clock, med, md, cs, st, notifier),
-		Search:  search.NewService(d.Pool),
+		Reports:  reports.NewService(d.Pool, d.Clock, med, md, cs, st, notifier, enq),
+		Search:   search.NewService(d.Pool),
+		Engine:   engine,
+		Matching: matching.NewService(engine, enq),
 	}
 }
 
@@ -87,6 +97,7 @@ type (
 	custodyHandlers    = custody.Handlers
 	searchHandlers     = search.Handlers
 	notifyHandlers     = notify.Handlers
+	matchingHandlers   = matching.Handlers
 )
 
 type strictServer struct {
@@ -97,6 +108,7 @@ type strictServer struct {
 	*custodyHandlers
 	*searchHandlers
 	*notifyHandlers
+	*matchingHandlers
 }
 
 var _ openapi.StrictServerInterface = strictServer{}
@@ -137,6 +149,7 @@ func NewRouter(d Deps, s *Services) (http.Handler, error) {
 		custodyHandlers:    custody.NewHandlers(s.Custody),
 		searchHandlers:     search.NewHandlers(s.Search),
 		notifyHandlers:     notify.NewHandlers(s.Notify),
+		matchingHandlers:   matching.NewHandlers(s.Matching),
 	}
 	strict := openapi.NewStrictHandlerWithOptions(handlers, nil, openapi.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {

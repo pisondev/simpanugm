@@ -42,6 +42,24 @@ func (e AccountStatus) Valid() bool {
 	}
 }
 
+// Defines values for CandidatePhotoVariant.
+const (
+	Display   CandidatePhotoVariant = "display"
+	ThumbBlur CandidatePhotoVariant = "thumb_blur"
+)
+
+// Valid indicates whether the value is a known member of the CandidatePhotoVariant enum.
+func (e CandidatePhotoVariant) Valid() bool {
+	switch e {
+	case Display:
+		return true
+	case ThumbBlur:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CloseFoundReportRequestReason.
 const (
 	ReportedInError  CloseFoundReportRequestReason = "reported_in_error"
@@ -123,6 +141,27 @@ func (e CustodyStatus) Valid() bool {
 	}
 }
 
+// Defines values for ExplanationLineLevel.
+const (
+	ExplanationLineLevelHigh   ExplanationLineLevel = "high"
+	ExplanationLineLevelLow    ExplanationLineLevel = "low"
+	ExplanationLineLevelMedium ExplanationLineLevel = "medium"
+)
+
+// Valid indicates whether the value is a known member of the ExplanationLineLevel enum.
+func (e ExplanationLineLevel) Valid() bool {
+	switch e {
+	case ExplanationLineLevelHigh:
+		return true
+	case ExplanationLineLevelLow:
+		return true
+	case ExplanationLineLevelMedium:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for FoundStatus.
 const (
 	FoundStatusClaimed           FoundStatus = "claimed"
@@ -197,19 +236,19 @@ func (e HistoryEntryEntity) Valid() bool {
 
 // Defines values for InventoryItemClaimState.
 const (
-	Approved InventoryItemClaimState = "approved"
-	None     InventoryItemClaimState = "none"
-	Open     InventoryItemClaimState = "open"
+	InventoryItemClaimStateApproved InventoryItemClaimState = "approved"
+	InventoryItemClaimStateNone     InventoryItemClaimState = "none"
+	InventoryItemClaimStateOpen     InventoryItemClaimState = "open"
 )
 
 // Valid indicates whether the value is a known member of the InventoryItemClaimState enum.
 func (e InventoryItemClaimState) Valid() bool {
 	switch e {
-	case Approved:
+	case InventoryItemClaimStateApproved:
 		return true
-	case None:
+	case InventoryItemClaimStateNone:
 		return true
-	case Open:
+	case InventoryItemClaimStateOpen:
 		return true
 	default:
 		return false
@@ -285,6 +324,93 @@ func (e LostStatus) Valid() bool {
 	case LostStatusReturned:
 		return true
 	case LostStatusUnderVerification:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MatchCandidateStatus.
+const (
+	MatchCandidateStatusActive     MatchCandidateStatus = "active"
+	MatchCandidateStatusConfirmed  MatchCandidateStatus = "confirmed"
+	MatchCandidateStatusDismissed  MatchCandidateStatus = "dismissed"
+	MatchCandidateStatusRejected   MatchCandidateStatus = "rejected"
+	MatchCandidateStatusSuperseded MatchCandidateStatus = "superseded"
+)
+
+// Valid indicates whether the value is a known member of the MatchCandidateStatus enum.
+func (e MatchCandidateStatus) Valid() bool {
+	switch e {
+	case MatchCandidateStatusActive:
+		return true
+	case MatchCandidateStatusConfirmed:
+		return true
+	case MatchCandidateStatusDismissed:
+		return true
+	case MatchCandidateStatusRejected:
+		return true
+	case MatchCandidateStatusSuperseded:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MatchExplanationVisualMode.
+const (
+	MatchExplanationVisualModeCrossModal MatchExplanationVisualMode = "cross_modal"
+	MatchExplanationVisualModeImage      MatchExplanationVisualMode = "image"
+	MatchExplanationVisualModeNone       MatchExplanationVisualMode = "none"
+)
+
+// Valid indicates whether the value is a known member of the MatchExplanationVisualMode enum.
+func (e MatchExplanationVisualMode) Valid() bool {
+	switch e {
+	case MatchExplanationVisualModeCrossModal:
+		return true
+	case MatchExplanationVisualModeImage:
+		return true
+	case MatchExplanationVisualModeNone:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MatchFeedbackRequestVerdict.
+const (
+	NotRelevant MatchFeedbackRequestVerdict = "not_relevant"
+	Relevant    MatchFeedbackRequestVerdict = "relevant"
+)
+
+// Valid indicates whether the value is a known member of the MatchFeedbackRequestVerdict enum.
+func (e MatchFeedbackRequestVerdict) Valid() bool {
+	switch e {
+	case NotRelevant:
+		return true
+	case Relevant:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MatchTier.
+const (
+	MatchTierHigh   MatchTier = "high"
+	MatchTierLow    MatchTier = "low"
+	MatchTierMedium MatchTier = "medium"
+)
+
+// Valid indicates whether the value is a known member of the MatchTier enum.
+func (e MatchTier) Valid() bool {
+	switch e {
+	case MatchTierHigh:
+		return true
+	case MatchTierLow:
+		return true
+	case MatchTierMedium:
 		return true
 	default:
 		return false
@@ -474,6 +600,15 @@ type AdminUserList struct {
 	NextCursor *string     `json:"next_cursor,omitempty"`
 }
 
+// CandidatePhoto defines model for CandidatePhoto.
+type CandidatePhoto struct {
+	MediaId openapi_types.UUID    `json:"media_id"`
+	Variant CandidatePhotoVariant `json:"variant"`
+}
+
+// CandidatePhotoVariant defines model for CandidatePhoto.Variant.
+type CandidatePhotoVariant string
+
 // Category defines model for Category.
 type Category struct {
 	Children              *[]Category             `json:"children,omitempty"`
@@ -540,6 +675,11 @@ type CustodyChoiceMode string
 // CustodyStatus defines model for CustodyStatus.
 type CustodyStatus string
 
+// DismissMatchRequest defines model for DismissMatchRequest.
+type DismissMatchRequest struct {
+	Reason *string `json:"reason,omitempty"`
+}
+
 // EmailChangeRequest defines model for EmailChangeRequest.
 type EmailChangeRequest struct {
 	Email    string `json:"email"`
@@ -551,11 +691,41 @@ type EmailRequest struct {
 	Email string `json:"email"`
 }
 
+// ExplanationLine defines model for ExplanationLine.
+type ExplanationLine struct {
+	Chips   *[]string             `json:"chips,omitempty"`
+	Level   *ExplanationLineLevel `json:"level,omitempty"`
+	Missing bool                  `json:"missing"`
+	Reason  string                `json:"reason"`
+}
+
+// ExplanationLineLevel defines model for ExplanationLine.Level.
+type ExplanationLineLevel string
+
 // FieldError defines model for FieldError.
 type FieldError struct {
 	Code    string `json:"code"`
 	Field   string `json:"field"`
 	Message string `json:"message"`
+}
+
+// FoundCandidate defines model for FoundCandidate.
+type FoundCandidate struct {
+	Brand         *string       `json:"brand,omitempty"`
+	Category      CategoryRef   `json:"category"`
+	Code          string        `json:"code"`
+	Colours       []string      `json:"colours"`
+	CustodyStatus CustodyStatus `json:"custody_status"`
+	Description   string        `json:"description"`
+	FoundAt       time.Time     `json:"found_at"`
+	FoundLocation LocationRef   `json:"found_location"`
+
+	// HiddenDetails officers only
+	HiddenDetails *string            `json:"hidden_details,omitempty"`
+	HoldingPost   *NamedRef          `json:"holding_post,omitempty"`
+	Id            openapi_types.UUID `json:"id"`
+	ItemName      string             `json:"item_name"`
+	Photos        []CandidatePhoto   `json:"photos"`
 }
 
 // FoundReport defines model for FoundReport.
@@ -741,6 +911,19 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+// LostCandidate defines model for LostCandidate.
+type LostCandidate struct {
+	Category  CategoryRef        `json:"category"`
+	Code      string             `json:"code"`
+	Id        openapi_types.UUID `json:"id"`
+	ItemName  string             `json:"item_name"`
+	LostFrom  time.Time          `json:"lost_from"`
+	LostUntil time.Time          `json:"lost_until"`
+
+	// OwnerName officers only
+	OwnerName *string `json:"owner_name,omitempty"`
+}
+
 // LostReport defines model for LostReport.
 type LostReport struct {
 	Brand           *string            `json:"brand,omitempty"`
@@ -824,6 +1007,81 @@ type LostReportUpdate struct {
 
 // LostStatus defines model for LostStatus.
 type LostStatus string
+
+// MatchCandidate defines model for MatchCandidate.
+type MatchCandidate struct {
+	// ComponentVersions officers only
+	ComponentVersions *map[string]string `json:"component_versions,omitempty"`
+	Explanation       MatchExplanation   `json:"explanation"`
+	FirstScoredAt     *time.Time         `json:"first_scored_at,omitempty"`
+
+	// Flags officers only
+	Flags       *[]string            `json:"flags,omitempty"`
+	FoundReport FoundCandidate       `json:"found_report"`
+	Id          openapi_types.UUID   `json:"id"`
+	LostReport  LostCandidate        `json:"lost_report"`
+	Overall     float32              `json:"overall"`
+	Rank        *int                 `json:"rank,omitempty"`
+	ScoredAt    time.Time            `json:"scored_at"`
+	Scores      *MatchScores         `json:"scores,omitempty"`
+	Status      MatchCandidateStatus `json:"status"`
+	Tier        MatchTier            `json:"tier"`
+}
+
+// MatchCandidateStatus defines model for MatchCandidate.Status.
+type MatchCandidateStatus string
+
+// MatchExplanation defines model for MatchExplanation.
+type MatchExplanation struct {
+	Category   ExplanationLine            `json:"category"`
+	Location   ExplanationLine            `json:"location"`
+	Text       ExplanationLine            `json:"text"`
+	Time       ExplanationLine            `json:"time"`
+	Visual     ExplanationLine            `json:"visual"`
+	VisualMode MatchExplanationVisualMode `json:"visual_mode"`
+}
+
+// MatchExplanationVisualMode defines model for MatchExplanation.VisualMode.
+type MatchExplanationVisualMode string
+
+// MatchFeedbackRequest defines model for MatchFeedbackRequest.
+type MatchFeedbackRequest struct {
+	Reason  *string                     `json:"reason,omitempty"`
+	Verdict MatchFeedbackRequestVerdict `json:"verdict"`
+}
+
+// MatchFeedbackRequestVerdict defines model for MatchFeedbackRequest.Verdict.
+type MatchFeedbackRequestVerdict string
+
+// MatchHint defines model for MatchHint.
+type MatchHint struct {
+	Items []MatchHintItem `json:"items"`
+}
+
+// MatchHintItem defines model for MatchHintItem.
+type MatchHintItem struct {
+	CategoryName string `json:"category_name"`
+	ItemName     string `json:"item_name"`
+}
+
+// MatchList defines model for MatchList.
+type MatchList struct {
+	Items []MatchCandidate `json:"items"`
+}
+
+// MatchScores defines model for MatchScores.
+type MatchScores struct {
+	Attributes     *float32 `json:"attributes,omitempty"`
+	CategoryFactor float32  `json:"category_factor"`
+	Location       *float32 `json:"location,omitempty"`
+	Semantic       *float32 `json:"semantic,omitempty"`
+	Text           *float32 `json:"text,omitempty"`
+	Time           *float32 `json:"time,omitempty"`
+	Visual         *float32 `json:"visual,omitempty"`
+}
+
+// MatchTier defines model for MatchTier.
+type MatchTier string
 
 // Me defines model for Me.
 type Me struct {
@@ -1120,6 +1378,9 @@ type IdempotencyKey = string
 // IfMatch defines model for IfMatch.
 type IfMatch = string
 
+// IncludeLow defines model for IncludeLow.
+type IncludeLow = bool
+
 // Limit defines model for Limit.
 type Limit = int
 
@@ -1174,6 +1435,12 @@ type UpdateFoundReportParams struct {
 	IfMatch IfMatch `json:"If-Match"`
 }
 
+// ListFoundReportMatchesParams defines parameters for ListFoundReportMatches.
+type ListFoundReportMatchesParams struct {
+	// IncludeLow Officers only, adds candidates of tier low (BR-VIS-01)
+	IncludeLow *IncludeLow `form:"include_low,omitempty" json:"include_low,omitempty"`
+}
+
 // ListLocationsParams defines parameters for ListLocations.
 type ListLocationsParams struct {
 	Q      *string             `form:"q,omitempty" json:"q,omitempty"`
@@ -1198,6 +1465,12 @@ type CreateLostReportParams struct {
 type UpdateLostReportParams struct {
 	// IfMatch The version from the last read, quoted or bare
 	IfMatch IfMatch `json:"If-Match"`
+}
+
+// ListLostReportMatchesParams defines parameters for ListLostReportMatches.
+type ListLostReportMatchesParams struct {
+	// IncludeLow Officers only, adds candidates of tier low (BR-VIS-01)
+	IncludeLow *IncludeLow `form:"include_low,omitempty" json:"include_low,omitempty"`
 }
 
 // UploadMediaMultipartBody defines parameters for UploadMedia.
@@ -1293,6 +1566,12 @@ type UpdateLostReportJSONRequestBody = LostReportUpdate
 // CloseLostReportJSONRequestBody defines body for CloseLostReport for application/json ContentType.
 type CloseLostReportJSONRequestBody = CloseLostReportRequest
 
+// DismissMatchJSONRequestBody defines body for DismissMatch for application/json ContentType.
+type DismissMatchJSONRequestBody = DismissMatchRequest
+
+// SubmitMatchFeedbackJSONRequestBody defines body for SubmitMatchFeedback for application/json ContentType.
+type SubmitMatchFeedbackJSONRequestBody = MatchFeedbackRequest
+
 // UpdateMeJSONRequestBody defines body for UpdateMe for application/json ContentType.
 type UpdateMeJSONRequestBody = ProfileUpdate
 
@@ -1374,6 +1653,12 @@ type ServerInterface interface {
 	// (GET /found-reports/{id}/history)
 	GetFoundReportHistory(w http.ResponseWriter, r *http.Request, id IdOrCode)
 
+	// (GET /found-reports/{id}/match-hint)
+	GetFoundReportMatchHint(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (GET /found-reports/{id}/matches)
+	ListFoundReportMatches(w http.ResponseWriter, r *http.Request, id IdOrCode, params ListFoundReportMatchesParams)
+
 	// (POST /found-reports/{id}/receive)
 	ReceiveFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode)
 
@@ -1397,6 +1682,18 @@ type ServerInterface interface {
 
 	// (GET /lost-reports/{id}/history)
 	GetLostReportHistory(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (GET /lost-reports/{id}/matches)
+	ListLostReportMatches(w http.ResponseWriter, r *http.Request, id IdOrCode, params ListLostReportMatchesParams)
+
+	// (GET /matches/{id})
+	GetMatch(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
+	// (POST /matches/{id}/dismiss)
+	DismissMatch(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
+	// (POST /matches/{id}/feedback)
+	SubmitMatchFeedback(w http.ResponseWriter, r *http.Request, id UUIDPath)
 
 	// (GET /me)
 	GetMe(w http.ResponseWriter, r *http.Request)
@@ -1445,6 +1742,9 @@ type ServerInterface interface {
 
 	// (GET /posts/{id}/inventory)
 	GetPostInventory(w http.ResponseWriter, r *http.Request, id UUIDPath, params GetPostInventoryParams)
+
+	// (POST /reports/{type}/{id}/rematch)
+	RematchReport(w http.ResponseWriter, r *http.Request, pType string, id IdOrCode)
 
 	// (GET /search)
 	SearchReports(w http.ResponseWriter, r *http.Request, params SearchReportsParams)
@@ -1562,6 +1862,16 @@ func (_ Unimplemented) GetFoundReportHistory(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// (GET /found-reports/{id}/match-hint)
+func (_ Unimplemented) GetFoundReportMatchHint(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /found-reports/{id}/matches)
+func (_ Unimplemented) ListFoundReportMatches(w http.ResponseWriter, r *http.Request, id IdOrCode, params ListFoundReportMatchesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (POST /found-reports/{id}/receive)
 func (_ Unimplemented) ReceiveFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -1599,6 +1909,26 @@ func (_ Unimplemented) CloseLostReport(w http.ResponseWriter, r *http.Request, i
 
 // (GET /lost-reports/{id}/history)
 func (_ Unimplemented) GetLostReportHistory(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /lost-reports/{id}/matches)
+func (_ Unimplemented) ListLostReportMatches(w http.ResponseWriter, r *http.Request, id IdOrCode, params ListLostReportMatchesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /matches/{id})
+func (_ Unimplemented) GetMatch(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /matches/{id}/dismiss)
+func (_ Unimplemented) DismissMatch(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /matches/{id}/feedback)
+func (_ Unimplemented) SubmitMatchFeedback(w http.ResponseWriter, r *http.Request, id UUIDPath) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1679,6 +2009,11 @@ func (_ Unimplemented) ListPosts(w http.ResponseWriter, r *http.Request, params 
 
 // (GET /posts/{id}/inventory)
 func (_ Unimplemented) GetPostInventory(w http.ResponseWriter, r *http.Request, id UUIDPath, params GetPostInventoryParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /reports/{type}/{id}/rematch)
+func (_ Unimplemented) RematchReport(w http.ResponseWriter, r *http.Request, pType string, id IdOrCode) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2333,6 +2668,74 @@ func (siw *ServerInterfaceWrapper) GetFoundReportHistory(w http.ResponseWriter, 
 	handler.ServeHTTP(w, r)
 }
 
+// GetFoundReportMatchHint operation middleware
+func (siw *ServerInterfaceWrapper) GetFoundReportMatchHint(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetFoundReportMatchHint(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListFoundReportMatches operation middleware
+func (siw *ServerInterfaceWrapper) ListFoundReportMatches(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListFoundReportMatchesParams
+
+	// ------------- Optional query parameter "include_low" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "include_low", r.URL.Query(), &params.IncludeLow, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "include_low"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "include_low", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListFoundReportMatches(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ReceiveFoundReport operation middleware
 func (siw *ServerInterfaceWrapper) ReceiveFoundReport(w http.ResponseWriter, r *http.Request) {
 
@@ -2658,6 +3061,126 @@ func (siw *ServerInterfaceWrapper) GetLostReportHistory(w http.ResponseWriter, r
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetLostReportHistory(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListLostReportMatches operation middleware
+func (siw *ServerInterfaceWrapper) ListLostReportMatches(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListLostReportMatchesParams
+
+	// ------------- Optional query parameter "include_low" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "include_low", r.URL.Query(), &params.IncludeLow, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "include_low"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "include_low", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListLostReportMatches(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetMatch operation middleware
+func (siw *ServerInterfaceWrapper) GetMatch(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id UUIDPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMatch(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DismissMatch operation middleware
+func (siw *ServerInterfaceWrapper) DismissMatch(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id UUIDPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DismissMatch(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SubmitMatchFeedback operation middleware
+func (siw *ServerInterfaceWrapper) SubmitMatchFeedback(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id UUIDPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SubmitMatchFeedback(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3010,6 +3533,41 @@ func (siw *ServerInterfaceWrapper) GetPostInventory(w http.ResponseWriter, r *ht
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetPostInventory(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RematchReport operation middleware
+func (siw *ServerInterfaceWrapper) RematchReport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "type" -------------
+	var pType string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "type", chi.URLParam(r, "type"), &pType, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "type", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RematchReport(w, r, pType, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3462,6 +4020,27 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Patch(options.BaseURL+"/admin/users/{id}", wrapper.AdminUpdateUser)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/lost-reports/{id}/matches", wrapper.ListLostReportMatches)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/found-reports/{id}/matches", wrapper.ListFoundReportMatches)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/found-reports/{id}/match-hint", wrapper.GetFoundReportMatchHint)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/matches/{id}", wrapper.GetMatch)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/matches/{id}/feedback", wrapper.SubmitMatchFeedback)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/matches/{id}/dismiss", wrapper.DismissMatch)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/reports/{type}/{id}/rematch", wrapper.RematchReport)
 	})
 
 	return r
@@ -4284,6 +4863,85 @@ func (response GetFoundReportHistorydefaultApplicationProblemPlusJSONResponse) V
 	return err
 }
 
+type GetFoundReportMatchHintRequestObject struct {
+	Id IdOrCode `json:"id"`
+}
+
+type GetFoundReportMatchHintResponseObject interface {
+	VisitGetFoundReportMatchHintResponse(w http.ResponseWriter) error
+}
+
+type GetFoundReportMatchHint200JSONResponse MatchHint
+
+func (response GetFoundReportMatchHint200JSONResponse) VisitGetFoundReportMatchHintResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetFoundReportMatchHintdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetFoundReportMatchHintdefaultApplicationProblemPlusJSONResponse) VisitGetFoundReportMatchHintResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListFoundReportMatchesRequestObject struct {
+	Id     IdOrCode `json:"id"`
+	Params ListFoundReportMatchesParams
+}
+
+type ListFoundReportMatchesResponseObject interface {
+	VisitListFoundReportMatchesResponse(w http.ResponseWriter) error
+}
+
+type ListFoundReportMatches200JSONResponse MatchList
+
+func (response ListFoundReportMatches200JSONResponse) VisitListFoundReportMatchesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListFoundReportMatchesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListFoundReportMatchesdefaultApplicationProblemPlusJSONResponse) VisitListFoundReportMatchesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ReceiveFoundReportRequestObject struct {
 	Id   IdOrCode `json:"id"`
 	Body *ReceiveFoundReportJSONRequestBody
@@ -4590,6 +5248,153 @@ type GetLostReportHistorydefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response GetLostReportHistorydefaultApplicationProblemPlusJSONResponse) VisitGetLostReportHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListLostReportMatchesRequestObject struct {
+	Id     IdOrCode `json:"id"`
+	Params ListLostReportMatchesParams
+}
+
+type ListLostReportMatchesResponseObject interface {
+	VisitListLostReportMatchesResponse(w http.ResponseWriter) error
+}
+
+type ListLostReportMatches200JSONResponse MatchList
+
+func (response ListLostReportMatches200JSONResponse) VisitListLostReportMatchesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListLostReportMatchesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListLostReportMatchesdefaultApplicationProblemPlusJSONResponse) VisitListLostReportMatchesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMatchRequestObject struct {
+	Id UUIDPath `json:"id"`
+}
+
+type GetMatchResponseObject interface {
+	VisitGetMatchResponse(w http.ResponseWriter) error
+}
+
+type GetMatch200JSONResponse MatchCandidate
+
+func (response GetMatch200JSONResponse) VisitGetMatchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMatchdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetMatchdefaultApplicationProblemPlusJSONResponse) VisitGetMatchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DismissMatchRequestObject struct {
+	Id   UUIDPath `json:"id"`
+	Body *DismissMatchJSONRequestBody
+}
+
+type DismissMatchResponseObject interface {
+	VisitDismissMatchResponse(w http.ResponseWriter) error
+}
+
+type DismissMatch204Response struct {
+}
+
+func (response DismissMatch204Response) VisitDismissMatchResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DismissMatchdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DismissMatchdefaultApplicationProblemPlusJSONResponse) VisitDismissMatchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SubmitMatchFeedbackRequestObject struct {
+	Id   UUIDPath `json:"id"`
+	Body *SubmitMatchFeedbackJSONRequestBody
+}
+
+type SubmitMatchFeedbackResponseObject interface {
+	VisitSubmitMatchFeedbackResponse(w http.ResponseWriter) error
+}
+
+type SubmitMatchFeedback204Response struct {
+}
+
+func (response SubmitMatchFeedback204Response) VisitSubmitMatchFeedbackResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type SubmitMatchFeedbackdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response SubmitMatchFeedbackdefaultApplicationProblemPlusJSONResponse) VisitSubmitMatchFeedbackResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -5197,6 +6002,46 @@ func (response GetPostInventorydefaultApplicationProblemPlusJSONResponse) VisitG
 	return err
 }
 
+type RematchReportRequestObject struct {
+	Type string   `json:"type"`
+	Id   IdOrCode `json:"id"`
+}
+
+type RematchReportResponseObject interface {
+	VisitRematchReportResponse(w http.ResponseWriter) error
+}
+
+type RematchReport202JSONResponse Ack
+
+func (response RematchReport202JSONResponse) VisitRematchReportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(202)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RematchReportdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RematchReportdefaultApplicationProblemPlusJSONResponse) VisitRematchReportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type SearchReportsRequestObject struct {
 	Params SearchReportsParams
 }
@@ -5340,6 +6185,12 @@ type StrictServerInterface interface {
 	// (GET /found-reports/{id}/history)
 	GetFoundReportHistory(ctx context.Context, request GetFoundReportHistoryRequestObject) (GetFoundReportHistoryResponseObject, error)
 
+	// (GET /found-reports/{id}/match-hint)
+	GetFoundReportMatchHint(ctx context.Context, request GetFoundReportMatchHintRequestObject) (GetFoundReportMatchHintResponseObject, error)
+
+	// (GET /found-reports/{id}/matches)
+	ListFoundReportMatches(ctx context.Context, request ListFoundReportMatchesRequestObject) (ListFoundReportMatchesResponseObject, error)
+
 	// (POST /found-reports/{id}/receive)
 	ReceiveFoundReport(ctx context.Context, request ReceiveFoundReportRequestObject) (ReceiveFoundReportResponseObject, error)
 
@@ -5363,6 +6214,18 @@ type StrictServerInterface interface {
 
 	// (GET /lost-reports/{id}/history)
 	GetLostReportHistory(ctx context.Context, request GetLostReportHistoryRequestObject) (GetLostReportHistoryResponseObject, error)
+
+	// (GET /lost-reports/{id}/matches)
+	ListLostReportMatches(ctx context.Context, request ListLostReportMatchesRequestObject) (ListLostReportMatchesResponseObject, error)
+
+	// (GET /matches/{id})
+	GetMatch(ctx context.Context, request GetMatchRequestObject) (GetMatchResponseObject, error)
+
+	// (POST /matches/{id}/dismiss)
+	DismissMatch(ctx context.Context, request DismissMatchRequestObject) (DismissMatchResponseObject, error)
+
+	// (POST /matches/{id}/feedback)
+	SubmitMatchFeedback(ctx context.Context, request SubmitMatchFeedbackRequestObject) (SubmitMatchFeedbackResponseObject, error)
 
 	// (GET /me)
 	GetMe(ctx context.Context, request GetMeRequestObject) (GetMeResponseObject, error)
@@ -5411,6 +6274,9 @@ type StrictServerInterface interface {
 
 	// (GET /posts/{id}/inventory)
 	GetPostInventory(ctx context.Context, request GetPostInventoryRequestObject) (GetPostInventoryResponseObject, error)
+
+	// (POST /reports/{type}/{id}/rematch)
+	RematchReport(ctx context.Context, request RematchReportRequestObject) (RematchReportResponseObject, error)
 
 	// (GET /search)
 	SearchReports(ctx context.Context, request SearchReportsRequestObject) (SearchReportsResponseObject, error)
@@ -6067,6 +6933,59 @@ func (sh *strictHandler) GetFoundReportHistory(w http.ResponseWriter, r *http.Re
 	}
 }
 
+// GetFoundReportMatchHint operation middleware
+func (sh *strictHandler) GetFoundReportMatchHint(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request GetFoundReportMatchHintRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetFoundReportMatchHint(ctx, request.(GetFoundReportMatchHintRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetFoundReportMatchHint")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetFoundReportMatchHintResponseObject); ok {
+		if err := validResponse.VisitGetFoundReportMatchHintResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListFoundReportMatches operation middleware
+func (sh *strictHandler) ListFoundReportMatches(w http.ResponseWriter, r *http.Request, id IdOrCode, params ListFoundReportMatchesParams) {
+	var request ListFoundReportMatchesRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListFoundReportMatches(ctx, request.(ListFoundReportMatchesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListFoundReportMatches")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListFoundReportMatchesResponseObject); ok {
+		if err := validResponse.VisitListFoundReportMatchesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ReceiveFoundReport operation middleware
 func (sh *strictHandler) ReceiveFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
 	var request ReceiveFoundReportRequestObject
@@ -6297,6 +7216,125 @@ func (sh *strictHandler) GetLostReportHistory(w http.ResponseWriter, r *http.Req
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetLostReportHistoryResponseObject); ok {
 		if err := validResponse.VisitGetLostReportHistoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListLostReportMatches operation middleware
+func (sh *strictHandler) ListLostReportMatches(w http.ResponseWriter, r *http.Request, id IdOrCode, params ListLostReportMatchesParams) {
+	var request ListLostReportMatchesRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListLostReportMatches(ctx, request.(ListLostReportMatchesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListLostReportMatches")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListLostReportMatchesResponseObject); ok {
+		if err := validResponse.VisitListLostReportMatchesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMatch operation middleware
+func (sh *strictHandler) GetMatch(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	var request GetMatchRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMatch(ctx, request.(GetMatchRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMatch")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMatchResponseObject); ok {
+		if err := validResponse.VisitGetMatchResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DismissMatch operation middleware
+func (sh *strictHandler) DismissMatch(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	var request DismissMatchRequestObject
+
+	request.Id = id
+
+	var body DismissMatchJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DismissMatch(ctx, request.(DismissMatchRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DismissMatch")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DismissMatchResponseObject); ok {
+		if err := validResponse.VisitDismissMatchResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SubmitMatchFeedback operation middleware
+func (sh *strictHandler) SubmitMatchFeedback(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	var request SubmitMatchFeedbackRequestObject
+
+	request.Id = id
+
+	var body SubmitMatchFeedbackJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SubmitMatchFeedback(ctx, request.(SubmitMatchFeedbackRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SubmitMatchFeedback")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SubmitMatchFeedbackResponseObject); ok {
+		if err := validResponse.VisitSubmitMatchFeedbackResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -6729,6 +7767,33 @@ func (sh *strictHandler) GetPostInventory(w http.ResponseWriter, r *http.Request
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetPostInventoryResponseObject); ok {
 		if err := validResponse.VisitGetPostInventoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RematchReport operation middleware
+func (sh *strictHandler) RematchReport(w http.ResponseWriter, r *http.Request, pType string, id IdOrCode) {
+	var request RematchReportRequestObject
+
+	request.Type = pType
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RematchReport(ctx, request.(RematchReportRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RematchReport")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RematchReportResponseObject); ok {
+		if err := validResponse.VisitRematchReportResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

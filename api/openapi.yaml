@@ -20,6 +20,7 @@ tags:
   - name: notifications
   - name: account
   - name: admin
+  - name: matching
 
 paths:
   /auth/register:
@@ -848,6 +849,116 @@ paths:
               schema: { $ref: '#/components/schemas/AdminUser' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /lost-reports/{id}/matches:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    get:
+      tags: [matching]
+      operationId: listLostReportMatches
+      parameters:
+        - $ref: '#/components/parameters/IncludeLow'
+      responses:
+        '200':
+          description: Candidates projected by role. The owner sees active medium and high candidates in rank order
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MatchList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports/{id}/matches:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    get:
+      tags: [matching]
+      operationId: listFoundReportMatches
+      parameters:
+        - $ref: '#/components/parameters/IncludeLow'
+      responses:
+        '200':
+          description: Candidates of a found report, officers only
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MatchList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports/{id}/match-hint:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    get:
+      tags: [matching]
+      operationId: getFoundReportMatchHint
+      responses:
+        '200':
+          description: AI-05, the item name and category of lost reports with an active high candidate, for the finder
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MatchHint' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /matches/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    get:
+      tags: [matching]
+      operationId: getMatch
+      responses:
+        '200':
+          description: One candidate with its explanation, projected by role
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MatchCandidate' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /matches/{id}/feedback:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    post:
+      tags: [matching]
+      operationId: submitMatchFeedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MatchFeedbackRequest' }
+      responses:
+        '204':
+          description: Stored
+        default: { $ref: '#/components/responses/Problem' }
+
+  /matches/{id}/dismiss:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    post:
+      tags: [matching]
+      operationId: dismissMatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DismissMatchRequest' }
+      responses:
+        '204':
+          description: Hidden for the owner, or for everyone when an officer dismisses
+        default: { $ref: '#/components/responses/Problem' }
+
+  /reports/{type}/{id}/rematch:
+    parameters:
+      - name: type
+        in: path
+        required: true
+        schema: { type: string, enum: [lost, found] }
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [matching]
+      operationId: rematchReport
+      responses:
+        '202':
+          description: Rescoring queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ack' }
+        default: { $ref: '#/components/responses/Problem' }
+
 components:
   securitySchemes:
     cookieAuth:
@@ -899,6 +1010,12 @@ components:
       name: limit
       in: query
       schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+    IncludeLow:
+      name: include_low
+      in: query
+      description: Officers only, adds candidates of tier low (BR-VIS-01)
+      schema: { type: boolean, default: false }
 
   responses:
     Problem:
@@ -1746,3 +1863,143 @@ components:
         items:
           type: array
           items: { $ref: '#/components/schemas/SessionInfo' }
+
+    MatchTier:
+      type: string
+      enum: [high, medium, low]
+
+    ExplanationLine:
+      type: object
+      required: [reason, missing]
+      properties:
+        level: { type: string, enum: [high, medium, low], nullable: true }
+        reason: { type: string }
+        chips:
+          type: array
+          items: { type: string }
+        missing: { type: boolean }
+
+    MatchExplanation:
+      type: object
+      required: [visual_mode, visual, text, location, time, category]
+      properties:
+        visual_mode: { type: string, enum: [image, cross_modal, none] }
+        visual: { $ref: '#/components/schemas/ExplanationLine' }
+        text: { $ref: '#/components/schemas/ExplanationLine' }
+        location: { $ref: '#/components/schemas/ExplanationLine' }
+        time: { $ref: '#/components/schemas/ExplanationLine' }
+        category: { $ref: '#/components/schemas/ExplanationLine' }
+
+    MatchScores:
+      type: object
+      required: [category_factor]
+      properties:
+        visual: { type: number, nullable: true }
+        semantic: { type: number, nullable: true }
+        attributes: { type: number, nullable: true }
+        text: { type: number, nullable: true }
+        location: { type: number, nullable: true }
+        time: { type: number, nullable: true }
+        category_factor: { type: number }
+
+    CandidatePhoto:
+      type: object
+      required: [media_id, variant]
+      properties:
+        media_id: { type: string, format: uuid }
+        variant: { type: string, enum: [display, thumb_blur] }
+
+    FoundCandidate:
+      type: object
+      required: [id, code, item_name, category, description, colours, found_at, found_location, custody_status, photos]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        item_name: { type: string }
+        category: { $ref: '#/components/schemas/CategoryRef' }
+        description: { type: string }
+        colours:
+          type: array
+          items: { type: string }
+        brand: { type: string, nullable: true }
+        found_at: { type: string, format: date-time }
+        found_location: { $ref: '#/components/schemas/LocationRef' }
+        holding_post: { $ref: '#/components/schemas/NamedRef' }
+        custody_status: { $ref: '#/components/schemas/CustodyStatus' }
+        photos:
+          type: array
+          items: { $ref: '#/components/schemas/CandidatePhoto' }
+        hidden_details: { type: string, nullable: true, description: officers only }
+
+    LostCandidate:
+      type: object
+      required: [id, code, item_name, category, lost_from, lost_until]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        item_name: { type: string }
+        category: { $ref: '#/components/schemas/CategoryRef' }
+        lost_from: { type: string, format: date-time }
+        lost_until: { type: string, format: date-time }
+        owner_name: { type: string, nullable: true, description: officers only }
+
+    MatchCandidate:
+      type: object
+      required: [id, tier, overall, status, found_report, lost_report, explanation, scored_at]
+      properties:
+        id: { type: string, format: uuid }
+        rank: { type: integer, nullable: true }
+        tier: { $ref: '#/components/schemas/MatchTier' }
+        overall: { type: number }
+        status: { type: string, enum: [active, superseded, dismissed, confirmed, rejected] }
+        found_report: { $ref: '#/components/schemas/FoundCandidate' }
+        lost_report: { $ref: '#/components/schemas/LostCandidate' }
+        explanation: { $ref: '#/components/schemas/MatchExplanation' }
+        scores: { $ref: '#/components/schemas/MatchScores' }
+        flags:
+          type: array
+          description: officers only
+          items: { type: string }
+        component_versions:
+          type: object
+          description: officers only
+          additionalProperties: { type: string }
+        first_scored_at: { type: string, format: date-time }
+        scored_at: { type: string, format: date-time }
+
+    MatchList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/MatchCandidate' }
+
+    MatchHint:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/MatchHintItem' }
+
+    MatchHintItem:
+      type: object
+      required: [item_name, category_name]
+      properties:
+        item_name: { type: string }
+        category_name: { type: string }
+
+    MatchFeedbackRequest:
+      type: object
+      additionalProperties: false
+      required: [verdict]
+      properties:
+        verdict: { type: string, enum: [relevant, not_relevant] }
+        reason: { type: string, maxLength: 300 }
+
+    DismissMatchRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        reason: { type: string, maxLength: 300 }
