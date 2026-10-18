@@ -76,6 +76,8 @@ services:
     image: ${ML_IMAGE:-simpanugm-ml:local}
     build:
       context: ../ml
+      additional_contexts:
+        seed: ../data/seed
     restart: unless-stopped
     env_file: env/ml.env
     volumes:

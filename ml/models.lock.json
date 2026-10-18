@@ -1,4 +1,28 @@
 {
   "version": 1,
-  "components": {}
+  "components": {
+    "image_encoder": {
+      "model_id": "sentence-transformers/clip-ViT-B-32",
+      "revision": "327ab6726d33c0e22f920c83f2ff9e4bd38ca37f",
+      "dimension": 512
+    },
+    "xmodal_text_encoder": {
+      "model_id": "sentence-transformers/clip-ViT-B-32-multilingual-v1",
+      "revision": "58edf8cada9e398793dca955574a48cbb7f18be2",
+      "dimension": 512
+    },
+    "text_encoder": {
+      "model_id": "intfloat/multilingual-e5-small",
+      "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "dimension": 384
+    },
+    "ocr": {
+      "model_id": "JaidedAI/EasyOCR",
+      "revision": "craft_mlt_25k+latin_g2",
+      "sha256": {
+        "craft_mlt_25k.pth": "4a5efbfb48b4081100544e75e1e2b57f8de3d84f213004b14b85fd4b3748db17",
+        "latin_g2.pth": "aaa95be1c4a9cb3496879bed7c520886ce1164f89e026f0c54488394e74e8c55"
+      }
+    }
+  }
 }

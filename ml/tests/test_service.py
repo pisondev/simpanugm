@@ -19,6 +19,13 @@ def test_models_need_the_internal_token(client):
     assert client.get("/v1/models", headers={"Authorization": "Bearer wrong-token-value"}).status_code == 401
     res = client.get("/v1/models", headers={"Authorization": f"Bearer {TOKEN}"})
     assert res.status_code == 200
+    items = {i["component"]: i for i in res.json()["items"]}
+    assert set(items) == {"image_encoder", "xmodal_text_encoder", "text_encoder", "ocr"}
+    assert items["text_encoder"]["dimension"] == 384 and items["image_encoder"]["loaded_at"]
+
+
+def test_models_list_is_empty_for_an_empty_lock(make_client):
+    res = make_client(components={}).get("/v1/models", headers={"Authorization": f"Bearer {TOKEN}"})
     assert res.json() == {"items": []}
 
 

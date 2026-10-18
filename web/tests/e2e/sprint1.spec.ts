@@ -89,6 +89,8 @@ test("the member files a found report with a photo and is told where to hand it 
   await expect(page.getByRole("button", { name: "Hapus foto 1" })).toBeVisible()
   await expect(page.getByText(/Mengunggah|Menyiapkan/)).toHaveCount(0, { timeout: 20_000 })
   await page.getByRole("button", { name: "Lanjut" }).click()
+  // J3: the assistant looks at the photo and either fills the form or says it cannot, the form works both ways
+  await expect(page.getByText("Saran otomatis", { exact: false }).first()).toBeVisible({ timeout: 30_000 })
   await pickCategory(page, "payung", "Payung")
   await page.getByLabel("Nama barang").fill("Payung lipat hitam")
   await page.getByLabel("Deskripsi").fill("Payung lipat hitam dengan gagang kayu")

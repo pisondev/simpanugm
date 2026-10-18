@@ -55,6 +55,7 @@ ml/models/
 ml/.cache/
 ml/mlruns/
 ml/mlartifacts/
+ml/eval/runs/
 *.onnx
 *.safetensors
 *.pt

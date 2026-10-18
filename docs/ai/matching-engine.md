@@ -355,6 +355,25 @@ two photos:
 | Retrieval and scoring of about 200 pairs | under 0.5 s |
 | Queue waits | 1 to 10 s |
 
+**Measured on 19 October 2026** with `make eval-latency`, on the team laptop (Windows 11, Intel 12
+logical CPUs, 4 PyTorch threads), models of `ml/models.lock.json`, 20 runs after a warm up, fixture
+images:
+
+| Component | p50 | p95 |
+|---|---|---|
+| `image_encoder`, 1 image | 72 ms | 78 ms |
+| `image_encoder`, 2 images | 117 ms | 129 ms |
+| `xmodal_text_encoder`, 1 text | 24 ms | 28 ms |
+| `text_encoder`, 1 text | 19 ms | 23 ms |
+| `ocr`, mock card | 737 ms | 747 ms |
+| `colour_extractor` | 29 ms | 32 ms |
+| `brand_matcher` | 0.1 ms | 0.1 ms |
+
+The sum for a report with two photos is about 2 s of compute, inside the budget above even
+before the 4 vCPU server is considered, which will be slower and is measured again on staging.
+A cold start loads the four models in about 20 s from a warm cache and downloads about 1.5 GB
+on the first start.
+
 ## 11. Explanations, AI-02
 
 Each component has a reason line generated from its value with fixed templates. Owners see

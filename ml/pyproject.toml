@@ -10,6 +10,18 @@ dependencies = [
     "pydantic-settings>=2.4",
     "prometheus-fastapi-instrumentator>=7.0",
     "python-json-logger>=3.1",
+    "python-multipart>=0.0.9",
+    "numpy>=1.26",
+    "pillow>=10.4",
+    "rapidfuzz>=3.9",
+    "scikit-image>=0.24",
+    "scikit-learn>=1.5",
+    "sentence-transformers>=3.0",
+    "easyocr>=1.7",
+    "torch>=2.4",
+    "torchvision>=0.19",
+    "mlflow-skinny>=2.16",
+    "pyyaml>=6",
 ]
 
 [dependency-groups]
@@ -25,6 +37,16 @@ dev = [
 [tool.uv]
 package = false
 
+# CPU wheels only, the server has no GPU and the CUDA builds add gigabytes
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
 [tool.ruff]
 line-length = 120
 target-version = "py312"
@@ -38,8 +60,20 @@ select = ["E", "F", "I", "B", "UP", "N", "S", "SIM", "RUF"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-packages = ["app"]
+packages = ["app", "eval"]
+
+[[tool.mypy.overrides]]
+module = ["easyocr.*", "sentence_transformers.*", "skimage.*", "sklearn.*", "rapidfuzz.*", "torch.*", "mlflow.*", "yaml.*"]
+ignore_missing_imports = true
+follow_untyped_imports = true
+
+# the scientific libraries are untyped, these two modules are where they are called
+[[tool.mypy.overrides]]
+module = ["app.analysis.colour", "app.backend", "eval.engine", "eval.dataset", "eval.components"]
+disallow_untyped_calls = false
+warn_return_any = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q -m 'not models'"
+markers = ["models: needs the real weights in HF_HOME, run with pytest -m models"]
