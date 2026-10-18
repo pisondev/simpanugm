@@ -22,12 +22,18 @@ def read_review_log(path: Path, expected_count: int) -> list[dict[str, str]]:
             reader = csv.DictReader(handle)
             if tuple(reader.fieldnames or ()) != REVIEW_LOG_FIELDS:
                 raise ValueError(f"{path}: expected columns {REVIEW_LOG_FIELDS}")
-            rows = list(reader)
+            rows: list[dict[str, str]] = []
+            for line_number, row in enumerate(reader, start=2):
+                if None in row or any(value is None for value in row.values()):
+                    raise ValueError(
+                        f"{path}: row {line_number} has missing or extra fields"
+                    )
+                rows.append(row)
     except (OSError, csv.Error) as exc:
         raise ValueError(f"{path}: cannot read review log: {exc}") from exc
 
     expected_ids = [f"I{index:03d}" for index in range(1, expected_count + 1)]
-    ids = [row.get("item_id", "").strip() for row in rows]
+    ids = [(row.get("item_id") or "").strip() for row in rows]
     if ids != expected_ids:
         raise ValueError(f"{path}: item_id must contain I001 through I{expected_count:03d} in order")
     return rows

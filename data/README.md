@@ -34,14 +34,33 @@ added:
 ```text
 python3 data/scripts/check.py \
   --require-complete \
-  --bbox SOUTH,WEST,NORTH,EAST
+  --bbox=SOUTH,WEST,NORTH,EAST
 ```
+
+The foundation check also fails if any deferred seed file appears by itself. This prevents
+CI from accepting a partial location, post, or model-version seed without the complete-mode
+review and campus bbox. It also rejects symlinked seed roots and files so validation cannot
+silently read data from outside the checkout, and reports malformed YAML as a seed
+validation error.
+
+Category validation requires non-empty parent and leaf names, positive parent ordering,
+non-empty text prompts and question fields, boolean question requirements, and positive
+optional retention overrides. Seed, trial, and auxiliary CSV readers also reject rows
+whose field count does not match the declared header or required fields.
+Brand names and aliases are checked case-insensitively with normalized whitespace, and
+synonym terms use the same normalized uniqueness rule to prevent ambiguous lookup keys.
+Allowed email domains must be valid, non-empty, and unique; reviewed location aliases
+also reject blank entries and normalized duplicates.
+Complete post seeds require string location references, non-empty phone strings, and
+non-overlapping ordered opening intervals, while model-version components and statuses
+must use their declared strings.
 
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 
 Shared contract fixtures are now available in [`fixtures/`](fixtures/). They contain only
 synthetic scoring, masking, and name-comparison cases; participant data and collected
-images remain outside the repository. Validate them with:
+images remain outside the repository. Malformed JSON and case shapes are reported as
+fixture validation errors. Validate them with:
 
 ```text
 python3 data/scripts/check_fixtures.py
@@ -59,6 +78,13 @@ Git before the v1 freeze. The manifest checker also rejects images whose short s
 under 1080 px, whose exact SHA-256 content is reused, or whose perceptual hash is within
 four bits of an image from another item. Once the private dataset is approved, use
 `data/scripts/publish_manifest.py` to copy only the validated manifest into `data/eval/`.
+It also rejects symlinked dataset roots, manifest files, and any symlinked directory in
+a listed path, so validation cannot read private files from outside the dataset root.
+The private intake, fetch, manifest-publication, template-generation, and review-workspace
+commands apply the same check to their source and output parent paths before resolving
+them; the corresponding validators reject aliased roots as well.
+The same output-root guard protects OSM review exports, promoted location seeds, review
+summaries, agreement reports, evaluation splits, and synthetic fixture regeneration.
 
 Reference analytics views are documented in [`analytics/README.md`](analytics/README.md)
 and defined in [`analytics/views.sql`](analytics/views.sql). They are reviewed SQL, not
@@ -80,7 +106,9 @@ python3 data/scripts/check_agreement.py \
 ```
 
 The report contains observed agreement and Cohen's kappa for `leaf_category` and
-`distinctiveness`; label sheets and the report remain outside git.
+`distinctiveness`; label sheets and the report remain outside git. The annotation and
+review-log readers reject rows with missing or extra fields before the final trial gate
+evaluates their statuses.
 
 Prepare those sheets and the trial exit log atomically in a private directory with:
 
@@ -101,7 +129,7 @@ For the location review, save an Overpass response and run:
 ```text
 python3 data/scripts/osm_locations.py \
   --download \
-  --bbox SOUTH,WEST,NORTH,EAST \
+  --bbox=SOUTH,WEST,NORTH,EAST \
   --raw-output /private/simpanugm-locations/overpass.json \
   --output /private/simpanugm-locations/locations-review.csv
 ```
@@ -111,7 +139,7 @@ Or, when the response has already been saved:
 ```text
 python3 data/scripts/osm_locations.py \
   --input /path/to/overpass.json \
-  --bbox SOUTH,WEST,NORTH,EAST \
+  --bbox=SOUTH,WEST,NORTH,EAST \
   --output /path/to/locations-review.csv
 ```
 
@@ -128,8 +156,11 @@ response:
 python3 data/scripts/check_location_review.py \
   --raw /private/simpanugm-locations/overpass.json \
   --review /private/simpanugm-locations/locations-review.csv \
-  --bbox SOUTH,WEST,NORTH,EAST
+  --bbox=SOUTH,WEST,NORTH,EAST
 ```
+
+Location review and promotion readers reject rows with missing or extra fields before
+provenance or zone approval checks run.
 
 Create a private counts-only summary to plan the manual review without copying candidate
 names into Git:
@@ -191,7 +222,7 @@ For the full collection, create the private raw layout with
 `data/scripts/create_eval_templates.py`; it generates stable IDs for all target rows
 without adding any participant data to the repository. Run
 `data/scripts/check_templates.py --profile full` before data entry to verify the blank
-scaffold.
+scaffold, including the exact field count of every row.
 
 For the Sprint 0 trial, pass `--profile trial` to create only the 20-item workspace
 needed by `check_dataset.py`. Verify it with
@@ -202,7 +233,7 @@ needed by `check_dataset.py`. Verify it with
 These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts
 by natural key and never deletes.
 
-Run `python3 data/scripts/check.py --require-complete --bbox SOUTH,WEST,NORTH,EAST`
+Run `python3 data/scripts/check.py --require-complete --bbox=SOUTH,WEST,NORTH,EAST`
 after all four deferred seed files are reviewed. In complete mode the checker validates
 CSV/YAML shape, zone and location references, location coordinates inside the supplied
 campus bbox, post opening-hour intervals, and the eight model components with exactly one

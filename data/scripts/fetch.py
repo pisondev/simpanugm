@@ -14,6 +14,7 @@ from typing import Any
 
 from check_manifest import check_manifest
 from intake import sha256_file
+from path_safety import first_symlink_component
 
 
 class FetchError(ValueError):
@@ -37,6 +38,9 @@ def _relative_path(value: Any, label: str) -> Path:
 def _load_manifest(manifest_path: Path) -> tuple[bytes, list[tuple[str, int, str]]]:
     if manifest_path.is_symlink() or not manifest_path.is_file():
         raise FetchError(f"manifest does not exist as a regular file: {manifest_path}")
+    parent_symlink = first_symlink_component(manifest_path.parent)
+    if parent_symlink is not None:
+        raise FetchError(f"manifest path must not contain a symlink: {parent_symlink}")
     try:
         payload = manifest_path.read_bytes()
         document: Any = json.loads(payload)
@@ -87,6 +91,9 @@ def _private_source_path(source_root: Path, relative: str) -> Path:
 
 
 def _validate_source(source_root: Path, files: list[tuple[str, int, str]]) -> dict[str, Path]:
+    parent_symlink = first_symlink_component(source_root.parent)
+    if parent_symlink is not None:
+        raise FetchError(f"source path must not contain a symlink: {parent_symlink}")
     if source_root.is_symlink() or not source_root.is_dir():
         raise FetchError(f"source directory does not exist as a regular directory: {source_root}")
     source_root = source_root.resolve()
@@ -132,14 +139,17 @@ def _check_destination(output_dir: Path, files: list[tuple[str, int, str]]) -> N
 
 def fetch_dataset(manifest: Path, source: Path, output: Path) -> Path:
     """Copy and verify a manifest-listed dataset into ``output``."""
+    if output.is_symlink():
+        raise FetchError(f"output directory must not be a symlink: {output}")
+    parent_symlink = first_symlink_component(output.parent)
+    if parent_symlink is not None:
+        raise FetchError(f"output path must not contain a symlink: {parent_symlink}")
     manifest = manifest.absolute()
     source = source.absolute()
     output = output.absolute()
     manifest_payload, files = _load_manifest(manifest)
     validated_source = _validate_source(source, files)
     resolved_source = source.resolve()
-    if output.is_symlink():
-        raise FetchError(f"output directory must not be a symlink: {output}")
     resolved_output = output.resolve()
     if resolved_output == resolved_source or resolved_source in resolved_output.parents:
         raise FetchError("output must be outside the private source directory")

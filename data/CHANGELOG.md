@@ -107,3 +107,43 @@
   the repository dataset card.
 - Hardened manifest publishing and private fetches so their output cannot be placed inside
   the source dataset directory.
+- Made foundation seed checks reject partial additions of deferred complete-seed files
+  until the explicit complete-mode bbox gate is used.
+- Made manifest publication print the final SHA-256 needed for the dataset card and
+  reproducible evaluation records.
+- Hardened manifest checks to reject symlink dataset roots and symlink manifests before
+  reading private files.
+- Hardened seed validation against symlink roots and seed files that could redirect checks
+  outside the repository checkout.
+- Bound location promotion to the saved raw Overpass response so approved review fields
+  cannot detach from their source OSM element.
+- Made negative campus-bbox examples portable across supported Python CLI parsers by
+  using the `--bbox=...` form in tests and handoff documentation.
+- Rejected manifest-listed paths that traverse symlinked directories, keeping private
+  dataset validation inside the dataset root.
+- Applied symlink-parent checks to private dataset intake, fetch, and manifest
+  publication before any source or output path is resolved.
+- Extended symlink-parent checks to private template/workspace generation and their
+  validators, keeping all collection roots tied to the requested directory.
+- Tightened category-seed validation for empty trees, field types, prompt/question text,
+  and optional positive retention overrides.
+- Rejected normalized collisions between brand names/aliases and between synonym terms,
+  preventing ambiguous master-data lookups.
+- Extended output parent-path safety to OSM review artifacts, location promotion, private
+  summaries/reports, evaluation splits, and fixture regeneration.
+- Hardened settings domain validation and complete-seed location aliases against invalid,
+  blank, or normalized duplicate lookup values.
+- Hardened complete post and model-version validation against blank contact values,
+  overlapping hours, and malformed component/status types.
+- Hardened complete post validation to report malformed location references instead of
+  failing with an internal type error.
+- Wrapped malformed YAML seed input as a readable validation error.
+- Hardened fixture validation to report malformed JSON and non-object case entries
+  without an internal traceback.
+- Hardened shared seed/trial CSV reading to reject rows with missing or extra fields.
+- Extended malformed-row rejection to auxiliary distractor, duplicate-pair, and query CSVs.
+- Hardened private template checks to reject rows with missing or extra CSV fields.
+- Hardened annotation and trial review-log readers to reject malformed rows before
+  agreement and final-review checks.
+- Hardened location review and promotion readers to reject malformed CSV rows before
+  provenance or zone checks.

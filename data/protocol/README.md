@@ -56,6 +56,7 @@ private collection begins; keep all completed files and their Drive path outside
 After the trial is complete, run `data/scripts/check_trial_review.py` on this private
 workspace. It verifies both annotation sheets, every final review status, the disagreement
 fields, and the recorded private Drive path; it does not inspect or copy photographs.
+Malformed annotation or review-log rows with missing or extra fields are rejected.
 
 Run `data/scripts/check_freeze.py --profile trial` with the prepared dataset and this
 review workspace before publishing its manifest. The freeze gate is read-only.
@@ -75,7 +76,8 @@ non-empty directory and stages the output so a failed generation leaves no parti
 templates. Fill the CSVs and photos privately, then run `intake.py`; none of these filled
 files belong in git.
 
-Verify a blank full template before data entry:
+Verify a blank full template before data entry; the checker also rejects rows with
+missing or extra CSV fields:
 
 ```text
 python3 data/scripts/check_templates.py \
@@ -129,8 +131,9 @@ python3 data/scripts/publish_manifest.py \
   --output data/eval/manifest.json
 ```
 
-Commit `data/eval/manifest.json` together with the updated manifest hash in its dataset
-card. Use `--replace` only when publishing a reviewed new dataset version.
+The command prints the manifest SHA-256. Copy that value into the dataset card, then
+commit `data/eval/manifest.json` together with the updated manifest hash. Use `--replace`
+only when publishing a reviewed new dataset version.
 
 Run the quality gate after manifest verification:
 

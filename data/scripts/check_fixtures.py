@@ -24,8 +24,11 @@ DIGIT_RUN = re.compile(r"\d(?:[ -]?\d){12,18}")
 
 
 def load_json(path: Path) -> dict[str, Any]:
-    with path.open(encoding="utf-8") as handle:
-        value = json.load(handle)
+    try:
+        with path.open(encoding="utf-8") as handle:
+            value = json.load(handle)
+    except (OSError, json.JSONDecodeError, UnicodeError) as exc:
+        raise ValueError(f"{path}: cannot read JSON") from exc
     if not isinstance(value, dict):
         raise ValueError(f"{path}: root must be an object")
     return value
@@ -165,8 +168,14 @@ def validate_fusion(path: Path) -> list[str]:
     if not isinstance(cases, list) or not cases:
         return errors + ["fusion_cases.json: cases must be a non-empty list"]
     ids: set[str] = set()
-    for case in cases:
-        case_id = case.get("id", "<missing>")
+    for index, case in enumerate(cases, start=1):
+        if not isinstance(case, dict):
+            errors.append(f"fusion case {index}: expected an object")
+            continue
+        case_id = case.get("id", f"<case-{index}>")
+        if not isinstance(case_id, str) or not case_id.strip():
+            errors.append(f"fusion case {index}: id must be a non-empty string")
+            continue
         if case_id in ids:
             errors.append(f"fusion case {case_id}: duplicate id")
         ids.add(case_id)
@@ -190,9 +199,16 @@ def validate_masking(path: Path) -> list[str]:
     cases = document.get("cases")
     if not isinstance(cases, list) or not cases:
         return errors + ["masking_cases.json: cases must be a non-empty list"]
-    for case in cases:
-        case_id = case.get("id", "<missing>")
-        actual = mask_visible_text(case.get("input", ""))
+    for index, case in enumerate(cases, start=1):
+        if not isinstance(case, dict):
+            errors.append(f"masking case {index}: expected an object")
+            continue
+        case_id = case.get("id", f"<case-{index}>")
+        input_value = case.get("input", "")
+        if not isinstance(input_value, str):
+            errors.append(f"masking case {case_id}: input must be a string")
+            continue
+        actual = mask_visible_text(input_value)
         if actual != case.get("expected"):
             errors.append(f"masking case {case_id}: expected {case.get('expected')!r}, got {actual!r}")
     return errors
@@ -209,11 +225,21 @@ def validate_fuzzy(path: Path) -> list[str]:
     cases = document.get("cases")
     if not isinstance(cases, list) or not cases:
         return errors + ["fuzzy_cases.json: cases must be a non-empty list"]
-    for case in cases:
-        case_id = case.get("id", "<missing>")
+    for index, case in enumerate(cases, start=1):
+        if not isinstance(case, dict):
+            errors.append(f"fuzzy case {index}: expected an object")
+            continue
+        case_id = case.get("id", f"<case-{index}>")
+        if not isinstance(case.get("left"), str) or not isinstance(case.get("right"), str):
+            errors.append(f"fuzzy case {case_id}: left and right must be strings")
+            continue
+        expected_ratio = case.get("expected_ratio")
+        if not isinstance(expected_ratio, (int, float)):
+            errors.append(f"fuzzy case {case_id}: expected_ratio must be numeric")
+            continue
         ratio = token_set_ratio(case["left"], case["right"])
-        if not math.isclose(ratio, float(case["expected_ratio"]), abs_tol=1e-6):
-            errors.append(f"fuzzy case {case_id}: expected {case['expected_ratio']}, got {ratio}")
+        if not math.isclose(ratio, float(expected_ratio), abs_tol=1e-6):
+            errors.append(f"fuzzy case {case_id}: expected {expected_ratio}, got {ratio}")
         expected_hit = ratio >= threshold
         if expected_hit != case.get("expected_name_hit"):
             errors.append(f"fuzzy case {case_id}: name-hit expectation is inconsistent")
@@ -222,9 +248,15 @@ def validate_fuzzy(path: Path) -> list[str]:
 
 def validate_fixture_dir(fixture_dir: Path = FIXTURE_DIR) -> list[str]:
     errors: list[str] = []
-    errors.extend(validate_fusion(fixture_dir / "fusion_cases.json"))
-    errors.extend(validate_masking(fixture_dir / "masking_cases.json"))
-    errors.extend(validate_fuzzy(fixture_dir / "fuzzy_cases.json"))
+    for filename, validator in (
+        ("fusion_cases.json", validate_fusion),
+        ("masking_cases.json", validate_masking),
+        ("fuzzy_cases.json", validate_fuzzy),
+    ):
+        try:
+            errors.extend(validator(fixture_dir / filename))
+        except (OSError, ValueError, TypeError) as exc:
+            errors.append(str(exc))
     return errors
 
 

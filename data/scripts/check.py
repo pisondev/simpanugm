@@ -8,6 +8,7 @@ import csv
 import math
 import re
 import sys
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,10 @@ ZONE_FIELDS = ("slug", "name", "centroid_lat", "centroid_lng")
 LOCATION_FIELDS = ("slug", "name", "zone_slug", "kind", "lat", "lng", "aliases")
 WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 TIME_RE = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+DOMAIN_RE = re.compile(
+    r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
+    r"(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$"
+)
 LOCATION_KINDS = {"building", "outdoor", "facility", "transport", "parking"}
 MODEL_COMPONENTS = {
     "image_encoder",
@@ -55,8 +60,11 @@ def load_yaml(path: Path) -> Any:
         raise ValidationError(
             "PyYAML is required to validate YAML seeds; install it before running the check"
         )
-    with path.open(encoding="utf-8") as handle:
-        return yaml.safe_load(handle)
+    try:
+        with path.open(encoding="utf-8") as handle:
+            return yaml.safe_load(handle)
+    except yaml.YAMLError as exc:
+        raise ValidationError(f"{path}: invalid YAML") from exc
 
 
 def read_csv(path: Path, expected_fields: tuple[str, ...]) -> list[dict[str, str]]:
@@ -66,7 +74,13 @@ def read_csv(path: Path, expected_fields: tuple[str, ...]) -> list[dict[str, str
             raise ValidationError(
                 f"{path}: expected columns {expected_fields}, got {tuple(reader.fieldnames or ())}"
             )
-        rows = list(reader)
+        rows: list[dict[str, str]] = []
+        for line_number, row in enumerate(reader, start=2):
+            if None in row or any(value is None for value in row.values()):
+                raise ValidationError(
+                    f"{path}: row {line_number} must contain exactly {len(expected_fields)} columns"
+                )
+            rows.append(row)
     if not rows:
         raise ValidationError(f"{path}: file must contain at least one row")
     return rows
@@ -75,6 +89,8 @@ def read_csv(path: Path, expected_fields: tuple[str, ...]) -> list[dict[str, str
 def flatten_categories(document: Any) -> tuple[set[str], list[dict[str, Any]]]:
     if not isinstance(document, dict) or not isinstance(document.get("parents"), list):
         raise ValidationError("categories.yaml: expected a top-level 'parents' list")
+    if not document["parents"]:
+        raise ValidationError("categories.yaml: parents must contain at least one parent")
 
     leaves: set[str] = set()
     parents: list[dict[str, Any]] = []
@@ -88,6 +104,12 @@ def flatten_categories(document: Any) -> tuple[set[str], list[dict[str, Any]]]:
         slug = parent["slug"]
         if not isinstance(slug, str) or not SLUG_RE.fullmatch(slug):
             raise ValidationError(f"categories.yaml: invalid parent slug {slug!r}")
+        if not isinstance(parent["name"], str) or not parent["name"].strip():
+            raise ValidationError(f"categories.yaml: parent {slug!r} needs a non-empty name")
+        if type(parent["sort_order"]) is not int or parent["sort_order"] < 1:
+            raise ValidationError(
+                f"categories.yaml: parent {slug!r} sort_order must be a positive integer"
+            )
         if slug in parent_slugs:
             raise ValidationError(f"categories.yaml: duplicate parent slug {slug}")
         parent_slugs.add(slug)
@@ -105,15 +127,25 @@ def flatten_categories(document: Any) -> tuple[set[str], list[dict[str, Any]]]:
             child_slug = child["slug"]
             if not isinstance(child_slug, str) or not SLUG_RE.fullmatch(child_slug):
                 raise ValidationError(f"categories.yaml: invalid leaf slug {child_slug!r}")
+            if not isinstance(child["name"], str) or not child["name"].strip():
+                raise ValidationError(f"categories.yaml: leaf {child_slug!r} needs a non-empty name")
             if child_slug in leaves:
                 raise ValidationError(f"categories.yaml: duplicate leaf slug {child_slug}")
             leaves.add(child_slug)
-            if child["sensitivity"] not in SENSITIVITIES:
+            if not isinstance(child["sensitivity"], str) or child["sensitivity"] not in SENSITIVITIES:
                 raise ValidationError(
                     f"categories.yaml: invalid sensitivity for {child_slug}: {child['sensitivity']}"
                 )
             if not isinstance(child["clip_prompts"], list) or not child["clip_prompts"]:
                 raise ValidationError(f"categories.yaml: {child_slug} needs clip prompts")
+            if any(not isinstance(prompt, str) or not prompt.strip() for prompt in child["clip_prompts"]):
+                raise ValidationError(f"categories.yaml: {child_slug} clip prompts must be non-empty strings")
+            if "retention_days" in child and (
+                type(child["retention_days"]) is not int or child["retention_days"] < 1
+            ):
+                raise ValidationError(
+                    f"categories.yaml: {child_slug} retention_days must be a positive integer"
+                )
             questions = child["verification_questions"]
             if not isinstance(questions, list) or not questions:
                 raise ValidationError(f"categories.yaml: {child_slug} needs verification questions")
@@ -124,6 +156,17 @@ def flatten_categories(document: Any) -> tuple[set[str], list[dict[str, Any]]]:
                 for key in ("key", "question", "required", "check_hint"):
                     if key not in question:
                         raise ValidationError(f"categories.yaml: question under {child_slug} missing '{key}'")
+                if any(
+                    not isinstance(question[key], str) or not question[key].strip()
+                    for key in ("key", "question", "check_hint")
+                ):
+                    raise ValidationError(
+                        f"categories.yaml: question under {child_slug} needs non-empty text fields"
+                    )
+                if type(question["required"]) is not bool:
+                    raise ValidationError(
+                        f"categories.yaml: question under {child_slug} required must be boolean"
+                    )
                 if question["key"] in question_keys:
                     raise ValidationError(f"categories.yaml: duplicate question key under {child_slug}")
                 question_keys.add(question["key"])
@@ -176,24 +219,56 @@ def validate_compatibility(path: Path, leaves: set[str]) -> None:
             raise ValidationError(f"{path}: factor must be between 0 and 1")
 
 
+def normalize_lookup(value: str) -> str:
+    """Normalize seed lookup keys the same way user-facing matching does."""
+    return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
+
+
 def validate_brands(path: Path) -> None:
     rows = read_csv(path, ("name", "aliases"))
-    names = [row["name"] for row in rows]
-    if len(set(names)) != len(names):
-        raise ValidationError(f"{path}: brand names must be unique")
+    owners: dict[str, str] = {}
     for row in rows:
         if not row["name"].strip() or not row["aliases"].strip():
             raise ValidationError(f"{path}: brand names and aliases cannot be blank")
+        name = row["name"].strip()
+        name_key = normalize_lookup(name)
+        if not name_key:
+            raise ValidationError(f"{path}: brand names cannot be blank after normalization")
+        keys = {name_key}
+        alias_keys: set[str] = set()
+        for raw_alias in row["aliases"].split(";"):
+            alias = raw_alias.strip()
+            if not alias:
+                raise ValidationError(f"{path}: brand aliases cannot contain blank entries")
+            alias_key = normalize_lookup(alias)
+            if not alias_key:
+                raise ValidationError(f"{path}: brand aliases cannot be blank after normalization")
+            if alias_key in alias_keys:
+                raise ValidationError(f"{path}: duplicate normalized brand alias for {name}")
+            if alias_key in keys and alias_key != name_key:
+                raise ValidationError(f"{path}: duplicate normalized brand alias for {name}")
+            alias_keys.add(alias_key)
+            keys.add(alias_key)
+        for key in keys:
+            owner = owners.get(key)
+            if owner is not None and owner != name:
+                raise ValidationError(
+                    f"{path}: normalized brand key {key!r} is shared by {owner!r} and {name!r}"
+                )
+            owners[key] = name
 
 
 def validate_synonyms(path: Path) -> None:
     rows = read_csv(path, ("term", "expansion"))
-    terms = [row["term"] for row in rows]
-    if len(set(terms)) != len(terms):
-        raise ValidationError(f"{path}: synonym terms must be unique")
+    terms: dict[str, str] = {}
     for row in rows:
         if not row["term"].strip() or not row["expansion"].strip():
             raise ValidationError(f"{path}: terms and expansions cannot be blank")
+        term = row["term"].strip()
+        normalized_term = normalize_lookup(term)
+        if normalized_term in terms:
+            raise ValidationError(f"{path}: synonym terms must be unique after normalization")
+        terms[normalized_term] = term
 
 
 def validate_settings(path: Path) -> None:
@@ -228,6 +303,11 @@ def validate_settings(path: Path) -> None:
     domains = get_path("auth.allowed_email_domains")
     if not isinstance(domains, list) or not domains or any(not isinstance(item, str) for item in domains):
         raise ValidationError("settings.yaml: allowed_email_domains must be a non-empty list of strings")
+    normalized_domains = [normalize_lookup(domain) for domain in domains]
+    if any(not DOMAIN_RE.fullmatch(domain) for domain in normalized_domains):
+        raise ValidationError("settings.yaml: allowed_email_domains must contain valid domain names")
+    if len(set(normalized_domains)) != len(normalized_domains):
+        raise ValidationError("settings.yaml: allowed_email_domains must be unique")
     for key, (value_type, lower, upper) in expected.items():
         value = get_path(key)
         if type(value) is not value_type or not lower <= value <= upper:
@@ -307,10 +387,14 @@ def validate_locations(
             south, west, north, east = campus_bbox
             if not south <= lat <= north or not west <= lng <= east:
                 raise ValidationError(f"{path}: {slug} is outside the campus bbox")
-        aliases = [alias.strip() for alias in row["aliases"].split(";") if alias.strip()]
-        if len({alias.casefold() for alias in aliases}) != len(aliases):
-            raise ValidationError(f"{path}: duplicate aliases for {slug}")
-        if name.casefold() in {alias.casefold() for alias in aliases}:
+        raw_aliases = row["aliases"].split(";") if row["aliases"] else []
+        if any(not alias.strip() for alias in raw_aliases):
+            raise ValidationError(f"{path}: aliases cannot contain blank entries for {slug}")
+        aliases = [" ".join(alias.split()) for alias in raw_aliases]
+        alias_keys = [normalize_lookup(alias) for alias in aliases]
+        if len(set(alias_keys)) != len(alias_keys):
+            raise ValidationError(f"{path}: duplicate aliases after normalization for {slug}")
+        if normalize_lookup(name) in set(alias_keys):
             raise ValidationError(f"{path}: location name repeated in aliases for {slug}")
     return set(slugs)
 
@@ -342,10 +426,13 @@ def validate_posts(path: Path, location_slugs: set[str]) -> None:
         seen.add(slug)
         if not isinstance(post["name"], str) or not post["name"].strip():
             raise ValidationError(f"{path}: post {slug} needs a name")
-        if post["location_slug"] not in location_slugs:
+        location_slug = post["location_slug"]
+        if not isinstance(location_slug, str):
+            raise ValidationError(f"{path}: post {slug} location_slug must be a string")
+        if location_slug not in location_slugs:
             raise ValidationError(f"{path}: post {slug} references unknown location")
-        if not isinstance(post["phone"], str):
-            raise ValidationError(f"{path}: post {slug} phone must be a string")
+        if not isinstance(post["phone"], str) or not post["phone"].strip():
+            raise ValidationError(f"{path}: post {slug} phone must be a non-empty string")
         hours = post["opening_hours"]
         if not isinstance(hours, dict) or set(hours) != set(WEEKDAYS):
             raise ValidationError(f"{path}: post {slug} opening_hours must contain all weekdays")
@@ -353,6 +440,7 @@ def validate_posts(path: Path, location_slugs: set[str]) -> None:
             slots = hours[weekday]
             if not isinstance(slots, list):
                 raise ValidationError(f"{path}: post {slug} {weekday} must be a list")
+            previous_end: int | None = None
             for index, slot in enumerate(slots):
                 if not isinstance(slot, list) or len(slot) != 2:
                     raise ValidationError(f"{path}: post {slug} {weekday}[{index}] must be [start, end]")
@@ -360,6 +448,9 @@ def validate_posts(path: Path, location_slugs: set[str]) -> None:
                 end = parse_time(slot[1], f"{path}:{slug}.{weekday}[{index}].end")
                 if start >= end:
                     raise ValidationError(f"{path}: post {slug} {weekday}[{index}] must end after start")
+                if previous_end is not None and start < previous_end:
+                    raise ValidationError(f"{path}: post {slug} {weekday} opening hours must not overlap")
+                previous_end = end
 
 
 def validate_model_versions(path: Path) -> None:
@@ -379,13 +470,13 @@ def validate_model_versions(path: Path) -> None:
         component = version["component"]
         name = version["name"]
         status = version["status"]
-        if component not in MODEL_COMPONENTS:
+        if not isinstance(component, str) or component not in MODEL_COMPONENTS:
             raise ValidationError(f"{path}: unknown component {component!r}")
         if not isinstance(name, str) or not name.strip() or name in names:
             raise ValidationError(f"{path}: model names must be non-empty and unique")
         if not isinstance(version["identity"], dict) or not version["identity"]:
             raise ValidationError(f"{path}: {name} identity must be a non-empty mapping")
-        if status not in {"candidate", "active", "retired"}:
+        if not isinstance(status, str) or status not in {"candidate", "active", "retired"}:
             raise ValidationError(f"{path}: {name} has invalid status {status!r}")
         if component == "fusion" and not isinstance(version.get("config"), dict):
             raise ValidationError(f"{path}: fusion version {name} needs a config mapping")
@@ -433,8 +524,15 @@ def validate_seed_dir(
     campus_bbox: tuple[float, float, float, float] | None = None,
 ) -> list[str]:
     errors: list[str] = []
+    if seed_dir.is_symlink():
+        return [f"seed directory must not be a symlink: {seed_dir}"]
+    if not seed_dir.is_dir():
+        return [f"seed directory does not exist: {seed_dir}"]
     for filename in STATIC_FILES:
-        if not (seed_dir / filename).is_file():
+        path = seed_dir / filename
+        if path.is_symlink():
+            errors.append(f"seed file must not be a symlink: {filename}")
+        elif not path.is_file():
             errors.append(f"missing required seed file: {filename}")
     if errors:
         return errors
@@ -450,13 +548,28 @@ def validate_seed_dir(
         errors.append(str(exc))
 
     if require_complete:
-        missing = [filename for filename in COMPLETE_FILES if not (seed_dir / filename).is_file()]
+        missing = [
+            filename
+            for filename in COMPLETE_FILES
+            if not (seed_dir / filename).is_file() or (seed_dir / filename).is_symlink()
+        ]
         errors.extend(f"missing complete-seed file: {filename}" for filename in missing)
         if not missing:
             if campus_bbox is None:
                 errors.append("complete-seed validation requires --bbox")
             else:
                 errors.extend(validate_complete_seed_dir(seed_dir, campus_bbox))
+    else:
+        present = [
+            filename
+            for filename in COMPLETE_FILES
+            if (seed_dir / filename).is_file() or (seed_dir / filename).is_symlink()
+        ]
+        if present:
+            errors.append(
+                "complete-seed files are present; rerun with --require-complete and --bbox: "
+                + ", ".join(present)
+            )
     return errors
 
 

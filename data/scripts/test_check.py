@@ -1,5 +1,6 @@
 import csv
 import json
+import shutil
 import tempfile
 import unittest
 from argparse import ArgumentTypeError
@@ -7,7 +8,15 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
 
-from check import flatten_categories, parse_bbox as parse_seed_bbox, validate_seed_dir
+from check import (
+    ValidationError,
+    flatten_categories,
+    parse_bbox as parse_seed_bbox,
+    validate_brands,
+    validate_seed_dir,
+    validate_settings,
+    validate_synonyms,
+)
 from check_trial import FIELDS, validate_trial
 from osm_locations import (
     REVIEW_FIELDS,
@@ -28,6 +37,36 @@ SEED_DIR = ROOT / "data" / "seed"
 class SeedCheckTests(unittest.TestCase):
     def test_foundation_seed_passes(self) -> None:
         self.assertEqual(validate_seed_dir(SEED_DIR), [])
+
+    def test_seed_check_rejects_symlinked_seed_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = Path(directory) / "seed"
+            shutil.copytree(SEED_DIR, seed)
+            external = Path(directory) / "categories.yaml"
+            external.write_bytes((seed / "categories.yaml").read_bytes())
+            (seed / "categories.yaml").unlink()
+            try:
+                (seed / "categories.yaml").symlink_to(external)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = validate_seed_dir(seed)
+
+            self.assertEqual(errors, ["seed file must not be a symlink: categories.yaml"])
+
+    def test_seed_check_rejects_symlinked_seed_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = Path(directory) / "seed"
+            shutil.copytree(SEED_DIR, seed)
+            alias = Path(directory) / "seed-alias"
+            try:
+                alias.symlink_to(seed, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = validate_seed_dir(alias)
+
+            self.assertEqual(errors, [f"seed directory must not be a symlink: {alias}"])
 
     def test_complete_mode_keeps_deferred_files_explicit(self) -> None:
         errors = validate_seed_dir(SEED_DIR, require_complete=True)
@@ -55,6 +94,130 @@ class SeedCheckTests(unittest.TestCase):
         self.assertEqual(len(leaves), 36)
         self.assertIn("ktm", leaves)
         self.assertIn("tumbler", leaves)
+
+    def test_categories_reject_empty_parent_list(self) -> None:
+        with self.assertRaisesRegex(ValidationError, "parents must contain at least one parent"):
+            flatten_categories({"parents": []})
+
+    def test_categories_reject_non_text_prompts_and_question_fields(self) -> None:
+        document = {
+            "parents": [
+                {
+                    "slug": "elektronik",
+                    "name": "Elektronik",
+                    "sort_order": 1,
+                    "children": [
+                        {
+                            "slug": "ponsel",
+                            "name": "Ponsel",
+                            "sensitivity": "valuable",
+                            "clip_prompts": [""],
+                            "verification_questions": [
+                                {
+                                    "key": "phone_model",
+                                    "question": "Sebutkan model.",
+                                    "required": True,
+                                    "check_hint": "Cocok.",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
+        with self.assertRaisesRegex(ValidationError, "clip prompts must be non-empty strings"):
+            flatten_categories(document)
+
+        document["parents"][0]["children"][0]["clip_prompts"] = ["a phone"]
+        document["parents"][0]["children"][0]["verification_questions"][0]["required"] = "true"
+        with self.assertRaisesRegex(ValidationError, "required must be boolean"):
+            flatten_categories(document)
+
+    def test_categories_reject_invalid_retention_days(self) -> None:
+        document = {
+            "parents": [
+                {
+                    "slug": "identitas",
+                    "name": "Identitas",
+                    "sort_order": 1,
+                    "children": [
+                        {
+                            "slug": "ktm",
+                            "name": "KTM",
+                            "sensitivity": "identity",
+                            "retention_days": 0,
+                            "clip_prompts": ["a student card"],
+                            "verification_questions": [
+                                {
+                                    "key": "identity_name",
+                                    "question": "Sebutkan nama.",
+                                    "required": True,
+                                    "check_hint": "Sesuai.",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
+        with self.assertRaisesRegex(ValidationError, "retention_days must be a positive integer"):
+            flatten_categories(document)
+
+    def test_brand_aliases_reject_normalized_collisions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "brands.csv"
+            path.write_text(
+                "name,aliases\nApple,apple;phone\nOther,OTHER; PHONE \n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValidationError, "normalized brand key"):
+                validate_brands(path)
+
+    def test_synonym_terms_reject_case_and_spacing_collisions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "synonyms.csv"
+            path.write_text(
+                "term,expansion\nHP,ponsel\nhp  ,handphone\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValidationError, "unique after normalization"):
+                validate_synonyms(path)
+
+    def test_settings_reject_invalid_email_domain(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "settings.yaml"
+            path.write_text(
+                (SEED_DIR / "settings.yaml").read_text(encoding="utf-8").replace(
+                    "mail.ugm.ac.id", "mail_ugm.ac.id"
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValidationError, "valid domain names"):
+                validate_settings(path)
+
+    def test_seed_check_reports_invalid_yaml(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = Path(directory) / "seed"
+            shutil.copytree(SEED_DIR, seed)
+            (seed / "settings.yaml").write_text("auth: [\n", encoding="utf-8")
+
+            errors = validate_seed_dir(seed)
+
+            self.assertTrue(any("settings.yaml: invalid YAML" in error for error in errors))
+
+    def test_csv_reader_rejects_short_and_extra_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            short_path = Path(directory) / "short.csv"
+            short_path.write_text("name,hex,sort_order\nblack,#000000\n", encoding="utf-8")
+            extra_path = Path(directory) / "extra.csv"
+            extra_path.write_text("name,hex,sort_order\nblack,#000000,1,unexpected\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValidationError, "row 2 must contain exactly 3 columns"):
+                import check
+
+                check.read_csv(short_path, ("name", "hex", "sort_order"))
+            with self.assertRaisesRegex(ValidationError, "row 2 must contain exactly 3 columns"):
+                check.read_csv(extra_path, ("name", "hex", "sort_order"))
 
 
 class OsmLocationTests(unittest.TestCase):
@@ -104,11 +267,39 @@ class OsmLocationTests(unittest.TestCase):
                     write_rows(output, [])
             self.assertEqual(output.read_text(encoding="utf-8"), "keep\n")
 
+    def test_review_csv_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-review"
+            real_parent.mkdir()
+            alias_parent = root / "review-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(OSError):
+                write_rows(alias_parent / "locations.csv", [])
+
     def test_raw_response_is_written_as_json(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "overpass.json"
             write_raw_response(output, {"elements": [{"type": "node", "id": 1}]})
             self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["elements"][0]["id"], 1)
+
+    def test_raw_response_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-review"
+            real_parent.mkdir()
+            alias_parent = root / "review-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(OSError):
+                write_raw_response(alias_parent / "overpass.json", {"elements": []})
 
     def test_review_rows_ignore_duplicate_osm_elements(self) -> None:
         element = {

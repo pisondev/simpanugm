@@ -32,6 +32,22 @@ class FixtureImageTests(unittest.TestCase):
             self.assertEqual([path.name for path in created], list(ASSET_NAMES))
             self.assertEqual(sorted(path.name for path in output.iterdir()), sorted(ASSET_NAMES))
 
+    def test_generator_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-images"
+            real_parent.mkdir()
+            alias_parent = root / "images-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(OSError):
+                create_fixture_images(alias_parent / "images")
+
+            self.assertFalse((real_parent / "images").exists())
+
     def test_committed_images_match_reviewed_hashes(self) -> None:
         self.assertEqual(check_fixture_images(FIXTURE_DIR), [])
 

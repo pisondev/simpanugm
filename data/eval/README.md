@@ -27,7 +27,7 @@ first, so a failed intake does not leave a partial dataset directory. The manife
 requires normalized image paths, approved file
 kinds, valid hashes, images at least 1080 px on the short side, unique image content,
 and cross-item perceptual-hash distance greater than four bits. It also rejects symlinks,
-including symlink directories. Run
+including the dataset directory, manifest, and symlink directories. Run
 `data/scripts/check_manifest.py` after intake and before a dataset freeze.
 
 After the reviewed manifest is published, fetch the private files from a locally synced
@@ -47,8 +47,8 @@ local-only; Drive authentication and synchronization remain outside the reposito
 
 After the private review and v1 freeze, publish only that validated manifest with
 `data/scripts/publish_manifest.py`. The command copies no images, descriptions, or other
-private files into the repository and refuses to replace an existing manifest unless
-`--replace` is supplied explicitly.
+private files into the repository, prints the manifest SHA-256 for the dataset card, and
+refuses to replace an existing manifest unless `--replace` is supplied explicitly.
 
 The quality gate also verifies that each item has at least two finder photos, that the
 owner-photo label agrees with the presence of an owner photo, and that normalized

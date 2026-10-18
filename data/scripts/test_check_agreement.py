@@ -77,6 +77,23 @@ class AgreementTests(unittest.TestCase):
             with self.assertRaises(AgreementError):
                 read_annotations(path, SEED_DIR, expected_count=4)
 
+    def test_reader_rejects_short_and_extra_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            short_path = Path(directory) / "short.csv"
+            short_path.write_text(
+                "item_id,leaf_category,distinctiveness\nI001,botol-minum\n",
+                encoding="utf-8",
+            )
+            extra_path = Path(directory) / "extra.csv"
+            extra_path.write_text(
+                "item_id,leaf_category,distinctiveness\nI001,botol-minum,generic,unexpected\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(AgreementError, "row 2 has missing or extra fields"):
+                read_annotations(short_path, SEED_DIR, expected_count=1)
+            with self.assertRaisesRegex(AgreementError, "row 2 has missing or extra fields"):
+                read_annotations(extra_path, SEED_DIR, expected_count=1)
+
     def test_sheets_must_have_same_ids(self) -> None:
         first = {row["item_id"]: row for row in self.rows()}
         second = {row["item_id"]: row for row in self.rows()[:-1]}
@@ -89,6 +106,20 @@ class AgreementTests(unittest.TestCase):
             output = Path(directory) / "agreement.md"
             write_report(output, render_report(summarize_agreement(first, first)))
             self.assertIn("Label agreement report", output.read_text(encoding="utf-8"))
+
+    def test_report_writer_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-report"
+            real_parent.mkdir()
+            alias_parent = root / "report-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(OSError):
+                write_report(alias_parent / "agreement.md", "report\n")
 
 
 if __name__ == "__main__":

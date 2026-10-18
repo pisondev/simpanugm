@@ -4,7 +4,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from promote_locations import LOCATION_FIELDS, promote_rows, write_locations
+from check import ValidationError
+from osm_locations import REVIEW_FIELDS
+from promote_locations import read_review
+from promote_locations import LOCATION_FIELDS, main, promote_rows, write_locations
 
 
 class LocationPromotionTests(unittest.TestCase):
@@ -111,6 +114,50 @@ class LocationPromotionTests(unittest.TestCase):
                 with self.assertRaises(OSError):
                     write_locations(output, [])
             self.assertEqual(output.read_text(encoding="utf-8"), "keep\n")
+
+    def test_location_writer_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-seed"
+            real_parent.mkdir()
+            alias_parent = root / "seed-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(OSError):
+                write_locations(alias_parent / "locations.csv", [])
+
+    def test_cli_blocks_promotion_when_raw_provenance_drifted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with patch("promote_locations.validate_provenance", return_value=["source drift"]):
+                result = main(
+                    [
+                        "--input", str(root / "review.csv"),
+                        "--raw", str(root / "overpass.json"),
+                        "--zones", str(root / "zones.csv"),
+                        "--output", str(root / "locations.csv"),
+                        "--bbox=-7.80,110.35,-7.74,110.41",
+                    ]
+                )
+
+            self.assertEqual(result, 1)
+            self.assertFalse((root / "locations.csv").exists())
+
+    def test_review_reader_rejects_short_and_extra_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            short_path = root / "short.csv"
+            short_path.write_text(",".join(REVIEW_FIELDS) + "\nway,12\n", encoding="utf-8")
+            extra_path = root / "extra.csv"
+            extra_path.write_text(",".join(REVIEW_FIELDS) + "\n" + ",".join(["way", "12"] + [""] * len(REVIEW_FIELDS)) + "\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValidationError, "row 2 has missing or extra fields"):
+                read_review(short_path)
+            with self.assertRaisesRegex(ValidationError, "row 2 has missing or extra fields"):
+                read_review(extra_path)
 
 
 if __name__ == "__main__":

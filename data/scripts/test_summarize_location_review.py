@@ -48,6 +48,20 @@ class LocationReviewSummaryTests(unittest.TestCase):
             write_summary(output, render_summary(summarize_rows(read_review(review))))
             self.assertIn("Location review summary", output.read_text(encoding="utf-8"))
 
+    def test_summary_writer_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-summary"
+            real_parent.mkdir()
+            alias_parent = root / "summary-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(OSError):
+                write_summary(alias_parent / "summary.md", "summary\n")
+
 
 if __name__ == "__main__":
     unittest.main()

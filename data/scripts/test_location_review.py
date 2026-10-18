@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from check_location_review import validate_review
+from check_location_review import validate_provenance, validate_review
 from osm_locations import REVIEW_FIELDS, review_rows, write_raw_response, write_rows
 
 
@@ -68,6 +68,36 @@ class LocationReviewTests(unittest.TestCase):
             errors = validate_review(raw_path, review_path)
             self.assertTrue(any("must remain needs_review" in error for error in errors))
             self.assertTrue(any("zone_slug and aliases must remain empty" in error for error in errors))
+
+    def test_provenance_allows_review_fields_after_human_review(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            raw_path, review_path = self.write_bundle(directory)
+            with review_path.open(newline="", encoding="utf-8") as handle:
+                rows = list(csv.DictReader(handle))
+            rows[0]["zone_slug"] = "pusat"
+            rows[0]["aliases"] = "gedung sintetis"
+            rows[0]["review_status"] = "approved"
+            with review_path.open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.DictWriter(handle, fieldnames=REVIEW_FIELDS)
+                writer.writeheader()
+                writer.writerows(rows)
+
+            self.assertEqual(validate_provenance(raw_path, review_path), [])
+
+    def test_review_rejects_short_and_extra_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            raw_path, review_path = self.write_bundle(directory)
+            header = review_path.read_text(encoding="utf-8").splitlines()[0]
+            review_path.write_text(f"{header}\nway,42\n", encoding="utf-8")
+            errors = validate_review(raw_path, review_path)
+            self.assertTrue(any("missing or extra fields" in error for error in errors))
+
+            review_path.write_text(
+                f"{header}\n" + ",".join(["way", "42"] + [""] * len(REVIEW_FIELDS)) + "\n",
+                encoding="utf-8",
+            )
+            errors = validate_review(raw_path, review_path)
+            self.assertTrue(any("missing or extra fields" in error for error in errors))
 
 
 if __name__ == "__main__":

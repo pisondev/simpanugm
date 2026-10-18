@@ -12,7 +12,9 @@ import tempfile
 from pathlib import Path
 
 from check import SLUG_RE, ValidationError, read_csv
+from check_location_review import validate_provenance
 from osm_locations import REVIEW_FIELDS, parse_bbox
+from path_safety import first_symlink_component
 
 
 LOCATION_FIELDS = ("slug", "name", "zone_slug", "kind", "lat", "lng", "aliases")
@@ -27,7 +29,11 @@ def read_review(path: Path) -> list[dict[str, str]]:
         reader = csv.DictReader(handle)
         if tuple(reader.fieldnames or ()) != REVIEW_FIELDS:
             raise ValidationError(f"{path}: expected columns {REVIEW_FIELDS}")
-        rows = list(reader)
+        rows: list[dict[str, str]] = []
+        for line_number, row in enumerate(reader, start=2):
+            if None in row or any(value is None for value in row.values()):
+                raise ValidationError(f"{path}: row {line_number} has missing or extra fields")
+            rows.append(row)
     if not rows:
         raise ValidationError(f"{path}: review file must contain at least one row")
     return rows
@@ -137,6 +143,9 @@ def promote_rows(
 def write_locations(path: Path, rows: list[dict[str, str]]) -> None:
     if path.is_symlink():
         raise OSError(f"output must not be a symlink: {path}")
+    parent_symlink = first_symlink_component(path.parent)
+    if parent_symlink is not None:
+        raise OSError(f"output path must not contain a symlink: {parent_symlink}")
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path: Path | None = None
     try:
@@ -162,6 +171,7 @@ def write_locations(path: Path, rows: list[dict[str, str]]) -> None:
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True, help="human-reviewed locations CSV")
+    parser.add_argument("--raw", type=Path, required=True, help="saved raw Overpass JSON used for provenance")
     parser.add_argument("--zones", type=Path, required=True, help="approved zones.csv")
     parser.add_argument("--output", type=Path, required=True, help="locations.csv to write")
     parser.add_argument("--bbox", type=parse_bbox, required=True, help="south,west,north,east")
@@ -171,6 +181,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     try:
+        provenance_errors = validate_provenance(args.raw, args.input, args.bbox)
+        if provenance_errors:
+            for error in provenance_errors:
+                print(f"ERROR: {error}", file=sys.stderr)
+            return 1
         rows = read_review(args.input)
         zones = read_zone_slugs(args.zones)
         promoted, errors = promote_rows(rows, zones, args.bbox)

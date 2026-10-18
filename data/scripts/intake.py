@@ -14,6 +14,8 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from path_safety import first_symlink_component
+
 try:
     from PIL import Image
 except ModuleNotFoundError:  # pragma: no cover - exercised by the CLI error path
@@ -129,9 +131,19 @@ def manifest_entry(path: Path, root: Path, kind: str) -> dict[str, Any]:
 
 
 def intake_dataset(source: Path, destination: Path, version: str) -> Path:
-    source = source.resolve()
+    if source.is_symlink():
+        raise IntakeError(f"source directory must not be a symlink: {source}")
+    source_parent_symlink = first_symlink_component(source.parent)
+    if source_parent_symlink is not None:
+        raise IntakeError(f"source path must not contain a symlink: {source_parent_symlink}")
     if destination.is_symlink():
         raise IntakeError(f"destination must not be a symlink: {destination}")
+    destination_parent_symlink = first_symlink_component(destination.parent)
+    if destination_parent_symlink is not None:
+        raise IntakeError(
+            f"destination path must not contain a symlink: {destination_parent_symlink}"
+        )
+    source = source.resolve()
     destination = destination.resolve()
     if not source.is_dir():
         raise IntakeError(f"source directory does not exist: {source}")

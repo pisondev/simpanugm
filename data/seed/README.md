@@ -23,20 +23,23 @@ rows can become `locations.csv`:
 ```text
 python3 data/scripts/promote_locations.py \
   --input /private/simpanugm-locations/locations-review.csv \
+  --raw /private/simpanugm-locations/overpass.json \
   --zones data/seed/zones.csv \
   --output /private/simpanugm-locations/locations.csv \
-  --bbox SOUTH,WEST,NORTH,EAST
+  --bbox=SOUTH,WEST,NORTH,EAST
 ```
 
 The download retries transient Overpass errors twice by default; use `--retries 0` for a
 single request or `--timeout` to adjust the per-request limit.
 
 Run `data/scripts/check_location_review.py` against the saved response and generated CSV
-before starting the manual review. It rejects changed source fields and any premature
-zone, alias, or approval values.
+before starting the manual review. It rejects changed source fields, malformed CSV rows,
+and any premature zone, alias, or approval values.
 
-The promotion command skips explicitly rejected rows and refuses any row still marked
-`needs_review`, outside the bbox, or assigned to an unknown zone. The promoter also
+The promotion command requires the saved raw Overpass response and rechecks every source
+field before applying human-reviewed status, aliases, and zones. It skips explicitly
+rejected rows and refuses any row still marked `needs_review`, outside the bbox, or
+assigned to an unknown zone. The promoter also
 requires valid positive OSM provenance and at least one approved row, so a fully
 rejected review cannot produce an empty location seed. Posts need the
 security-unit pilot list, and model versions must match the inference service lock file.
@@ -50,6 +53,11 @@ one-active-version-per-component rule instead of checking file presence only.
 The complete handoff sequence and evidence checklist is in
 [`data/protocol/seed-review-checklist.md`](../protocol/seed-review-checklist.md).
 
+The foundation check rejects a partial addition of any deferred file. Once the first
+reviewed complete-seed file is available, run the complete check with all four files and
+the agreed campus bbox; do not rely on foundation mode for an incomplete handoff. Seed
+roots and files must be regular paths, not symlinks.
+
 Run the foundation check from the repository root:
 
 ```text
@@ -61,5 +69,5 @@ Run the future full-seed check with the agreed campus bbox from the location rev
 ```text
 python3 data/scripts/check.py \
   --require-complete \
-  --bbox SOUTH,WEST,NORTH,EAST
+  --bbox=SOUTH,WEST,NORTH,EAST
 ```

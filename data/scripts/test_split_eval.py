@@ -84,6 +84,20 @@ class EvaluationSplitTests(unittest.TestCase):
                     write_split(output, [])
             self.assertEqual(output.read_text(encoding="utf-8"), "keep\n")
 
+    def test_split_writer_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_parent = root / "real-splits"
+            real_parent.mkdir()
+            alias_parent = root / "split-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(OSError):
+                write_split(alias_parent / "splits.csv", [])
+
     def test_verifier_rejects_duplicate_assignment(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             labels_path = self.labels_file(directory)

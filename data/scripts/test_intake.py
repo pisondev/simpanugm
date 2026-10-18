@@ -88,6 +88,23 @@ class IntakeTests(unittest.TestCase):
             with self.assertRaises(IntakeError):
                 intake_dataset(source, output, "trial-1")
 
+    def test_intake_rejects_symlinked_destination_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = self.create_source(directory)
+            real_parent = root / "real-output"
+            real_parent.mkdir()
+            alias_parent = root / "output-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            with self.assertRaises(IntakeError):
+                intake_dataset(source, alias_parent / "prepared", "trial-1")
+
+            self.assertFalse((real_parent / "prepared").exists())
+
     def test_manifest_rejects_image_below_minimum_short_side(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = self.create_source(directory)
@@ -240,6 +257,86 @@ class IntakeTests(unittest.TestCase):
                 self.skipTest(f"symlink is unavailable: {exc}")
             errors = check_manifest(output)
             self.assertIn("unlisted symlink: images/I002", errors)
+
+    def test_manifest_rejects_listed_path_through_symlink_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            external = Path(directory) / "external-images"
+            external.mkdir()
+            shutil.copyfile(
+                output / "images" / "I001" / "finder_1.jpg",
+                external / "finder_1.jpg",
+            )
+            item_directory = output / "images" / "I001"
+            shutil.rmtree(item_directory)
+            try:
+                item_directory.symlink_to(external, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = check_manifest(output)
+
+            self.assertIn(
+                "manifest path must not contain a symlink: images/I001/finder_1.jpg",
+                errors,
+            )
+
+    def test_manifest_rejects_symlink_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            external = Path(directory) / "manifest-copy.json"
+            external.write_bytes((output / "manifest.json").read_bytes())
+            (output / "manifest.json").unlink()
+            try:
+                (output / "manifest.json").symlink_to(external)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = check_manifest(output)
+
+            self.assertEqual(errors, ["manifest.json must not be a symlink"])
+
+    def test_manifest_rejects_symlink_dataset_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.create_source(directory)
+            output = Path(directory) / "prepared"
+            intake_dataset(source, output, "trial-1")
+            alias = Path(directory) / "prepared-alias"
+            try:
+                alias.symlink_to(output, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = check_manifest(alias)
+
+            self.assertEqual(errors, [f"dataset directory must not be a symlink: {alias}"])
+
+    def test_manifest_rejects_dataset_path_through_symlink_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = self.create_source(directory)
+            output = root / "prepared"
+            intake_dataset(source, output, "trial-1")
+            real_parent = root / "real-datasets"
+            real_parent.mkdir()
+            dataset_copy = real_parent / "prepared"
+            shutil.copytree(output, dataset_copy)
+            alias_parent = root / "dataset-alias"
+            try:
+                alias_parent.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink is unavailable: {exc}")
+
+            errors = check_manifest(alias_parent / "prepared")
+
+            self.assertIn(
+                f"dataset path must not contain a symlink: {alias_parent}",
+                errors,
+            )
 
     def test_manifest_detects_tampered_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

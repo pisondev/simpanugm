@@ -19,13 +19,19 @@ def read_review(path: Path) -> list[dict[str, str]]:
         reader = csv.DictReader(handle)
         if tuple(reader.fieldnames or ()) != REVIEW_FIELDS:
             raise ValueError(f"review CSV must have columns {REVIEW_FIELDS}")
-        return list(reader)
+        rows: list[dict[str, str]] = []
+        for line_number, row in enumerate(reader, start=2):
+            if None in row or any(value is None for value in row.values()):
+                raise ValueError(f"review CSV row {line_number} has missing or extra fields")
+            rows.append(row)
+        return rows
 
 
 def validate_review(
     raw_path: Path,
     review_path: Path,
     bbox: tuple[float, float, float, float] | None = None,
+    require_pending: bool = True,
 ) -> list[str]:
     try:
         with raw_path.open(encoding="utf-8") as handle:
@@ -54,10 +60,11 @@ def validate_review(
         if row["slug"] in seen_slugs:
             errors.append(f"duplicate review slug: {row['slug']}")
         seen_slugs.add(row["slug"])
-        if row["review_status"] != "needs_review":
-            errors.append(f"{row['slug']}: review_status must remain needs_review")
-        if row["zone_slug"] or row["aliases"]:
-            errors.append(f"{row['slug']}: zone_slug and aliases must remain empty before review")
+        if require_pending:
+            if row["review_status"] != "needs_review":
+                errors.append(f"{row['slug']}: review_status must remain needs_review")
+            if row["zone_slug"] or row["aliases"]:
+                errors.append(f"{row['slug']}: zone_slug and aliases must remain empty before review")
         expected = expected_by_key.get(key)
         if expected is None:
             errors.append(f"{row['slug']}: OSM element {key[0]}/{key[1]} is not in the raw response")
@@ -83,6 +90,15 @@ def validate_review(
     for key in sorted(expected_keys - actual_keys):
         errors.append(f"missing review OSM element: {key[0]}/{key[1]}")
     return errors
+
+
+def validate_provenance(
+    raw_path: Path,
+    review_path: Path,
+    bbox: tuple[float, float, float, float] | None = None,
+) -> list[str]:
+    """Validate OSM-derived fields while allowing human review fields to change."""
+    return validate_review(raw_path, review_path, bbox, require_pending=False)
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

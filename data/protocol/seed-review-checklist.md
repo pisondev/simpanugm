@@ -18,7 +18,7 @@ placeholders and do not include participant data.
   ```text
   python3 data/scripts/osm_locations.py \
     --download \
-    --bbox SOUTH,WEST,NORTH,EAST \
+    --bbox=SOUTH,WEST,NORTH,EAST \
     --raw-output /private/simpanugm-locations/overpass.json \
     --output /private/simpanugm-locations/locations-review.csv
   ```
@@ -28,7 +28,7 @@ placeholders and do not include participant data.
   ```text
   python3 data/scripts/osm_locations.py \
     --input /private/simpanugm-locations/overpass.json \
-    --bbox SOUTH,WEST,NORTH,EAST \
+    --bbox=SOUTH,WEST,NORTH,EAST \
     --output /private/simpanugm-locations/locations-review.csv
   ```
 
@@ -38,7 +38,7 @@ placeholders and do not include participant data.
   python3 data/scripts/check_location_review.py \
     --raw /private/simpanugm-locations/overpass.json \
     --review /private/simpanugm-locations/locations-review.csv \
-    --bbox SOUTH,WEST,NORTH,EAST
+    --bbox=SOUTH,WEST,NORTH,EAST
   ```
 
 - [ ] Generate a private counts-only summary to plan the review; do not commit the
@@ -57,9 +57,10 @@ placeholders and do not include participant data.
   ```text
   python3 data/scripts/promote_locations.py \
     --input /private/simpanugm-locations/locations-review.csv \
+    --raw /private/simpanugm-locations/overpass.json \
     --zones data/seed/zones.csv \
     --output /private/simpanugm-locations/locations.csv \
-    --bbox SOUTH,WEST,NORTH,EAST
+    --bbox=SOUTH,WEST,NORTH,EAST
   ```
 
 - [ ] Copy the reviewed output to `data/seed/locations.csv` only after a second-person
@@ -93,7 +94,7 @@ Run from the repository root after all four files are present:
 ```text
 python3 data/scripts/check.py \
   --require-complete \
-  --bbox SOUTH,WEST,NORTH,EAST
+  --bbox=SOUTH,WEST,NORTH,EAST
 python3 -m unittest discover -s data/scripts -p 'test_*.py'
 ```
 

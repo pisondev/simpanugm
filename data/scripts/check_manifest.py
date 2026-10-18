@@ -13,6 +13,7 @@ from statistics import median
 from typing import Any
 
 from intake import IMAGE_RE, ITEM_RE, METADATA_FILES, canonical_image_path, sha256_file
+from path_safety import first_symlink_component
 
 try:
     from PIL import Image
@@ -67,7 +68,16 @@ def perceptual_hash(image: Any) -> int:
 
 def check_manifest(dataset_dir: Path) -> list[str]:
     errors: list[str] = []
+    if dataset_dir.is_symlink():
+        return [f"dataset directory must not be a symlink: {dataset_dir}"]
+    parent_symlink = first_symlink_component(dataset_dir.parent)
+    if parent_symlink is not None:
+        return [f"dataset path must not contain a symlink: {parent_symlink}"]
+    if not dataset_dir.is_dir():
+        return [f"dataset directory does not exist: {dataset_dir}"]
     manifest_path = dataset_dir / "manifest.json"
+    if manifest_path.is_symlink():
+        return ["manifest.json must not be a symlink"]
     if not manifest_path.is_file():
         return [f"missing manifest: {manifest_path}"]
     try:
@@ -116,6 +126,9 @@ def check_manifest(dataset_dir: Path) -> list[str]:
             errors.append(f"duplicate manifest path: {relative}")
             continue
         listed.add(relative)
+        if first_symlink_component((dataset_dir / path_value).parent) is not None:
+            errors.append(f"manifest path must not contain a symlink: {relative}")
+            continue
         kind = entry.get("kind")
         if kind not in ALLOWED_KINDS:
             errors.append(f"invalid manifest kind for {relative}: {kind!r}")

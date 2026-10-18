@@ -12,6 +12,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
+from path_safety import first_symlink_component
+
 
 ASSET_NAMES = ("swatch-biru.png", "swatch-merah.png", "desk-gps.jpg", "mock-card.png")
 
@@ -64,6 +66,9 @@ def _save_desk(path: Path) -> None:
 def create_fixture_images(output: Path) -> list[Path]:
     if output.is_symlink():
         raise OSError(f"output must not be a symlink: {output}")
+    parent_symlink = first_symlink_component(output.parent)
+    if parent_symlink is not None:
+        raise OSError(f"output path must not contain a symlink: {parent_symlink}")
     output.mkdir(parents=True, exist_ok=True)
     created: list[Path] = []
     with tempfile.TemporaryDirectory(prefix=".fixture-images-", dir=output.parent) as staging_name:

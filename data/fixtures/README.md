@@ -20,7 +20,8 @@ python3 data/scripts/check_fixtures.py
 ```
 
 The validator is intentionally independent of the application services. It catches drift
-inside the shared data before the Go and Python contract tests consume it.
+inside the shared data before the Go and Python contract tests consume it, and reports
+malformed JSON or non-object cases as readable validation errors.
 
 Recreate the image assets after a deliberate fixture update with:
 

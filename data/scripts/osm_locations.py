@@ -18,6 +18,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from path_safety import first_symlink_component
+
 
 REVIEW_FIELDS = (
     "slug",
@@ -203,6 +205,9 @@ def write_raw_response(path: Path, document: dict[str, Any]) -> None:
     """Persist the source response atomically for a later human review."""
     if path.is_symlink():
         raise OSError(f"output must not be a symlink: {path}")
+    parent_symlink = first_symlink_component(path.parent)
+    if parent_symlink is not None:
+        raise OSError(f"output path must not contain a symlink: {parent_symlink}")
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path: Path | None = None
     try:
@@ -226,6 +231,9 @@ def write_raw_response(path: Path, document: dict[str, Any]) -> None:
 def write_rows(path: Path, rows: Iterable[dict[str, str]]) -> None:
     if path.is_symlink():
         raise OSError(f"output must not be a symlink: {path}")
+    parent_symlink = first_symlink_component(path.parent)
+    if parent_symlink is not None:
+        raise OSError(f"output path must not contain a symlink: {parent_symlink}")
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path: Path | None = None
     try:

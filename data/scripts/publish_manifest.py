@@ -10,6 +10,8 @@ import tempfile
 from pathlib import Path
 
 from check_manifest import check_manifest
+from intake import sha256_file
+from path_safety import first_symlink_component
 
 
 class ManifestPublishError(ValueError):
@@ -17,6 +19,13 @@ class ManifestPublishError(ValueError):
 
 
 def publish_manifest(dataset_dir: Path, output: Path, replace: bool = False) -> Path:
+    if dataset_dir.is_symlink():
+        raise ManifestPublishError(f"dataset directory must not be a symlink: {dataset_dir}")
+    dataset_parent_symlink = first_symlink_component(dataset_dir.parent)
+    if dataset_parent_symlink is not None:
+        raise ManifestPublishError(
+            f"dataset path must not contain a symlink: {dataset_parent_symlink}"
+        )
     dataset_dir = dataset_dir.resolve()
     if not dataset_dir.is_dir():
         raise ManifestPublishError(f"dataset directory does not exist: {dataset_dir}")
@@ -28,6 +37,11 @@ def publish_manifest(dataset_dir: Path, output: Path, replace: bool = False) -> 
     source = dataset_dir / "manifest.json"
     if output.is_symlink():
         raise ManifestPublishError(f"output must not be a symlink: {output}")
+    output_parent_symlink = first_symlink_component(output.parent)
+    if output_parent_symlink is not None:
+        raise ManifestPublishError(
+            f"output path must not contain a symlink: {output_parent_symlink}"
+        )
     output = output.resolve()
     if output == source or source in output.parents:
         raise ManifestPublishError("output must be outside the private dataset directory")
@@ -75,6 +89,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
     print(f"Published manifest: {output}")
+    print(f"Manifest SHA-256: {sha256_file(output)}")
     return 0
 
 
