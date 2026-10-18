@@ -1,5 +1,5 @@
 # build context is the repository root, so the seed files can be copied in
-FROM golang:1.26-bookworm AS build
+FROM golang:1.27-bookworm AS build
 WORKDIR /src/api
 COPY api/go.mod api/go.sum ./
 RUN go mod download
