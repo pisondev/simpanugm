@@ -37,7 +37,7 @@ An added dependency needs a line in this table in the same pull request.
 | `golang.org/x/crypto/argon2` | password hashing | NFR-SEC-03 |
 | `golang.org/x/time/rate` | token bucket rate limiting | in process limits, enough for one instance. A PostgreSQL backed limiter replaces it if `api` is scaled out |
 | `github.com/disintegration/imaging` | resize, orientation, blur | pure Go |
-| `github.com/gen2brain/webp` | WebP encode and decode | libwebp through WebAssembly, no cgo, keeps the image static |
+| `github.com/gen2brain/webp` | WebP encode and decode | libwebp through WebAssembly, no cgo, keeps the image static. Built with the `nodynamic` tag, otherwise purego links libc |
 | `github.com/corona10/goimagehash` | perceptual hash | FR-MEDIA-05 |
 | `github.com/aws/aws-sdk-go-v2/service/s3` | S3 storage driver | standard client for any S3 compatible store (ADR-0007) |
 | `github.com/wneessen/go-mail` | SMTP | maintained, TLS and STARTTLS, multipart |

@@ -5,7 +5,8 @@ COPY api/go.mod api/go.sum ./
 RUN go mod download
 COPY api/ ./
 ARG VERSION=dev
-RUN CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/simpan ./cmd/simpan \
+# nodynamic keeps gen2brain/webp on its WASM encoder, the purego path would link libc and break distroless/static
+RUN CGO_ENABLED=0 go build -tags nodynamic -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/simpan ./cmd/simpan \
  && mkdir -p /out/media
 
 FROM gcr.io/distroless/static-debian12:nonroot

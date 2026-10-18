@@ -1,0 +1,21 @@
+# the api image builds from the repository root so it can copy data/seed and deploy/dev-seed
+.git
+.github
+docs
+web
+ml
+data/raw
+data/interim
+data/processed
+data/eval
+data/scripts
+deploy/env
+deploy/volumes
+api/bin
+api/tmp
+api/var
+**/*.test
+**/coverage.*
+**/node_modules
+**/.venv
+**/__pycache__

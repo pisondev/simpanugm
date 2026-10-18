@@ -60,3 +60,7 @@ exercise the real router over HTTP as the application role.
 
 The image is built from the repository root so the seed files can be copied in:
 `docker build -f api/Dockerfile .`
+
+Build and test with `-tags nodynamic`. Without it `gen2brain/webp` links libc through
+purego to look for a system libwebp, the binary becomes dynamic and fails to start on
+`distroless/static`. With it every environment uses the same WebAssembly encoder.
