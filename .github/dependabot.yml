@@ -34,10 +34,19 @@ updates:
     commit-message:
       prefix: chore
 
+  # base images follow the runtime the code is tested with: go.mod toolchain, Node LTS, the Python of pyproject.toml
+  # a runtime upgrade is a deliberate change across code, CI and docs, so only patch and digest updates come here
   - package-ecosystem: docker
     directories: [/api, /web, /ml]
     schedule:
       interval: monthly
+    ignore:
+      - dependency-name: golang
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: python
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: node
+        update-types: [version-update:semver-major]
     commit-message:
       prefix: chore
 

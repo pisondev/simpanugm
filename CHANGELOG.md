@@ -12,6 +12,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Changed
 
+- Dependabot proposes only patch and digest updates for the Go, Python and Node base images. A runtime upgrade changes code, CI and docs together, so it is made by hand.
 - The data model lists the `custody_keep` and `close_note` columns of found reports that the migrations already carry.
 - `GET /api/v1/posts` is public, so the help page lists posts and opening hours before sign in. Every other master data read still needs a session.
 
