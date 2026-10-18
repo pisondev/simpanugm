@@ -16,6 +16,10 @@
 An officer or admin who also has personal reports reaches them from Profil, Laporan
 Saya, so the member flows are never mixed into the work queue.
 
+Until notifications land with US-35 in Sprint 2, the fourth member slot holds Barang
+Temuan, the public found listing of US-17, and the officer bar holds Beranda, Terima,
+Cari, Inventaris and Lainnya.
+
 ## 2. Route map
 
 Next.js App Router with route groups. Codes appear in URLs (api section 1).

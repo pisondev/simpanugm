@@ -73,30 +73,31 @@ web/
   src/
     app/
       (public)/           landing, masuk, daftar, verifikasi, lupa-sandi, atur-sandi, undangan, privasi, ketentuan, bantuan
-      (member)/           beranda, lapor/hilang, lapor/temuan, laporan, klaim, barang-temuan, notifikasi, profil
-      (officer)/petugas/  every officer route of information-architecture 2.3
-      (admin)/admin/      every admin route of information-architecture 2.4
-      layout.tsx  error.tsx  not-found.tsx
+      (member)/           beranda, lapor/hilang, lapor/temuan, laporan, barang-temuan, profil, later klaim and notifikasi
+      (officer)/petugas/  the officer routes of information-architecture 2.3
+      (admin)/admin/      the admin routes of information-architecture 2.4
+      healthz/            liveness for the container health check
+      layout.tsx  providers.tsx  error.tsx  not-found.tsx  globals.css  icon.svg
     components/
-      ui/                 shadcn components, owned by us after generation
-      report/  match/  claim/  officer/  admin/  map/  charts/  layout/
+      ui/                 shadcn components on Base UI, owned by us after generation
+      layout/  auth/  report/  report/form/  officer/  admin/
     lib/
-      api/                client.ts, schema.d.ts generated from api/openapi.yaml
-      auth/               session helpers for server components and the route guard
-      image/              compression and HEIC conversion
-      draft/              form drafts in local storage
+      api/                client.ts, server.ts, problem.ts, hooks.ts, types.ts, schema.d.ts generated from api/openapi.yaml
+      session.ts          the signed in user for server components
       status.ts           the status vocabulary of ui-guidelines section 4
-      format.ts           WIB dates, distances, percentages
+      format.ts  time.ts  hours.ts   WIB dates, windows, distances, opening hours
+      image.ts  draft.ts  paths.ts  query.ts
+    i18n/                 request config and the typed message declaration
     messages/id.json      every UI string
-    styles/globals.css  styles/tokens.css
-    middleware.ts         role guard and CSP nonce
+    proxy.ts              session cookie guard, Next.js 16 renamed middleware.ts to proxy.ts
   tests/
-    unit/                 Vitest and Testing Library
-    e2e/                  Playwright journeys
-  public/
+    unit/                 Vitest, Testing Library and MSW
+    e2e/                  Playwright journeys with axe
   next.config.ts  vitest.config.ts  playwright.config.ts  eslint.config.mjs  tsconfig.json
   package.json  pnpm-lock.yaml  Dockerfile  README.md
 ```
+
+Tokens live in `src/app/globals.css`, where the shadcn CLI expects them.
 
 ## 4. `ml/`
 

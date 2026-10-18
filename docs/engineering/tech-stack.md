@@ -52,28 +52,29 @@ Tools: `golangci-lint` v2, `govulncheck`, `air` for live reload in development.
 
 | Library | Purpose | Why this one |
 |---|---|---|
-| `next` 16 | framework, App Router, server components | agreed stack, server rendering for fast first paint on phones |
+| `next` 16.4 | framework, App Router, server components, Turbopack | agreed stack, server rendering for fast first paint on phones. Cache Components stay off: every page is personal and dynamic, so the prerender model adds rules without a benefit |
 | `react` 19 | UI | required by Next.js 16 |
 | `typescript` 5 | types, `strict` mode | |
 | `tailwindcss` 4 | styling with tokens | utility classes with CSS variables, no runtime cost |
-| shadcn/ui on `@radix-ui/*` | accessible primitives copied into the repo | full control of markup, accessibility handled by Radix |
+| shadcn/ui CLI 4, style `base-nova` on `@base-ui/react` | accessible primitives copied into the repo | full control of markup, Base UI is the primitive layer the CLI generates today. The pre 1.0 `cn` package the CLI suggests was replaced by `clsx` and `tailwind-merge` |
 | `lucide-react` | icons | the single icon set (UI-03) |
 | `openapi-typescript`, `openapi-fetch` | typed API client generated from the spec | ADR-0009 |
 | `@tanstack/react-query` 5 | client data fetching, caching, mutations | retries and invalidation for flaky mobile connections |
-| `@tanstack/react-table` 8 | officer tables | headless, keyboard friendly |
+| `@tanstack/react-table` 8 | officer tables with client sorting and keyboard navigation | headless. Adopted with the queue in Sprint 3, the Sprint 1 tables sort on the server |
 | `react-hook-form` 7, `zod` 4, `@hookform/resolvers` | forms and validation | the multi step report forms |
 | `next-intl` 4 | message catalog | copy in one place, English later without rewiring |
-| `date-fns` 4, `@date-fns/tz` | WIB formatting and relative times | small, tree shakeable |
+| `Intl.DateTimeFormat`, `Intl.RelativeTimeFormat` | WIB formatting and relative times | built into every supported browser and Node, the formats of ui-guidelines 6.3 need no library |
 | `browser-image-compression` 2 | client resize before upload | FR-MEDIA-03 |
 | `heic-to` | HEIC to JPEG in the browser | iPhone photos (FR-MEDIA-01) |
 | `react-leaflet` 5, `leaflet` 1.9, `leaflet.heat` | campus map and heat layer | OpenStreetMap without an API key |
 | `recharts` 3 | charts | declarative, works with server rendered pages |
-| `@zxing/browser` | QR scanning on the receive screen | camera scanning without native code |
+| `@zxing/browser` | QR scanning on the receive screen | camera scanning without native code. Arrives with the handover QR in Sprint 3, until then the code is typed or pasted |
 | `sonner` | toasts | shadcn default |
 
 Testing and tooling: `vitest`, `@testing-library/react`, `msw` 2 for API mocks,
 `@playwright/test` with `@axe-core/playwright`, ESLint 9 flat config with
-`eslint-config-next`, Prettier 3.
+`eslint-config-next` and `typescript-eslint` strict, Prettier 3 with the Tailwind plugin.
+Node.js 22.22.2 or newer, the floor set by jsdom 30.
 
 ## 4. `ml`, Python
 

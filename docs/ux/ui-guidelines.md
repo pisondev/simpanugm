@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Owner | Pison Golda |
-| Implementation | Tailwind CSS 4 tokens in `web/src/styles/tokens.css`, components from shadcn/ui on Radix primitives, icons from Lucide |
+| Implementation | Tailwind CSS 4 tokens in `web/src/app/globals.css`, components from shadcn/ui on Base UI primitives, icons from Lucide |
 
 ## 1. Principles
 
@@ -41,7 +41,9 @@ background.
 | `--text` | `#0F172A` | body text |
 | `--text-muted` | `#475569` | secondary text |
 | `--success` | `#15803D` | returned, approved, handed over |
+| `--success-text` | `#166534` | success text on a tinted badge, `#15803D` falls under 4.5 to 1 on its own 10 percent tint |
 | `--warning` | `#B45309` | under verification, info requested, retention due |
+| `--warning-text` | `#92400E` | warning text on a tinted badge, for the same reason |
 | `--danger` | `#B91C1C` | rejected, destructive actions, errors |
 | `--info` | `#1D4ED8` | potential match |
 | `--neutral` | `#64748B` | closed, withdrawn, expired |
@@ -124,13 +126,14 @@ The single source for labels, icons and colours, implemented as one map in
 | Need | Component | Notes |
 |---|---|---|
 | Multi step form | custom `Stepper` on top of shadcn `Form` with React Hook Form and Zod | each step validates on Next, the review step shows all errors with links back |
+| Navigation styled as a button | `ButtonLink`, a Next.js `Link` with button classes | stays a link for assistive technology, never an anchor with `role=button` |
 | Category picker | shadcn `Command` in a `Popover` | suggestions from AI-03 appear as chips above the list |
 | Location picker | `Command` with server search, recent picks first | shows zone under each name |
 | Photo picker | custom, `input type=file accept=image/* capture=environment` plus gallery | client side resize and HEIC conversion before upload, per image progress |
 | Score breakdown | custom `ScoreBars`, four horizontal bars with labels and reason lines | bars carry `aria-valuenow` and the reason as text |
 | Side by side review | two column grid from `lg`, stacked tabs below | photo viewer with zoom |
 | Tables | TanStack Table on shadcn `Table` | sticky header, keyboard navigation, column for status badges |
-| Feedback | `sonner` toasts for success, inline alerts for errors | never a toast for an error the user must act on |
+| Feedback | `sonner` toasts for success, inline alerts for errors | never a toast for an error the user must act on. Neutral toasts, the icon carries the type, the rich colours fail AA |
 | Confirmations | `AlertDialog` for destructive or irreversible actions: close report, withdraw, reject, approve, handover, dispose | the confirm button repeats the verb, for example "Ya, setujui klaim" |
 | Map | `react-leaflet` with OpenStreetMap tiles and `leaflet.heat` | attribution visible, campus bounds fixed |
 | Charts | Recharts | palette from the tokens, every chart has a table alternative |

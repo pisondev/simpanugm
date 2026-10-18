@@ -1,0 +1,718 @@
+{
+  "meta": {
+    "title": "SimpanUGM",
+    "description": "Lapor barang hilang dan barang temuan di kampus UGM, lalu temukan pemiliknya dengan bantuan petugas pos."
+  },
+  "common": {
+    "appName": "SimpanUGM",
+    "next": "Lanjut",
+    "back": "Kembali",
+    "cancel": "Batal",
+    "save": "Simpan",
+    "saving": "Menyimpan...",
+    "submit": "Kirim",
+    "submitting": "Mengirim...",
+    "retry": "Coba lagi",
+    "edit": "Ubah",
+    "close": "Tutup",
+    "copy": "Salin kode",
+    "copied": "Kode disalin",
+    "loadMore": "Muat lebih banyak",
+    "nextPage": "Halaman berikutnya",
+    "firstPage": "Kembali ke halaman awal",
+    "search": "Cari",
+    "reset": "Atur ulang",
+    "apply": "Terapkan",
+    "optional": "opsional",
+    "required": "wajib",
+    "all": "Semua",
+    "none": "Tidak ada",
+    "unknown": "Tidak diketahui",
+    "yes": "Ya",
+    "no": "Tidak",
+    "loading": "Memuat...",
+    "requestId": "Kode permintaan: {id}",
+    "notifications": "Pemberitahuan",
+    "skipToContent": "Lewati ke konten",
+    "emptyValue": "Tidak diisi",
+    "photoAlt": "Foto {kind}: {name}",
+    "photoKindLost": "barang hilang",
+    "photoKindFound": "barang temuan",
+    "chars": "{count} dari {max} karakter"
+  },
+  "errors": {
+    "network": "Gagal terhubung. Coba lagi.",
+    "server": "Terjadi kesalahan di sisi kami. Kode: {id}",
+    "rateLimited": "Terlalu banyak percobaan. Coba lagi dalam {minutes} menit.",
+    "rateLimitedLater": "Terlalu banyak percobaan. Coba lagi nanti.",
+    "generic": "Terjadi kesalahan. Coba lagi.",
+    "required": "Wajib diisi",
+    "tooShort": "Minimal {min} karakter, saat ini {count}",
+    "tooLong": "Maksimal {max} karakter",
+    "stale": "Data sudah diubah oleh orang lain. Muat ulang untuk melihat versi terbaru, isianmu tetap terlihat di bawah untuk disalin.",
+    "reload": "Muat ulang",
+    "pageTitle": "Halaman tidak dapat dimuat",
+    "pageBody": "Ada gangguan saat memuat halaman ini. Coba lagi sebentar lagi.",
+    "notFoundTitle": "Halaman tidak ditemukan",
+    "notFoundBody": "Tautan ini salah, sudah tidak berlaku, atau kamu tidak memiliki akses ke halaman ini.",
+    "toHome": "Ke halaman utama",
+    "offline": "Kamu sedang offline. Draf tersimpan di perangkat ini."
+  },
+  "status": {
+    "lost": {
+      "reported": "Dilaporkan",
+      "potential_match": "Ada kandidat",
+      "under_verification": "Dalam verifikasi",
+      "claimed": "Klaim disetujui",
+      "returned": "Sudah kembali",
+      "closed": "Ditutup"
+    },
+    "found": {
+      "reported": "Dilaporkan",
+      "potential_match": "Ada kandidat pemilik",
+      "under_verification": "Dalam verifikasi",
+      "claimed": "Klaim disetujui",
+      "returned": "Sudah kembali",
+      "unclaimed": "Tidak diklaim",
+      "closed": "Ditutup"
+    },
+    "custody": {
+      "with_finder": "Masih dibawa penemu",
+      "in_custody": "Disimpan di pos",
+      "released": "Sudah diserahkan",
+      "disposed": "Sudah ditindaklanjuti",
+      "cancelled": "Dibatalkan"
+    },
+    "sensitivity": {
+      "normal": "Biasa",
+      "valuable": "Berharga",
+      "identity": "Identitas"
+    },
+    "role": {
+      "member": "Anggota",
+      "officer": "Petugas",
+      "admin": "Admin"
+    },
+    "account": {
+      "pending_verification": "Belum verifikasi",
+      "active": "Aktif",
+      "suspended": "Ditangguhkan",
+      "deleted": "Dihapus"
+    },
+    "claimState": {
+      "none": "Belum ada klaim",
+      "open": "Ada klaim berjalan",
+      "approved": "Klaim disetujui"
+    },
+    "closeReason": {
+      "found_by_owner": "Sudah ditemukan sendiri",
+      "no_longer_needed": "Tidak diperlukan lagi",
+      "returned_directly": "Dikembalikan langsung ke pemilik",
+      "reported_in_error": "Salah lapor",
+      "returned": "Sudah kembali",
+      "expired": "Kedaluwarsa",
+      "account_deleted": "Akun dihapus"
+    }
+  },
+  "nav": {
+    "main": "Navigasi utama",
+    "home": "Beranda",
+    "myReports": "Laporan Saya",
+    "report": "Lapor",
+    "reportLost": "Saya kehilangan",
+    "reportLostHint": "Laporkan barangmu yang hilang",
+    "reportFound": "Saya menemukan",
+    "reportFoundHint": "Laporkan barang yang kamu temukan",
+    "foundItems": "Barang Temuan",
+    "profile": "Profil",
+    "officerHome": "Beranda",
+    "receive": "Terima Barang",
+    "receiveShort": "Terima",
+    "inventory": "Inventaris",
+    "search": "Cari",
+    "proxyLost": "Lapor Hilang atas Nama",
+    "proxyFound": "Lapor Temuan atas Nama",
+    "more": "Lainnya",
+    "adminSection": "Admin",
+    "users": "Pengguna",
+    "adminHome": "Ringkasan Admin",
+    "workspace": "Ruang Petugas",
+    "personal": "Laporan pribadi",
+    "account": "Akun",
+    "accountOf": "Akun {name}",
+    "signOut": "Keluar",
+    "signOutAll": "Keluar dari semua perangkat",
+    "signIn": "Masuk",
+    "register": "Daftar",
+    "help": "Bantuan",
+    "privacy": "Privasi",
+    "terms": "Ketentuan"
+  },
+  "landing": {
+    "title": "Barang hilang di kampus? Laporkan, kami bantu temukan.",
+    "lead": "SimpanUGM mempertemukan laporan kehilangan dengan laporan temuan di lingkungan UGM. Barang disimpan di pos terdekat dan diserahkan setelah kepemilikannya diperiksa petugas.",
+    "start": "Daftar dengan email UGM",
+    "signIn": "Sudah punya akun? Masuk",
+    "howTitle": "Cara kerjanya",
+    "step1Title": "Lapor",
+    "step1Body": "Pemilik melaporkan barang yang hilang. Penemu memotret barang yang ditemukan dan menyerahkannya ke pos.",
+    "step2Title": "Dicocokkan",
+    "step2Body": "Sistem membandingkan foto, kategori, warna, tempat dan waktu, lalu menampilkan kandidat yang paling mirip.",
+    "step3Title": "Diserahkan",
+    "step3Body": "Pemilik mengajukan klaim. Petugas memeriksa ciri khusus dan kartu identitas sebelum barang diserahkan.",
+    "privacyTitle": "Data dijaga",
+    "privacyBody": "Ciri khusus barang hanya terlihat oleh pelapor dan petugas. Daftar barang temuan publik tidak memuat foto maupun deskripsi.",
+    "footer": "SimpanUGM adalah proyek mahasiswa Ilmu Komputer UGM dan bukan layanan resmi universitas."
+  },
+  "auth": {
+    "email": "Email UGM",
+    "emailPlaceholder": "nama@mail.ugm.ac.id",
+    "password": "Kata sandi",
+    "passwordHint": "Minimal 10 karakter. Hindari kata sandi yang mudah ditebak.",
+    "showPassword": "Tampilkan kata sandi",
+    "hidePassword": "Sembunyikan kata sandi",
+    "login": {
+      "title": "Masuk",
+      "lead": "Masuk untuk melapor dan mengikuti laporanmu.",
+      "submit": "Masuk",
+      "forgot": "Lupa kata sandi?",
+      "noAccount": "Belum punya akun?",
+      "register": "Daftar",
+      "expired": "Sesi berakhir. Masuk lagi untuk melanjutkan."
+    },
+    "register": {
+      "title": "Daftar",
+      "lead": "Gunakan email UGM (@mail.ugm.ac.id atau @ugm.ac.id).",
+      "fullName": "Nama lengkap",
+      "nimNip": "NIM atau NIP",
+      "nimNipPlaceholder": "24/543770/PA/23107",
+      "phone": "Nomor WhatsApp",
+      "phoneHint": "Dipakai petugas untuk menghubungimu soal barang.",
+      "accept": "Saya sudah membaca dan menyetujui <privacy>pemberitahuan privasi</privacy>.",
+      "submit": "Buat akun",
+      "haveAccount": "Sudah punya akun?",
+      "signIn": "Masuk",
+      "doneTitle": "Periksa emailmu",
+      "doneBody": "Jika alamat {email} dapat dipakai, tautan verifikasi sudah kami kirim. Tautan berlaku 24 jam.",
+      "doneHint": "Tidak ada email? Periksa folder spam, lalu masuk dan kirim ulang tautan dari Beranda."
+    },
+    "verify": {
+      "title": "Verifikasi email",
+      "working": "Memverifikasi emailmu...",
+      "successTitle": "Email terverifikasi",
+      "successBody": "Akunmu siap dipakai untuk melapor.",
+      "toHome": "Ke Beranda",
+      "toLogin": "Masuk",
+      "failedTitle": "Tautan kedaluwarsa",
+      "failedBody": "Tautan ini sudah tidak berlaku atau sudah pernah dipakai. Masuk lalu kirim ulang tautan verifikasi.",
+      "missing": "Tautan verifikasi tidak lengkap.",
+      "resend": "Kirim ulang tautan",
+      "resent": "Tautan verifikasi dikirim ulang. Periksa emailmu.",
+      "banner": "Emailmu belum terverifikasi. Verifikasi dulu sebelum membuat laporan.",
+      "bannerAction": "Kirim ulang tautan"
+    },
+    "forgot": {
+      "title": "Lupa kata sandi",
+      "lead": "Masukkan email akunmu. Kami kirim tautan untuk mengatur kata sandi baru.",
+      "submit": "Kirim tautan",
+      "done": "Jika email terdaftar, tautan sudah dikirim. Tautan berlaku 30 menit.",
+      "backToLogin": "Kembali ke halaman masuk"
+    },
+    "reset": {
+      "title": "Atur kata sandi baru",
+      "lead": "Setelah kata sandi diganti, semua sesi di perangkat lain akan keluar.",
+      "newPassword": "Kata sandi baru",
+      "confirm": "Ulangi kata sandi baru",
+      "mismatch": "Kata sandi tidak sama",
+      "submit": "Simpan kata sandi",
+      "done": "Kata sandi sudah diganti. Masuk dengan kata sandi baru.",
+      "missing": "Tautan atur ulang tidak lengkap. Minta tautan baru dari halaman lupa kata sandi.",
+      "requestNew": "Minta tautan baru"
+    },
+    "invite": {
+      "title": "Terima undangan",
+      "lead": "Buat kata sandi untuk mengaktifkan akun petugas atau admin.",
+      "submit": "Aktifkan akun",
+      "missing": "Tautan undangan tidak lengkap. Hubungi admin untuk undangan baru."
+    }
+  },
+  "member": {
+    "homeTitle": "Halo, {name}",
+    "homeLead": "Pantau laporanmu dan lapor barang baru di sini.",
+    "activeLost": "Laporan kehilangan aktif",
+    "activeFound": "Laporan temuan aktif",
+    "seeAll": "Lihat semua",
+    "emptyLost": "Belum ada laporan kehilangan yang aktif.",
+    "emptyFound": "Belum ada laporan temuan yang aktif.",
+    "reportLost": "Lapor kehilangan",
+    "reportFound": "Lapor temuan",
+    "browseFound": "Lihat barang temuan",
+    "candidates": "{count, plural, =0 {Belum ada kandidat} other {# kandidat}}",
+    "updated": "Diperbarui {when}",
+    "foundAt": "Ditemukan {when}",
+    "lostUntil": "Hilang sampai {when}",
+    "reportsTitle": "Laporan Saya",
+    "tabLost": "Kehilangan",
+    "tabFound": "Temuan",
+    "emptyReportsLost": "Kamu belum pernah membuat laporan kehilangan.",
+    "emptyReportsFound": "Kamu belum pernah membuat laporan temuan.",
+    "staffNote": "Kamu masuk sebagai {role}. Halaman ini berisi laporan pribadimu, bukan antrean kerja."
+  },
+  "form": {
+    "stepOf": "Langkah {current} dari {total}",
+    "review": "Tinjau",
+    "reviewLead": "Periksa kembali sebelum mengirim.",
+    "editStep": "Ubah",
+    "fixErrors": "Masih ada isian yang perlu diperbaiki.",
+    "draftRestored": "Draf sebelumnya dipulihkan.",
+    "discardDraft": "Mulai dari awal",
+    "photos": {
+      "label": "Foto barang",
+      "hint": "Maksimal 5 foto. Foto dari iPhone (HEIC) otomatis diubah.",
+      "add": "Tambah foto",
+      "camera": "Ambil foto",
+      "remove": "Hapus foto {n}",
+      "uploading": "Mengunggah {percent}%",
+      "processing": "Menyiapkan foto...",
+      "failed": "Gagal mengunggah",
+      "tooLarge": "Ukuran foto maksimal 10 MB",
+      "unsupported": "Format foto tidak didukung. Gunakan JPEG, PNG, WebP atau HEIC.",
+      "limit": "Maksimal 5 foto per laporan",
+      "skip": "Lewati, saya tidak punya foto",
+      "requiredFound": "Minimal satu foto wajib untuk laporan temuan",
+      "waitUpload": "Tunggu sampai semua foto selesai diunggah"
+    },
+    "category": {
+      "label": "Kategori",
+      "placeholder": "Pilih kategori",
+      "search": "Cari kategori, misalnya dompet",
+      "empty": "Kategori tidak ditemukan"
+    },
+    "itemName": {
+      "label": "Nama barang",
+      "placeholder": "Misalnya tumbler biru dongker"
+    },
+    "description": {
+      "label": "Deskripsi",
+      "lostPlaceholder": "Ceritakan bentuk, ukuran, isi atau tanda yang terlihat. Misalnya: tumbler 500 ml, tutup hitam, ada stiker kucing di sisi.",
+      "foundPlaceholder": "Ceritakan bentuk dan kondisi barang yang terlihat tanpa menyebut isi atau tanda tersembunyi."
+    },
+    "colours": {
+      "label": "Warna",
+      "hint": "Pilih maksimal 2 warna.",
+      "selected": "{name}, terpilih"
+    },
+    "brand": {
+      "label": "Merek",
+      "placeholder": "Misalnya Corkcicle"
+    },
+    "places": {
+      "label": "Tempat terakhir terlihat",
+      "hint": "Pilih sampai 3 tempat.",
+      "search": "Cari gedung atau tempat, misalnya perpus",
+      "empty": "Tempat tidak ditemukan. Coba nama lain atau singkatan.",
+      "add": "Tambah tempat",
+      "remove": "Hapus {name}",
+      "unknown": "Saya tidak tahu lokasinya",
+      "required": "Pilih minimal satu tempat atau centang tidak tahu lokasinya",
+      "zone": "Zona {name}"
+    },
+    "foundPlace": {
+      "label": "Tempat ditemukan",
+      "required": "Pilih tempat barang ditemukan"
+    },
+    "locationNote": {
+      "label": "Catatan lokasi",
+      "placeholder": "Misalnya lantai 2 dekat loker"
+    },
+    "lostWindow": {
+      "label": "Kapan barang hilang?",
+      "date": "Tanggal",
+      "endDate": "Sampai tanggal",
+      "multiDay": "Lebih dari satu hari",
+      "preset": "Waktu",
+      "presetRange": "{from} sampai {until}",
+      "from": "Dari jam",
+      "until": "Sampai jam",
+      "presets": {
+        "pagi": "Pagi",
+        "siang": "Siang",
+        "sore": "Sore",
+        "malam": "Malam",
+        "sehari": "Seharian",
+        "custom": "Atur jam"
+      },
+      "order": "Waktu akhir harus setelah waktu awal",
+      "maxSpan": "Rentang waktu maksimal 7 hari",
+      "maxAge": "Waktu kehilangan maksimal 90 hari yang lalu",
+      "future": "Waktu tidak boleh di masa depan"
+    },
+    "foundTime": {
+      "label": "Kapan barang ditemukan?",
+      "date": "Tanggal",
+      "time": "Jam",
+      "maxAge": "Waktu temuan maksimal 30 hari yang lalu",
+      "future": "Waktu tidak boleh di masa depan"
+    },
+    "privateDetails": {
+      "label": "Ciri khusus",
+      "hint": "Hanya kamu dan petugas yang dapat melihat ini. Dipakai untuk membuktikan kepemilikan.",
+      "placeholder": "Misalnya goresan di bawah tutup, isi dompet, nama di bagian dalam"
+    },
+    "hiddenDetails": {
+      "label": "Detail tersembunyi",
+      "hint": "Hanya kamu dan petugas yang dapat melihat ini. Petugas memakainya untuk memeriksa klaim pemilik.",
+      "placeholder": "Misalnya isi tas, tulisan di dalam, nomor seri"
+    },
+    "custody": {
+      "label": "Penyerahan barang",
+      "handover": "Saya serahkan ke pos",
+      "handoverHint": "Pilih pos tempat kamu akan menyerahkan barang.",
+      "keep": "Saya simpan sementara",
+      "keepHint": "Simpan paling lama 48 jam, lalu serahkan ke pos.",
+      "mustHandOver": "Barang berharga dan kartu identitas wajib diserahkan ke pos.",
+      "post": "Pos tujuan",
+      "postRequired": "Pilih pos tujuan",
+      "nearest": "Terdekat",
+      "openNow": "Buka sekarang",
+      "closedNow": "Sedang tutup",
+      "hoursToday": "Hari ini {hours}",
+      "closedToday": "Hari ini tutup",
+      "distance": "{distance} dari tempat ditemukan",
+      "pickPlaceFirst": "Pilih tempat ditemukan dulu agar pos terdekat bisa diurutkan."
+    },
+    "proxy": {
+      "title": "Data pelapor",
+      "visitorName": "Nama pengunjung",
+      "visitorPhone": "Nomor telepon pengunjung",
+      "consent": "Pengunjung sudah setuju datanya dicatat untuk keperluan laporan ini.",
+      "consentRequired": "Konfirmasi persetujuan pengunjung",
+      "finderName": "Nama penemu",
+      "post": "Disimpan di pos",
+      "slot": "Rak atau slot penyimpanan",
+      "slotPlaceholder": "Misalnya Rak A3",
+      "condition": "Kondisi barang",
+      "conditionPlaceholder": "Misalnya layar retak di pojok kiri"
+    },
+    "lost": {
+      "title": "Lapor kehilangan",
+      "titleEdit": "Ubah laporan kehilangan",
+      "titleProxy": "Lapor kehilangan atas nama pengunjung",
+      "steps": {
+        "photos": "Foto",
+        "detail": "Detail",
+        "place": "Lokasi dan waktu",
+        "private": "Ciri khusus"
+      },
+      "submit": "Kirim laporan",
+      "saveEdit": "Simpan perubahan",
+      "created": "Laporanmu sudah terkirim. Kami sedang mencari barang yang cocok.",
+      "updated": "Perubahan disimpan."
+    },
+    "found": {
+      "title": "Lapor temuan",
+      "titleEdit": "Ubah laporan temuan",
+      "titleProxy": "Lapor temuan atas nama penemu",
+      "steps": {
+        "photos": "Foto",
+        "detail": "Detail",
+        "place": "Lokasi dan waktu",
+        "custody": "Penyerahan"
+      },
+      "stepsProxy": {
+        "custody": "Penyimpanan"
+      },
+      "submit": "Kirim laporan",
+      "saveEdit": "Simpan perubahan",
+      "created": "Terima kasih. Laporan temuan sudah terkirim.",
+      "updated": "Perubahan disimpan."
+    }
+  },
+  "report": {
+    "code": "Kode laporan",
+    "status": "Status",
+    "category": "Kategori",
+    "itemName": "Nama barang",
+    "description": "Deskripsi",
+    "colours": "Warna",
+    "brand": "Merek",
+    "lostWindow": "Waktu hilang",
+    "places": "Tempat",
+    "placeUnknown": "Lokasi tidak diketahui",
+    "locationNote": "Catatan lokasi",
+    "privateDetails": "Ciri khusus",
+    "hiddenDetails": "Detail tersembunyi",
+    "foundAt": "Waktu ditemukan",
+    "foundLocation": "Tempat ditemukan",
+    "custody": "Penyimpanan",
+    "intendedPost": "Pos tujuan",
+    "holdingPost": "Disimpan di",
+    "storageSlot": "Slot",
+    "receivedAt": "Diterima pos",
+    "retentionDue": "Batas simpan",
+    "reporter": "Pelapor",
+    "finder": "Penemu",
+    "proxyBadge": "Dilaporkan petugas",
+    "createdAt": "Dibuat",
+    "photos": "Foto",
+    "noPhotos": "Tidak ada foto",
+    "timeline": "Riwayat status",
+    "timelineEmpty": "Belum ada riwayat.",
+    "bySystem": "Sistem",
+    "transitionLabel": "{from} menjadi {to}",
+    "created": "Laporan dibuat",
+    "closeReason": "Alasan ditutup",
+    "searching": "Mencari kandidat...",
+    "noCandidates": "Belum ada kandidat. Kami akan memberi tahu kamu saat ada barang yang mirip.",
+    "candidateCount": "{count, plural, =0 {Belum ada kandidat} other {# kandidat ditemukan}}",
+    "editNotAllowed": "Laporan tidak dapat diubah pada status ini.",
+    "privateNote": "Bagian ini hanya terlihat olehmu dan petugas.",
+    "handInTitle": "Serahkan barang ke pos",
+    "handInBody": "Bawa barang dan tunjukkan kode {code} ke petugas {post}.",
+    "handInAddress": "Lokasi pos: {location}",
+    "handInHours": "Jam buka",
+    "handInPhone": "Telepon pos: {phone}",
+    "keepTitle": "Barang masih kamu simpan",
+    "keepBody": "Serahkan ke pos dalam 48 jam sejak dilaporkan. Kamu bisa mengganti pos tujuan dengan mengubah laporan.",
+    "inCustodyTitle": "Barang sudah disimpan di pos",
+    "inCustodyBody": "Terima kasih. Barang disimpan di {post} sampai pemiliknya mengambil.",
+    "close": {
+      "lostAction": "Tutup laporan",
+      "lostTitle": "Tutup laporan kehilangan?",
+      "lostBody": "Laporan yang ditutup tidak lagi dicocokkan dengan barang temuan.",
+      "foundAction": "Tutup laporan",
+      "foundTitle": "Tutup laporan temuan?",
+      "foundBody": "Pilih alasan dan tulis catatan singkat. Petugas akan meninjau penutupan ini.",
+      "reason": "Alasan",
+      "note": "Catatan",
+      "notePlaceholder": "Ceritakan singkat apa yang terjadi",
+      "noteMin": "Catatan minimal 5 karakter",
+      "confirm": "Ya, tutup laporan",
+      "done": "Laporan sudah ditutup."
+    }
+  },
+  "publicFound": {
+    "title": "Barang Temuan",
+    "lead": "Daftar barang yang ditemukan di kampus. Foto dan deskripsi tidak ditampilkan untuk mencegah klaim palsu. Jika kamu mengenali barangmu, buat laporan kehilangan agar dicocokkan.",
+    "category": "Kategori",
+    "zone": "Zona",
+    "from": "Dari tanggal",
+    "to": "Sampai tanggal",
+    "filter": "Terapkan filter",
+    "empty": "Belum ada barang temuan yang cocok dengan filter ini.",
+    "foundDate": "Ditemukan {date}",
+    "atPost": "Di {post}",
+    "withFinder": "Masih dibawa penemu",
+    "reportLost": "Buat laporan kehilangan"
+  },
+  "profile": {
+    "title": "Profil",
+    "name": "Nama",
+    "email": "Email",
+    "role": "Peran",
+    "nimNip": "NIM atau NIP",
+    "phone": "Telepon",
+    "verified": "Terverifikasi",
+    "notVerified": "Belum terverifikasi",
+    "editLater": "Perubahan profil dan daftar sesi tersedia di versi berikutnya.",
+    "signOutAllHint": "Keluar dari semua perangkat yang memakai akun ini, termasuk perangkat ini.",
+    "signOutAllConfirm": "Ya, keluar dari semua perangkat",
+    "signOutAllTitle": "Keluar dari semua perangkat?",
+    "myReports": "Laporan pribadi saya"
+  },
+  "officer": {
+    "homeTitle": "Ruang Petugas",
+    "homeLead": "Ringkasan pos {posts}.",
+    "noPosts": "Kamu belum ditugaskan ke pos mana pun. Hubungi admin.",
+    "allPosts": "semua pos",
+    "countInCustody": "Disimpan di pos",
+    "countDueSoon": "Batas simpan 7 hari lagi",
+    "countWithFinder": "Menunggu diserahkan",
+    "awaitingTitle": "Menunggu diserahkan penemu",
+    "awaitingEmpty": "Tidak ada barang yang menunggu diserahkan ke pos ini.",
+    "dueTitle": "Segera melewati batas simpan",
+    "dueEmpty": "Tidak ada barang yang mendekati batas simpan.",
+    "receive": "Terima",
+    "receiveTitle": "Terima Barang",
+    "receiveLead": "Ketik atau tempel kode laporan temuan dari penemu.",
+    "codeLabel": "Kode laporan temuan",
+    "codePlaceholder": "FND-2610-0001",
+    "lookup": "Periksa",
+    "notFound": "Laporan temuan dengan kode ini tidak ditemukan.",
+    "alreadyReceived": "Barang ini sudah tercatat {status}.",
+    "compare": "Cocokkan barang fisik dengan foto dan deskripsi sebelum menerima.",
+    "post": "Pos penerima",
+    "slot": "Rak atau slot",
+    "slotPlaceholder": "Misalnya Rak A3",
+    "condition": "Kondisi barang",
+    "conditionPlaceholder": "Catat kerusakan atau kekurangan yang terlihat",
+    "confirmReceive": "Terima barang",
+    "confirmTitle": "Terima barang ke {post}?",
+    "confirmBody": "Status penyimpanan menjadi Disimpan di pos dan penemu diberi tahu.",
+    "confirmAction": "Ya, terima barang",
+    "received": "Barang diterima di {post}, slot {slot}. Batas simpan {due}.",
+    "receiveAnother": "Terima barang lain",
+    "notAssigned": "Kamu tidak ditugaskan di pos ini.",
+    "inventoryTitle": "Inventaris",
+    "inventoryLead": "Barang yang disimpan di {post}.",
+    "inventoryEmpty": "Pos ini belum menyimpan barang.",
+    "choosePost": "Pilih pos",
+    "sort": "Urutkan",
+    "sortDue": "Batas simpan terdekat",
+    "sortReceived": "Diterima terbaru",
+    "colItem": "Barang",
+    "colSlot": "Slot",
+    "colAge": "Umur",
+    "colDue": "Batas simpan",
+    "colSensitivity": "Sensitivitas",
+    "colClaim": "Klaim",
+    "colStatus": "Status",
+    "ageDays": "{count, plural, =0 {hari ini} other {# hari}}",
+    "dueIn": "{count, plural, =0 {hari ini} one {besok} other {# hari lagi}}",
+    "overdue": "lewat {count} hari",
+    "searchTitle": "Cari laporan",
+    "searchLead": "Cari dengan kata, kode laporan, nama pelapor atau penemu.",
+    "searchPlaceholder": "Misalnya dompet hitam, FND-2610-0001, Rani",
+    "type": "Jenis",
+    "typeLost": "Kehilangan",
+    "typeFound": "Temuan",
+    "from": "Dari tanggal",
+    "to": "Sampai tanggal",
+    "custody": "Penyimpanan",
+    "postFilter": "Pos",
+    "searchEmpty": "Tidak ada laporan yang cocok. Coba kata lain atau longgarkan filter.",
+    "searchPrompt": "Masukkan kata kunci atau pilih filter untuk mulai mencari.",
+    "results": "{count, plural, other {# hasil}}",
+    "person": "Orang",
+    "place": "Tempat",
+    "occurred": "Waktu",
+    "openRecord": "Buka laporan {code}",
+    "receiveThis": "Terima barang ini",
+    "proxyLostTitle": "Lapor kehilangan atas nama",
+    "proxyFoundTitle": "Lapor temuan atas nama",
+    "proxyLead": "Untuk pengunjung yang datang ke pos tanpa akun.",
+    "proxyNoPost": "Lapor temuan atas nama membutuhkan penugasan pos."
+  },
+  "admin": {
+    "homeTitle": "Ringkasan Admin",
+    "homeLead": "Kelola pengguna dan penugasan pos.",
+    "officers": "Petugas aktif",
+    "admins": "Admin aktif",
+    "postsCount": "Pos",
+    "uncoveredTitle": "Pos tanpa petugas",
+    "allCovered": "Semua pos sudah memiliki petugas aktif.",
+    "usersCount": "{count, plural, other {# pengguna}} di halaman ini",
+    "usersTitle": "Pengguna",
+    "usersLead": "Undang petugas dan admin, atur peran dan pos.",
+    "searchPlaceholder": "Cari nama atau email",
+    "role": "Peran",
+    "colName": "Nama",
+    "colRole": "Peran",
+    "colStatus": "Status",
+    "colPosts": "Pos",
+    "colLastLogin": "Terakhir masuk",
+    "never": "Belum pernah",
+    "empty": "Tidak ada pengguna yang cocok.",
+    "invite": "Undang pengguna",
+    "inviteTitle": "Undang petugas atau admin",
+    "inviteLead": "Undangan berlaku 72 jam. Email tidak harus berdomain UGM.",
+    "inviteEmail": "Email",
+    "inviteName": "Nama lengkap",
+    "posts": "Pos",
+    "postsHint": "Petugas hanya melihat dan menerima barang di pos yang dipilih.",
+    "postsRequired": "Petugas membutuhkan minimal satu pos",
+    "sendInvite": "Kirim undangan",
+    "invited": "Undangan dikirim ke {email}.",
+    "edit": "Ubah",
+    "editTitle": "Ubah {name}",
+    "saved": "Perubahan disimpan.",
+    "confirmRoleTitle": "Ubah peran {name}?",
+    "confirmRoleBody": "Peran menentukan apa yang dapat dilihat dan dilakukan pengguna ini sejak permintaan berikutnya.",
+    "confirmRole": "Ya, ubah peran"
+  },
+  "help": {
+    "title": "Bantuan",
+    "lead": "Pos barang temuan di kampus beserta jam bukanya. Semua waktu dalam WIB.",
+    "postsTitle": "Pos barang temuan",
+    "noPosts": "Daftar pos belum tersedia.",
+    "phone": "Telepon {phone}",
+    "closed": "Tutup",
+    "faqTitle": "Pertanyaan umum",
+    "faq": [
+      {
+        "q": "Siapa yang dapat memakai SimpanUGM?",
+        "a": "Mahasiswa dan staf dengan email UGM. Pengunjung tanpa akun dapat melapor langsung di pos, petugas akan mencatatnya."
+      },
+      {
+        "q": "Mengapa barang berharga harus diserahkan ke pos?",
+        "a": "Dompet, ponsel, laptop dan kartu identitas lebih aman di pos yang dijaga petugas, dan serah terimanya tercatat."
+      },
+      {
+        "q": "Bagaimana cara mengambil barang saya?",
+        "a": "Ajukan klaim dari kandidat yang cocok. Petugas memeriksa ciri khusus yang kamu tulis, lalu kamu menerima kode serah terima untuk mengambil barang di pos dengan kartu identitas."
+      },
+      {
+        "q": "Berapa lama barang disimpan?",
+        "a": "Barang biasa dan kartu identitas 30 hari, barang berharga 60 hari sejak diterima pos. Setelah itu barang yang tidak diklaim ditindaklanjuti sesuai aturan pos."
+      }
+    ],
+    "weekdays": {
+      "mon": "Senin",
+      "tue": "Selasa",
+      "wed": "Rabu",
+      "thu": "Kamis",
+      "fri": "Jumat",
+      "sat": "Sabtu",
+      "sun": "Minggu"
+    }
+  },
+  "legal": {
+    "privacyTitle": "Pemberitahuan Privasi",
+    "privacyVersion": "Versi {version}, berlaku sejak Oktober 2026",
+    "privacy": [
+      {
+        "h": "Data yang kami kumpulkan",
+        "p": "Nama dan email UGM untuk akun. Nomor telepon dan NIM atau NIP jika kamu mengisinya. Isi laporan: kategori, nama dan deskripsi barang, ciri khusus, warna, merek, tempat dan waktu, serta foto. Alamat IP dan jenis peramban untuk keamanan."
+      },
+      {
+        "h": "Untuk apa data dipakai",
+        "p": "Hanya untuk mempertemukan barang dengan pemiliknya, memeriksa klaim, dan statistik keamanan kampus yang sudah dianonimkan. Data tidak dipakai untuk pemasaran dan tidak dibagikan ke pihak lain."
+      },
+      {
+        "h": "Siapa yang dapat melihat",
+        "p": "Ciri khusus dan detail tersembunyi hanya terlihat oleh pelapor dan petugas. Daftar barang temuan publik hanya memuat kategori, nama barang, zona, tanggal dan pos, tanpa foto maupun deskripsi."
+      },
+      {
+        "h": "Pemrosesan foto dan AI",
+        "p": "Metadata lokasi pada foto dihapus saat diunggah. Model pencocokan berjalan di server kami sendiri. Foto dan teks laporan tidak dikirim ke layanan AI pihak ketiga."
+      },
+      {
+        "h": "Berapa lama data disimpan",
+        "p": "Foto dihapus 90 hari setelah laporan ditutup. Data pribadi pada laporan dianonimkan 12 bulan setelah laporan ditutup. Catatan audit disimpan 24 bulan."
+      },
+      {
+        "h": "Hakmu",
+        "p": "Kamu dapat melihat dan memperbaiki laporanmu sendiri, serta meminta penghapusan akun. Penghapusan diproses dalam 30 hari."
+      }
+    ],
+    "termsTitle": "Ketentuan Penggunaan",
+    "terms": [
+      {
+        "h": "Laporan yang jujur",
+        "p": "Laporkan hanya barang yang benar hilang atau benar kamu temukan. Klaim palsu dapat membuat akun dibatasi dan diteruskan ke pihak kampus."
+      },
+      {
+        "h": "Barang temuan",
+        "p": "Barang berharga dan kartu identitas wajib diserahkan ke pos. Barang biasa boleh disimpan penemu paling lama 48 jam sebelum diserahkan."
+      },
+      {
+        "h": "Serah terima",
+        "p": "Barang hanya diserahkan di pos setelah petugas memeriksa kode serah terima dan kartu identitas pemilik."
+      },
+      {
+        "h": "Status layanan",
+        "p": "SimpanUGM adalah proyek mahasiswa dan bukan layanan resmi Universitas Gadjah Mada."
+      }
+    ]
+  }
+}
