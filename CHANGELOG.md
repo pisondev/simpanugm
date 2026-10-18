@@ -13,6 +13,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Fixed
 
+- `api/internal/media` and `api/internal/platform/storage` are in the repository: unanchored `media/` and `storage/` ignore rules had kept them out, so a fresh clone did not build. The rules are anchored to the root now.
 - The API image starts again: it is built with the `nodynamic` tag, so `gen2brain/webp` stays on its WebAssembly encoder instead of linking libc through purego, which `distroless/static` cannot load. A root `.dockerignore` replaces the one in `api/` that the root build context never read.
 - The fetch test compares resolved paths, so it also passes on Windows where temporary directories have short names.
 - Masking now hides every 16 digit run, so NIK numbers are covered although they fail the Luhn check, and treats digits grouped by single spaces or hyphens as one run, as BR-PRV-03 requires.

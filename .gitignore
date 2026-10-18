@@ -68,9 +68,10 @@ data/processed/
 data/eval/*
 !data/eval/README.md
 !data/eval/manifest.json
-media/
-storage/
-uploads/
+# anchored to the root, an unanchored media/ once hid api/internal/media from git
+/media/
+/storage/
+/uploads/
 
 # local runtime state
 deploy/env/*.env
