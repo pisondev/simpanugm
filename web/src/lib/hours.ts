@@ -38,3 +38,27 @@ export function isOpenNow(hours: OpeningHours, now: Date = new Date()): boolean 
 export function today(now: Date = new Date()): Weekday {
   return wibParts(now).day
 }
+
+const span = /^([01]\d|2[0-3]):([0-5]\d)\s*-\s*([01]\d|2[0-3]):([0-5]\d)$/
+
+// "08:00-11:30, 13:00-16:00" into [["08:00","11:30"],["13:00","16:00"]], null when a part is not a span from before to
+export function parseRanges(text: string): string[][] | null {
+  const parts = text
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean)
+  const out: string[][] = []
+  for (const p of parts) {
+    const m = span.exec(p)
+    if (!m) return null
+    const from = `${m[1]}:${m[2]}`
+    const to = `${m[3]}:${m[4]}`
+    if (from >= to) return null
+    out.push([from, to])
+  }
+  return out
+}
+
+export function rangesText(ranges: string[][]): string {
+  return ranges.map(([from, to]) => `${from}-${to}`).join(", ")
+}

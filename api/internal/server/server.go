@@ -72,7 +72,7 @@ func NewServices(d Deps) *Services {
 	mailer := notify.NewMailer(d.Jobs, strings.TrimRight(d.Config.PublicBaseURL, "/"))
 	notifier := notify.NewNotifier(d.Jobs, d.Config.PublicBaseURL, st, d.Clock)
 	hub := notify.NewHub(d.Pool)
-	md := masterdata.NewService(d.Pool)
+	md := masterdata.NewService(d.Pool, d.Clock, st)
 	med := media.NewService(d.Pool, d.Store, d.Clock)
 	cs := custody.NewService(d.Pool, d.Clock, st)
 	ml := mlclient.New(d.Config.MLBaseURL, d.Config.MLInternalToken)

@@ -959,6 +959,224 @@ paths:
               schema: { $ref: '#/components/schemas/Ack' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /admin/categories:
+    get:
+      tags: [admin]
+      operationId: adminListCategories
+      responses:
+        '200':
+          description: Every category, active or not, parents before their leaves
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCategoryList' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [admin]
+      operationId: adminCreateCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCategory' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/categories/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    patch:
+      tags: [admin]
+      operationId: adminUpdateCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCategory' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/category-compatibility:
+    get:
+      tags: [admin]
+      operationId: adminListCompatibility
+      responses:
+        '200':
+          description: Every compatibility pair, switched off ones included
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CompatibilityList' }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      tags: [admin]
+      operationId: adminPutCompatibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompatibilityPut' }
+      responses:
+        '200':
+          description: Stored
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CompatibilityPair' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/zones:
+    get:
+      tags: [admin]
+      operationId: adminListZones
+      responses:
+        '200':
+          description: Every zone, active or not
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminZoneList' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [admin]
+      operationId: adminCreateZone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ZoneCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminZone' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/zones/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    patch:
+      tags: [admin]
+      operationId: adminUpdateZone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ZoneUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminZone' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/locations:
+    get:
+      tags: [admin]
+      operationId: adminListLocations
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 100 }
+        - name: zone_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Locations, active or not, at most 500
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminLocationList' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [admin]
+      operationId: adminCreateLocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LocationCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminLocation' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/locations/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    patch:
+      tags: [admin]
+      operationId: adminUpdateLocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LocationUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminLocation' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/posts:
+    get:
+      tags: [admin]
+      operationId: adminListPosts
+      responses:
+        '200':
+          description: Every post, active or not
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminPostList' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [admin]
+      operationId: adminCreatePost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PostCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminPost' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/posts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    patch:
+      tags: [admin]
+      operationId: adminUpdatePost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PostUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminPost' }
+        default: { $ref: '#/components/responses/Problem' }
+
 components:
   securitySchemes:
     cookieAuth:
@@ -1207,9 +1425,7 @@ components:
         aliases:
           type: array
           items: { type: string }
-        kind:
-          type: string
-          enum: [building, outdoor, facility, transport, parking]
+        kind: { $ref: '#/components/schemas/LocationKind' }
         zone_id: { type: string, format: uuid }
         zone_name: { type: string }
         lat: { type: number, format: double }
@@ -2003,3 +2219,269 @@ components:
       additionalProperties: false
       properties:
         reason: { type: string, maxLength: 300 }
+
+    OpeningHours:
+      type: object
+      description: Weekday keys mon to sun, each a list of [from, to] in WIB, an empty list when closed
+      additionalProperties:
+        type: array
+        maxItems: 4
+        items:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items: { type: string, maxLength: 5 }
+
+    AdminCategory:
+      type: object
+      required: [id, slug, name, verification_questions, clip_prompts, sort_order, active, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        parent_id: { type: string, format: uuid, nullable: true }
+        parent_name: { type: string, nullable: true }
+        slug: { type: string }
+        name: { type: string }
+        sensitivity: { $ref: '#/components/schemas/Sensitivity' }
+        retention_days: { type: integer, nullable: true }
+        verification_questions:
+          type: array
+          items: { $ref: '#/components/schemas/VerificationQuestion' }
+        clip_prompts:
+          type: array
+          items: { type: string }
+        sort_order: { type: integer }
+        active: { type: boolean }
+        edited_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time }
+
+    AdminCategoryList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AdminCategory' }
+
+    QuestionInput:
+      type: object
+      additionalProperties: false
+      required: [key, question, required]
+      properties:
+        key: { type: string, maxLength: 40 }
+        question: { type: string, maxLength: 200 }
+        required: { type: boolean }
+        check_hint: { type: string, maxLength: 200 }
+
+    CategoryCreate:
+      type: object
+      additionalProperties: false
+      required: [slug, name]
+      properties:
+        parent_id: { type: string, format: uuid, description: absent for a parent category }
+        slug: { type: string, maxLength: 60 }
+        name: { type: string, maxLength: 80 }
+        sensitivity: { $ref: '#/components/schemas/Sensitivity' }
+        retention_days: { type: integer, minimum: 1, maximum: 365 }
+        verification_questions:
+          type: array
+          maxItems: 10
+          items: { $ref: '#/components/schemas/QuestionInput' }
+        clip_prompts:
+          type: array
+          maxItems: 10
+          items: { type: string, maxLength: 120 }
+        sort_order: { type: integer, minimum: 0, maximum: 1000 }
+
+    CategoryUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, maxLength: 80 }
+        sensitivity: { $ref: '#/components/schemas/Sensitivity' }
+        retention_days: { type: integer, minimum: 0, maximum: 365, description: 0 falls back to the retention setting of the sensitivity }
+        verification_questions:
+          type: array
+          maxItems: 10
+          items: { $ref: '#/components/schemas/QuestionInput' }
+        clip_prompts:
+          type: array
+          maxItems: 10
+          items: { type: string, maxLength: 120 }
+        sort_order: { type: integer, minimum: 0, maximum: 1000 }
+        active: { type: boolean }
+
+    CompatibilityPair:
+      type: object
+      required: [category_a, category_b, name_a, name_b, factor, active]
+      properties:
+        category_a: { type: string, format: uuid }
+        category_b: { type: string, format: uuid }
+        name_a: { type: string }
+        name_b: { type: string }
+        factor: { type: number }
+        active: { type: boolean }
+
+    CompatibilityList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/CompatibilityPair' }
+
+    CompatibilityPut:
+      type: object
+      additionalProperties: false
+      required: [category_a, category_b, factor, active]
+      properties:
+        category_a: { type: string, format: uuid }
+        category_b: { type: string, format: uuid }
+        factor: { type: number, minimum: 0, maximum: 1 }
+        active: { type: boolean }
+
+    AdminZone:
+      type: object
+      required: [id, slug, name, centroid_lat, centroid_lng, active, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        centroid_lat: { type: number, format: double }
+        centroid_lng: { type: number, format: double }
+        active: { type: boolean }
+        edited_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time }
+
+    AdminZoneList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AdminZone' }
+
+    ZoneCreate:
+      type: object
+      additionalProperties: false
+      required: [slug, name, centroid_lat, centroid_lng]
+      properties:
+        slug: { type: string, maxLength: 60 }
+        name: { type: string, maxLength: 80 }
+        centroid_lat: { type: number, format: double }
+        centroid_lng: { type: number, format: double }
+
+    ZoneUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, maxLength: 80 }
+        centroid_lat: { type: number, format: double }
+        centroid_lng: { type: number, format: double }
+        active: { type: boolean }
+
+    LocationKind:
+      type: string
+      enum: [building, outdoor, facility, transport, parking]
+
+    AdminLocation:
+      type: object
+      required: [id, zone_id, zone_name, slug, name, aliases, kind, lat, lng, active, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        zone_id: { type: string, format: uuid }
+        zone_name: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        aliases:
+          type: array
+          items: { type: string }
+        kind: { $ref: '#/components/schemas/LocationKind' }
+        lat: { type: number, format: double }
+        lng: { type: number, format: double }
+        active: { type: boolean }
+        edited_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time }
+
+    AdminLocationList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AdminLocation' }
+
+    LocationCreate:
+      type: object
+      additionalProperties: false
+      required: [zone_id, slug, name, kind, lat, lng]
+      properties:
+        zone_id: { type: string, format: uuid }
+        slug: { type: string, maxLength: 60 }
+        name: { type: string, maxLength: 100 }
+        aliases:
+          type: array
+          maxItems: 10
+          items: { type: string, maxLength: 60 }
+        kind: { $ref: '#/components/schemas/LocationKind' }
+        lat: { type: number, format: double }
+        lng: { type: number, format: double }
+
+    LocationUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        zone_id: { type: string, format: uuid }
+        name: { type: string, maxLength: 100 }
+        aliases:
+          type: array
+          maxItems: 10
+          items: { type: string, maxLength: 60 }
+        kind: { $ref: '#/components/schemas/LocationKind' }
+        lat: { type: number, format: double }
+        lng: { type: number, format: double }
+        active: { type: boolean }
+
+    AdminPost:
+      type: object
+      required: [id, slug, name, location_id, location_name, zone_name, opening_hours, active, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        location_id: { type: string, format: uuid }
+        location_name: { type: string }
+        zone_name: { type: string }
+        phone: { type: string, nullable: true }
+        opening_hours: { $ref: '#/components/schemas/OpeningHours' }
+        active: { type: boolean }
+        edited_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time }
+
+    AdminPostList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AdminPost' }
+
+    PostCreate:
+      type: object
+      additionalProperties: false
+      required: [slug, name, location_id, opening_hours]
+      properties:
+        slug: { type: string, maxLength: 60 }
+        name: { type: string, maxLength: 100 }
+        location_id: { type: string, format: uuid }
+        phone: { type: string, maxLength: 30 }
+        opening_hours: { $ref: '#/components/schemas/OpeningHours' }
+
+    PostUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, maxLength: 100 }
+        location_id: { type: string, format: uuid }
+        phone: { type: string, maxLength: 30, description: an empty string removes the number }
+        opening_hours: { $ref: '#/components/schemas/OpeningHours' }
+        active: { type: boolean }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
+	"github.com/pisondev/simpanugm/api/internal/platform/geo"
 )
 
 const refreshEvery = 60 * time.Second
@@ -83,6 +84,16 @@ func (s *Store) Strings(ctx context.Context, key string) []string {
 	}
 	out, _ := defaults[key].([]string)
 	return out
+}
+
+// the campus.bounding_box setting, false when it is missing or malformed
+func (s *Store) CampusBox(ctx context.Context) (geo.Box, bool) {
+	var b geo.Box
+	v, ok := s.raw(ctx, "campus.bounding_box")
+	if !ok || json.Unmarshal(v, &b) != nil || b.MinLat >= b.MaxLat || b.MinLng >= b.MaxLng {
+		return geo.Box{}, false
+	}
+	return b, true
 }
 
 type QuietHours struct {

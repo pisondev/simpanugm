@@ -57,6 +57,266 @@ func (q *Queries) ActiveVersion(ctx context.Context, component string) (ActiveVe
 	return i, err
 }
 
+const adminListCategories = `-- name: AdminListCategories :many
+
+SELECT c.id, c.parent_id, c.slug, c.name, c.sensitivity, c.retention_days, c.verification_questions, c.clip_prompts, c.sort_order, c.active, c.created_at, c.updated_at, c.edited_at, coalesce(p.name, '')::text AS parent_name
+FROM categories c
+LEFT JOIN categories p ON p.id = c.parent_id
+ORDER BY coalesce(p.sort_order, c.sort_order), coalesce(p.name, c.name), c.parent_id NULLS FIRST, c.sort_order, c.name
+`
+
+type AdminListCategoriesRow struct {
+	ID                    uuid.UUID
+	ParentID              *uuid.UUID
+	Slug                  string
+	Name                  string
+	Sensitivity           *string
+	RetentionDays         *int32
+	VerificationQuestions []byte
+	ClipPrompts           []string
+	SortOrder             int32
+	Active                bool
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
+	EditedAt              *time.Time
+	ParentName            string
+}
+
+// US-07: administrators see every row, active or not
+func (q *Queries) AdminListCategories(ctx context.Context) ([]AdminListCategoriesRow, error) {
+	rows, err := q.db.Query(ctx, adminListCategories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListCategoriesRow{}
+	for rows.Next() {
+		var i AdminListCategoriesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ParentID,
+			&i.Slug,
+			&i.Name,
+			&i.Sensitivity,
+			&i.RetentionDays,
+			&i.VerificationQuestions,
+			&i.ClipPrompts,
+			&i.SortOrder,
+			&i.Active,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.EditedAt,
+			&i.ParentName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminListCompatibility = `-- name: AdminListCompatibility :many
+SELECT cc.category_a, cc.category_b, cc.factor::float8 AS factor, cc.active, a.name AS name_a, b.name AS name_b
+FROM category_compatibility cc
+JOIN categories a ON a.id = cc.category_a
+JOIN categories b ON b.id = cc.category_b
+ORDER BY a.name, b.name
+`
+
+type AdminListCompatibilityRow struct {
+	CategoryA uuid.UUID
+	CategoryB uuid.UUID
+	Factor    float64
+	Active    bool
+	NameA     string
+	NameB     string
+}
+
+func (q *Queries) AdminListCompatibility(ctx context.Context) ([]AdminListCompatibilityRow, error) {
+	rows, err := q.db.Query(ctx, adminListCompatibility)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListCompatibilityRow{}
+	for rows.Next() {
+		var i AdminListCompatibilityRow
+		if err := rows.Scan(
+			&i.CategoryA,
+			&i.CategoryB,
+			&i.Factor,
+			&i.Active,
+			&i.NameA,
+			&i.NameB,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminListLocations = `-- name: AdminListLocations :many
+SELECT l.id, l.zone_id, l.slug, l.name, l.aliases, l.kind, l.lat, l.lng, l.active, l.created_at, l.updated_at, l.edited_at, z.name AS zone_name
+FROM locations l
+JOIN zones z ON z.id = l.zone_id
+WHERE ($1::uuid IS NULL OR l.zone_id = $1::uuid)
+  AND ($2::text IS NULL OR search_key_with_aliases(l.name, l.aliases) LIKE '%' || search_key($2::text) || '%')
+ORDER BY z.name, l.name
+LIMIT 500
+`
+
+type AdminListLocationsParams struct {
+	ZoneID *uuid.UUID
+	Q      *string
+}
+
+type AdminListLocationsRow struct {
+	ID        uuid.UUID
+	ZoneID    uuid.UUID
+	Slug      string
+	Name      string
+	Aliases   []string
+	Kind      string
+	Lat       float64
+	Lng       float64
+	Active    bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	EditedAt  *time.Time
+	ZoneName  string
+}
+
+func (q *Queries) AdminListLocations(ctx context.Context, arg AdminListLocationsParams) ([]AdminListLocationsRow, error) {
+	rows, err := q.db.Query(ctx, adminListLocations, arg.ZoneID, arg.Q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListLocationsRow{}
+	for rows.Next() {
+		var i AdminListLocationsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ZoneID,
+			&i.Slug,
+			&i.Name,
+			&i.Aliases,
+			&i.Kind,
+			&i.Lat,
+			&i.Lng,
+			&i.Active,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.EditedAt,
+			&i.ZoneName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminListPosts = `-- name: AdminListPosts :many
+SELECT p.id, p.slug, p.name, p.location_id, p.phone, p.opening_hours, p.active, p.created_at, p.updated_at, p.edited_at, l.name AS location_name, z.name AS zone_name
+FROM posts p
+JOIN locations l ON l.id = p.location_id
+JOIN zones z ON z.id = l.zone_id
+ORDER BY p.name
+`
+
+type AdminListPostsRow struct {
+	ID           uuid.UUID
+	Slug         string
+	Name         string
+	LocationID   uuid.UUID
+	Phone        *string
+	OpeningHours []byte
+	Active       bool
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	EditedAt     *time.Time
+	LocationName string
+	ZoneName     string
+}
+
+func (q *Queries) AdminListPosts(ctx context.Context) ([]AdminListPostsRow, error) {
+	rows, err := q.db.Query(ctx, adminListPosts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListPostsRow{}
+	for rows.Next() {
+		var i AdminListPostsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Slug,
+			&i.Name,
+			&i.LocationID,
+			&i.Phone,
+			&i.OpeningHours,
+			&i.Active,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.EditedAt,
+			&i.LocationName,
+			&i.ZoneName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminListZones = `-- name: AdminListZones :many
+SELECT id, slug, name, centroid_lat, centroid_lng, active, created_at, updated_at, edited_at FROM zones ORDER BY name
+`
+
+func (q *Queries) AdminListZones(ctx context.Context) ([]Zone, error) {
+	rows, err := q.db.Query(ctx, adminListZones)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Zone{}
+	for rows.Next() {
+		var i Zone
+		if err := rows.Scan(
+			&i.ID,
+			&i.Slug,
+			&i.Name,
+			&i.CentroidLat,
+			&i.CentroidLng,
+			&i.Active,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.EditedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const attachMedia = `-- name: AttachMedia :exec
 UPDATE media
 SET lost_report_id = $1,
@@ -116,6 +376,31 @@ func (q *Queries) CandidatePhotos(ctx context.Context, ids []uuid.UUID) ([]Candi
 		return nil, err
 	}
 	return items, nil
+}
+
+const categoryForUpdate = `-- name: CategoryForUpdate :one
+SELECT id, parent_id, slug, name, sensitivity, retention_days, verification_questions, clip_prompts, sort_order, active, created_at, updated_at, edited_at FROM categories WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) CategoryForUpdate(ctx context.Context, id uuid.UUID) (Category, error) {
+	row := q.db.QueryRow(ctx, categoryForUpdate, id)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.ParentID,
+		&i.Slug,
+		&i.Name,
+		&i.Sensitivity,
+		&i.RetentionDays,
+		&i.VerificationQuestions,
+		&i.ClipPrompts,
+		&i.SortOrder,
+		&i.Active,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.EditedAt,
+	)
+	return i, err
 }
 
 const categoryPromptSet = `-- name: CategoryPromptSet :many
@@ -262,7 +547,7 @@ func (q *Queries) CloseFoundReport(ctx context.Context, arg CloseFoundReportPara
 }
 
 const compatibilityFor = `-- name: CompatibilityFor :many
-SELECT category_a, category_b, factor::float8 AS factor FROM category_compatibility WHERE category_a = $1 OR category_b = $1
+SELECT category_a, category_b, factor::float8 AS factor FROM category_compatibility WHERE (category_a = $1 OR category_b = $1) AND active
 `
 
 type CompatibilityForRow struct {
@@ -289,6 +574,35 @@ func (q *Queries) CompatibilityFor(ctx context.Context, categoryA uuid.UUID) ([]
 		return nil, err
 	}
 	return items, nil
+}
+
+const compatibilityForUpdate = `-- name: CompatibilityForUpdate :one
+SELECT category_a, category_b, factor::float8 AS factor, active FROM category_compatibility
+WHERE category_a = $1 AND category_b = $2 FOR UPDATE
+`
+
+type CompatibilityForUpdateParams struct {
+	CategoryA uuid.UUID
+	CategoryB uuid.UUID
+}
+
+type CompatibilityForUpdateRow struct {
+	CategoryA uuid.UUID
+	CategoryB uuid.UUID
+	Factor    float64
+	Active    bool
+}
+
+func (q *Queries) CompatibilityForUpdate(ctx context.Context, arg CompatibilityForUpdateParams) (CompatibilityForUpdateRow, error) {
+	row := q.db.QueryRow(ctx, compatibilityForUpdate, arg.CategoryA, arg.CategoryB)
+	var i CompatibilityForUpdateRow
+	err := row.Scan(
+		&i.CategoryA,
+		&i.CategoryB,
+		&i.Factor,
+		&i.Active,
+	)
+	return i, err
 }
 
 const countActiveAdmins = `-- name: CountActiveAdmins :one
@@ -1046,7 +1360,7 @@ func (q *Queries) FoundStatusForUpdate(ctx context.Context, id uuid.UUID) (strin
 }
 
 const getCategory = `-- name: GetCategory :one
-SELECT c.id, c.parent_id, c.slug, c.name, c.sensitivity, c.retention_days, c.verification_questions, c.clip_prompts, c.sort_order, c.active, c.created_at, c.updated_at, coalesce(p.name, c.name)::text AS parent_name
+SELECT c.id, c.parent_id, c.slug, c.name, c.sensitivity, c.retention_days, c.verification_questions, c.clip_prompts, c.sort_order, c.active, c.created_at, c.updated_at, c.edited_at, coalesce(p.name, c.name)::text AS parent_name, coalesce(p.active, true)::bool AS parent_active
 FROM categories c
 LEFT JOIN categories p ON p.id = c.parent_id
 WHERE c.id = $1
@@ -1065,7 +1379,9 @@ type GetCategoryRow struct {
 	Active                bool
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
+	EditedAt              *time.Time
 	ParentName            string
+	ParentActive          bool
 }
 
 func (q *Queries) GetCategory(ctx context.Context, id uuid.UUID) (GetCategoryRow, error) {
@@ -1084,7 +1400,9 @@ func (q *Queries) GetCategory(ctx context.Context, id uuid.UUID) (GetCategoryRow
 		&i.Active,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EditedAt,
 		&i.ParentName,
+		&i.ParentActive,
 	)
 	return i, err
 }
@@ -1212,7 +1530,7 @@ func (q *Queries) GetIdempotencyKey(ctx context.Context, arg GetIdempotencyKeyPa
 }
 
 const getLocation = `-- name: GetLocation :one
-SELECT l.id, l.zone_id, l.slug, l.name, l.aliases, l.kind, l.lat, l.lng, l.active, l.created_at, l.updated_at, z.name AS zone_name
+SELECT l.id, l.zone_id, l.slug, l.name, l.aliases, l.kind, l.lat, l.lng, l.active, l.created_at, l.updated_at, l.edited_at, z.name AS zone_name
 FROM locations l
 JOIN zones z ON z.id = l.zone_id
 WHERE l.id = $1
@@ -1230,6 +1548,7 @@ type GetLocationRow struct {
 	Active    bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	EditedAt  *time.Time
 	ZoneName  string
 }
 
@@ -1248,6 +1567,7 @@ func (q *Queries) GetLocation(ctx context.Context, id uuid.UUID) (GetLocationRow
 		&i.Active,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EditedAt,
 		&i.ZoneName,
 	)
 	return i, err
@@ -1448,7 +1768,7 @@ func (q *Queries) GetNotificationCreated(ctx context.Context, arg GetNotificatio
 }
 
 const getPost = `-- name: GetPost :one
-SELECT p.id, p.slug, p.name, p.location_id, p.phone, p.opening_hours, p.active, p.created_at, p.updated_at, l.name AS location_name, l.lat, l.lng, l.zone_id, z.name AS zone_name
+SELECT p.id, p.slug, p.name, p.location_id, p.phone, p.opening_hours, p.active, p.created_at, p.updated_at, p.edited_at, l.name AS location_name, l.lat, l.lng, l.zone_id, z.name AS zone_name
 FROM posts p
 JOIN locations l ON l.id = p.location_id
 JOIN zones z ON z.id = l.zone_id
@@ -1465,6 +1785,7 @@ type GetPostRow struct {
 	Active       bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	EditedAt     *time.Time
 	LocationName string
 	Lat          float64
 	Lng          float64
@@ -1485,6 +1806,7 @@ func (q *Queries) GetPost(ctx context.Context, id uuid.UUID) (GetPostRow, error)
 		&i.Active,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EditedAt,
 		&i.LocationName,
 		&i.Lat,
 		&i.Lng,
@@ -1654,7 +1976,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getZone = `-- name: GetZone :one
-SELECT id, slug, name, centroid_lat, centroid_lng, active, created_at, updated_at FROM zones WHERE id = $1
+SELECT id, slug, name, centroid_lat, centroid_lng, active, created_at, updated_at, edited_at FROM zones WHERE id = $1
 `
 
 func (q *Queries) GetZone(ctx context.Context, id uuid.UUID) (Zone, error) {
@@ -1669,6 +1991,7 @@ func (q *Queries) GetZone(ctx context.Context, id uuid.UUID) (Zone, error) {
 		&i.Active,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EditedAt,
 	)
 	return i, err
 }
@@ -1822,6 +2145,42 @@ func (q *Queries) InsertAudit(ctx context.Context, arg InsertAuditParams) error 
 	return err
 }
 
+const insertCategory = `-- name: InsertCategory :exec
+INSERT INTO categories (id, parent_id, slug, name, sensitivity, retention_days, verification_questions, clip_prompts, sort_order,
+                        active, created_at, updated_at, edited_at)
+VALUES ($1, $2, $3, $4, $5, $6,
+        $7, $8, $9, true, $10, $10, $10)
+`
+
+type InsertCategoryParams struct {
+	ID                    uuid.UUID
+	ParentID              *uuid.UUID
+	Slug                  string
+	Name                  string
+	Sensitivity           *string
+	RetentionDays         *int32
+	VerificationQuestions []byte
+	ClipPrompts           []string
+	SortOrder             int32
+	Now                   time.Time
+}
+
+func (q *Queries) InsertCategory(ctx context.Context, arg InsertCategoryParams) error {
+	_, err := q.db.Exec(ctx, insertCategory,
+		arg.ID,
+		arg.ParentID,
+		arg.Slug,
+		arg.Name,
+		arg.Sensitivity,
+		arg.RetentionDays,
+		arg.VerificationQuestions,
+		arg.ClipPrompts,
+		arg.SortOrder,
+		arg.Now,
+	)
+	return err
+}
+
 const insertCustodyEvent = `-- name: InsertCustodyEvent :exec
 INSERT INTO custody_events (id, found_report_id, kind, from_post_id, to_post_id, officer_id, note, created_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -1915,6 +2274,39 @@ func (q *Queries) InsertFoundReport(ctx context.Context, arg InsertFoundReportPa
 		arg.ReceivedBy,
 		arg.RetentionDueAt,
 		arg.CreatedAt,
+	)
+	return err
+}
+
+const insertLocation = `-- name: InsertLocation :exec
+INSERT INTO locations (id, zone_id, slug, name, aliases, kind, lat, lng, active, created_at, updated_at, edited_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
+        true, $9, $9, $9)
+`
+
+type InsertLocationParams struct {
+	ID      uuid.UUID
+	ZoneID  uuid.UUID
+	Slug    string
+	Name    string
+	Aliases []string
+	Kind    string
+	Lat     float64
+	Lng     float64
+	Now     time.Time
+}
+
+func (q *Queries) InsertLocation(ctx context.Context, arg InsertLocationParams) error {
+	_, err := q.db.Exec(ctx, insertLocation,
+		arg.ID,
+		arg.ZoneID,
+		arg.Slug,
+		arg.Name,
+		arg.Aliases,
+		arg.Kind,
+		arg.Lat,
+		arg.Lng,
+		arg.Now,
 	)
 	return err
 }
@@ -2167,6 +2559,35 @@ func (q *Queries) InsertOfficerPost(ctx context.Context, arg InsertOfficerPostPa
 	return err
 }
 
+const insertPost = `-- name: InsertPost :exec
+INSERT INTO posts (id, slug, name, location_id, phone, opening_hours, active, created_at, updated_at, edited_at)
+VALUES ($1, $2, $3, $4, $5, $6, true,
+        $7, $7, $7)
+`
+
+type InsertPostParams struct {
+	ID           uuid.UUID
+	Slug         string
+	Name         string
+	LocationID   uuid.UUID
+	Phone        *string
+	OpeningHours []byte
+	Now          time.Time
+}
+
+func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) error {
+	_, err := q.db.Exec(ctx, insertPost,
+		arg.ID,
+		arg.Slug,
+		arg.Name,
+		arg.LocationID,
+		arg.Phone,
+		arg.OpeningHours,
+		arg.Now,
+	)
+	return err
+}
+
 const insertSettingIfMissing = `-- name: InsertSettingIfMissing :exec
 INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING
 `
@@ -2246,6 +2667,32 @@ func (q *Queries) InsertVersion(ctx context.Context, arg InsertVersionParams) er
 	return err
 }
 
+const insertZone = `-- name: InsertZone :exec
+INSERT INTO zones (id, slug, name, centroid_lat, centroid_lng, active, created_at, updated_at, edited_at)
+VALUES ($1, $2, $3, $4, $5, true, $6, $6, $6)
+`
+
+type InsertZoneParams struct {
+	ID          uuid.UUID
+	Slug        string
+	Name        string
+	CentroidLat float64
+	CentroidLng float64
+	Now         time.Time
+}
+
+func (q *Queries) InsertZone(ctx context.Context, arg InsertZoneParams) error {
+	_, err := q.db.Exec(ctx, insertZone,
+		arg.ID,
+		arg.Slug,
+		arg.Name,
+		arg.CentroidLat,
+		arg.CentroidLng,
+		arg.Now,
+	)
+	return err
+}
+
 const invalidateUserTokens = `-- name: InvalidateUserTokens :exec
 UPDATE auth_tokens SET used_at = $1::timestamptz
 WHERE user_id = $2 AND purpose = $3 AND used_at IS NULL
@@ -2313,6 +2760,17 @@ func (q *Queries) LastNotificationOf(ctx context.Context, arg LastNotificationOf
 	var created_at time.Time
 	err := row.Scan(&created_at)
 	return created_at, err
+}
+
+const leafCategoryIDBySlug = `-- name: LeafCategoryIDBySlug :one
+SELECT id FROM categories WHERE slug = $1 AND parent_id IS NOT NULL
+`
+
+func (q *Queries) LeafCategoryIDBySlug(ctx context.Context, slug string) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, leafCategoryIDBySlug, slug)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const listActiveSessions = `-- name: ListActiveSessions :many
@@ -2403,7 +2861,7 @@ func (q *Queries) ListAuditForEntity(ctx context.Context, arg ListAuditForEntity
 }
 
 const listCategories = `-- name: ListCategories :many
-SELECT id, parent_id, slug, name, sensitivity, retention_days, verification_questions, clip_prompts, sort_order, active, created_at, updated_at FROM categories WHERE active ORDER BY sort_order, name
+SELECT id, parent_id, slug, name, sensitivity, retention_days, verification_questions, clip_prompts, sort_order, active, created_at, updated_at, edited_at FROM categories WHERE active ORDER BY sort_order, name
 `
 
 func (q *Queries) ListCategories(ctx context.Context) ([]Category, error) {
@@ -2428,6 +2886,7 @@ func (q *Queries) ListCategories(ctx context.Context) ([]Category, error) {
 			&i.Active,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.EditedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -2709,7 +3168,7 @@ func (q *Queries) ListInventory(ctx context.Context, arg ListInventoryParams) ([
 }
 
 const listLocations = `-- name: ListLocations :many
-SELECT l.id, l.zone_id, l.slug, l.name, l.aliases, l.kind, l.lat, l.lng, l.active, l.created_at, l.updated_at, z.name AS zone_name
+SELECT l.id, l.zone_id, l.slug, l.name, l.aliases, l.kind, l.lat, l.lng, l.active, l.created_at, l.updated_at, l.edited_at, z.name AS zone_name
 FROM locations l
 JOIN zones z ON z.id = l.zone_id
 WHERE l.active
@@ -2748,6 +3207,7 @@ type ListLocationsRow struct {
 	Active    bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	EditedAt  *time.Time
 	ZoneName  string
 }
 
@@ -2772,6 +3232,7 @@ func (q *Queries) ListLocations(ctx context.Context, arg ListLocationsParams) ([
 			&i.Active,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.EditedAt,
 			&i.ZoneName,
 		); err != nil {
 			return nil, err
@@ -3042,7 +3503,7 @@ func (q *Queries) ListPostIDsForUsers(ctx context.Context, userIds []uuid.UUID) 
 }
 
 const listPosts = `-- name: ListPosts :many
-SELECT p.id, p.slug, p.name, p.location_id, p.phone, p.opening_hours, p.active, p.created_at, p.updated_at, l.name AS location_name, l.lat, l.lng, l.zone_id, z.name AS zone_name
+SELECT p.id, p.slug, p.name, p.location_id, p.phone, p.opening_hours, p.active, p.created_at, p.updated_at, p.edited_at, l.name AS location_name, l.lat, l.lng, l.zone_id, z.name AS zone_name
 FROM posts p
 JOIN locations l ON l.id = p.location_id
 JOIN zones z ON z.id = l.zone_id
@@ -3060,6 +3521,7 @@ type ListPostsRow struct {
 	Active       bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	EditedAt     *time.Time
 	LocationName string
 	Lat          float64
 	Lng          float64
@@ -3086,6 +3548,7 @@ func (q *Queries) ListPosts(ctx context.Context) ([]ListPostsRow, error) {
 			&i.Active,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.EditedAt,
 			&i.LocationName,
 			&i.Lat,
 			&i.Lng,
@@ -3516,7 +3979,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 }
 
 const listZones = `-- name: ListZones :many
-SELECT id, slug, name, centroid_lat, centroid_lng, active, created_at, updated_at FROM zones WHERE active ORDER BY name
+SELECT id, slug, name, centroid_lat, centroid_lng, active, created_at, updated_at, edited_at FROM zones WHERE active ORDER BY name
 `
 
 func (q *Queries) ListZones(ctx context.Context) ([]Zone, error) {
@@ -3537,6 +4000,7 @@ func (q *Queries) ListZones(ctx context.Context) ([]Zone, error) {
 			&i.Active,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.EditedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -3546,6 +4010,41 @@ func (q *Queries) ListZones(ctx context.Context) ([]Zone, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const locationForUpdate = `-- name: LocationForUpdate :one
+SELECT id, zone_id, slug, name, aliases, kind, lat, lng, active, created_at, updated_at, edited_at FROM locations WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) LocationForUpdate(ctx context.Context, id uuid.UUID) (Location, error) {
+	row := q.db.QueryRow(ctx, locationForUpdate, id)
+	var i Location
+	err := row.Scan(
+		&i.ID,
+		&i.ZoneID,
+		&i.Slug,
+		&i.Name,
+		&i.Aliases,
+		&i.Kind,
+		&i.Lat,
+		&i.Lng,
+		&i.Active,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.EditedAt,
+	)
+	return i, err
+}
+
+const locationIDBySlug = `-- name: LocationIDBySlug :one
+SELECT id FROM locations WHERE slug = $1
+`
+
+func (q *Queries) LocationIDBySlug(ctx context.Context, slug string) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, locationIDBySlug, slug)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const lockMedia = `-- name: LockMedia :many
@@ -4438,6 +4937,65 @@ func (q *Queries) PairForUpdate(ctx context.Context, arg PairForUpdateParams) (P
 	return i, err
 }
 
+const parentCategoryIDBySlug = `-- name: ParentCategoryIDBySlug :one
+SELECT id FROM categories WHERE slug = $1 AND parent_id IS NULL
+`
+
+func (q *Queries) ParentCategoryIDBySlug(ctx context.Context, slug string) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, parentCategoryIDBySlug, slug)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const postForUpdate = `-- name: PostForUpdate :one
+SELECT id, slug, name, location_id, phone, opening_hours, active, created_at, updated_at, edited_at FROM posts WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) PostForUpdate(ctx context.Context, id uuid.UUID) (Post, error) {
+	row := q.db.QueryRow(ctx, postForUpdate, id)
+	var i Post
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Name,
+		&i.LocationID,
+		&i.Phone,
+		&i.OpeningHours,
+		&i.Active,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.EditedAt,
+	)
+	return i, err
+}
+
+const putCompatibility = `-- name: PutCompatibility :exec
+INSERT INTO category_compatibility (category_a, category_b, factor, active, edited_at)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (category_a, category_b) DO UPDATE
+SET factor = excluded.factor, active = excluded.active, edited_at = excluded.edited_at
+`
+
+type PutCompatibilityParams struct {
+	CategoryA uuid.UUID
+	CategoryB uuid.UUID
+	Factor    float64
+	Active    bool
+	Now       *time.Time
+}
+
+func (q *Queries) PutCompatibility(ctx context.Context, arg PutCompatibilityParams) error {
+	_, err := q.db.Exec(ctx, putCompatibility,
+		arg.CategoryA,
+		arg.CategoryB,
+		arg.Factor,
+		arg.Active,
+		arg.Now,
+	)
+	return err
+}
+
 const receiveIntoCustody = `-- name: ReceiveIntoCustody :one
 UPDATE found_reports
 SET custody_status = 'in_custody',
@@ -5113,6 +5671,41 @@ func (q *Queries) UnnotifiedCandidates(ctx context.Context, lostReportID uuid.UU
 	return items, nil
 }
 
+const updateCategory = `-- name: UpdateCategory :exec
+UPDATE categories
+SET name = $1, sensitivity = $2, retention_days = $3,
+    verification_questions = $4, clip_prompts = $5,
+    sort_order = $6, active = $7, updated_at = $8, edited_at = $8
+WHERE id = $9
+`
+
+type UpdateCategoryParams struct {
+	Name                  string
+	Sensitivity           *string
+	RetentionDays         *int32
+	VerificationQuestions []byte
+	ClipPrompts           []string
+	SortOrder             int32
+	Active                bool
+	Now                   time.Time
+	ID                    uuid.UUID
+}
+
+func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) error {
+	_, err := q.db.Exec(ctx, updateCategory,
+		arg.Name,
+		arg.Sensitivity,
+		arg.RetentionDays,
+		arg.VerificationQuestions,
+		arg.ClipPrompts,
+		arg.SortOrder,
+		arg.Active,
+		arg.Now,
+		arg.ID,
+	)
+	return err
+}
+
 const updateFoundReport = `-- name: UpdateFoundReport :one
 UPDATE found_reports
 SET category_id = $1,
@@ -5169,6 +5762,40 @@ func (q *Queries) UpdateFoundReport(ctx context.Context, arg UpdateFoundReportPa
 	var version int32
 	err := row.Scan(&version)
 	return version, err
+}
+
+const updateLocation = `-- name: UpdateLocation :exec
+UPDATE locations
+SET zone_id = $1, name = $2, aliases = $3, kind = $4, lat = $5,
+    lng = $6, active = $7, updated_at = $8, edited_at = $8
+WHERE id = $9
+`
+
+type UpdateLocationParams struct {
+	ZoneID  uuid.UUID
+	Name    string
+	Aliases []string
+	Kind    string
+	Lat     float64
+	Lng     float64
+	Active  bool
+	Now     time.Time
+	ID      uuid.UUID
+}
+
+func (q *Queries) UpdateLocation(ctx context.Context, arg UpdateLocationParams) error {
+	_, err := q.db.Exec(ctx, updateLocation,
+		arg.ZoneID,
+		arg.Name,
+		arg.Aliases,
+		arg.Kind,
+		arg.Lat,
+		arg.Lng,
+		arg.Active,
+		arg.Now,
+		arg.ID,
+	)
+	return err
 }
 
 const updateLostReport = `-- name: UpdateLostReport :one
@@ -5291,6 +5918,36 @@ func (q *Queries) UpdatePasswordHash(ctx context.Context, arg UpdatePasswordHash
 	return err
 }
 
+const updatePost = `-- name: UpdatePost :exec
+UPDATE posts
+SET name = $1, location_id = $2, phone = $3, opening_hours = $4,
+    active = $5, updated_at = $6, edited_at = $6
+WHERE id = $7
+`
+
+type UpdatePostParams struct {
+	Name         string
+	LocationID   uuid.UUID
+	Phone        *string
+	OpeningHours []byte
+	Active       bool
+	Now          time.Time
+	ID           uuid.UUID
+}
+
+func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) error {
+	_, err := q.db.Exec(ctx, updatePost,
+		arg.Name,
+		arg.LocationID,
+		arg.Phone,
+		arg.OpeningHours,
+		arg.Active,
+		arg.Now,
+		arg.ID,
+	)
+	return err
+}
+
 const updateProfile = `-- name: UpdateProfile :one
 UPDATE users SET full_name = $2, phone = $3, nim_nip = $4, version = version + 1, updated_at = $5
 WHERE id = $1
@@ -5352,6 +6009,34 @@ func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) 
 	return err
 }
 
+const updateZone = `-- name: UpdateZone :exec
+UPDATE zones
+SET name = $1, centroid_lat = $2, centroid_lng = $3, active = $4,
+    updated_at = $5, edited_at = $5
+WHERE id = $6
+`
+
+type UpdateZoneParams struct {
+	Name        string
+	CentroidLat float64
+	CentroidLng float64
+	Active      bool
+	Now         time.Time
+	ID          uuid.UUID
+}
+
+func (q *Queries) UpdateZone(ctx context.Context, arg UpdateZoneParams) error {
+	_, err := q.db.Exec(ctx, updateZone,
+		arg.Name,
+		arg.CentroidLat,
+		arg.CentroidLng,
+		arg.Active,
+		arg.Now,
+		arg.ID,
+	)
+	return err
+}
+
 const upsertBrand = `-- name: UpsertBrand :exec
 INSERT INTO brands (name, aliases) VALUES ($1, $2)
 ON CONFLICT (name) DO UPDATE SET aliases = excluded.aliases
@@ -5387,6 +6072,7 @@ const upsertCompatibility = `-- name: UpsertCompatibility :exec
 INSERT INTO category_compatibility (category_a, category_b, factor)
 VALUES ($1, $2, $3)
 ON CONFLICT (category_a, category_b) DO UPDATE SET factor = excluded.factor
+WHERE category_compatibility.edited_at IS NULL
 `
 
 type UpsertCompatibilityParams struct {
@@ -5464,6 +6150,7 @@ ON CONFLICT (slug) WHERE parent_id IS NOT NULL DO UPDATE
 SET parent_id = excluded.parent_id, name = excluded.name, sensitivity = excluded.sensitivity,
     retention_days = excluded.retention_days, verification_questions = excluded.verification_questions,
     clip_prompts = excluded.clip_prompts, sort_order = excluded.sort_order, updated_at = now()
+WHERE categories.edited_at IS NULL
 RETURNING id
 `
 
@@ -5502,6 +6189,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 ON CONFLICT (slug) DO UPDATE
 SET zone_id = excluded.zone_id, name = excluded.name, aliases = excluded.aliases, kind = excluded.kind,
     lat = excluded.lat, lng = excluded.lng, updated_at = now()
+WHERE locations.edited_at IS NULL
 RETURNING id
 `
 
@@ -5537,6 +6225,7 @@ INSERT INTO categories (id, slug, name, verification_questions, clip_prompts, so
 VALUES ($1, $2, $3, '[]', '{}', $4)
 ON CONFLICT (slug) WHERE parent_id IS NULL DO UPDATE
 SET name = excluded.name, sort_order = excluded.sort_order, updated_at = now()
+WHERE categories.edited_at IS NULL
 RETURNING id
 `
 
@@ -5565,6 +6254,7 @@ VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (slug) DO UPDATE
 SET name = excluded.name, location_id = excluded.location_id, phone = excluded.phone,
     opening_hours = excluded.opening_hours, updated_at = now()
+WHERE posts.edited_at IS NULL
 RETURNING id
 `
 
@@ -5690,6 +6380,7 @@ INSERT INTO zones (id, slug, name, centroid_lat, centroid_lng)
 VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT (slug) DO UPDATE
 SET name = excluded.name, centroid_lat = excluded.centroid_lat, centroid_lng = excluded.centroid_lng, updated_at = now()
+WHERE zones.edited_at IS NULL
 RETURNING id
 `
 
@@ -5760,4 +6451,37 @@ func (q *Queries) VisibleCandidatesOfLost(ctx context.Context, lostReportID uuid
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const zoneForUpdate = `-- name: ZoneForUpdate :one
+SELECT id, slug, name, centroid_lat, centroid_lng, active, created_at, updated_at, edited_at FROM zones WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) ZoneForUpdate(ctx context.Context, id uuid.UUID) (Zone, error) {
+	row := q.db.QueryRow(ctx, zoneForUpdate, id)
+	var i Zone
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Name,
+		&i.CentroidLat,
+		&i.CentroidLng,
+		&i.Active,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.EditedAt,
+	)
+	return i, err
+}
+
+const zoneIDBySlug = `-- name: ZoneIDBySlug :one
+SELECT id FROM zones WHERE slug = $1
+`
+
+// an upsert that left an administrator's row alone returns nothing, the seed then looks the id up
+func (q *Queries) ZoneIDBySlug(ctx context.Context, slug string) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, zoneIDBySlug, slug)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }

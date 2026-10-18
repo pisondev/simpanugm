@@ -841,6 +841,158 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminListCategories"];
+        put?: never;
+        post: operations["adminCreateCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["adminUpdateCategory"];
+        trace?: never;
+    };
+    "/admin/category-compatibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminListCompatibility"];
+        put: operations["adminPutCompatibility"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/zones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminListZones"];
+        put?: never;
+        post: operations["adminCreateZone"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/zones/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["adminUpdateZone"];
+        trace?: never;
+    };
+    "/admin/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminListLocations"];
+        put?: never;
+        post: operations["adminCreateLocation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/locations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["adminUpdateLocation"];
+        trace?: never;
+    };
+    "/admin/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminListPosts"];
+        put?: never;
+        post: operations["adminCreatePost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/posts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["adminUpdatePost"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -954,8 +1106,7 @@ export interface components {
             slug: string;
             name: string;
             aliases: string[];
-            /** @enum {string} */
-            kind: "building" | "outdoor" | "facility" | "transport" | "parking";
+            kind: components["schemas"]["LocationKind"];
             /** Format: uuid */
             zone_id: string;
             zone_name: string;
@@ -1533,6 +1684,203 @@ export interface components {
         };
         DismissMatchRequest: {
             reason?: string;
+        };
+        /** @description Weekday keys mon to sun, each a list of [from, to] in WIB, an empty list when closed */
+        OpeningHours: {
+            [key: string]: string[][];
+        };
+        AdminCategory: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            parent_id?: string | null;
+            parent_name?: string | null;
+            slug: string;
+            name: string;
+            sensitivity?: components["schemas"]["Sensitivity"];
+            retention_days?: number | null;
+            verification_questions: components["schemas"]["VerificationQuestion"][];
+            clip_prompts: string[];
+            sort_order: number;
+            active: boolean;
+            /** Format: date-time */
+            edited_at?: string | null;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        AdminCategoryList: {
+            items: components["schemas"]["AdminCategory"][];
+        };
+        QuestionInput: {
+            key: string;
+            question: string;
+            required: boolean;
+            check_hint?: string;
+        };
+        CategoryCreate: {
+            /**
+             * Format: uuid
+             * @description absent for a parent category
+             */
+            parent_id?: string;
+            slug: string;
+            name: string;
+            sensitivity?: components["schemas"]["Sensitivity"];
+            retention_days?: number;
+            verification_questions?: components["schemas"]["QuestionInput"][];
+            clip_prompts?: string[];
+            sort_order?: number;
+        };
+        CategoryUpdate: {
+            name?: string;
+            sensitivity?: components["schemas"]["Sensitivity"];
+            /** @description 0 falls back to the retention setting of the sensitivity */
+            retention_days?: number;
+            verification_questions?: components["schemas"]["QuestionInput"][];
+            clip_prompts?: string[];
+            sort_order?: number;
+            active?: boolean;
+        };
+        CompatibilityPair: {
+            /** Format: uuid */
+            category_a: string;
+            /** Format: uuid */
+            category_b: string;
+            name_a: string;
+            name_b: string;
+            factor: number;
+            active: boolean;
+        };
+        CompatibilityList: {
+            items: components["schemas"]["CompatibilityPair"][];
+        };
+        CompatibilityPut: {
+            /** Format: uuid */
+            category_a: string;
+            /** Format: uuid */
+            category_b: string;
+            factor: number;
+            active: boolean;
+        };
+        AdminZone: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            /** Format: double */
+            centroid_lat: number;
+            /** Format: double */
+            centroid_lng: number;
+            active: boolean;
+            /** Format: date-time */
+            edited_at?: string | null;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        AdminZoneList: {
+            items: components["schemas"]["AdminZone"][];
+        };
+        ZoneCreate: {
+            slug: string;
+            name: string;
+            /** Format: double */
+            centroid_lat: number;
+            /** Format: double */
+            centroid_lng: number;
+        };
+        ZoneUpdate: {
+            name?: string;
+            /** Format: double */
+            centroid_lat?: number;
+            /** Format: double */
+            centroid_lng?: number;
+            active?: boolean;
+        };
+        /** @enum {string} */
+        LocationKind: "building" | "outdoor" | "facility" | "transport" | "parking";
+        AdminLocation: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            zone_id: string;
+            zone_name: string;
+            slug: string;
+            name: string;
+            aliases: string[];
+            kind: components["schemas"]["LocationKind"];
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lng: number;
+            active: boolean;
+            /** Format: date-time */
+            edited_at?: string | null;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        AdminLocationList: {
+            items: components["schemas"]["AdminLocation"][];
+        };
+        LocationCreate: {
+            /** Format: uuid */
+            zone_id: string;
+            slug: string;
+            name: string;
+            aliases?: string[];
+            kind: components["schemas"]["LocationKind"];
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lng: number;
+        };
+        LocationUpdate: {
+            /** Format: uuid */
+            zone_id?: string;
+            name?: string;
+            aliases?: string[];
+            kind?: components["schemas"]["LocationKind"];
+            /** Format: double */
+            lat?: number;
+            /** Format: double */
+            lng?: number;
+            active?: boolean;
+        };
+        AdminPost: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            /** Format: uuid */
+            location_id: string;
+            location_name: string;
+            zone_name: string;
+            phone?: string | null;
+            opening_hours: components["schemas"]["OpeningHours"];
+            active: boolean;
+            /** Format: date-time */
+            edited_at?: string | null;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        AdminPostList: {
+            items: components["schemas"]["AdminPost"][];
+        };
+        PostCreate: {
+            slug: string;
+            name: string;
+            /** Format: uuid */
+            location_id: string;
+            phone?: string;
+            opening_hours: components["schemas"]["OpeningHours"];
+        };
+        PostUpdate: {
+            name?: string;
+            /** Format: uuid */
+            location_id?: string;
+            /** @description an empty string removes the number */
+            phone?: string;
+            opening_hours?: components["schemas"]["OpeningHours"];
+            active?: boolean;
         };
     };
     responses: {
@@ -2947,6 +3295,347 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Ack"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every category, active or not, parents before their leaves */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCategoryList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCategory"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCategory"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListCompatibility: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every compatibility pair, switched off ones included */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompatibilityList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminPutCompatibility: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompatibilityPut"];
+            };
+        };
+        responses: {
+            /** @description Stored */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompatibilityPair"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListZones: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every zone, active or not */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminZoneList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateZone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ZoneCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminZone"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateZone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ZoneUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminZone"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListLocations: {
+        parameters: {
+            query?: {
+                q?: string;
+                zone_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Locations, active or not, at most 500 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminLocationList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocationCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminLocation"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminLocation"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListPosts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every post, active or not */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPostList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreatePost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPost"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdatePost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPost"];
                 };
             };
             default: components["responses"]["Problem"];

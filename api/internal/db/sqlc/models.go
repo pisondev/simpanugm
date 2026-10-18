@@ -54,12 +54,15 @@ type Category struct {
 	Active                bool
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
+	EditedAt              *time.Time
 }
 
 type CategoryCompatibility struct {
 	CategoryA uuid.UUID
 	CategoryB uuid.UUID
 	Factor    float64
+	Active    bool
+	EditedAt  *time.Time
 }
 
 type CodeSequence struct {
@@ -166,6 +169,7 @@ type Location struct {
 	Active    bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	EditedAt  *time.Time
 }
 
 type LostReport struct {
@@ -322,6 +326,7 @@ type Post struct {
 	Active       bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	EditedAt     *time.Time
 }
 
 type Session struct {
@@ -412,4 +417,5 @@ type Zone struct {
 	Active      bool
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	EditedAt    *time.Time
 }

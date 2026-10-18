@@ -581,6 +581,71 @@ type Ack struct {
 	Message string `json:"message"`
 }
 
+// AdminCategory defines model for AdminCategory.
+type AdminCategory struct {
+	Active                bool                   `json:"active"`
+	ClipPrompts           []string               `json:"clip_prompts"`
+	EditedAt              *time.Time             `json:"edited_at,omitempty"`
+	Id                    openapi_types.UUID     `json:"id"`
+	Name                  string                 `json:"name"`
+	ParentId              *openapi_types.UUID    `json:"parent_id,omitempty"`
+	ParentName            *string                `json:"parent_name,omitempty"`
+	RetentionDays         *int                   `json:"retention_days,omitempty"`
+	Sensitivity           *Sensitivity           `json:"sensitivity,omitempty"`
+	Slug                  string                 `json:"slug"`
+	SortOrder             int                    `json:"sort_order"`
+	UpdatedAt             time.Time              `json:"updated_at"`
+	VerificationQuestions []VerificationQuestion `json:"verification_questions"`
+}
+
+// AdminCategoryList defines model for AdminCategoryList.
+type AdminCategoryList struct {
+	Items []AdminCategory `json:"items"`
+}
+
+// AdminLocation defines model for AdminLocation.
+type AdminLocation struct {
+	Active    bool               `json:"active"`
+	Aliases   []string           `json:"aliases"`
+	EditedAt  *time.Time         `json:"edited_at,omitempty"`
+	Id        openapi_types.UUID `json:"id"`
+	Kind      LocationKind       `json:"kind"`
+	Lat       float64            `json:"lat"`
+	Lng       float64            `json:"lng"`
+	Name      string             `json:"name"`
+	Slug      string             `json:"slug"`
+	UpdatedAt time.Time          `json:"updated_at"`
+	ZoneId    openapi_types.UUID `json:"zone_id"`
+	ZoneName  string             `json:"zone_name"`
+}
+
+// AdminLocationList defines model for AdminLocationList.
+type AdminLocationList struct {
+	Items []AdminLocation `json:"items"`
+}
+
+// AdminPost defines model for AdminPost.
+type AdminPost struct {
+	Active       bool               `json:"active"`
+	EditedAt     *time.Time         `json:"edited_at,omitempty"`
+	Id           openapi_types.UUID `json:"id"`
+	LocationId   openapi_types.UUID `json:"location_id"`
+	LocationName string             `json:"location_name"`
+	Name         string             `json:"name"`
+
+	// OpeningHours Weekday keys mon to sun, each a list of [from, to] in WIB, an empty list when closed
+	OpeningHours OpeningHours `json:"opening_hours"`
+	Phone        *string      `json:"phone,omitempty"`
+	Slug         string       `json:"slug"`
+	UpdatedAt    time.Time    `json:"updated_at"`
+	ZoneName     string       `json:"zone_name"`
+}
+
+// AdminPostList defines model for AdminPostList.
+type AdminPostList struct {
+	Items []AdminPost `json:"items"`
+}
+
 // AdminUser defines model for AdminUser.
 type AdminUser struct {
 	CreatedAt     time.Time            `json:"created_at"`
@@ -598,6 +663,23 @@ type AdminUser struct {
 type AdminUserList struct {
 	Items      []AdminUser `json:"items"`
 	NextCursor *string     `json:"next_cursor,omitempty"`
+}
+
+// AdminZone defines model for AdminZone.
+type AdminZone struct {
+	Active      bool               `json:"active"`
+	CentroidLat float64            `json:"centroid_lat"`
+	CentroidLng float64            `json:"centroid_lng"`
+	EditedAt    *time.Time         `json:"edited_at,omitempty"`
+	Id          openapi_types.UUID `json:"id"`
+	Name        string             `json:"name"`
+	Slug        string             `json:"slug"`
+	UpdatedAt   time.Time          `json:"updated_at"`
+}
+
+// AdminZoneList defines model for AdminZoneList.
+type AdminZoneList struct {
+	Items []AdminZone `json:"items"`
 }
 
 // CandidatePhoto defines model for CandidatePhoto.
@@ -620,6 +702,20 @@ type Category struct {
 	VerificationQuestions *[]VerificationQuestion `json:"verification_questions,omitempty"`
 }
 
+// CategoryCreate defines model for CategoryCreate.
+type CategoryCreate struct {
+	ClipPrompts *[]string `json:"clip_prompts,omitempty"`
+	Name        string    `json:"name"`
+
+	// ParentId absent for a parent category
+	ParentId              *openapi_types.UUID `json:"parent_id,omitempty"`
+	RetentionDays         *int                `json:"retention_days,omitempty"`
+	Sensitivity           *Sensitivity        `json:"sensitivity,omitempty"`
+	Slug                  string              `json:"slug"`
+	SortOrder             *int                `json:"sort_order,omitempty"`
+	VerificationQuestions *[]QuestionInput    `json:"verification_questions,omitempty"`
+}
+
 // CategoryList defines model for CategoryList.
 type CategoryList struct {
 	Items []Category `json:"items"`
@@ -632,6 +728,19 @@ type CategoryRef struct {
 	ParentName  string             `json:"parent_name"`
 	Sensitivity Sensitivity        `json:"sensitivity"`
 	Slug        string             `json:"slug"`
+}
+
+// CategoryUpdate defines model for CategoryUpdate.
+type CategoryUpdate struct {
+	Active      *bool     `json:"active,omitempty"`
+	ClipPrompts *[]string `json:"clip_prompts,omitempty"`
+	Name        *string   `json:"name,omitempty"`
+
+	// RetentionDays 0 falls back to the retention setting of the sensitivity
+	RetentionDays         *int             `json:"retention_days,omitempty"`
+	Sensitivity           *Sensitivity     `json:"sensitivity,omitempty"`
+	SortOrder             *int             `json:"sort_order,omitempty"`
+	VerificationQuestions *[]QuestionInput `json:"verification_questions,omitempty"`
 }
 
 // CloseFoundReportRequest defines model for CloseFoundReportRequest.
@@ -661,6 +770,29 @@ type Colour struct {
 // ColourList defines model for ColourList.
 type ColourList struct {
 	Items []Colour `json:"items"`
+}
+
+// CompatibilityList defines model for CompatibilityList.
+type CompatibilityList struct {
+	Items []CompatibilityPair `json:"items"`
+}
+
+// CompatibilityPair defines model for CompatibilityPair.
+type CompatibilityPair struct {
+	Active    bool               `json:"active"`
+	CategoryA openapi_types.UUID `json:"category_a"`
+	CategoryB openapi_types.UUID `json:"category_b"`
+	Factor    float32            `json:"factor"`
+	NameA     string             `json:"name_a"`
+	NameB     string             `json:"name_b"`
+}
+
+// CompatibilityPut defines model for CompatibilityPut.
+type CompatibilityPut struct {
+	Active    bool               `json:"active"`
+	CategoryA openapi_types.UUID `json:"category_a"`
+	CategoryB openapi_types.UUID `json:"category_b"`
+	Factor    float32            `json:"factor"`
 }
 
 // CustodyChoice defines model for CustodyChoice.
@@ -889,7 +1021,18 @@ type Location struct {
 	ZoneName string             `json:"zone_name"`
 }
 
-// LocationKind defines model for Location.Kind.
+// LocationCreate defines model for LocationCreate.
+type LocationCreate struct {
+	Aliases *[]string          `json:"aliases,omitempty"`
+	Kind    LocationKind       `json:"kind"`
+	Lat     float64            `json:"lat"`
+	Lng     float64            `json:"lng"`
+	Name    string             `json:"name"`
+	Slug    string             `json:"slug"`
+	ZoneId  openapi_types.UUID `json:"zone_id"`
+}
+
+// LocationKind defines model for LocationKind.
 type LocationKind string
 
 // LocationList defines model for LocationList.
@@ -903,6 +1046,17 @@ type LocationRef struct {
 	Name     string             `json:"name"`
 	ZoneId   openapi_types.UUID `json:"zone_id"`
 	ZoneName string             `json:"zone_name"`
+}
+
+// LocationUpdate defines model for LocationUpdate.
+type LocationUpdate struct {
+	Active  *bool               `json:"active,omitempty"`
+	Aliases *[]string           `json:"aliases,omitempty"`
+	Kind    *LocationKind       `json:"kind,omitempty"`
+	Lat     *float64            `json:"lat,omitempty"`
+	Lng     *float64            `json:"lng,omitempty"`
+	Name    *string             `json:"name,omitempty"`
+	ZoneId  *openapi_types.UUID `json:"zone_id,omitempty"`
 }
 
 // LoginRequest defines model for LoginRequest.
@@ -1154,6 +1308,9 @@ type NotificationPreferences struct {
 	Items []NotificationPreference `json:"items"`
 }
 
+// OpeningHours Weekday keys mon to sun, each a list of [from, to] in WIB, an empty list when closed
+type OpeningHours map[string][][]string
+
 // PasswordChangeRequest defines model for PasswordChangeRequest.
 type PasswordChangeRequest struct {
 	CurrentPassword string `json:"current_password"`
@@ -1203,9 +1360,33 @@ type Post struct {
 	ZoneName     string                `json:"zone_name"`
 }
 
+// PostCreate defines model for PostCreate.
+type PostCreate struct {
+	LocationId openapi_types.UUID `json:"location_id"`
+	Name       string             `json:"name"`
+
+	// OpeningHours Weekday keys mon to sun, each a list of [from, to] in WIB, an empty list when closed
+	OpeningHours OpeningHours `json:"opening_hours"`
+	Phone        *string      `json:"phone,omitempty"`
+	Slug         string       `json:"slug"`
+}
+
 // PostList defines model for PostList.
 type PostList struct {
 	Items []Post `json:"items"`
+}
+
+// PostUpdate defines model for PostUpdate.
+type PostUpdate struct {
+	Active     *bool               `json:"active,omitempty"`
+	LocationId *openapi_types.UUID `json:"location_id,omitempty"`
+	Name       *string             `json:"name,omitempty"`
+
+	// OpeningHours Weekday keys mon to sun, each a list of [from, to] in WIB, an empty list when closed
+	OpeningHours *OpeningHours `json:"opening_hours,omitempty"`
+
+	// Phone an empty string removes the number
+	Phone *string `json:"phone,omitempty"`
 }
 
 // Problem defines model for Problem.
@@ -1257,6 +1438,14 @@ type PublicFoundItem struct {
 type PublicFoundItemList struct {
 	Items      []PublicFoundItem `json:"items"`
 	NextCursor *string           `json:"next_cursor,omitempty"`
+}
+
+// QuestionInput defines model for QuestionInput.
+type QuestionInput struct {
+	CheckHint *string `json:"check_hint,omitempty"`
+	Key       string  `json:"key"`
+	Question  string  `json:"question"`
+	Required  bool    `json:"required"`
 }
 
 // ReceiveFoundReportRequest defines model for ReceiveFoundReportRequest.
@@ -1361,9 +1550,25 @@ type Zone struct {
 	Slug        string             `json:"slug"`
 }
 
+// ZoneCreate defines model for ZoneCreate.
+type ZoneCreate struct {
+	CentroidLat float64 `json:"centroid_lat"`
+	CentroidLng float64 `json:"centroid_lng"`
+	Name        string  `json:"name"`
+	Slug        string  `json:"slug"`
+}
+
 // ZoneList defines model for ZoneList.
 type ZoneList struct {
 	Items []Zone `json:"items"`
+}
+
+// ZoneUpdate defines model for ZoneUpdate.
+type ZoneUpdate struct {
+	Active      *bool    `json:"active,omitempty"`
+	CentroidLat *float64 `json:"centroid_lat,omitempty"`
+	CentroidLng *float64 `json:"centroid_lng,omitempty"`
+	Name        *string  `json:"name,omitempty"`
 }
 
 // Cursor defines model for Cursor.
@@ -1392,6 +1597,12 @@ type StatusFilter = []string
 
 // UUIDPath defines model for UUIDPath.
 type UUIDPath = openapi_types.UUID
+
+// AdminListLocationsParams defines parameters for AdminListLocations.
+type AdminListLocationsParams struct {
+	Q      *string             `form:"q,omitempty" json:"q,omitempty"`
+	ZoneId *openapi_types.UUID `form:"zone_id,omitempty" json:"zone_id,omitempty"`
+}
 
 // AdminListUsersParams defines parameters for AdminListUsers.
 type AdminListUsersParams struct {
@@ -1518,11 +1729,38 @@ type SearchReportsParams struct {
 // SearchReportsParamsType defines parameters for SearchReports.
 type SearchReportsParamsType string
 
+// AdminCreateCategoryJSONRequestBody defines body for AdminCreateCategory for application/json ContentType.
+type AdminCreateCategoryJSONRequestBody = CategoryCreate
+
+// AdminUpdateCategoryJSONRequestBody defines body for AdminUpdateCategory for application/json ContentType.
+type AdminUpdateCategoryJSONRequestBody = CategoryUpdate
+
+// AdminPutCompatibilityJSONRequestBody defines body for AdminPutCompatibility for application/json ContentType.
+type AdminPutCompatibilityJSONRequestBody = CompatibilityPut
+
+// AdminCreateLocationJSONRequestBody defines body for AdminCreateLocation for application/json ContentType.
+type AdminCreateLocationJSONRequestBody = LocationCreate
+
+// AdminUpdateLocationJSONRequestBody defines body for AdminUpdateLocation for application/json ContentType.
+type AdminUpdateLocationJSONRequestBody = LocationUpdate
+
+// AdminCreatePostJSONRequestBody defines body for AdminCreatePost for application/json ContentType.
+type AdminCreatePostJSONRequestBody = PostCreate
+
+// AdminUpdatePostJSONRequestBody defines body for AdminUpdatePost for application/json ContentType.
+type AdminUpdatePostJSONRequestBody = PostUpdate
+
 // AdminInviteUserJSONRequestBody defines body for AdminInviteUser for application/json ContentType.
 type AdminInviteUserJSONRequestBody = InviteUserRequest
 
 // AdminUpdateUserJSONRequestBody defines body for AdminUpdateUser for application/json ContentType.
 type AdminUpdateUserJSONRequestBody = UpdateUserRequest
+
+// AdminCreateZoneJSONRequestBody defines body for AdminCreateZone for application/json ContentType.
+type AdminCreateZoneJSONRequestBody = ZoneCreate
+
+// AdminUpdateZoneJSONRequestBody defines body for AdminUpdateZone for application/json ContentType.
+type AdminUpdateZoneJSONRequestBody = ZoneUpdate
 
 // ConfirmEmailChangeJSONRequestBody defines body for ConfirmEmailChange for application/json ContentType.
 type ConfirmEmailChangeJSONRequestBody = TokenRequest
@@ -1590,6 +1828,39 @@ type UploadMediaMultipartRequestBody UploadMediaMultipartBody
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (GET /admin/categories)
+	AdminListCategories(w http.ResponseWriter, r *http.Request)
+
+	// (POST /admin/categories)
+	AdminCreateCategory(w http.ResponseWriter, r *http.Request)
+
+	// (PATCH /admin/categories/{id})
+	AdminUpdateCategory(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
+	// (GET /admin/category-compatibility)
+	AdminListCompatibility(w http.ResponseWriter, r *http.Request)
+
+	// (PUT /admin/category-compatibility)
+	AdminPutCompatibility(w http.ResponseWriter, r *http.Request)
+
+	// (GET /admin/locations)
+	AdminListLocations(w http.ResponseWriter, r *http.Request, params AdminListLocationsParams)
+
+	// (POST /admin/locations)
+	AdminCreateLocation(w http.ResponseWriter, r *http.Request)
+
+	// (PATCH /admin/locations/{id})
+	AdminUpdateLocation(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
+	// (GET /admin/posts)
+	AdminListPosts(w http.ResponseWriter, r *http.Request)
+
+	// (POST /admin/posts)
+	AdminCreatePost(w http.ResponseWriter, r *http.Request)
+
+	// (PATCH /admin/posts/{id})
+	AdminUpdatePost(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
 	// (GET /admin/users)
 	AdminListUsers(w http.ResponseWriter, r *http.Request, params AdminListUsersParams)
 
@@ -1598,6 +1869,15 @@ type ServerInterface interface {
 
 	// (PATCH /admin/users/{id})
 	AdminUpdateUser(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
+	// (GET /admin/zones)
+	AdminListZones(w http.ResponseWriter, r *http.Request)
+
+	// (POST /admin/zones)
+	AdminCreateZone(w http.ResponseWriter, r *http.Request)
+
+	// (PATCH /admin/zones/{id})
+	AdminUpdateZone(w http.ResponseWriter, r *http.Request, id UUIDPath)
 
 	// (POST /auth/email/confirm)
 	ConfirmEmailChange(w http.ResponseWriter, r *http.Request)
@@ -1757,6 +2037,61 @@ type ServerInterface interface {
 
 type Unimplemented struct{}
 
+// (GET /admin/categories)
+func (_ Unimplemented) AdminListCategories(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /admin/categories)
+func (_ Unimplemented) AdminCreateCategory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /admin/categories/{id})
+func (_ Unimplemented) AdminUpdateCategory(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /admin/category-compatibility)
+func (_ Unimplemented) AdminListCompatibility(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PUT /admin/category-compatibility)
+func (_ Unimplemented) AdminPutCompatibility(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /admin/locations)
+func (_ Unimplemented) AdminListLocations(w http.ResponseWriter, r *http.Request, params AdminListLocationsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /admin/locations)
+func (_ Unimplemented) AdminCreateLocation(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /admin/locations/{id})
+func (_ Unimplemented) AdminUpdateLocation(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /admin/posts)
+func (_ Unimplemented) AdminListPosts(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /admin/posts)
+func (_ Unimplemented) AdminCreatePost(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /admin/posts/{id})
+func (_ Unimplemented) AdminUpdatePost(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (GET /admin/users)
 func (_ Unimplemented) AdminListUsers(w http.ResponseWriter, r *http.Request, params AdminListUsersParams) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -1769,6 +2104,21 @@ func (_ Unimplemented) AdminInviteUser(w http.ResponseWriter, r *http.Request) {
 
 // (PATCH /admin/users/{id})
 func (_ Unimplemented) AdminUpdateUser(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /admin/zones)
+func (_ Unimplemented) AdminListZones(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /admin/zones)
+func (_ Unimplemented) AdminCreateZone(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /admin/zones/{id})
+func (_ Unimplemented) AdminUpdateZone(w http.ResponseWriter, r *http.Request, id UUIDPath) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2036,6 +2386,228 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
+// AdminListCategories operation middleware
+func (siw *ServerInterfaceWrapper) AdminListCategories(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListCategories(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminCreateCategory operation middleware
+func (siw *ServerInterfaceWrapper) AdminCreateCategory(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminCreateCategory(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdateCategory operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdateCategory(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id UUIDPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdateCategory(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminListCompatibility operation middleware
+func (siw *ServerInterfaceWrapper) AdminListCompatibility(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListCompatibility(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminPutCompatibility operation middleware
+func (siw *ServerInterfaceWrapper) AdminPutCompatibility(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminPutCompatibility(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminListLocations operation middleware
+func (siw *ServerInterfaceWrapper) AdminListLocations(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AdminListLocationsParams
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "q", r.URL.Query(), &params.Q, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "q"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "q", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "zone_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "zone_id", r.URL.Query(), &params.ZoneId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "zone_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "zone_id", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListLocations(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminCreateLocation operation middleware
+func (siw *ServerInterfaceWrapper) AdminCreateLocation(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminCreateLocation(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdateLocation operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdateLocation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id UUIDPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdateLocation(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminListPosts operation middleware
+func (siw *ServerInterfaceWrapper) AdminListPosts(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListPosts(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminCreatePost operation middleware
+func (siw *ServerInterfaceWrapper) AdminCreatePost(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminCreatePost(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdatePost operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdatePost(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id UUIDPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdatePost(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // AdminListUsers operation middleware
 func (siw *ServerInterfaceWrapper) AdminListUsers(w http.ResponseWriter, r *http.Request) {
 
@@ -2139,6 +2711,60 @@ func (siw *ServerInterfaceWrapper) AdminUpdateUser(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminUpdateUser(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminListZones operation middleware
+func (siw *ServerInterfaceWrapper) AdminListZones(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListZones(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminCreateZone operation middleware
+func (siw *ServerInterfaceWrapper) AdminCreateZone(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminCreateZone(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdateZone operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdateZone(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id UUIDPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdateZone(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -4042,11 +4668,482 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/reports/{type}/{id}/rematch", wrapper.RematchReport)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/admin/categories", wrapper.AdminListCategories)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/admin/categories", wrapper.AdminCreateCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/admin/categories/{id}", wrapper.AdminUpdateCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/admin/category-compatibility", wrapper.AdminListCompatibility)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/admin/category-compatibility", wrapper.AdminPutCompatibility)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/admin/zones", wrapper.AdminListZones)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/admin/zones", wrapper.AdminCreateZone)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/admin/zones/{id}", wrapper.AdminUpdateZone)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/admin/locations", wrapper.AdminListLocations)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/admin/locations", wrapper.AdminCreateLocation)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/admin/locations/{id}", wrapper.AdminUpdateLocation)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/admin/posts", wrapper.AdminListPosts)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/admin/posts", wrapper.AdminCreatePost)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/admin/posts/{id}", wrapper.AdminUpdatePost)
+	})
 
 	return r
 }
 
 type ProblemApplicationProblemPlusJSONResponse Problem
+
+type AdminListCategoriesRequestObject struct {
+}
+
+type AdminListCategoriesResponseObject interface {
+	VisitAdminListCategoriesResponse(w http.ResponseWriter) error
+}
+
+type AdminListCategories200JSONResponse AdminCategoryList
+
+func (response AdminListCategories200JSONResponse) VisitAdminListCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListCategoriesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListCategoriesdefaultApplicationProblemPlusJSONResponse) VisitAdminListCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateCategoryRequestObject struct {
+	Body *AdminCreateCategoryJSONRequestBody
+}
+
+type AdminCreateCategoryResponseObject interface {
+	VisitAdminCreateCategoryResponse(w http.ResponseWriter) error
+}
+
+type AdminCreateCategory201JSONResponse AdminCategory
+
+func (response AdminCreateCategory201JSONResponse) VisitAdminCreateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateCategorydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminCreateCategorydefaultApplicationProblemPlusJSONResponse) VisitAdminCreateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateCategoryRequestObject struct {
+	Id   UUIDPath `json:"id"`
+	Body *AdminUpdateCategoryJSONRequestBody
+}
+
+type AdminUpdateCategoryResponseObject interface {
+	VisitAdminUpdateCategoryResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdateCategory200JSONResponse AdminCategory
+
+func (response AdminUpdateCategory200JSONResponse) VisitAdminUpdateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateCategorydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdateCategorydefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListCompatibilityRequestObject struct {
+}
+
+type AdminListCompatibilityResponseObject interface {
+	VisitAdminListCompatibilityResponse(w http.ResponseWriter) error
+}
+
+type AdminListCompatibility200JSONResponse CompatibilityList
+
+func (response AdminListCompatibility200JSONResponse) VisitAdminListCompatibilityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListCompatibilitydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListCompatibilitydefaultApplicationProblemPlusJSONResponse) VisitAdminListCompatibilityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminPutCompatibilityRequestObject struct {
+	Body *AdminPutCompatibilityJSONRequestBody
+}
+
+type AdminPutCompatibilityResponseObject interface {
+	VisitAdminPutCompatibilityResponse(w http.ResponseWriter) error
+}
+
+type AdminPutCompatibility200JSONResponse CompatibilityPair
+
+func (response AdminPutCompatibility200JSONResponse) VisitAdminPutCompatibilityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminPutCompatibilitydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminPutCompatibilitydefaultApplicationProblemPlusJSONResponse) VisitAdminPutCompatibilityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListLocationsRequestObject struct {
+	Params AdminListLocationsParams
+}
+
+type AdminListLocationsResponseObject interface {
+	VisitAdminListLocationsResponse(w http.ResponseWriter) error
+}
+
+type AdminListLocations200JSONResponse AdminLocationList
+
+func (response AdminListLocations200JSONResponse) VisitAdminListLocationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListLocationsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListLocationsdefaultApplicationProblemPlusJSONResponse) VisitAdminListLocationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateLocationRequestObject struct {
+	Body *AdminCreateLocationJSONRequestBody
+}
+
+type AdminCreateLocationResponseObject interface {
+	VisitAdminCreateLocationResponse(w http.ResponseWriter) error
+}
+
+type AdminCreateLocation201JSONResponse AdminLocation
+
+func (response AdminCreateLocation201JSONResponse) VisitAdminCreateLocationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateLocationdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminCreateLocationdefaultApplicationProblemPlusJSONResponse) VisitAdminCreateLocationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateLocationRequestObject struct {
+	Id   UUIDPath `json:"id"`
+	Body *AdminUpdateLocationJSONRequestBody
+}
+
+type AdminUpdateLocationResponseObject interface {
+	VisitAdminUpdateLocationResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdateLocation200JSONResponse AdminLocation
+
+func (response AdminUpdateLocation200JSONResponse) VisitAdminUpdateLocationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateLocationdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdateLocationdefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateLocationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListPostsRequestObject struct {
+}
+
+type AdminListPostsResponseObject interface {
+	VisitAdminListPostsResponse(w http.ResponseWriter) error
+}
+
+type AdminListPosts200JSONResponse AdminPostList
+
+func (response AdminListPosts200JSONResponse) VisitAdminListPostsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListPostsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListPostsdefaultApplicationProblemPlusJSONResponse) VisitAdminListPostsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreatePostRequestObject struct {
+	Body *AdminCreatePostJSONRequestBody
+}
+
+type AdminCreatePostResponseObject interface {
+	VisitAdminCreatePostResponse(w http.ResponseWriter) error
+}
+
+type AdminCreatePost201JSONResponse AdminPost
+
+func (response AdminCreatePost201JSONResponse) VisitAdminCreatePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreatePostdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminCreatePostdefaultApplicationProblemPlusJSONResponse) VisitAdminCreatePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdatePostRequestObject struct {
+	Id   UUIDPath `json:"id"`
+	Body *AdminUpdatePostJSONRequestBody
+}
+
+type AdminUpdatePostResponseObject interface {
+	VisitAdminUpdatePostResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdatePost200JSONResponse AdminPost
+
+func (response AdminUpdatePost200JSONResponse) VisitAdminUpdatePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdatePostdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdatePostdefaultApplicationProblemPlusJSONResponse) VisitAdminUpdatePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
 
 type AdminListUsersRequestObject struct {
 	Params AdminListUsersParams
@@ -4155,6 +5252,123 @@ type AdminUpdateUserdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response AdminUpdateUserdefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListZonesRequestObject struct {
+}
+
+type AdminListZonesResponseObject interface {
+	VisitAdminListZonesResponse(w http.ResponseWriter) error
+}
+
+type AdminListZones200JSONResponse AdminZoneList
+
+func (response AdminListZones200JSONResponse) VisitAdminListZonesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListZonesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListZonesdefaultApplicationProblemPlusJSONResponse) VisitAdminListZonesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateZoneRequestObject struct {
+	Body *AdminCreateZoneJSONRequestBody
+}
+
+type AdminCreateZoneResponseObject interface {
+	VisitAdminCreateZoneResponse(w http.ResponseWriter) error
+}
+
+type AdminCreateZone201JSONResponse AdminZone
+
+func (response AdminCreateZone201JSONResponse) VisitAdminCreateZoneResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateZonedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminCreateZonedefaultApplicationProblemPlusJSONResponse) VisitAdminCreateZoneResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateZoneRequestObject struct {
+	Id   UUIDPath `json:"id"`
+	Body *AdminUpdateZoneJSONRequestBody
+}
+
+type AdminUpdateZoneResponseObject interface {
+	VisitAdminUpdateZoneResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdateZone200JSONResponse AdminZone
+
+func (response AdminUpdateZone200JSONResponse) VisitAdminUpdateZoneResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateZonedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdateZonedefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateZoneResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -6122,6 +7336,39 @@ func (response ListZonesdefaultApplicationProblemPlusJSONResponse) VisitListZone
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
+	// (GET /admin/categories)
+	AdminListCategories(ctx context.Context, request AdminListCategoriesRequestObject) (AdminListCategoriesResponseObject, error)
+
+	// (POST /admin/categories)
+	AdminCreateCategory(ctx context.Context, request AdminCreateCategoryRequestObject) (AdminCreateCategoryResponseObject, error)
+
+	// (PATCH /admin/categories/{id})
+	AdminUpdateCategory(ctx context.Context, request AdminUpdateCategoryRequestObject) (AdminUpdateCategoryResponseObject, error)
+
+	// (GET /admin/category-compatibility)
+	AdminListCompatibility(ctx context.Context, request AdminListCompatibilityRequestObject) (AdminListCompatibilityResponseObject, error)
+
+	// (PUT /admin/category-compatibility)
+	AdminPutCompatibility(ctx context.Context, request AdminPutCompatibilityRequestObject) (AdminPutCompatibilityResponseObject, error)
+
+	// (GET /admin/locations)
+	AdminListLocations(ctx context.Context, request AdminListLocationsRequestObject) (AdminListLocationsResponseObject, error)
+
+	// (POST /admin/locations)
+	AdminCreateLocation(ctx context.Context, request AdminCreateLocationRequestObject) (AdminCreateLocationResponseObject, error)
+
+	// (PATCH /admin/locations/{id})
+	AdminUpdateLocation(ctx context.Context, request AdminUpdateLocationRequestObject) (AdminUpdateLocationResponseObject, error)
+
+	// (GET /admin/posts)
+	AdminListPosts(ctx context.Context, request AdminListPostsRequestObject) (AdminListPostsResponseObject, error)
+
+	// (POST /admin/posts)
+	AdminCreatePost(ctx context.Context, request AdminCreatePostRequestObject) (AdminCreatePostResponseObject, error)
+
+	// (PATCH /admin/posts/{id})
+	AdminUpdatePost(ctx context.Context, request AdminUpdatePostRequestObject) (AdminUpdatePostResponseObject, error)
+
 	// (GET /admin/users)
 	AdminListUsers(ctx context.Context, request AdminListUsersRequestObject) (AdminListUsersResponseObject, error)
 
@@ -6130,6 +7377,15 @@ type StrictServerInterface interface {
 
 	// (PATCH /admin/users/{id})
 	AdminUpdateUser(ctx context.Context, request AdminUpdateUserRequestObject) (AdminUpdateUserResponseObject, error)
+
+	// (GET /admin/zones)
+	AdminListZones(ctx context.Context, request AdminListZonesRequestObject) (AdminListZonesResponseObject, error)
+
+	// (POST /admin/zones)
+	AdminCreateZone(ctx context.Context, request AdminCreateZoneRequestObject) (AdminCreateZoneResponseObject, error)
+
+	// (PATCH /admin/zones/{id})
+	AdminUpdateZone(ctx context.Context, request AdminUpdateZoneRequestObject) (AdminUpdateZoneResponseObject, error)
 
 	// (POST /auth/email/confirm)
 	ConfirmEmailChange(ctx context.Context, request ConfirmEmailChangeRequestObject) (ConfirmEmailChangeResponseObject, error)
@@ -6324,6 +7580,327 @@ type strictHandler struct {
 	options     StrictHTTPServerOptions
 }
 
+// AdminListCategories operation middleware
+func (sh *strictHandler) AdminListCategories(w http.ResponseWriter, r *http.Request) {
+	var request AdminListCategoriesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListCategories(ctx, request.(AdminListCategoriesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListCategories")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListCategoriesResponseObject); ok {
+		if err := validResponse.VisitAdminListCategoriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminCreateCategory operation middleware
+func (sh *strictHandler) AdminCreateCategory(w http.ResponseWriter, r *http.Request) {
+	var request AdminCreateCategoryRequestObject
+
+	var body AdminCreateCategoryJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminCreateCategory(ctx, request.(AdminCreateCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminCreateCategory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminCreateCategoryResponseObject); ok {
+		if err := validResponse.VisitAdminCreateCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdateCategory operation middleware
+func (sh *strictHandler) AdminUpdateCategory(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	var request AdminUpdateCategoryRequestObject
+
+	request.Id = id
+
+	var body AdminUpdateCategoryJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdateCategory(ctx, request.(AdminUpdateCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdateCategory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdateCategoryResponseObject); ok {
+		if err := validResponse.VisitAdminUpdateCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminListCompatibility operation middleware
+func (sh *strictHandler) AdminListCompatibility(w http.ResponseWriter, r *http.Request) {
+	var request AdminListCompatibilityRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListCompatibility(ctx, request.(AdminListCompatibilityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListCompatibility")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListCompatibilityResponseObject); ok {
+		if err := validResponse.VisitAdminListCompatibilityResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminPutCompatibility operation middleware
+func (sh *strictHandler) AdminPutCompatibility(w http.ResponseWriter, r *http.Request) {
+	var request AdminPutCompatibilityRequestObject
+
+	var body AdminPutCompatibilityJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminPutCompatibility(ctx, request.(AdminPutCompatibilityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminPutCompatibility")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminPutCompatibilityResponseObject); ok {
+		if err := validResponse.VisitAdminPutCompatibilityResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminListLocations operation middleware
+func (sh *strictHandler) AdminListLocations(w http.ResponseWriter, r *http.Request, params AdminListLocationsParams) {
+	var request AdminListLocationsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListLocations(ctx, request.(AdminListLocationsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListLocations")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListLocationsResponseObject); ok {
+		if err := validResponse.VisitAdminListLocationsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminCreateLocation operation middleware
+func (sh *strictHandler) AdminCreateLocation(w http.ResponseWriter, r *http.Request) {
+	var request AdminCreateLocationRequestObject
+
+	var body AdminCreateLocationJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminCreateLocation(ctx, request.(AdminCreateLocationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminCreateLocation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminCreateLocationResponseObject); ok {
+		if err := validResponse.VisitAdminCreateLocationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdateLocation operation middleware
+func (sh *strictHandler) AdminUpdateLocation(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	var request AdminUpdateLocationRequestObject
+
+	request.Id = id
+
+	var body AdminUpdateLocationJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdateLocation(ctx, request.(AdminUpdateLocationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdateLocation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdateLocationResponseObject); ok {
+		if err := validResponse.VisitAdminUpdateLocationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminListPosts operation middleware
+func (sh *strictHandler) AdminListPosts(w http.ResponseWriter, r *http.Request) {
+	var request AdminListPostsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListPosts(ctx, request.(AdminListPostsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListPosts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListPostsResponseObject); ok {
+		if err := validResponse.VisitAdminListPostsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminCreatePost operation middleware
+func (sh *strictHandler) AdminCreatePost(w http.ResponseWriter, r *http.Request) {
+	var request AdminCreatePostRequestObject
+
+	var body AdminCreatePostJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminCreatePost(ctx, request.(AdminCreatePostRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminCreatePost")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminCreatePostResponseObject); ok {
+		if err := validResponse.VisitAdminCreatePostResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdatePost operation middleware
+func (sh *strictHandler) AdminUpdatePost(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	var request AdminUpdatePostRequestObject
+
+	request.Id = id
+
+	var body AdminUpdatePostJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdatePost(ctx, request.(AdminUpdatePostRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdatePost")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdatePostResponseObject); ok {
+		if err := validResponse.VisitAdminUpdatePostResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // AdminListUsers operation middleware
 func (sh *strictHandler) AdminListUsers(w http.ResponseWriter, r *http.Request, params AdminListUsersParams) {
 	var request AdminListUsersRequestObject
@@ -6407,6 +7984,94 @@ func (sh *strictHandler) AdminUpdateUser(w http.ResponseWriter, r *http.Request,
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(AdminUpdateUserResponseObject); ok {
 		if err := validResponse.VisitAdminUpdateUserResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminListZones operation middleware
+func (sh *strictHandler) AdminListZones(w http.ResponseWriter, r *http.Request) {
+	var request AdminListZonesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListZones(ctx, request.(AdminListZonesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListZones")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListZonesResponseObject); ok {
+		if err := validResponse.VisitAdminListZonesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminCreateZone operation middleware
+func (sh *strictHandler) AdminCreateZone(w http.ResponseWriter, r *http.Request) {
+	var request AdminCreateZoneRequestObject
+
+	var body AdminCreateZoneJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminCreateZone(ctx, request.(AdminCreateZoneRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminCreateZone")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminCreateZoneResponseObject); ok {
+		if err := validResponse.VisitAdminCreateZoneResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdateZone operation middleware
+func (sh *strictHandler) AdminUpdateZone(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	var request AdminUpdateZoneRequestObject
+
+	request.Id = id
+
+	var body AdminUpdateZoneJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdateZone(ctx, request.(AdminUpdateZoneRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdateZone")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdateZoneResponseObject); ok {
+		if err := validResponse.VisitAdminUpdateZoneResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

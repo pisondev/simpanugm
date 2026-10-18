@@ -222,7 +222,8 @@ Permission names are from [permissions.md](../requirements/permissions.md).
 | POST | `/admin/users/{id}/revoke-sessions` | `account.sessions.manage` | |
 | POST | `/admin/users/{id}/clear-claim-restriction` | `user.clear_claim_restriction` | |
 | DELETE | `/admin/users/{id}` | `user.delete` | Anonymise, BR-RET-05 |
-| POST, PATCH | `/admin/categories`, `/admin/categories/{id}` | `masterdata.manage` | Also `/admin/zones`, `/admin/locations`, `/admin/posts`, `/admin/category-compatibility` |
+| GET, POST, PATCH | `/admin/categories`, `/admin/categories/{id}` | `masterdata.manage` | US-07. Lists include switched off rows, `PATCH {active: false}` switches a row off, rows are never deleted. Same shape for `/admin/zones`, `/admin/locations` (`?q=&zone_id=`) and `/admin/posts` |
+| GET, PUT | `/admin/category-compatibility` | `masterdata.manage` | `PUT {category_a, category_b, factor, active}` stores one pair of leaves, a pair is switched off rather than deleted |
 | POST | `/admin/reports/{type}/{id}/hide`, `/unhide` | `report.moderate` | `{reason}` |
 | GET, PATCH | `/admin/settings` | `settings.read`, `settings.manage` | business-rules section 10 |
 | GET | `/admin/audit-logs` | `audit.read` | Filters, `Accept: text/csv` exports |

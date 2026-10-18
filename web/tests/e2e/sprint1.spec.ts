@@ -8,6 +8,7 @@ import { bootstrapAdmin, expectAccessible, latestLink, photo, registerMember, se
 test.describe.configure({ mode: "serial" })
 
 const password = "kata sandi panjang 2026"
+const adminEmail = uniqueEmail("admin", "admin.example.id")
 const officerEmail = uniqueEmail("petugas", "petugas.example.id")
 const memberEmail = uniqueEmail("anggota")
 let lostCode = ""
@@ -34,7 +35,7 @@ async function pickPlace(page: Page, label: string, search: string, option: RegE
 
 test("an administrator from the command line invites an officer to a post", async ({ browser }) => {
   const admin = await fresh(browser)
-  await setPassword(admin, bootstrapAdmin(uniqueEmail("admin", "admin.example.id"), "Admin Uji"), password, "Aktifkan akun")
+  await setPassword(admin, bootstrapAdmin(adminEmail, "Admin Uji"), password, "Aktifkan akun")
   await expect(admin).toHaveURL(/\/admin$/)
   await expectAccessible(admin)
 
@@ -186,4 +187,28 @@ test("J2 the owner sees the candidate, reads why, and hides it", async ({ browse
   await expect(page).toHaveURL(new RegExp(`/laporan/hilang/${lostCode}$`))
   await expect(page.getByText("Kandidat disembunyikan.")).toBeVisible()
   await expect(page.getByRole("link", { name: new RegExp(handedIn) })).toHaveCount(0)
+})
+
+// US-07: the master data pages are reachable from the admin navigation and pass the accessibility check
+test("the administrator reviews master data", async ({ browser }) => {
+  const page = await fresh(browser)
+  await signIn(page, adminEmail, password)
+  await expect(page).toHaveURL(/\/admin$/)
+  await page.getByRole("link", { name: "Data Master" }).first().click()
+  await expect(page).toHaveURL(/\/admin\/master\/kategori$/)
+  await expect(page.getByRole("heading", { name: "Kompatibilitas kategori" })).toBeVisible()
+  await expectAccessible(page)
+  for (const [tab, path] of [
+    ["Lokasi", "lokasi"],
+    ["Zona", "zona"],
+    ["Pos", "pos"],
+  ] as const) {
+    await page.getByRole("link", { name: tab, exact: true }).click()
+    await expect(page).toHaveURL(new RegExp(`/admin/master/${path}$`))
+    await expectAccessible(page)
+  }
+  await page.getByRole("button", { name: /^Ubah Pos Lost and Found Perpustakaan Pusat/ }).click()
+  await expect(page.getByRole("dialog").getByLabel("Senin")).toHaveValue(/\d{2}:\d{2}-\d{2}:\d{2}/)
+  await expectAccessible(page)
+  await page.getByRole("dialog").getByRole("button", { name: "Batal" }).click()
 })

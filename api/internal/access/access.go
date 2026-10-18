@@ -182,6 +182,20 @@ var Operations = map[string]Rule{
 	"submitMatchFeedback":        {Permission: MatchFeedback},
 	"dismissMatch":               {Permission: MatchDismiss},
 	"rematchReport":              {Permission: MatchRematch},
+	"adminListCategories":        {Permission: MasterdataManage},
+	"adminCreateCategory":        {Permission: MasterdataManage},
+	"adminUpdateCategory":        {Permission: MasterdataManage},
+	"adminListCompatibility":     {Permission: MasterdataManage},
+	"adminPutCompatibility":      {Permission: MasterdataManage},
+	"adminListZones":             {Permission: MasterdataManage},
+	"adminCreateZone":            {Permission: MasterdataManage},
+	"adminUpdateZone":            {Permission: MasterdataManage},
+	"adminListLocations":         {Permission: MasterdataManage},
+	"adminCreateLocation":        {Permission: MasterdataManage},
+	"adminUpdateLocation":        {Permission: MasterdataManage},
+	"adminListPosts":             {Permission: MasterdataManage},
+	"adminCreatePost":            {Permission: MasterdataManage},
+	"adminUpdatePost":            {Permission: MasterdataManage},
 }
 
 func Check(p *Principal, operationID string) error {

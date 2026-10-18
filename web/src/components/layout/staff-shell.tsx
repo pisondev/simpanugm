@@ -1,6 +1,6 @@
 "use client"
 
-import { Ellipsis, FileSearch, FolderOpen, HandHeart, House, LayoutDashboard, PackageOpen, Search, UserRound, Users, Warehouse } from "lucide-react"
+import { Database, Ellipsis, FileSearch, FolderOpen, HandHeart, House, LayoutDashboard, PackageOpen, Search, UserRound, Users, Warehouse } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 
@@ -44,6 +44,7 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
       ? [
           { href: "/admin", label: t("adminHome"), icon: LayoutDashboard, exact: true },
           { href: "/admin/pengguna", label: t("users"), icon: Users },
+          { href: "/admin/master", label: t("masterData"), icon: Database },
         ]
       : []
   const account: NavItem[] = [

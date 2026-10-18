@@ -12,6 +12,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Changed
 
+- `simpan seed` no longer overwrites a master data row an administrator edited, and a compatibility pair an administrator switched off stays off. A leaf under a switched off parent can no longer be picked for a new report.
 - Lost reports carry their real `candidate_count`. The owner of a lost report with a visible candidate may open that found item's display photo, or only its blurred thumbnail for an identity item (BR-VIS 5.2).
 - Dependabot proposes only patch and digest updates for the Go, Python and Node base images. A runtime upgrade changes code, CI and docs together, so it is made by hand.
 - The data model lists the `custody_keep` and `close_note` columns of found reports that the migrations already carry.
@@ -27,6 +28,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Master data administration (US-07): administrators create, edit and switch off categories with their verification questions and photo prompts, compatibility pairs, zones, locations with aliases and posts with opening hours, under Admin, Data Master. Switched off rows leave the pickers and stay on existing reports, every change is audited field by field with its value before and after, and coordinates outside `campus.bounding_box` are refused once that setting exists.
 - Matching engine v1 (US-14, US-18 to US-22): every lost and found report is scored when it is created, edited or closed, against the structured pool and the image, cross modal and text generators, with the fusion of matching-engine sections 6 and 7, the identity name rule, top ten ranks per side and the L2, L3, F2 and F3 status effects. Owners see medium and high candidates with a tier, a percentage, four score bars and Indonesian reason lines, can mark one as theirs or hide it, and hear about strong candidates at most once per throttle window. Finders learn that an owner may be looking, officers see every component number with a switch for weak candidates, and can rematch and dismiss. With an inference service configured, embedding and image analysis jobs record the model version of every vector and refuse a revision that is not active, without one matching runs on the structured signals. A 02:00 sweep rescores every open report.
 - Integration test helpers: `testenv.Drain` works queued River jobs with the real workers, `testenv.NewFakeML` serves deterministic vectors with switchable failures, and `testenv.WithML` points the inference client at it.
 - Profile and security pages: edit name, phone and NIM or NIP, change the email through a confirmation link sent to the new address, change the password with the current one while every other session signs out, and list or revoke signed in devices with a readable device label and the network prefix of the address (US-05).

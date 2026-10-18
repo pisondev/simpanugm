@@ -151,10 +151,14 @@ repeated key with a different request hash returns `422 idempotency_key_reused`.
 | verification_questions | jsonb | `[{key, question, required, check_hint}]` |
 | clip_prompts | text[] | English prompts for zero shot |
 | sort_order | int | |
-| active | bool | |
+| active | bool | a leaf under a switched off parent counts as switched off too |
+| edited_at | tstz? | set by an administrator's edit, the seed leaves the row alone from then on (section 7) |
 
 **category_compatibility** `(category_a, category_b)` primary key with
-`CHECK (category_a < category_b)`, `factor numeric(3,2) CHECK (factor between 0 and 1)`.
+`CHECK (category_a < category_b)`, `factor numeric(3,2) CHECK (factor between 0 and 1)`,
+`active bool`, `edited_at tstz?`. Matching reads active pairs only.
+
+Zones, locations and posts carry the same `edited_at` column.
 
 **zones** `id`, `slug` unique, `name`, `centroid_lat`, `centroid_lng` (double precision),
 `active`.
@@ -529,5 +533,9 @@ entry per run.
 `simpan seed` loads `data/seed/*` in dependency order: zones, locations, posts,
 categories, compatibility, colours, brands, synonyms, initial `model_versions`, default
 `system_settings`. It upserts by natural key (`slug`, `name`, `key`) and never deletes, so
-running it on a live database is safe. Demo users and demo reports load only with
+running it on a live database is safe. Zones, locations, posts, categories and
+compatibility pairs carry `edited_at`, set when an administrator changes the row through
+US-07. From then on the seed leaves that row alone, so a deploy never undoes an
+administrator's edit, and it never touches `active`. Compatibility pairs also carry
+`active`, so a pair an administrator switched off stays off and out of matching. Demo users and demo reports load only with
 `simpan seed --demo`, which refuses to run when `APP_ENV=production`.

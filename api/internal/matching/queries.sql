@@ -160,7 +160,7 @@ JOIN text_embeddings_e5 b ON b.report_type = sqlc.arg(candidate_type) AND b.repo
 WHERE a.report_type = sqlc.arg(source_type) AND a.report_id = sqlc.arg(source_id) AND a.model_version_id = sqlc.arg(version_id);
 
 -- name: CompatibilityFor :many
-SELECT category_a, category_b, factor::float8 AS factor FROM category_compatibility WHERE category_a = $1 OR category_b = $1;
+SELECT category_a, category_b, factor::float8 AS factor FROM category_compatibility WHERE (category_a = $1 OR category_b = $1) AND active;
 
 -- name: PairForUpdate :one
 SELECT id, status, tier FROM matches WHERE lost_report_id = $1 AND found_report_id = $2 FOR UPDATE;

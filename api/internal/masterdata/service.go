@@ -11,17 +11,21 @@ import (
 
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
+	"github.com/pisondev/simpanugm/api/internal/platform/clock"
 	"github.com/pisondev/simpanugm/api/internal/platform/db"
 	"github.com/pisondev/simpanugm/api/internal/platform/geo"
+	"github.com/pisondev/simpanugm/api/internal/platform/settings"
 )
 
 type Service struct {
-	pool *pgxpool.Pool
-	q    *sqlc.Queries
+	pool     *pgxpool.Pool
+	q        *sqlc.Queries
+	clock    clock.Clock
+	settings *settings.Store
 }
 
-func NewService(pool *pgxpool.Pool) *Service {
-	return &Service{pool: pool, q: sqlc.New(pool)}
+func NewService(pool *pgxpool.Pool, c clock.Clock, st *settings.Store) *Service {
+	return &Service{pool: pool, q: sqlc.New(pool), clock: c, settings: st}
 }
 
 type Question struct {
@@ -85,7 +89,8 @@ func (s *Service) Leaf(ctx context.Context, q *sqlc.Queries, id uuid.UUID) (Leaf
 	if err != nil {
 		return LeafCategory{}, false, err
 	}
-	if !c.Active || c.ParentID == nil {
+	// a leaf under a switched off parent is gone from the pickers too
+	if !c.Active || !c.ParentActive || c.ParentID == nil {
 		return LeafCategory{}, false, nil
 	}
 	return LeafCategory{c}, true, nil

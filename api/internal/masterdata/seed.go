@@ -440,6 +440,16 @@ type SeedSummary struct {
 }
 
 // upserts by natural key and never deletes, so it is safe on a live database
+// an upsert returns no row when the existing row belongs to an administrator (US-07), the id is then looked up
+func kept(id uuid.UUID, err error) func(func() (uuid.UUID, error)) (uuid.UUID, error) {
+	return func(lookup func() (uuid.UUID, error)) (uuid.UUID, error) {
+		if db.IsNoRows(err) {
+			return lookup()
+		}
+		return id, err
+	}
+}
+
 func ApplySeed(ctx context.Context, pool *pgxpool.Pool, s SeedSet) (SeedSummary, error) {
 	if err := s.Validate(); err != nil {
 		return SeedSummary{}, err
@@ -449,7 +459,9 @@ func ApplySeed(ctx context.Context, pool *pgxpool.Pool, s SeedSet) (SeedSummary,
 		q := sqlc.New(tx)
 		zoneIDs := map[string]uuid.UUID{}
 		for _, z := range s.Zones {
-			id, err := q.UpsertZone(ctx, sqlc.UpsertZoneParams{ID: ids.New(), Slug: z.Slug, Name: z.Name, CentroidLat: z.Lat, CentroidLng: z.Lng})
+			id, err := kept(q.UpsertZone(ctx, sqlc.UpsertZoneParams{ID: ids.New(), Slug: z.Slug, Name: z.Name, CentroidLat: z.Lat, CentroidLng: z.Lng}))(func() (uuid.UUID, error) {
+				return q.ZoneIDBySlug(ctx, z.Slug)
+			})
 			if err != nil {
 				return fmt.Errorf("zone %s: %w", z.Slug, err)
 			}
@@ -458,9 +470,9 @@ func ApplySeed(ctx context.Context, pool *pgxpool.Pool, s SeedSet) (SeedSummary,
 		}
 		locIDs := map[string]uuid.UUID{}
 		for _, l := range s.Locations {
-			id, err := q.UpsertLocation(ctx, sqlc.UpsertLocationParams{
+			id, err := kept(q.UpsertLocation(ctx, sqlc.UpsertLocationParams{
 				ID: ids.New(), ZoneID: zoneIDs[l.ZoneSlug], Slug: l.Slug, Name: l.Name, Aliases: l.Aliases, Kind: l.Kind, Lat: l.Lat, Lng: l.Lng,
-			})
+			}))(func() (uuid.UUID, error) { return q.LocationIDBySlug(ctx, l.Slug) })
 			if err != nil {
 				return fmt.Errorf("location %s: %w", l.Slug, err)
 			}
@@ -475,7 +487,7 @@ func ApplySeed(ctx context.Context, pool *pgxpool.Pool, s SeedSet) (SeedSummary,
 			}
 			if _, err := q.UpsertPost(ctx, sqlc.UpsertPostParams{
 				ID: ids.New(), Slug: p.Slug, Name: p.Name, LocationID: locIDs[p.LocationSlug], Phone: phone, OpeningHours: hours,
-			}); err != nil {
+			}); err != nil && !db.IsNoRows(err) {
 				return fmt.Errorf("post %s: %w", p.Slug, err)
 			}
 			sum.Posts++
@@ -486,7 +498,8 @@ func ApplySeed(ctx context.Context, pool *pgxpool.Pool, s SeedSet) (SeedSummary,
 			if order == 0 {
 				order = int32(i + 1)
 			}
-			pid, err := q.UpsertParentCategory(ctx, sqlc.UpsertParentCategoryParams{ID: ids.New(), Slug: parent.Slug, Name: parent.Name, SortOrder: order})
+			pid, err := kept(q.UpsertParentCategory(ctx, sqlc.UpsertParentCategoryParams{ID: ids.New(), Slug: parent.Slug, Name: parent.Name, SortOrder: order}))(
+				func() (uuid.UUID, error) { return q.ParentCategoryIDBySlug(ctx, parent.Slug) })
 			if err != nil {
 				return fmt.Errorf("category %s: %w", parent.Slug, err)
 			}
@@ -494,10 +507,10 @@ func ApplySeed(ctx context.Context, pool *pgxpool.Pool, s SeedSet) (SeedSummary,
 			for j, leaf := range parent.Children {
 				qs, _ := json.Marshal(leaf.VerificationQuestions)
 				sens := leaf.Sensitivity
-				id, err := q.UpsertLeafCategory(ctx, sqlc.UpsertLeafCategoryParams{
+				id, err := kept(q.UpsertLeafCategory(ctx, sqlc.UpsertLeafCategoryParams{
 					ID: ids.New(), ParentID: &pid, Slug: leaf.Slug, Name: leaf.Name, Sensitivity: &sens,
 					RetentionDays: leaf.RetentionDays, VerificationQuestions: qs, ClipPrompts: leaf.ClipPrompts, SortOrder: int32(j + 1),
-				})
+				}))(func() (uuid.UUID, error) { return q.LeafCategoryIDBySlug(ctx, leaf.Slug) })
 				if err != nil {
 					return fmt.Errorf("category %s: %w", leaf.Slug, err)
 				}
