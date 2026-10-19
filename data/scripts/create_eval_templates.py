@@ -125,7 +125,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True, help="private raw dataset directory")
     parser.add_argument("--profile", choices=("full", "trial"), default="full")
-    parser.add_argument("--items", type=int, default=150)
+    parser.add_argument("--items", type=int)
     parser.add_argument("--distractors", type=int, default=400)
     parser.add_argument("--duplicates", type=int, default=40)
     parser.add_argument("--queries", type=int, default=50)
@@ -136,11 +136,13 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     try:
         if args.profile == "trial":
-            created = create_trial_templates(args.output, item_count=args.items)
+            item_count = args.items if args.items is not None else 20
+            created = create_trial_templates(args.output, item_count=item_count)
         else:
+            item_count = args.items if args.items is not None else 150
             created = create_templates(
                 args.output,
-                item_count=args.items,
+                item_count=item_count,
                 distractor_count=args.distractors,
                 duplicate_count=args.duplicates,
                 query_count=args.queries,

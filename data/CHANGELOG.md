@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed the trial template CLI default so `--profile trial` creates the documented 20
+  items unless an explicit item count is supplied.
 - Added a public-source MVP seed baseline with five project zones, 25 OSM-derived campus
   locations, the officially published K5L emergency contact, and exact public model/package
   revisions. The baseline is documented as assignment/demo data and is not production

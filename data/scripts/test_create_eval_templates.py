@@ -4,10 +4,19 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from create_eval_templates import TemplateError, create_templates, create_trial_templates
+from create_eval_templates import TemplateError, create_templates, create_trial_templates, main
 
 
 class EvaluationTemplateTests(unittest.TestCase):
+    def test_cli_trial_profile_defaults_to_twenty_items(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "trial"
+            self.assertEqual(main(["--profile", "trial", "--output", str(output)]), 0)
+            with (output / "items.csv").open(newline="", encoding="utf-8") as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(len(rows), 20)
+            self.assertEqual(rows[-1]["item_id"], "I020")
+
     def test_creates_expected_files_ids_and_counts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "raw"
