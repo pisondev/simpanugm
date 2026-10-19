@@ -53,7 +53,7 @@ const compose = (
 // the first administrator comes from the command line, exactly as on a fresh server (FR-AUTH-09)
 export function bootstrapAdmin(email: string, name: string): string {
   const [bin = "docker", ...args] = compose
-  const out = execFileSync(bin, [...args, "run", "--rm", "-T", "api", "admin", "create", "--email", email, "--name", name], { encoding: "utf8" })
+  const out = execFileSync(bin, [...args, "run", "--rm", "-T", "--no-deps", "api", "admin", "create", "--email", email, "--name", name], { encoding: "utf8" })
   const link = /https?:\/\/\S+\/undangan\?token=\S+/.exec(out)
   if (!link) {
     throw new Error(`admin create printed no link: ${out}`)

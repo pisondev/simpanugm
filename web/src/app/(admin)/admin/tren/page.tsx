@@ -78,7 +78,7 @@ export default async function AnalyticsTrendsPage({ searchParams }: { searchPara
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center justify-between">
               Tingkat Pengembalian
-              <CheckCircle2 className="size-4 text-emerald-600" aria-hidden />
+              <CheckCircle2 className="size-4 text-success-text" aria-hidden />
             </CardDescription>
             <CardTitle className="text-2xl">{(summary.return_rate * 100).toFixed(1)}%</CardTitle>
           </CardHeader>
@@ -111,7 +111,7 @@ export default async function AnalyticsTrendsPage({ searchParams }: { searchPara
           <CardDescription>Jumlah laporan kehilangan, temuan, dan barang yang berhasil dikembalikan per minggu.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-md border">
+          <div tabIndex={0} className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -130,7 +130,7 @@ export default async function AnalyticsTrendsPage({ searchParams }: { searchPara
                       <TableCell className="font-mono text-xs">{w.week_start}</TableCell>
                       <TableCell className="text-right font-medium text-destructive">{w.lost_count}</TableCell>
                       <TableCell className="text-right font-medium text-primary">{w.found_count}</TableCell>
-                      <TableCell className="text-right font-semibold text-emerald-600">{w.returned_count}</TableCell>
+                      <TableCell className="text-right font-semibold text-success-text">{w.returned_count}</TableCell>
                       <TableCell className="text-right text-xs text-muted-foreground">{rate}</TableCell>
                     </TableRow>
                   )
@@ -152,7 +152,7 @@ export default async function AnalyticsTrendsPage({ searchParams }: { searchPara
             <CardDescription>Distribusi barang hilang dan barang temuan berdasarkan kategori.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto rounded-md border">
+            <div tabIndex={0} className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>

@@ -155,7 +155,7 @@ export function CampusHotspotMap({ locations, selectedType, onSelectLocation }: 
               </div>
               <div className="col-span-2 flex justify-between">
                 <span className="text-muted-foreground">Tingkat Kembali:</span>
-                <span className="font-semibold text-emerald-600">{(activeLoc.return_rate * 100).toFixed(0)}%</span>
+                <span className="font-semibold text-success-text">{(activeLoc.return_rate * 100).toFixed(0)}%</span>
               </div>
             </div>
           </div>

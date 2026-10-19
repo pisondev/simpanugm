@@ -140,7 +140,7 @@ export default async function CampusHotspotsPage({ searchParams }: { searchParam
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-md border">
+          <div tabIndex={0} className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -170,7 +170,7 @@ export default async function CampusHotspotsPage({ searchParams }: { searchParam
                       <TableCell className="text-right text-destructive">{loc.display_lost}</TableCell>
                       <TableCell className="text-right text-primary">{loc.display_found}</TableCell>
                       <TableCell className="text-right font-semibold">{loc.display_total}</TableCell>
-                      <TableCell className="text-right font-medium text-emerald-600">{(loc.return_rate * 100).toFixed(0)}%</TableCell>
+                      <TableCell className="text-right font-medium text-success-text">{(loc.return_rate * 100).toFixed(0)}%</TableCell>
                       <TableCell className="text-right text-xs text-muted-foreground">
                         {loc.median_return_hours ? `${loc.median_return_hours} jam` : "-"}
                       </TableCell>

@@ -64,7 +64,7 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center justify-between">
               Recall@1 Terkonfirmasi
-              <CheckCircle2 className="size-4 text-emerald-600" aria-hidden />
+              <CheckCircle2 className="size-4 text-success-text" aria-hidden />
             </CardDescription>
             <CardTitle className="text-2xl">{(mon.confirmed_ranks.recall_at_1 * 100).toFixed(1)}%</CardTitle>
           </CardHeader>
@@ -114,7 +114,7 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
               {mon.psi_warning ? (
                 <span className="font-semibold text-destructive">Drift terdeteksi (&gt; 0.2)</span>
               ) : (
-                <span className="font-medium text-emerald-600">Distribusi stabil</span>
+                <span className="font-medium text-success-text">Distribusi stabil</span>
               )}
             </p>
           </CardContent>
@@ -131,7 +131,7 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
           <CardDescription>Model yang sedang aktif melayani inferensi embedding dan pencocokan kandidat laporan.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-md border">
+          <div tabIndex={0} className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -200,7 +200,7 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
             <CardDescription>Persentase kandidat yang diabaikan oleh pemilik atau ditolak petugas per tier kepercayaan.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto rounded-md border">
+            <div tabIndex={0} className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -246,7 +246,7 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
           <CardDescription>Tingkat penerimaan saran otomatis saat pelapor mengisi formulir kehilangan atau penemuan barang.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-md border">
+          <div tabIndex={0} className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
