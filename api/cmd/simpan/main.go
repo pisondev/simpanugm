@@ -311,10 +311,22 @@ func defaultSeedDir() string {
 	return "data/seed"
 }
 
+func defaultOverlayDir() string {
+	if d := os.Getenv("SEED_OVERLAY_DIR"); d != "" {
+		return d
+	}
+	for _, d := range []string{"deploy/dev-seed", "../deploy/dev-seed", "/app/dev-seed"} {
+		if st, err := os.Stat(d); err == nil && st.IsDir() {
+			return d
+		}
+	}
+	return ""
+}
+
 func seed(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("seed", flag.ContinueOnError)
 	dir := fs.String("dir", defaultSeedDir(), "reviewed seed directory, normally data/seed")
-	overlay := fs.String("overlay", os.Getenv("SEED_OVERLAY_DIR"), "development files used only where the seed directory has none, refused in production")
+	overlay := fs.String("overlay", defaultOverlayDir(), "development files used only where the seed directory has none, refused in production")
 	demo := fs.Bool("demo", false, "also create demo accounts, refused in production")
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -356,7 +368,7 @@ func seed(ctx context.Context, args []string) error {
 func demoCmd(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("demo", flag.ContinueOnError)
 	dir := fs.String("dir", defaultSeedDir(), "reviewed seed directory, normally data/seed")
-	overlay := fs.String("overlay", os.Getenv("SEED_OVERLAY_DIR"), "development files used only where the seed directory has none, refused in production")
+	overlay := fs.String("overlay", defaultOverlayDir(), "development files used only where the seed directory has none, refused in production")
 	noReset := fs.Bool("no-reset", false, "skip resetting the database before seeding")
 	if err := fs.Parse(args); err != nil {
 		return err

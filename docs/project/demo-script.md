@@ -12,6 +12,22 @@ make demo
 
 Perintah ini bersifat idempoten: dapat dijalankan ulang sebelum demo dimulai untuk memastikan kondisi data kembali ke titik awal yang konsisten.
 
+### Pemeriksaan Kesiapan Pra-Demo (Pre-Flight Health Check)
+
+Sebelum tampil di hadapan dosen penguji, jalankan skrip verifikasi otomatis untuk memastikan seluruh kontainer dan model AI siap:
+
+```bash
+make demo-check
+```
+
+Perintah ini memvalidasi secara otomatis:
+1. Status kesehatan HTTP kontainer API, Web, ML, dan Mailpit.
+2. Keberadaan model AI visual (CLIP) dan teks (E5) yang telah dimuat di memori layanan ML (/readyz).
+3. Autentikasi keempat akun demo (anggota.penemu, anggota.pemilik, petugas.pos1, admin).
+4. Pengujian alur kerja data tiap aktor (laporan penemu, laporan pemilik, antrean prioritas petugas, monitoring AI admin).
+5. Penggunaan memori laptop agar tetap berada dalam batas anggaran aman.
+6. Kesiapan luring (offline) tanpa ketergantungan jaringan eksternal.
+
 ### Akun dan Kata Sandi Demo
 
 Semua akun demo menggunakan kata sandi standar berikut:

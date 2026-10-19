@@ -32,6 +32,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - AI moments visibility and verification journeys (W4): end to end Playwright suite (`web/tests/e2e/demo-ai.spec.ts`) validating every AI interaction across all four actors (Finder assistant suggestions and match hint, Owner candidate tier and 4 score bars, Officer priority queue and semantic search, Admin monitoring and hotspot surge alerts) with screenshot capture and accessibility checks.
 - Light usability study kit and feedback log (W6): documented 10 minute testing protocol and task sheets for 4 students with tracked usability findings and fixes in `docs/ux/usability-kit.md`.
 - Interactive demonstration access and verification (W8): visitor self registration with email capture inbox (Mailpit link in `DemoBanner`), one click demo actor sign in buttons in `LoginForm`, idempotent admin demo reset command, and automated integration test asserting demo mode refusal in production.
+- Live demonstration reliability and pre-flight health check (W7): created `deploy/scripts/demo_check.py` and `make demo-check` target verifying container liveness, HTTP health and readiness probes (direct API `/healthz`, `/readyz`, Web `/healthz`, ML `/readyz`, Mailpit `/api/v1/info`), neural model residency (CLIP and E5), authenticated smoke tests across all four demo actors, container memory footprint within laptop budget, and offline readiness with local assets.
 
 ### Changed
 
@@ -53,6 +54,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Migrations up and down verified: automated test `TestMigrationsUpDownUp` validates all 13 goose migrations rolling up, down to 0, and up again on a clean PostgreSQL instance.
 - Corrected post restore report verification query in `deploy/scripts/restore.sh` to count from `lost_reports` and `found_reports`.
 - Resolved River job deduplication interference on `MatchSweep` during model activation and rollback.
+- Added automatic overlay directory discovery in `defaultOverlayDir()` and Dockerfile assets copy for standalone demo seeder execution.
 - Masking hardened to cover all 16 digit runs including hyphenated and spaced formats and NIKs without Luhn checksums.
 - WebAssembly fallback enabled for `webp` image encoder under distroless API container.
 

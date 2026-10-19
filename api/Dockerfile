@@ -14,7 +14,8 @@ COPY --from=build /out/simpan /simpan
 COPY --from=build --chown=nonroot:nonroot /out/media /var/lib/simpan/media
 COPY data/seed /app/seed
 COPY deploy/dev-seed /app/dev-seed
-ENV STORAGE_FS_ROOT=/var/lib/simpan/media SEED_DIR=/app/seed
+COPY data/demo /app/data/demo
+ENV STORAGE_FS_ROOT=/var/lib/simpan/media SEED_DIR=/app/seed SEED_OVERLAY_DIR=/app/dev-seed
 USER nonroot
 EXPOSE 8090 9091
 ENTRYPOINT ["/simpan"]
