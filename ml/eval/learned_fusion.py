@@ -265,9 +265,12 @@ def fusion_score_query(
 
 
 def main() -> None:
+    import json
+    import os
     import tempfile
     from collections import defaultdict
 
+    from app.backend import Backend
     from app.registry import Registry
     from eval import scenario, text
     from eval.dataset import leaf_parents, load
@@ -275,11 +278,17 @@ def main() -> None:
     from tests.fakes import FakeBackend
     from tests.synth import build
 
-    parser = argparse.ArgumentParser(description="Learned fusion experiment")
+    parser = argparse.ArgumentParser(description="Learned fusion experiment (B4 vs B3)")
     parser.add_argument("--dataset", type=Path)
     parser.add_argument("--split", choices=["val", "test"], default="val")
     parser.add_argument("--items", type=int, default=20)
     parser.add_argument("--distractors", type=int, default=12)
+    parser.add_argument(
+        "--real-weights", action="store_true", help="use real PyTorch neural models instead of fake backend"
+    )
+    parser.add_argument(
+        "--hf-home", type=Path, default=Path(os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface"))
+    )
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parents[2]
@@ -287,14 +296,36 @@ def main() -> None:
     cfg = Config.load()
     lock_path = root / "ml" / "models.lock.json"
     registry = Registry.from_lock(lock_path)
-    backend = FakeBackend(registry)
+
+    backend: Backend
+    if args.real_weights:
+        from app.backend import TorchBackend
+
+        backend = TorchBackend(registry, args.hf_home, threads=4)
+        backend.load()
+    else:
+        backend = FakeBackend(registry)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         dataset_path = args.dataset
+        is_official = False
         if not dataset_path or not (dataset_path / "items.csv").is_file():
             print("Using synthetic dataset fixture for learned fusion experiment (SINTETIS)")
             dataset_path = build(Path(tmp_dir) / "synth_data", items=args.items, distractors=args.distractors)
+        else:
+            freeze_file = dataset_path / "freeze_report.json"
+            if freeze_file.is_file():
+                try:
+                    fdata = json.loads(freeze_file.read_text(encoding="utf-8"))
+                    is_official = (
+                        fdata.get("profile") == "full"
+                        and not fdata.get("is_synthetic", True)
+                        and fdata.get("item_count", 0) >= 150
+                    )
+                except Exception:
+                    is_official = False
 
+        status_tag = "RESMI" if is_official else "SINTETIS"
         dataset = load(dataset_path, seed_dir)
         parents = leaf_parents(seed_dir)
         locations = scenario.load_locations(root / "deploy" / "dev-seed" / "locations.csv")
@@ -319,7 +350,8 @@ def main() -> None:
 
         res = run_experiment(queries, cfg, parents.__getitem__, found_leaf)
 
-        print("\n=== Learned Fusion Experiment Results (SINTETIS) ===")
+        print(f"\n=== Learned Fusion Experiment Results ({status_tag}) ===")
+        print(f"Dataset: {dataset_path} ({status_tag})")
         print(f"Dataset split: {args.split} (items: {len(queries)})")
         print("\nComparison Table:")
         print(f"{'Metric':<25} | {'B3 (Linear Fusion)':<20} | {'B4 (Learned Fusion)':<20}")
@@ -339,6 +371,12 @@ def main() -> None:
         print(f"  {'intercept':<20}: {res.intercept:+.4f}")
 
         print("\nAcceptance Gate Decision (docs/ai/matching-engine.md section 7.2):")
+        print("Decision Rule: B4 learned fusion is recommended for production activation ONLY if it")
+        print("beats B3 linear fusion on the frozen test split with:")
+        print("  1. Recall@5 delta >= +0.02 absolute")
+        print("  2. MRR delta >= +0.02 absolute")
+        print("  3. High tier precision >= 0.85 on test split")
+        print("Otherwise, linear fusion (fusion-linear-2026.11.0.json) remains active in production.")
         r5_d = res.gate_decision["recall@5_delta"]
         mrr_d = res.gate_decision["mrr_delta"]
         print(f"  Recall@5 delta >= +0.02: {res.gate_decision['meets_recall@5_delta']} (delta: {r5_d:+.4f})")

@@ -6,11 +6,11 @@ SQLC := docker run --rm -v "$(CURDIR)/api:/src" -w /src sqlc/sqlc:1.31.1
 s ?= api
 
 .PHONY: help env dev up down reset logs ps migrate migrate-down migrate-status seed seed-demo admin gen gen-api gen-web \
-	check check-api check-web check-ml check-data test-api test-api-integration test-web test-ml test-data eval eval-latency e2e load
+	check check-api check-web check-ml check-data test-api test-api-integration test-web test-ml test-data eval eval-real eval-learned-fusion eval-latency e2e load
 
 help:
 	@echo "env dev down reset logs s=<service> ps migrate migrate-down seed seed-demo admin email=<x> name=<y>"
-	@echo "gen check test-api test-api-integration test-web test-ml test-data eval eval-latency e2e load"
+	@echo "gen check test-api test-api-integration test-web test-ml test-data eval eval-real eval-learned-fusion eval-latency e2e load"
 
 env:
 	@sh deploy/scripts/make-env.sh
@@ -99,6 +99,10 @@ eval:
 # the official evaluation pipeline: verifies freeze, calibrates on val, evaluates on test, writes REPORT.md
 eval-real:
 	cd ml && uv run python -m eval.run_real --dataset ../$(EVAL_DATA) --hf-home $${HF_HOME:-$$HOME/.cache/huggingface}
+
+# repeatable learned fusion experiment against baseline B3 linear fusion
+eval-learned-fusion:
+	cd ml && uv run python -m eval.learned_fusion --dataset ../$(EVAL_DATA) --split $(EVAL_SPLIT)
 
 # the CPU latency of every component on this machine (T9, matching-engine section 10)
 eval-latency:

@@ -267,12 +267,28 @@ the same grouping and gates.
 - `category_factor`: +0.8491
 - `intercept`: -0.5750
 
-#### Activation Recommendation
+#### Activation Recommendation and Decision Rule
 While the learned fusion model (B4) passes all synthetic acceptance gate thresholds on the
 synthetic fixture, per the policy defined in `docs/ai/matching-engine.md` section 7.2 and
 project constraints, learned fusion CANNOT be activated in production based on synthetic data.
 The active production configuration remains `fusion-linear-2026.11.0.json`. Official activation
 is TERTUNDA pending evaluation on the frozen real campus dataset (`simpanugm-eval` v1).
+
+Once the real dataset is frozen, the learned fusion experiment can be re-run with a single command:
+```bash
+make eval-learned-fusion
+# Or with real neural model weights:
+cd ml && uv run python -m eval.learned_fusion --dataset ../data/eval --split test --real-weights
+```
+
+Decision Rule for Production Activation:
+Learned fusion (B4) is recommended for production activation ONLY if it beats linear fusion (B3)
+on the official frozen test split on all three gate criteria:
+1. Recall@5 improvement: delta >= +0.02 absolute.
+2. MRR improvement: delta >= +0.02 absolute.
+3. High tier precision: >= 0.85.
+
+If any criterion is not met, linear fusion remains active and the learned configuration is not activated.
 
 ## 14. Real Evaluation Runbook (for Irfan and Axelle)
 

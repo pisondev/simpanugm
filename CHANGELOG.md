@@ -23,6 +23,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Offline Evaluation Harness: Python evaluation suite (`ml/eval`) with synthetic benchmark dataset (SINTETIS), baseline comparisons (B0 to B2), ablations (A1 to A7), and learned fusion logistic regression benchmark meeting PRD section 8 metrics.
 - Scheduled weekly workflow (`.github/workflows/ml-golden.yml`, with workflow dispatch) running heavy real weight inference golden tests with `models.lock.json` caching.
 - Real evaluation runner pipeline (`make eval-real`, `ml/eval/run_real.py`) with automated `check_freeze` verification, `val` split calibration, `test` split gate execution, packaged run artifact logging, and authoritative report generation labeled RESMI or SINTETIS.
+- Repeatable learned fusion experiment script (`make eval-learned-fusion`, `ml/eval/learned_fusion.py`) with real weight execution support and strict gate decision rule requiring verified gains on frozen test data before activation.
 
 ### Changed
 
