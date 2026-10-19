@@ -2,6 +2,7 @@ import { PackageOpen } from "lucide-react"
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
+import { ModerateReportDialog } from "@/components/admin/moderate-report-dialog"
 import { OfficerCandidates } from "@/components/matching/officer-candidates"
 import { CustodyDispositionDialog } from "@/components/officer/custody-actions"
 import { FoundReportView } from "@/components/report/found-report-view"
@@ -31,6 +32,7 @@ export default async function OfficerFoundPage({ params, searchParams }: PagePro
         </ButtonLink>
       ) : null}
       {canDispose ? <CustodyDispositionDialog report={report} /> : null}
+      <ModerateReportDialog type="found" id={report.id} />
     </div>
   )
   const candidates = (

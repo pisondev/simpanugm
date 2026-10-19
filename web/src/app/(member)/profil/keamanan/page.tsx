@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server"
 
 import { SignOutAll } from "@/components/auth/sign-out-all"
 import { PageHeader } from "@/components/layout/page-header"
+import { DeleteAccountDialog } from "@/components/profile/delete-account-dialog"
 import { PasswordForm } from "@/components/profile/password-form"
 import { SessionList } from "@/components/profile/session-list"
 
@@ -37,6 +38,13 @@ export default async function SecurityPage() {
         <h2 className="font-semibold">{tn("signOutAll")}</h2>
         <p className="text-sm text-muted-foreground">{t("signOutAllHint")}</p>
         <SignOutAll />
+      </section>
+      <section className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+        <h2 className="font-semibold text-destructive">{t("deleteAccountTitle")}</h2>
+        <p className="text-sm text-muted-foreground">{t("deleteAccountLead")}</p>
+        <div>
+          <DeleteAccountDialog />
+        </div>
       </section>
     </div>
   )

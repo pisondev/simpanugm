@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 
 import { EditUserDialog } from "@/components/admin/edit-user-dialog"
 import { InviteDialog } from "@/components/admin/invite-dialog"
+import { UserModerationMenu } from "@/components/admin/user-moderation-dialog"
 import { EmptyState } from "@/components/layout/empty-state"
 import { PageHeader } from "@/components/layout/page-header"
 import { Pager } from "@/components/layout/pager"
@@ -94,7 +95,10 @@ export default async function UsersPage({ searchParams }: PageProps<"/admin/peng
                   <TableCell className="max-w-64 whitespace-normal">{u.post_ids.map((id) => postName.get(id) ?? id).join(", ") || tc("none")}</TableCell>
                   <TableCell>{u.last_login_at ? formatRelative(u.last_login_at) : t("never")}</TableCell>
                   <TableCell className="text-right">
-                    <EditUserDialog user={u} posts={posts.items} />
+                    <div className="flex items-center justify-end gap-1">
+                      <EditUserDialog user={u} posts={posts.items} />
+                      <UserModerationMenu user={u} />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

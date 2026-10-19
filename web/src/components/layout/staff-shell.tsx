@@ -6,11 +6,13 @@ import {
   FileSearch,
   FolderOpen,
   HandHeart,
+  History,
   House,
   LayoutDashboard,
   PackageOpen,
   Search,
   ShieldQuestion,
+  Sliders,
   Sparkles,
   UserRound,
   Users,
@@ -62,6 +64,8 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
           { href: "/admin", label: t("adminHome"), icon: LayoutDashboard, exact: true },
           { href: "/admin/pengguna", label: t("users"), icon: Users },
           { href: "/admin/master", label: t("masterData"), icon: Database },
+          { href: "/admin/pengaturan", label: t("settings"), icon: Sliders },
+          { href: "/admin/audit", label: t("auditLogs"), icon: History },
         ]
       : []
   const account: NavItem[] = [

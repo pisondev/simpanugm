@@ -162,7 +162,9 @@
     "help": "Bantuan",
     "privacy": "Privasi",
     "terms": "Ketentuan",
-    "masterData": "Data Master"
+    "masterData": "Data Master",
+    "settings": "Pengaturan Sistem",
+    "auditLogs": "Audit Log"
   },
   "notifications": {
     "title": "Notifikasi",
@@ -699,7 +701,13 @@
     "signOutAllHint": "Keluar dari semua perangkat yang memakai akun ini, termasuk perangkat ini.",
     "signOutAllConfirm": "Ya, keluar dari semua perangkat",
     "signOutAllTitle": "Keluar dari semua perangkat?",
-    "myReports": "Laporan pribadi saya"
+    "myReports": "Laporan pribadi saya",
+    "deleteAccountTitle": "Hapus Akun",
+    "deleteAccountLead": "Menghapus akun akan menutup seluruh laporan kehilangan terbuka, membatalkan klaim yang sedang berjalan, dan menganonimkan data pribadimu.",
+    "deleteAccountBtn": "Hapus Akunku",
+    "deleteAccountConfirmTitle": "Yakin ingin menghapus akun?",
+    "deleteAccountConfirmBody": "Tindakan ini permanen dan tidak dapat dibatalkan. Seluruh laporan kehilanganmu yang masih terbuka akan ditutup dengan alasan akun dihapus, dan klaimmu yang belum selesai akan dibatalkan.",
+    "deleteAccountSuccess": "Akun kamu telah berhasil dihapus dan dianonimkan."
   },
   "officer": {
     "homeTitle": "Ruang Petugas",

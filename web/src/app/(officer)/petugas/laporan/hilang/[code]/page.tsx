@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { ModerateReportDialog } from "@/components/admin/moderate-report-dialog"
 import { OfficerCandidates } from "@/components/matching/officer-candidates"
 import { LostReportView } from "@/components/report/lost-report-view"
 import { load, serverApi } from "@/lib/api/server"
@@ -28,5 +29,10 @@ export default async function OfficerLostPage({ params, searchParams }: PageProp
       toggleHref={showLow ? `/petugas/laporan/hilang/${report.code}` : `/petugas/laporan/hilang/${report.code}?rendah=1`}
     />
   )
-  return <LostReportView report={report} history={history.items} staff now={now.getTime()} candidates={candidates} />
+  const actions = (
+    <div className="flex flex-wrap gap-2">
+      <ModerateReportDialog type="lost" id={report.id} />
+    </div>
+  )
+  return <LostReportView report={report} history={history.items} actions={actions} staff now={now.getTime()} candidates={candidates} />
 }
