@@ -16,7 +16,7 @@ export default defineConfig({
   },
   projects: [
     // the long journeys run once, on desktop, the member pages are covered on a phone by J1
-    { name: "phone", use: { ...devices["Pixel 7"] }, testIgnore: /sprint1|claims/ },
+    { name: "phone", use: { ...devices["Pixel 7"] }, testIgnore: /sprint1|claims|demo-ai/ },
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
   ],
 })

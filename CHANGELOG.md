@@ -29,6 +29,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Demo photo pack and manifest (`data/demo/`): 52 curated and derived open-license photographs meeting strict licensing (CC0, CC-BY, CC-BY-SA, Public Domain) and privacy rules (no faces or identity documents), with automatic fetching from Wikimedia Commons, variation derivation, manifest validator (`validate_manifest.py`), unit tests (`test_demo_manifest.py`), credits documentation (`docs/project/demo-credits.md`), and automated integration into the demo seeder (W2).
 - Demonstration script documentation (`docs/project/demo-script.md`) detailing actor credentials, scene flows, and live presentation steps.
 - UX and visual polish pass per actor with accessibility compliance (W3): live demo banner with Mailpit link, one-click quick login buttons for demo actors, missing photo fallback icon, tokenized WCAG AA contrast compliance (`text-success-text`, `text-warning-text`), keyboard focusable scrollable containers (`tabIndex={0}`), and admin loading skeleton (`loading.tsx`).
+- AI moments visibility and verification journeys (W4): end to end Playwright suite (`web/tests/e2e/demo-ai.spec.ts`) validating every AI interaction across all four actors (Finder assistant suggestions and match hint, Owner candidate tier and 4 score bars, Officer priority queue and semantic search, Admin monitoring and hotspot surge alerts) with screenshot capture and accessibility checks.
 
 ### Changed
 
