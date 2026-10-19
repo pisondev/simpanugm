@@ -5,6 +5,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY app ./app
+COPY eval ./eval
 COPY models.lock.json ./
 # the palette and the brand list come from the reviewed seed, compose passes data/seed as the build context seed
 COPY --from=seed colours.csv brands.csv /app/seed/

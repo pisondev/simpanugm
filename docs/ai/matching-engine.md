@@ -374,6 +374,31 @@ before the 4 vCPU server is considered, which will be slower and is measured aga
 A cold start loads the four models in about 20 s from a warm cache and downloads about 1.5 GB
 on the first start.
 
+### 10.1 Running Latency Benchmarking in VPS Container
+To measure component latency inside the production container without dev dependencies:
+```bash
+# Inside the running ml service container
+docker compose exec ml python -m eval.latency --runs 15
+
+# Or via Makefile on a machine with Python and uv
+make eval-latency
+```
+
+The script automatically detects container mount points (`/app/seed`, `/app/models.lock.json`, `/models` for HF weights) and provides in-memory image fallbacks if fixture image files are not mounted.
+
+### 10.2 Production Server Benchmark Results Template (VPS Staging and Production)
+The table below records reference measurements taken on the development laptop and establishes the tracking template for the 4 vCPU production server. VPS measurements remain TERTUNDA until the staging server deployment drill.
+
+| Component | Ref Laptop p50 | Ref Laptop p95 | VPS p50 | VPS p95 | Target Budget |
+|---|---|---|---|---|---|
+| `image_encoder` (1 image) | 72 ms | 78 ms | TERTUNDA | TERTUNDA | under 500 ms |
+| `image_encoder` (2 images) | 117 ms | 129 ms | TERTUNDA | TERTUNDA | under 1000 ms |
+| `xmodal_text_encoder` (1 text) | 24 ms | 28 ms | TERTUNDA | TERTUNDA | under 100 ms |
+| `text_encoder` e5 (1 text) | 19 ms | 23 ms | TERTUNDA | TERTUNDA | under 100 ms |
+| `ocr` (mock card) | 737 ms | 747 ms | TERTUNDA | TERTUNDA | under 3000 ms |
+| `colour_extractor` | 29 ms | 32 ms | TERTUNDA | TERTUNDA | under 100 ms |
+| `brand_matcher` | 0.1 ms | 0.1 ms | TERTUNDA | TERTUNDA | under 10 ms |
+
 ## 11. Explanations, AI-02
 
 Each component has a reason line generated from its value with fixed templates. Owners see

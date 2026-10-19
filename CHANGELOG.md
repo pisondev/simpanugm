@@ -24,6 +24,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Scheduled weekly workflow (`.github/workflows/ml-golden.yml`, with workflow dispatch) running heavy real weight inference golden tests with `models.lock.json` caching.
 - Real evaluation runner pipeline (`make eval-real`, `ml/eval/run_real.py`) with automated `check_freeze` verification, `val` split calibration, `test` split gate execution, packaged run artifact logging, and authoritative report generation labeled RESMI or SINTETIS.
 - Repeatable learned fusion experiment script (`make eval-learned-fusion`, `ml/eval/learned_fusion.py`) with real weight execution support and strict gate decision rule requiring verified gains on frozen test data before activation.
+- Containerized CPU latency benchmark support in ML Docker container with in-memory image fallbacks, container mount discovery, VPS execution runbook, and production latency tracking template tables.
 
 ### Changed
 

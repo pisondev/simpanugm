@@ -150,3 +150,26 @@ a unified candidate match score and assign operational confidence tiers.
 - Synthetic Validation: B4 achieves Recall@5 1.0000 vs B3 0.4000, MRR 0.9500 vs B3 0.4000, high tier precision 1.0000 (SINTETIS).
 - Real Dataset Gate: TERTUNDA. Per `matching-engine.md` section 7.2, learned fusion will only be activated if verified on the frozen real campus dataset.
 
+---
+
+## 6. Containerized Latency Measurement Procedure and VPS Results Template
+
+Component inference latency is measured within the containerized runtime without development dependencies:
+
+```bash
+docker compose exec ml python -m eval.latency --runs 15
+```
+
+### Measured Latency and VPS Tracking Template
+
+| Component | Input | Ref Laptop p50 | Ref Laptop p95 | VPS p50 | VPS p95 | Target Budget | Status |
+|---|---|---|---|---|---|---|---|
+| `image_encoder` | 1 image | 72 ms | 78 ms | TERTUNDA | TERTUNDA | < 500 ms | PASS (Ref Laptop) / TERTUNDA (VPS) |
+| `image_encoder` | 2 images | 117 ms | 129 ms | TERTUNDA | TERTUNDA | < 1000 ms | PASS (Ref Laptop) / TERTUNDA (VPS) |
+| `xmodal_text_encoder` | 1 text | 24 ms | 28 ms | TERTUNDA | TERTUNDA | < 100 ms | PASS (Ref Laptop) / TERTUNDA (VPS) |
+| `text_encoder` | 1 text | 19 ms | 23 ms | TERTUNDA | TERTUNDA | < 100 ms | PASS (Ref Laptop) / TERTUNDA (VPS) |
+| `ocr` | mock card | 737 ms | 747 ms | TERTUNDA | TERTUNDA | < 3000 ms | PASS (Ref Laptop) / TERTUNDA (VPS) |
+| `colour_extractor` | 1 image | 29 ms | 32 ms | TERTUNDA | TERTUNDA | < 100 ms | PASS (Ref Laptop) / TERTUNDA (VPS) |
+| `brand_matcher` | 1 string | 0.1 ms | 0.1 ms | TERTUNDA | TERTUNDA | < 10 ms | PASS (Ref Laptop) / TERTUNDA (VPS) |
+| `fusion` | 1 pair | < 1 ms | < 1 ms | TERTUNDA | TERTUNDA | < 5 ms | PASS (Ref Laptop) / TERTUNDA (VPS) |
+
