@@ -11,6 +11,44 @@ import (
 	"github.com/google/uuid"
 )
 
+type AiMonitoringAssistOutcome struct {
+	FieldName interface{}
+	Outcome   interface{}
+	Count     int64
+}
+
+type AiMonitoringConfirmedRank struct {
+	ConfirmedTotal int64
+	Rank1Count     int64
+	Rank5Count     int64
+	Rank10Count    int64
+	RecallAt1      int32
+	RecallAt5      int32
+	RecallAt10     int32
+}
+
+type AiMonitoringDismissRate struct {
+	Tier                  *string
+	TotalMatches          int64
+	OwnerDismissedCount   int64
+	OfficerDismissedCount int64
+	OwnerDismissRate      int32
+}
+
+type AiMonitoringSummary struct {
+	AssistOutcomes interface{}
+	DismissRates   interface{}
+	ConfirmedRanks interface{}
+	Top1Histogram  interface{}
+}
+
+type AiMonitoringTop1Histogram struct {
+	BucketLabel string
+	BucketFloor float64
+	BucketCeil  float64
+	Count       int64
+}
+
 type AuditLog struct {
 	ID         int64
 	OccurredAt time.Time

@@ -92,6 +92,8 @@ func NewServices(d Deps) *Services {
 	enq := &jobargs.Enqueuer{Jobs: d.Jobs, Inference: ml != nil}
 	rep := reports.NewService(d.Pool, d.Clock, med, md, cs, st, notifier, enq)
 	engine := matching.NewEngine(d.Pool, d.Clock, ml, d.Store, notifier, st, d.Jobs).WithMetrics(d.Metrics)
+	matchingSvc := matching.NewService(engine, enq)
+	officerSvc := officer.NewService(d.Pool, d.Clock).WithReportsAndMatching(rep, matchingSvc)
 	return &Services{
 		Settings: st, Mailer: mailer, Notifier: notifier, Hub: hub, Notify: notify.NewService(d.Pool, d.Clock, hub),
 		Auth:       authSvc,
@@ -101,8 +103,8 @@ func NewServices(d Deps) *Services {
 		Search:   search.NewService(d.Pool),
 		Engine:   engine,
 		Assist:   assist.NewService(d.Pool, ml, d.Store, md),
-		Matching: matching.NewService(engine, enq),
-		Officer:  officer.NewService(d.Pool, d.Clock),
+		Matching: matchingSvc,
+		Officer:  officerSvc,
 	}
 }
 

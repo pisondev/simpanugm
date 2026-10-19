@@ -39,6 +39,15 @@ func (h *Handlers) GetOfficerQueue(ctx context.Context, req openapi.GetOfficerQu
 	return openapi.GetOfficerQueue200JSONResponse(list), nil
 }
 
+func (h *Handlers) GetOfficerBoard(ctx context.Context, req openapi.GetOfficerBoardRequestObject) (openapi.GetOfficerBoardResponseObject, error) {
+	p := access.FromContext(ctx)
+	board, err := h.svc.Board(ctx, p, string(req.Params.ReportType), req.Params.ReportId)
+	if err != nil {
+		return nil, err
+	}
+	return openapi.GetOfficerBoard200JSONResponse(*board), nil
+}
+
 func (h *Handlers) ListOfficerDuplicates(ctx context.Context, req openapi.ListOfficerDuplicatesRequestObject) (openapi.ListOfficerDuplicatesResponseObject, error) {
 	var status *string
 	if req.Params.Status != nil {

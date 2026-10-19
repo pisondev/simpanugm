@@ -352,6 +352,7 @@ WHERE id = sqlc.narg(id)::uuid OR code = sqlc.narg(code)::text;
 SELECT m.id, m.lost_report_id, m.found_report_id, m.visual_mode, m.s_visual, m.s_semantic, m.s_attr, m.s_text, m.s_location,
        m.s_time, m.category_factor, m.overall, m.tier, m.rank_for_lost, m.rank_for_found, m.flags, m.explanation, m.status,
        m.owner_dismissed_at, m.component_versions, m.first_scored_at, m.scored_at,
+       (m.pinned_at IS NOT NULL)::bool AS pinned, m.pinned_at,
        fr.code AS found_code, fr.item_name AS found_item_name, fr.description AS found_description, fr.colours AS found_colours,
        fr.brand AS found_brand, fr.found_at, fr.custody_status, fr.finder_id, fr.hidden_details,
        fc.id AS found_category_id, fc.slug AS found_category_slug, fc.name AS found_category_name,
@@ -377,7 +378,7 @@ WHERE (sqlc.narg(match_id)::uuid IS NULL OR m.id = sqlc.narg(match_id)::uuid)
   AND (sqlc.narg(lost_id)::uuid IS NULL OR m.lost_report_id = sqlc.narg(lost_id)::uuid)
   AND (sqlc.narg(found_id)::uuid IS NULL OR m.found_report_id = sqlc.narg(found_id)::uuid)
   AND m.status = ANY(sqlc.arg(statuses)::text[])
-ORDER BY m.overall DESC, m.first_scored_at, m.id
+ORDER BY (m.pinned_at IS NOT NULL) DESC, m.overall DESC, m.first_scored_at, m.id
 LIMIT 50;
 
 -- name: CandidatePhotos :many
@@ -402,6 +403,14 @@ UPDATE matches SET owner_dismissed_at = $2, version = version + 1 WHERE id = $1 
 -- name: OfficerDismissMatch :exec
 UPDATE matches SET status = 'dismissed', rank_for_lost = NULL, rank_for_found = NULL, version = version + 1
 WHERE id = $1 AND status = 'active';
+
+-- name: PinMatch :one
+UPDATE matches
+SET pinned_by = sqlc.narg(pinned_by)::uuid,
+    pinned_at = sqlc.narg(pinned_at)::timestamptz,
+    version = version + 1
+WHERE id = $1
+RETURNING id, (pinned_at IS NOT NULL)::bool AS pinned, pinned_at;
 
 -- AI-05: what the finder may learn, the item name and category of the lost report and nothing else (BR-VIS 5.1)
 -- name: FinderHint :many

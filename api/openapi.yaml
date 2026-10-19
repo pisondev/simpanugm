@@ -670,6 +670,30 @@ paths:
               schema: { $ref: '#/components/schemas/OfficerQueueList' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /officer/board:
+    get:
+      tags: [officer]
+      operationId: getOfficerBoard
+      parameters:
+        - name: report_type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [lost, found]
+        - name: report_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: AI-07 match review board side by side data
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfficerBoard' }
+        default: { $ref: '#/components/responses/Problem' }
+
   /officer/duplicates:
     get:
       tags: [officer]
@@ -1113,6 +1137,49 @@ paths:
       responses:
         '204':
           description: Hidden for the owner, or for everyone when an officer dismisses
+        default: { $ref: '#/components/responses/Problem' }
+
+  /matches/{id}/pin:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    post:
+      tags: [matching]
+      operationId: pinMatch
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PinMatchRequest' }
+      responses:
+        '200':
+          description: Match pinned status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, pinned]
+                properties:
+                  id: { type: string, format: uuid }
+                  pinned: { type: boolean }
+                  pinned_at: { type: string, format: date-time, nullable: true }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /matches/{id}/invite-claim:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    post:
+      tags: [matching]
+      operationId: inviteClaimForMatch
+      responses:
+        '200':
+          description: Claim invitation sent to owner
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, invited]
+                properties:
+                  id: { type: string, format: uuid }
+                  invited: { type: boolean }
         default: { $ref: '#/components/responses/Problem' }
 
   /reports/{type}/{id}/rematch:
@@ -2638,6 +2705,22 @@ components:
           items: { $ref: '#/components/schemas/OfficerQueueItem' }
         total: { type: integer }
 
+    OfficerBoard:
+      type: object
+      required: [report_type, candidates]
+      properties:
+        report_type:
+          type: string
+          enum: [lost, found]
+        lost_report:
+          $ref: '#/components/schemas/LostReport'
+        found_report:
+          $ref: '#/components/schemas/FoundReport'
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/MatchCandidate'
+
     AdminUser:
       type: object
       required: [id, email, full_name, role, status, email_verified, post_ids, created_at]
@@ -2884,6 +2967,8 @@ components:
           additionalProperties: { type: string }
         first_scored_at: { type: string, format: date-time }
         scored_at: { type: string, format: date-time }
+        pinned: { type: boolean }
+        pinned_at: { type: string, format: date-time, nullable: true }
 
     MatchList:
       type: object
@@ -2921,6 +3006,14 @@ components:
       additionalProperties: false
       properties:
         reason: { type: string, maxLength: 300 }
+
+    PinMatchRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        pinned:
+          type: boolean
+          default: true
 
     OpeningHours:
       type: object

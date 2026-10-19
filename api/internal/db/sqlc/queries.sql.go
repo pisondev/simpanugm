@@ -6733,6 +6733,7 @@ const matchViews = `-- name: MatchViews :many
 SELECT m.id, m.lost_report_id, m.found_report_id, m.visual_mode, m.s_visual, m.s_semantic, m.s_attr, m.s_text, m.s_location,
        m.s_time, m.category_factor, m.overall, m.tier, m.rank_for_lost, m.rank_for_found, m.flags, m.explanation, m.status,
        m.owner_dismissed_at, m.component_versions, m.first_scored_at, m.scored_at,
+       (m.pinned_at IS NOT NULL)::bool AS pinned, m.pinned_at,
        fr.code AS found_code, fr.item_name AS found_item_name, fr.description AS found_description, fr.colours AS found_colours,
        fr.brand AS found_brand, fr.found_at, fr.custody_status, fr.finder_id, fr.hidden_details,
        fc.id AS found_category_id, fc.slug AS found_category_slug, fc.name AS found_category_name,
@@ -6758,7 +6759,7 @@ WHERE ($1::uuid IS NULL OR m.id = $1::uuid)
   AND ($2::uuid IS NULL OR m.lost_report_id = $2::uuid)
   AND ($3::uuid IS NULL OR m.found_report_id = $3::uuid)
   AND m.status = ANY($4::text[])
-ORDER BY m.overall DESC, m.first_scored_at, m.id
+ORDER BY (m.pinned_at IS NOT NULL) DESC, m.overall DESC, m.first_scored_at, m.id
 LIMIT 50
 `
 
@@ -6792,6 +6793,8 @@ type MatchViewsRow struct {
 	ComponentVersions   []byte
 	FirstScoredAt       time.Time
 	ScoredAt            time.Time
+	Pinned              bool
+	PinnedAt            *time.Time
 	FoundCode           string
 	FoundItemName       string
 	FoundDescription    string
@@ -6863,6 +6866,8 @@ func (q *Queries) MatchViews(ctx context.Context, arg MatchViewsParams) ([]Match
 			&i.ComponentVersions,
 			&i.FirstScoredAt,
 			&i.ScoredAt,
+			&i.Pinned,
+			&i.PinnedAt,
 			&i.FoundCode,
 			&i.FoundItemName,
 			&i.FoundDescription,
@@ -7374,6 +7379,34 @@ type PickUpClaimParams struct {
 func (q *Queries) PickUpClaim(ctx context.Context, arg PickUpClaimParams) error {
 	_, err := q.db.Exec(ctx, pickUpClaim, arg.ID, arg.ReviewerID, arg.UpdatedAt)
 	return err
+}
+
+const pinMatch = `-- name: PinMatch :one
+UPDATE matches
+SET pinned_by = $2::uuid,
+    pinned_at = $3::timestamptz,
+    version = version + 1
+WHERE id = $1
+RETURNING id, (pinned_at IS NOT NULL)::bool AS pinned, pinned_at
+`
+
+type PinMatchParams struct {
+	ID       uuid.UUID
+	PinnedBy *uuid.UUID
+	PinnedAt *time.Time
+}
+
+type PinMatchRow struct {
+	ID       uuid.UUID
+	Pinned   bool
+	PinnedAt *time.Time
+}
+
+func (q *Queries) PinMatch(ctx context.Context, arg PinMatchParams) (PinMatchRow, error) {
+	row := q.db.QueryRow(ctx, pinMatch, arg.ID, arg.PinnedBy, arg.PinnedAt)
+	var i PinMatchRow
+	err := row.Scan(&i.ID, &i.Pinned, &i.PinnedAt)
+	return i, err
 }
 
 const postForUpdate = `-- name: PostForUpdate :one

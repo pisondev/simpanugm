@@ -65,3 +65,23 @@ func (h *Handlers) RematchReport(ctx context.Context, req openapi.RematchReportR
 	}
 	return openapi.RematchReport202JSONResponse{Message: "Pencocokan ulang dijadwalkan."}, nil
 }
+
+func (h *Handlers) PinMatch(ctx context.Context, req openapi.PinMatchRequestObject) (openapi.PinMatchResponseObject, error) {
+	pinned := true
+	if req.Body != nil && req.Body.Pinned != nil {
+		pinned = *req.Body.Pinned
+	}
+	res, err := h.svc.Pin(ctx, access.FromContext(ctx), req.Id, pinned)
+	if err != nil {
+		return nil, err
+	}
+	return *res, nil
+}
+
+func (h *Handlers) InviteClaimForMatch(ctx context.Context, req openapi.InviteClaimForMatchRequestObject) (openapi.InviteClaimForMatchResponseObject, error) {
+	res, err := h.svc.InviteClaim(ctx, access.FromContext(ctx), req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return *res, nil
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -12,6 +13,7 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/audit"
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/matching/jobargs"
+	"github.com/pisondev/simpanugm/api/internal/notify"
 	"github.com/pisondev/simpanugm/api/internal/openapi"
 	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
 	"github.com/pisondev/simpanugm/api/internal/platform/db"
@@ -270,6 +272,7 @@ func (s *Service) project(ctx context.Context, p *access.Principal, rows []sqlc.
 		c := openapi.MatchCandidate{
 			Id: r.ID, Tier: openapi.MatchTier(*r.Tier), Overall: float32(r.Overall), Status: openapi.MatchCandidateStatus(r.Status),
 			FoundReport: found, LostReport: lost, Explanation: explanationOf(r), ScoredAt: r.ScoredAt,
+			Pinned: &r.Pinned, PinnedAt: r.PinnedAt,
 		}
 		if r.RankForLost != nil {
 			rank := int(*r.RankForLost)
@@ -435,4 +438,102 @@ func (s *Service) Rematch(ctx context.Context, p *access.Principal, typ, ref str
 		}
 		return audit.Record(ctx, s.e.q.WithTx(tx), s.e.clock.Now(), audit.Entry{Action: "match.rematch", EntityType: typ + "_report", EntityID: id})
 	})
+}
+
+func (s *Service) Pin(ctx context.Context, p *access.Principal, id uuid.UUID, pinned bool) (*openapi.PinMatch200JSONResponse, error) {
+	if !p.IsStaff() {
+		return nil, apperr.Forbidden()
+	}
+	now := s.e.clock.Now()
+	var pinnedBy *uuid.UUID
+	var pinnedAt *time.Time
+	action := "match.unpin"
+	if pinned {
+		pinnedBy = &p.UserID
+		pinnedAt = &now
+		action = "match.pin"
+	}
+	var res openapi.PinMatch200JSONResponse
+	err := db.InTx(ctx, s.e.pool, func(tx pgx.Tx) error {
+		qtx := s.e.q.WithTx(tx)
+		row, err := qtx.PinMatch(ctx, sqlc.PinMatchParams{
+			ID:       id,
+			PinnedBy: pinnedBy,
+			PinnedAt: pinnedAt,
+		})
+		if db.IsNoRows(err) {
+			return apperr.NotFound()
+		}
+		if err != nil {
+			return err
+		}
+		res = openapi.PinMatch200JSONResponse{
+			Id:       row.ID,
+			Pinned:   row.Pinned,
+			PinnedAt: row.PinnedAt,
+		}
+		return audit.Record(ctx, qtx, now, audit.Entry{
+			Action:     action,
+			EntityType: "match",
+			EntityID:   id,
+		})
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (s *Service) InviteClaim(ctx context.Context, p *access.Principal, id uuid.UUID) (*openapi.InviteClaimForMatch200JSONResponse, error) {
+	if !p.IsStaff() {
+		return nil, apperr.Forbidden()
+	}
+	now := s.e.clock.Now()
+	var res openapi.InviteClaimForMatch200JSONResponse
+	err := db.InTx(ctx, s.e.pool, func(tx pgx.Tx) error {
+		qtx := s.e.q.WithTx(tx)
+		m, err := qtx.MatchForAction(ctx, id)
+		if db.IsNoRows(err) {
+			return apperr.NotFound()
+		}
+		if err != nil {
+			return err
+		}
+		lostRows, err := qtx.LostForMatching(ctx, []uuid.UUID{m.LostReportID})
+		if err != nil || len(lostRows) == 0 {
+			return apperr.NotFound()
+		}
+		foundRows, err := qtx.FoundForMatching(ctx, []uuid.UUID{m.FoundReportID})
+		if err != nil || len(foundRows) == 0 {
+			return apperr.NotFound()
+		}
+		lost := lostRows[0]
+		found := foundRows[0]
+		if lost.ReporterID == nil {
+			return apperr.BadRequest("Laporan kehilangan ini tidak memiliki akun pemilik terdaftar.")
+		}
+		if err := s.e.notifier.Send(ctx, tx, notify.Message{
+			Event:      notify.MatchOfficerInvites,
+			To:         *lost.ReporterID,
+			Link:       "/laporan/hilang/" + lost.Code,
+			Data:       map[string]string{"lost_code": lost.Code, "found_code": found.Code, "item_name": lost.ItemName},
+			EntityType: "match",
+			EntityID:   &id,
+		}); err != nil {
+			return err
+		}
+		res = openapi.InviteClaimForMatch200JSONResponse{
+			Id:      id,
+			Invited: true,
+		}
+		return audit.Record(ctx, qtx, now, audit.Entry{
+			Action:     "match.invite_claim",
+			EntityType: "match",
+			EntityID:   id,
+		})
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }

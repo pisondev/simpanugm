@@ -67,6 +67,9 @@ const (
 	CustodyExtend        Permission = "custody.extend"
 	CustodyDispose       Permission = "custody.dispose"
 	ReportMarkDuplicate  Permission = "report.mark_duplicate"
+	OfficerBoardRead     Permission = "officer.board.read"
+	MatchPin             Permission = "match.pin"
+	MatchInviteClaim     Permission = "match.officer_invites_claim"
 )
 
 var memberPerms = []Permission{
@@ -83,7 +86,7 @@ var memberPerms = []Permission{
 var officerPerms = append(slices.Clone(memberPerms),
 	ReportProxyCreate, CustodyReceive, CustodyInventoryRead, SearchReports, OfficerQueueRead, MatchRematch,
 	ClaimReview, ClaimApprove, ClaimInternalNote, CustodyHandover, CustodyTransfer, CustodyExtend, CustodyDispose,
-	ReportMarkDuplicate,
+	ReportMarkDuplicate, OfficerBoardRead, MatchPin, MatchInviteClaim,
 )
 
 var adminPerms = append(slices.Clone(officerPerms),
@@ -202,6 +205,7 @@ var Operations = map[string]Rule{
 	"listFoundReportMatches":     {Permission: OfficerQueueRead},
 	"getOfficerSummary":          {Permission: OfficerQueueRead},
 	"getOfficerQueue":            {Permission: OfficerQueueRead},
+	"getOfficerBoard":            {Permission: OfficerBoardRead},
 	"listOfficerDuplicates":      {Permission: ReportMarkDuplicate},
 	"confirmOfficerDuplicate":    {Permission: ReportMarkDuplicate},
 	"rejectOfficerDuplicate":     {Permission: ReportMarkDuplicate},
@@ -210,6 +214,8 @@ var Operations = map[string]Rule{
 	"getMatch":                   {Permission: MatchRead},
 	"submitMatchFeedback":        {Permission: MatchFeedback},
 	"dismissMatch":               {Permission: MatchDismiss},
+	"pinMatch":                   {Permission: MatchPin},
+	"inviteClaimForMatch":        {Permission: MatchInviteClaim},
 	"rematchReport":              {Permission: MatchRematch},
 	"assistAnalyzeImage":         {Permission: AssistAnalyze},
 	"assistDescribe":             {Permission: AssistAnalyze},

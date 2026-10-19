@@ -552,6 +552,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/officer/board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getOfficerBoard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/officer/duplicates": {
         parameters: {
             query?: never;
@@ -968,6 +984,42 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["dismissMatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/matches/{id}/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["pinMatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/matches/{id}/invite-claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["inviteClaimForMatch"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2127,6 +2179,13 @@ export interface components {
             items: components["schemas"]["OfficerQueueItem"][];
             total: number;
         };
+        OfficerBoard: {
+            /** @enum {string} */
+            report_type: "lost" | "found";
+            lost_report?: components["schemas"]["LostReport"];
+            found_report?: components["schemas"]["FoundReport"];
+            candidates: components["schemas"]["MatchCandidate"][];
+        };
         AdminUser: {
             /** Format: uuid */
             id: string;
@@ -2301,6 +2360,9 @@ export interface components {
             first_scored_at?: string;
             /** Format: date-time */
             scored_at: string;
+            pinned?: boolean;
+            /** Format: date-time */
+            pinned_at?: string | null;
         };
         MatchList: {
             items: components["schemas"]["MatchCandidate"][];
@@ -2319,6 +2381,10 @@ export interface components {
         };
         DismissMatchRequest: {
             reason?: string;
+        };
+        PinMatchRequest: {
+            /** @default true */
+            pinned: boolean;
         };
         /** @description Weekday keys mon to sun, each a list of [from, to] in WIB, an empty list when closed */
         OpeningHours: {
@@ -3818,6 +3884,30 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    getOfficerBoard: {
+        parameters: {
+            query: {
+                report_type: "lost" | "found";
+                report_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description AI-07 match review board side by side data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfficerBoard"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     listOfficerDuplicates: {
         parameters: {
             query?: {
@@ -4449,6 +4539,66 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    pinMatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PinMatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Match pinned status updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        pinned: boolean;
+                        /** Format: date-time */
+                        pinned_at?: string | null;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    inviteClaimForMatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Claim invitation sent to owner */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        invited: boolean;
+                    };
+                };
             };
             default: components["responses"]["Problem"];
         };

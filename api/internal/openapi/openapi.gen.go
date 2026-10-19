@@ -721,6 +721,24 @@ func (e NotificationPreferenceGroup) Valid() bool {
 	}
 }
 
+// Defines values for OfficerBoardReportType.
+const (
+	OfficerBoardReportTypeFound OfficerBoardReportType = "found"
+	OfficerBoardReportTypeLost  OfficerBoardReportType = "lost"
+)
+
+// Valid indicates whether the value is a known member of the OfficerBoardReportType enum.
+func (e OfficerBoardReportType) Valid() bool {
+	switch e {
+	case OfficerBoardReportTypeFound:
+		return true
+	case OfficerBoardReportTypeLost:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for OfficerDuplicateItemReportType.
 const (
 	OfficerDuplicateItemReportTypeFound OfficerDuplicateItemReportType = "found"
@@ -874,6 +892,24 @@ func (e Sensitivity) Valid() bool {
 	case Normal:
 		return true
 	case Valuable:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetOfficerBoardParamsReportType.
+const (
+	GetOfficerBoardParamsReportTypeFound GetOfficerBoardParamsReportType = "found"
+	GetOfficerBoardParamsReportTypeLost  GetOfficerBoardParamsReportType = "lost"
+)
+
+// Valid indicates whether the value is a known member of the GetOfficerBoardParamsReportType enum.
+func (e GetOfficerBoardParamsReportType) Valid() bool {
+	switch e {
+	case GetOfficerBoardParamsReportTypeFound:
+		return true
+	case GetOfficerBoardParamsReportTypeLost:
 		return true
 	default:
 		return false
@@ -1953,6 +1989,8 @@ type MatchCandidate struct {
 	Id          openapi_types.UUID   `json:"id"`
 	LostReport  LostCandidate        `json:"lost_report"`
 	Overall     float32              `json:"overall"`
+	Pinned      *bool                `json:"pinned,omitempty"`
+	PinnedAt    *time.Time           `json:"pinned_at,omitempty"`
 	Rank        *int                 `json:"rank,omitempty"`
 	ScoredAt    time.Time            `json:"scored_at"`
 	Scores      *MatchScores         `json:"scores,omitempty"`
@@ -2096,6 +2134,17 @@ type NotificationPreferences struct {
 	Items []NotificationPreference `json:"items"`
 }
 
+// OfficerBoard defines model for OfficerBoard.
+type OfficerBoard struct {
+	Candidates  []MatchCandidate       `json:"candidates"`
+	FoundReport *FoundReport           `json:"found_report,omitempty"`
+	LostReport  *LostReport            `json:"lost_report,omitempty"`
+	ReportType  OfficerBoardReportType `json:"report_type"`
+}
+
+// OfficerBoardReportType defines model for OfficerBoard.ReportType.
+type OfficerBoardReportType string
+
 // OfficerDuplicateItem defines model for OfficerDuplicateItem.
 type OfficerDuplicateItem struct {
 	CreatedAt  time.Time                      `json:"created_at"`
@@ -2198,6 +2247,11 @@ type PersonRef struct {
 type PhotoRef struct {
 	MediaId  openapi_types.UUID `json:"media_id"`
 	Position int                `json:"position"`
+}
+
+// PinMatchRequest defines model for PinMatchRequest.
+type PinMatchRequest struct {
+	Pinned *bool `json:"pinned,omitempty"`
 }
 
 // PlaceInput defines model for PlaceInput.
@@ -2594,6 +2648,15 @@ type ListNotificationsParams struct {
 	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// GetOfficerBoardParams defines parameters for GetOfficerBoard.
+type GetOfficerBoardParams struct {
+	ReportType GetOfficerBoardParamsReportType `form:"report_type" json:"report_type"`
+	ReportId   string                          `form:"report_id" json:"report_id"`
+}
+
+// GetOfficerBoardParamsReportType defines parameters for GetOfficerBoard.
+type GetOfficerBoardParamsReportType string
+
 // ListOfficerDuplicatesParams defines parameters for ListOfficerDuplicates.
 type ListOfficerDuplicatesParams struct {
 	Status *ListOfficerDuplicatesParamsStatus `form:"status,omitempty" json:"status,omitempty"`
@@ -2789,6 +2852,9 @@ type DismissMatchJSONRequestBody = DismissMatchRequest
 
 // SubmitMatchFeedbackJSONRequestBody defines body for SubmitMatchFeedback for application/json ContentType.
 type SubmitMatchFeedbackJSONRequestBody = MatchFeedbackRequest
+
+// PinMatchJSONRequestBody defines body for PinMatch for application/json ContentType.
+type PinMatchJSONRequestBody = PinMatchRequest
 
 // UpdateMeJSONRequestBody defines body for UpdateMe for application/json ContentType.
 type UpdateMeJSONRequestBody = ProfileUpdate
@@ -3045,6 +3111,12 @@ type ServerInterface interface {
 	// (POST /matches/{id}/feedback)
 	SubmitMatchFeedback(w http.ResponseWriter, r *http.Request, id UUIDPath)
 
+	// (POST /matches/{id}/invite-claim)
+	InviteClaimForMatch(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
+	// (POST /matches/{id}/pin)
+	PinMatch(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
 	// (GET /me)
 	GetMe(w http.ResponseWriter, r *http.Request)
 
@@ -3086,6 +3158,9 @@ type ServerInterface interface {
 
 	// (POST /notifications/{id}/read)
 	MarkNotificationRead(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
+	// (GET /officer/board)
+	GetOfficerBoard(w http.ResponseWriter, r *http.Request, params GetOfficerBoardParams)
 
 	// (GET /officer/duplicates)
 	ListOfficerDuplicates(w http.ResponseWriter, r *http.Request, params ListOfficerDuplicatesParams)
@@ -3510,6 +3585,16 @@ func (_ Unimplemented) SubmitMatchFeedback(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// (POST /matches/{id}/invite-claim)
+func (_ Unimplemented) InviteClaimForMatch(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /matches/{id}/pin)
+func (_ Unimplemented) PinMatch(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (GET /me)
 func (_ Unimplemented) GetMe(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -3577,6 +3662,11 @@ func (_ Unimplemented) CountUnreadNotifications(w http.ResponseWriter, r *http.R
 
 // (POST /notifications/{id}/read)
 func (_ Unimplemented) MarkNotificationRead(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /officer/board)
+func (_ Unimplemented) GetOfficerBoard(w http.ResponseWriter, r *http.Request, params GetOfficerBoardParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -5872,6 +5962,58 @@ func (siw *ServerInterfaceWrapper) SubmitMatchFeedback(w http.ResponseWriter, r 
 	handler.ServeHTTP(w, r)
 }
 
+// InviteClaimForMatch operation middleware
+func (siw *ServerInterfaceWrapper) InviteClaimForMatch(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id UUIDPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.InviteClaimForMatch(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PinMatch operation middleware
+func (siw *ServerInterfaceWrapper) PinMatch(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id UUIDPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PinMatch(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetMe operation middleware
 func (siw *ServerInterfaceWrapper) GetMe(w http.ResponseWriter, r *http.Request) {
 
@@ -6140,6 +6282,52 @@ func (siw *ServerInterfaceWrapper) MarkNotificationRead(w http.ResponseWriter, r
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.MarkNotificationRead(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetOfficerBoard operation middleware
+func (siw *ServerInterfaceWrapper) GetOfficerBoard(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetOfficerBoardParams
+
+	// ------------- Required query parameter "report_type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "report_type", r.URL.Query(), &params.ReportType, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "report_type"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "report_type", Err: err})
+		}
+		return
+	}
+
+	// ------------- Required query parameter "report_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "report_id", r.URL.Query(), &params.ReportId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "report_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "report_id", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetOfficerBoard(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -6904,6 +7092,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/officer/queue", wrapper.GetOfficerQueue)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/officer/board", wrapper.GetOfficerBoard)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/officer/duplicates", wrapper.ListOfficerDuplicates)
 	})
 	r.Group(func(r chi.Router) {
@@ -6977,6 +7168,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/matches/{id}/dismiss", wrapper.DismissMatch)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/matches/{id}/pin", wrapper.PinMatch)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/matches/{id}/invite-claim", wrapper.InviteClaimForMatch)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/reports/{type}/{id}/rematch", wrapper.RematchReport)
@@ -10115,6 +10312,92 @@ func (response SubmitMatchFeedbackdefaultApplicationProblemPlusJSONResponse) Vis
 	return err
 }
 
+type InviteClaimForMatchRequestObject struct {
+	Id UUIDPath `json:"id"`
+}
+
+type InviteClaimForMatchResponseObject interface {
+	VisitInviteClaimForMatchResponse(w http.ResponseWriter) error
+}
+
+type InviteClaimForMatch200JSONResponse struct {
+	Id      openapi_types.UUID `json:"id"`
+	Invited bool               `json:"invited"`
+}
+
+func (response InviteClaimForMatch200JSONResponse) VisitInviteClaimForMatchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type InviteClaimForMatchdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response InviteClaimForMatchdefaultApplicationProblemPlusJSONResponse) VisitInviteClaimForMatchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PinMatchRequestObject struct {
+	Id   UUIDPath `json:"id"`
+	Body *PinMatchJSONRequestBody
+}
+
+type PinMatchResponseObject interface {
+	VisitPinMatchResponse(w http.ResponseWriter) error
+}
+
+type PinMatch200JSONResponse struct {
+	Id       openapi_types.UUID `json:"id"`
+	Pinned   bool               `json:"pinned"`
+	PinnedAt *time.Time         `json:"pinned_at,omitempty"`
+}
+
+func (response PinMatch200JSONResponse) VisitPinMatchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PinMatchdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response PinMatchdefaultApplicationProblemPlusJSONResponse) VisitPinMatchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetMeRequestObject struct {
 }
 
@@ -10621,6 +10904,45 @@ type MarkNotificationReaddefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response MarkNotificationReaddefaultApplicationProblemPlusJSONResponse) VisitMarkNotificationReadResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetOfficerBoardRequestObject struct {
+	Params GetOfficerBoardParams
+}
+
+type GetOfficerBoardResponseObject interface {
+	VisitGetOfficerBoardResponse(w http.ResponseWriter) error
+}
+
+type GetOfficerBoard200JSONResponse OfficerBoard
+
+func (response GetOfficerBoard200JSONResponse) VisitGetOfficerBoardResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetOfficerBoarddefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetOfficerBoarddefaultApplicationProblemPlusJSONResponse) VisitGetOfficerBoardResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -11297,6 +11619,12 @@ type StrictServerInterface interface {
 	// (POST /matches/{id}/feedback)
 	SubmitMatchFeedback(ctx context.Context, request SubmitMatchFeedbackRequestObject) (SubmitMatchFeedbackResponseObject, error)
 
+	// (POST /matches/{id}/invite-claim)
+	InviteClaimForMatch(ctx context.Context, request InviteClaimForMatchRequestObject) (InviteClaimForMatchResponseObject, error)
+
+	// (POST /matches/{id}/pin)
+	PinMatch(ctx context.Context, request PinMatchRequestObject) (PinMatchResponseObject, error)
+
 	// (GET /me)
 	GetMe(ctx context.Context, request GetMeRequestObject) (GetMeResponseObject, error)
 
@@ -11338,6 +11666,9 @@ type StrictServerInterface interface {
 
 	// (POST /notifications/{id}/read)
 	MarkNotificationRead(ctx context.Context, request MarkNotificationReadRequestObject) (MarkNotificationReadResponseObject, error)
+
+	// (GET /officer/board)
+	GetOfficerBoard(ctx context.Context, request GetOfficerBoardRequestObject) (GetOfficerBoardResponseObject, error)
 
 	// (GET /officer/duplicates)
 	ListOfficerDuplicates(ctx context.Context, request ListOfficerDuplicatesRequestObject) (ListOfficerDuplicatesResponseObject, error)
@@ -13681,6 +14012,68 @@ func (sh *strictHandler) SubmitMatchFeedback(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// InviteClaimForMatch operation middleware
+func (sh *strictHandler) InviteClaimForMatch(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	var request InviteClaimForMatchRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.InviteClaimForMatch(ctx, request.(InviteClaimForMatchRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "InviteClaimForMatch")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(InviteClaimForMatchResponseObject); ok {
+		if err := validResponse.VisitInviteClaimForMatchResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PinMatch operation middleware
+func (sh *strictHandler) PinMatch(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	var request PinMatchRequestObject
+
+	request.Id = id
+
+	var body PinMatchJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		if !errors.Is(err, io.EOF) {
+			sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+			return
+		}
+	} else {
+		request.Body = &body
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PinMatch(ctx, request.(PinMatchRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PinMatch")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PinMatchResponseObject); ok {
+		if err := validResponse.VisitPinMatchResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetMe operation middleware
 func (sh *strictHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 	var request GetMeRequestObject
@@ -14053,6 +14446,32 @@ func (sh *strictHandler) MarkNotificationRead(w http.ResponseWriter, r *http.Req
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(MarkNotificationReadResponseObject); ok {
 		if err := validResponse.VisitMarkNotificationReadResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetOfficerBoard operation middleware
+func (sh *strictHandler) GetOfficerBoard(w http.ResponseWriter, r *http.Request, params GetOfficerBoardParams) {
+	var request GetOfficerBoardRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetOfficerBoard(ctx, request.(GetOfficerBoardRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetOfficerBoard")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetOfficerBoardResponseObject); ok {
+		if err := validResponse.VisitGetOfficerBoardResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

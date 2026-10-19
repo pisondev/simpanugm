@@ -57,14 +57,11 @@ WITH top_matches AS (
     WHERE rank_for_lost = 1
 ),
 buckets AS (
-    SELECT bucket_floor, bucket_ceil, label FROM (
-        VALUES
-            (0.00::numeric, 0.40::numeric, '< 0.40'),
-            (0.40::numeric, 0.55::numeric, '0.40 - 0.54 (low)'),
-            (0.55::numeric, 0.72::numeric, '0.55 - 0.71 (medium)'),
-            (0.72::numeric, 0.85::numeric, '0.72 - 0.84 (high)'),
-            (0.85::numeric, 1.01::numeric, '>= 0.85 (very high)')
-    ) AS b(bucket_floor, bucket_ceil, label)
+    SELECT 0.00::numeric AS bucket_floor, 0.40::numeric AS bucket_ceil, '< 0.40'::text AS label
+    UNION ALL SELECT 0.40::numeric, 0.55::numeric, '0.40 - 0.54 (low)'::text
+    UNION ALL SELECT 0.55::numeric, 0.72::numeric, '0.55 - 0.71 (medium)'::text
+    UNION ALL SELECT 0.72::numeric, 0.85::numeric, '0.72 - 0.84 (high)'::text
+    UNION ALL SELECT 0.85::numeric, 1.01::numeric, '>= 0.85 (very high)'::text
 )
 SELECT
     b.label AS bucket_label,

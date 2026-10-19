@@ -17,9 +17,11 @@ import (
 )
 
 type Service struct {
-	pool  *pgxpool.Pool
-	q     *sqlc.Queries
-	clock clock.Clock
+	pool     *pgxpool.Pool
+	q        *sqlc.Queries
+	clock    clock.Clock
+	reports  ReportsGetter
+	matching MatchesLister
 }
 
 func NewService(pool *pgxpool.Pool, clk clock.Clock) *Service {
