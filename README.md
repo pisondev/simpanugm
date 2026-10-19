@@ -43,6 +43,41 @@ One public origin, cookie sessions, one database that also holds vectors and the
 queue, and a separate Python service only for inference. The reasoning behind each choice
 is recorded in [docs/architecture/adr/](docs/architecture/adr/).
 
+## Quickstart
+
+Run the full local development stack from clone in under five minutes:
+
+1. Clone the repository and enter the directory:
+   ```bash
+   git clone https://github.com/pisondev/simpanugm.git
+   cd simpanugm
+   ```
+2. Generate local environment files:
+   ```bash
+   make env
+   ```
+3. Start all services, apply migrations, and load campus seed master data:
+   ```bash
+   make dev
+   ```
+4. Access the web interface at `http://localhost:3000` (or `http://localhost` through Caddy reverse proxy) and Mailpit email inspector at `http://localhost:8025`.
+
+### Running Verification Tests
+
+Run the full validation suite locally:
+
+```bash
+# API unit and integration tests
+cd api && go test -tags nodynamic ./...
+go test -tags integration,nodynamic ./internal/server
+
+# Web lint, typecheck, and unit tests
+cd web && npm run typecheck && npm run lint && npm test
+
+# ML lint, formatting, typecheck, and tests
+cd ml && uv run ruff check . && uv run mypy && uv run pytest
+```
+
 ## Repository map
 
 | Path | What lives there | Owner |
@@ -62,7 +97,11 @@ Start at [docs/README.md](docs/README.md). The short path for a new reader:
 2. [Software requirements](docs/requirements/srs.md), every requirement with an id.
 3. [Architecture overview](docs/architecture/overview.md), how the parts fit.
 4. [Matching engine](docs/ai/matching-engine.md), the AI core.
-5. [Project plan](docs/project/project-plan.md), who builds what and when.
+5. [Testing strategy](docs/engineering/testing-strategy.md), test levels and journeys.
+6. [Traceability matrix](docs/requirements/traceability.md), user stories to verification.
+7. [Release checklist](docs/operations/release-checklist-v1.0.0.md), PRD section 9 audit.
+8. [Operations runbook](docs/operations/runbook.md), incident response procedures.
+9. [Project plan](docs/project/project-plan.md), who builds what and when.
 
 ## Tech stack
 
