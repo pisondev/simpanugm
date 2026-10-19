@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 
 import { CandidateList } from "@/components/matching/candidate-card"
 import { CloseReportDialog } from "@/components/report/close-report-dialog"
+import { ConfirmReceiptDialog } from "@/components/report/confirm-receipt-dialog"
 import { LostReportView } from "@/components/report/lost-report-view"
 import { ButtonLink } from "@/components/ui/button-link"
 import { load, serverApi } from "@/lib/api/server"
@@ -32,6 +33,7 @@ export default async function LostDetailPage({ params }: PageProps<"/laporan/hil
         </ButtonLink>
       ) : null}
       {open ? <CloseReportDialog kind="lost" id={report.id} /> : null}
+      {report.status === "returned" ? <ConfirmReceiptDialog code={report.code} /> : null}
     </>
   )
   const candidates =

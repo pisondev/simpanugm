@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import { OfficerCandidates } from "@/components/matching/officer-candidates"
+import { CustodyDispositionDialog } from "@/components/officer/custody-actions"
 import { FoundReportView } from "@/components/report/found-report-view"
 import { ButtonLink } from "@/components/ui/button-link"
 import { load, serverApi } from "@/lib/api/server"
@@ -20,13 +21,18 @@ export default async function OfficerFoundPage({ params, searchParams }: PagePro
     load(api.GET("/found-reports/{id}/history", { params: { path: { id: code } } })),
     load(api.GET("/found-reports/{id}/matches", { params: { path: { id: code }, query: { include_low: showLow } } })),
   ])
-  const actions =
-    report.custody_status === "with_finder" ? (
-      <ButtonLink href={`/petugas/terima?code=${report.code}`}>
-        <PackageOpen aria-hidden />
-        {t("receiveThis")}
-      </ButtonLink>
-    ) : null
+  const canDispose = report.status === "unclaimed" || report.custody_status === "in_custody"
+  const actions = (
+    <div className="flex flex-wrap gap-2">
+      {report.custody_status === "with_finder" ? (
+        <ButtonLink href={`/petugas/terima?code=${report.code}`}>
+          <PackageOpen aria-hidden />
+          {t("receiveThis")}
+        </ButtonLink>
+      ) : null}
+      {canDispose ? <CustodyDispositionDialog report={report} /> : null}
+    </div>
+  )
   const candidates = (
     <OfficerCandidates
       items={matches.items}

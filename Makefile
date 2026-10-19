@@ -5,11 +5,11 @@ SQLC := docker run --rm -v "$(CURDIR)/api:/src" -w /src sqlc/sqlc:1.31.1
 s ?= api
 
 .PHONY: help env dev up down reset logs ps migrate migrate-down migrate-status seed seed-demo admin gen gen-api gen-web \
-	check check-api check-web check-ml check-data test-api test-api-integration test-web test-ml test-data eval eval-latency e2e
+	check check-api check-web check-ml check-data test-api test-api-integration test-web test-ml test-data eval eval-latency e2e load
 
 help:
 	@echo "env dev down reset logs s=<service> ps migrate migrate-down seed seed-demo admin email=<x> name=<y>"
-	@echo "gen check test-api test-api-integration test-web test-ml test-data e2e"
+	@echo "gen check test-api test-api-integration test-web test-ml test-data eval eval-latency e2e load"
 
 env:
 	@sh deploy/scripts/make-env.sh
@@ -104,3 +104,7 @@ e2e:
 	$(COMPOSE) restart api
 	$(COMPOSE) up -d --wait api
 	cd web && pnpm e2e
+
+load:
+	python deploy/scripts/loadtest.py
+

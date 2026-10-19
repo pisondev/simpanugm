@@ -549,6 +549,13 @@
       "noteMin": "Catatan minimal 5 karakter",
       "confirm": "Ya, tutup laporan",
       "done": "Laporan sudah ditutup."
+    },
+    "confirmReceipt": {
+      "trigger": "Konfirmasi Penerimaan",
+      "title": "Konfirmasi Penerimaan Barang",
+      "body": "Pastikan kamu sudah menerima barang ini dari pos. Setelah dikonfirmasi, laporan akan diselesaikan.",
+      "confirm": "Ya, Saya Sudah Menerima",
+      "done": "Penerimaan barang berhasil dikonfirmasi."
     }
   },
   "matching": {
@@ -758,7 +765,25 @@
     "proxyLostTitle": "Lapor kehilangan atas nama",
     "proxyFoundTitle": "Lapor temuan atas nama",
     "proxyLead": "Untuk pengunjung yang datang ke pos tanpa akun.",
-    "proxyNoPost": "Lapor temuan atas nama membutuhkan penugasan pos."
+    "proxyNoPost": "Lapor temuan atas nama membutuhkan penugasan pos.",
+    "disposition": {
+      "trigger": "Tindak Lanjut",
+      "title": "Tindak Lanjut Barang Tidak Diambil",
+      "lead": "Catat keputusan tindak lanjut barang yang masa simpannya telah habis sesuai prosedur operasional.",
+      "kindLabel": "Jenis Tindak Lanjut",
+      "kinds": {
+        "donated": "Disalurkan atau Didonasikan",
+        "destroyed": "Dimusnahkan",
+        "transferred_to_unit": "Dialihkan ke Unit Penerbit",
+        "returned_to_finder": "Dikembalikan ke Penemu"
+      },
+      "recipientLabel": "Pihak Penerima (Opsional)",
+      "recipientPlaceholder": "Misalnya: Panti Asuhan Mitra UGM",
+      "noteLabel": "Catatan Tindak Lanjut",
+      "notePlaceholder": "Tuliskan alasan atau rincian keputusan tindak lanjut (minimal 5 karakter).",
+      "submit": "Simpan Tindak Lanjut",
+      "done": "Tindak lanjut barang berhasil disimpan."
+    }
   },
   "admin": {
     "homeTitle": "Ringkasan Admin",

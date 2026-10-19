@@ -192,6 +192,49 @@ func NewRouter(d Deps, s *Services) (http.Handler, error) {
 	r.Get("/api/healthz", health)
 	r.Get("/readyz", Ready(d.Pool))
 
+	if fake, ok := d.Clock.(*clock.Fake); ok {
+		r.Route("/api/test", func(tr chi.Router) {
+			tr.Post("/clock/advance", func(w http.ResponseWriter, r *http.Request) {
+				var req struct {
+					Duration string `json:"duration"`
+					Days     int    `json:"days"`
+					Seconds  int64  `json:"seconds"`
+				}
+				_ = json.NewDecoder(r.Body).Decode(&req)
+				if req.Days > 0 {
+					fake.Advance(time.Duration(req.Days) * 24 * time.Hour)
+				} else if req.Seconds > 0 {
+					fake.Advance(time.Duration(req.Seconds) * time.Second)
+				} else if req.Duration != "" {
+					if dur, err := time.ParseDuration(req.Duration); err == nil {
+						fake.Advance(dur)
+					}
+				}
+				writeJSON(w, http.StatusOK, map[string]any{"now": fake.Now()})
+			})
+			tr.Get("/clock", func(w http.ResponseWriter, _ *http.Request) {
+				writeJSON(w, http.StatusOK, map[string]any{"now": fake.Now()})
+			})
+			tr.Post("/clock/reset", func(w http.ResponseWriter, _ *http.Request) {
+				fake.Set(time.Now())
+				writeJSON(w, http.StatusOK, map[string]any{"now": fake.Now()})
+			})
+			tr.Post("/custody/sweep", func(w http.ResponseWriter, r *http.Request) {
+				unclaimed, warned, overdue, reminders, err := s.Custody.SweepDue(r.Context())
+				if err != nil {
+					httpx.WriteError(w, r, err)
+					return
+				}
+				writeJSON(w, http.StatusOK, map[string]any{
+					"unclaimed": unclaimed,
+					"warned":    warned,
+					"overdue":   overdue,
+					"reminders": reminders,
+				})
+			})
+		})
+	}
+
 	userLimit := ratelimit.New(300, time.Minute, d.Clock.Now)
 	ipLimit := ratelimit.New(600, time.Minute, d.Clock.Now)
 	r.Route("/api/v1", func(api chi.Router) {
