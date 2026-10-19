@@ -233,3 +233,44 @@ the same grouping and gates.
 | T7 duplicate precision | >= 0.80 | 0.000 | FAIL (SINTETIS) | SINTETIS; TERTUNDA |
 | T8 semantic recall@5 | >= 0.80 | 0.000 | FAIL (SINTETIS) | SINTETIS; TERTUNDA |
 | T9 CPU Latency | matching-engine sec 10 | p50 19 to 737 ms, p95 23 to 747 ms | PASS | Verified with `make eval-latency` on reference laptop |
+
+### 13.3 Learned fusion experiment (B4 vs B3 on synthetic data | SINTETIS)
+
+> [!NOTE]
+> SINTETIS: Evaluated on synthetic fixture (`ml/eval/learned_fusion.py`) comparing the active
+> calibrated linear weighted mean (B3) against experimental logistic regression fusion (B4)
+> trained on 13 multimodal features using 5-fold GroupKFold cross-validation grouped by item.
+
+| Metric | B3 (Linear Fusion) | B4 (Learned Fusion) | Delta (B4 - B3) | Gate Criterion | Gate Status |
+|---|---|---|---|---|---|
+| Recall@1 | 0.4000 | 0.9000 | +0.5000 | >= +0.02 | PASS (SINTETIS) |
+| Recall@5 | 0.4000 | 1.0000 | +0.6000 | >= +0.02 | PASS (SINTETIS) |
+| Recall@10 | 0.4000 | 1.0000 | +0.6000 | - | - |
+| MRR | 0.4000 | 0.9500 | +0.5500 | >= +0.02 | PASS (SINTETIS) |
+| nDCG@10 | 0.4000 | 0.9631 | +0.5631 | - | - |
+| High tier precision | None | 1.0000 | - | >= 0.85 | PASS (SINTETIS) |
+| ECE | N/A | 0.0372 | - | - | Well-calibrated (SINTETIS) |
+
+#### Learned Logistic Regression Feature Weights (SINTETIS)
+- `s_vis`: +0.0000
+- `vis_missing`: -0.5750
+- `mode_image`: +0.0000
+- `mode_cross`: +0.0000
+- `s_sem`: +0.0000
+- `sem_missing`: -0.5750
+- `s_attr`: +0.0000
+- `attr_missing`: -0.5750
+- `s_loc`: +0.8173
+- `loc_missing`: +0.0000
+- `s_time`: +0.8353
+- `time_missing`: +0.0000
+- `category_factor`: +0.8491
+- `intercept`: -0.5750
+
+#### Activation Recommendation
+While the learned fusion model (B4) passes all synthetic acceptance gate thresholds on the
+synthetic fixture, per the policy defined in `docs/ai/matching-engine.md` section 7.2 and
+project constraints, learned fusion CANNOT be activated in production based on synthetic data.
+The active production configuration remains `fusion-linear-2026.11.0.json`. Official activation
+is TERTUNDA pending evaluation on the frozen real campus dataset (`simpanugm-eval` v1).
+

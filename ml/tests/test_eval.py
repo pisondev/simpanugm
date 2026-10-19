@@ -152,3 +152,48 @@ def test_calibration_refuses_the_test_split(tmp_path):
             calibrate_as="fusion-x",
             config_dir=tmp_path,
         )
+
+
+def test_learned_fusion_experiment(tmp_path):
+    from collections import defaultdict
+
+    from eval import scenario, text
+    from eval.dataset import leaf_parents, load
+    from eval.engine import Embedder, Engine, load_compat
+    from eval.fusion import Config
+    from eval.learned_fusion import run_experiment
+    from tests.fakes import FakeBackend
+
+    root = Path(__file__).resolve().parents[2]
+    seed_dir = root / "data" / "seed"
+    cfg = Config.load()
+    lock_path = root / "ml" / "models.lock.json"
+    registry = Registry.from_lock(lock_path)
+    backend = FakeBackend(registry)
+
+    dataset_path = build(tmp_path / "data", items=10, distractors=6)
+    dataset = load(dataset_path, seed_dir)
+    parents = leaf_parents(seed_dir)
+    locations = scenario.load_locations(root / "deploy" / "dev-seed" / "locations.csv")
+    synonyms = text.load_synonyms(seed_dir / "synonyms.csv")
+    compat_pairs = load_compat(seed_dir / "category_compatibility.csv")
+    compatible: dict[str, list[str]] = defaultdict(list)
+    for key in compat_pairs:
+        a, b = key.split("|")
+        compatible[a].append(b)
+        compatible[b].append(a)
+
+    items = {e.id: e.leaf for e in dataset.entries.values() if e.is_item}
+    distractors = [e.id for e in dataset.entries.values() if not e.is_item]
+    generated = scenario.Generator(locations, parents, compatible).generate(items, distractors)
+    identity = "|".join(f"{n}={c.model_id}@{c.revision}" for n, c in sorted(registry.components.items()))
+    embedder = Embedder(backend, identity, None)
+    engine = Engine(dataset, generated, {loc.slug: loc for loc in locations}, embedder, parents, compat_pairs, synonyms)
+    queries = engine.build("val", cfg)
+    found_leaf = {e.id: e.leaf for e in dataset.split("val")}
+
+    res = run_experiment(queries, cfg, parents.__getitem__, found_leaf)
+    assert "recall@5" in res.b3_metrics and "recall@5" in res.b4_metrics
+    assert "ece" in res.b4_metrics
+    assert len(res.coefficients) == 13
+    assert "recommendation" in res.gate_decision

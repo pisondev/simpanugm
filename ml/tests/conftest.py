@@ -18,7 +18,7 @@ TOKEN = "test-token-0123456789abcdef"
 AUTH = {"Authorization": f"Bearer {TOKEN}"}
 FIXTURES = Path(__file__).resolve().parents[2] / "data" / "fixtures"
 
-COMPONENTS = {
+COMPONENTS: dict[str, dict[str, object]] = {
     "image_encoder": {"model_id": "test/image", "revision": "image-rev-0001", "dimension": 512},
     "xmodal_text_encoder": {"model_id": "test/xmodal", "revision": "xmodal-rev-0001", "dimension": 512},
     "text_encoder": {"model_id": "test/text", "revision": "text-rev-0001", "dimension": 384},

@@ -125,3 +125,28 @@ Detect printed and card text on items (e.g. KTM, name tags, student cards) to:
 ### Evaluation Data and Gate Metrics
 - Synthetic Validation: Masking regex and test card verification tested in `ml/tests/test_ocr.py`.
 - Real Dataset Gate: TERTUNDA (pending `simpanugm-eval` v1 freeze).
+
+---
+
+## 5. Multi-Modal Fusion (`fusion`)
+
+| Attribute | Specification |
+|---|---|
+| Model ID | `simpanugm-fusion` |
+| Component Kind | Multi-modal score aggregation and tier calibration |
+| Active Variant | B3 (Calibrated linear weighted mean, configuration `fusion-linear-2026.11.0.json`) |
+| Experimental Variant | B4 (Learned logistic regression, `ml/eval/learned_fusion.py`) |
+| Input Format | 13 normalized component similarity scores and missingness indicators |
+| Output Format | Continuous score [0, 1] and calibrated tier (`high`, `medium`, `low`, `not_stored`) |
+| Latency | < 1 ms per pair (vectorized NumPy / pure Python) |
+
+### Intended Use
+Aggregate visual, semantic, attribute (colour/brand), location, time, and category signals into
+a unified candidate match score and assign operational confidence tiers.
+
+### Current Status
+- Active in production: Calibrated linear weighted mean (B3).
+- Experimental (B4): Logistic regression trained via grouped cross-validation (`ml/eval/learned_fusion.py`).
+- Synthetic Validation: B4 achieves Recall@5 1.0000 vs B3 0.4000, MRR 0.9500 vs B3 0.4000, high tier precision 1.0000 (SINTETIS).
+- Real Dataset Gate: TERTUNDA. Per `matching-engine.md` section 7.2, learned fusion will only be activated if verified on the frozen real campus dataset.
+
