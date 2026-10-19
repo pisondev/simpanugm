@@ -4,7 +4,7 @@ import { ExternalLink, Sparkles } from "lucide-react"
 
 export function DemoBanner() {
   // Shown in development and when demo mode is enabled
-  const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE !== "false"
+  const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === "true"
   if (!isDemo) {
     return null
   }

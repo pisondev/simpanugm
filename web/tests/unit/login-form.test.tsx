@@ -63,11 +63,18 @@ describe("LoginForm, US-02", () => {
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/petugas"))
   })
 
-  it("allows quick login for demo actors", async () => {
+  it("allows quick login for demo actors only in demo mode", async () => {
+    vi.stubEnv("NEXT_PUBLIC_DEMO_MODE", "true")
     server.use(http.post(`${apiBase}/auth/login`, () => HttpResponse.json(me)))
     renderUi(<LoginForm />)
     const budiButton = screen.getByRole("button", { name: /Penemu \(Mahasiswa\)/ })
     await userEvent.click(budiButton)
     await waitFor(() => expect(replace).toHaveBeenCalled())
+    vi.unstubAllEnvs()
+  })
+
+  it("shows no demo accounts unless demo mode is on", () => {
+    renderUi(<LoginForm />)
+    expect(screen.queryByRole("button", { name: /Penemu \(Mahasiswa\)/ })).toBeNull()
   })
 })

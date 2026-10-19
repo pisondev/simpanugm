@@ -5,7 +5,7 @@ COMPOSE_E2E := docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml 
 SQLC := docker run --rm -v "$(CURDIR)/api:/src" -w /src sqlc/sqlc:1.31.1
 s ?= api
 
-.PHONY: help env dev up down reset logs ps migrate migrate-down migrate-status seed seed-demo demo demo-check admin gen gen-api gen-web \
+.PHONY: help env dev up down reset logs ps migrate migrate-down migrate-status seed seed-demo demo demo-check demo-test demo-record admin gen gen-api gen-web \
 	check check-api check-web check-ml check-data test-api test-api-integration test-web test-ml test-data eval eval-real eval-learned-fusion eval-latency e2e load
 
 help:
@@ -56,6 +56,12 @@ demo: env
 
 demo-check:
 	python deploy/scripts/demo_check.py
+
+demo-test:
+	cd web && DEMO_E2E=1 pnpm exec playwright test demo-ai --project=desktop
+
+demo-record:
+	cd web && DEMO_E2E=1 pnpm exec playwright test demo-record --project=desktop
 
 admin:
 	$(COMPOSE) run --rm api admin create --email "$(email)" --name "$(name)"

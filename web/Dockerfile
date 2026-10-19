@@ -11,7 +11,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # rewrites are resolved at build time, the compose network name is the right default
 ARG API_INTERNAL_URL=http://api:8090
-ENV API_INTERNAL_URL=${API_INTERNAL_URL} NEXT_TELEMETRY_DISABLED=1
+# demo mode is compiled in and off unless the build asks for it, the dev and demo stack does
+ARG NEXT_PUBLIC_DEMO_MODE=false
+ENV API_INTERNAL_URL=${API_INTERNAL_URL} NEXT_PUBLIC_DEMO_MODE=${NEXT_PUBLIC_DEMO_MODE} NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
 FROM node:22-alpine

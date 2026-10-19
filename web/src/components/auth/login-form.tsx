@@ -46,7 +46,7 @@ export function LoginForm({ next }: { next?: string }) {
   const t = useTranslations("auth")
   const te = useTranslations("errors")
   const router = useRouter()
-  const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE !== "false"
+  const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === "true"
   const schema = useMemo(
     () =>
       z.object({
