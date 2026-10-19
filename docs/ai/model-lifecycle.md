@@ -110,7 +110,8 @@ is out of scope for v1.0 and would need its own evaluation plan.
 
 ## 7. Documentation per version
 
-Each activated version gets a short model card section in
-`docs/ai/evaluation-report.md`: identity, intended use, data it was evaluated on, gate
+Initial model cards for the locked foundation models are maintained in
+[model-cards.md](model-cards.md). Each activated production version gets a model card section
+in `docs/ai/evaluation-report.md`: identity, intended use, data it was evaluated on, gate
 metrics with confidence intervals, known weaknesses from the error analysis, and the date
 it was activated and retired.

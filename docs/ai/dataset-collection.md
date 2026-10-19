@@ -148,3 +148,56 @@ While walking campus for photos, the team records the locations used and checks 
 against OpenStreetMap: official name, common aliases students use, zone, and the
 coordinate of the main entrance. That list becomes `data/seed/locations.csv`, see
 [data/README.md](../../data/README.md).
+
+## 10. Human collection checklist and freeze protocol
+
+The physical dataset collection and private labeling require physical human presence on campus.
+The team tracks collection progress against the following checklist before executing the freeze:
+
+### 10.1 Human collection checklist
+
+- [ ] **150 Physical items**: gathered across 12 parent categories (60 generic, 90 distinctive).
+- [ ] **Finder photos**: 2 to 3 photos per item taken in realistic campus locations (at least 1080 px short side, natural light, no people or reflections, EXIF stripped).
+- [ ] **Owner photos**: 1 photo each for approximately 60 items taken in residential/private settings.
+- [ ] **400 Distractor found reports**: single finder photos with campus locations and metadata, matching the target category distribution.
+- [ ] **40 Duplicate pairs**: independent found reports for 40 items filed by two distinct team members.
+- [ ] **50 Paraphrase queries**: natural officer query formulations targeting specific items, written by a member who did not draft the item descriptions.
+- [ ] **Metadata files prepared**: `items.csv`, `labels.csv`, `distractors.csv`, `duplicates.csv`, `queries.csv` in `/private/simpanugm-eval/v1/`.
+- [ ] **Consent forms**: signed contributor forms archived in private Google Drive.
+
+### 10.2 Post-collection freeze commands
+
+Once data collection in `/private/simpanugm-eval/v1` is complete, execute the validation and freeze pipeline in order:
+
+1. **Verify manifest formatting and image resolution**:
+   ```bash
+   python3 data/scripts/check_manifest.py --dir /private/simpanugm-eval/v1
+   ```
+2. **Verify inter-annotator agreement (distinctiveness and category kappa)**:
+   ```bash
+   python3 data/scripts/check_agreement.py --first /private/sheet_member1.csv --second /private/sheet_member2.csv
+   ```
+3. **Generate and verify deterministic stratified splits (60 val, 90 test)**:
+   ```bash
+   python3 data/scripts/split_eval.py \
+     --labels /private/simpanugm-eval/v1/labels.csv \
+     --output /private/simpanugm-eval/v1/splits.csv \
+     --distractors /private/simpanugm-eval/v1/distractors.csv \
+     --distractor-output /private/simpanugm-eval/v1/distractor-splits.csv \
+     --val-count 60 \
+     --seed 2026
+   ```
+4. **Execute auxiliary file checks and read-only freeze profile**:
+   ```bash
+   python3 data/scripts/check_auxiliary.py --dir /private/simpanugm-eval/v1
+   python3 data/scripts/check_freeze.py --dir /private/simpanugm-eval/v1 --profile full
+   ```
+5. **Publish public manifest to git repository**:
+   ```bash
+   python3 data/scripts/publish_manifest.py --source /private/simpanugm-eval/v1 --output data/eval/manifest.json
+   ```
+6. **Fetch files and run official benchmark evaluation**:
+   ```bash
+   python3 data/scripts/fetch.py --manifest data/eval/manifest.json --source /private/simpanugm-eval/v1 --output data/eval
+   make eval
+   ```
