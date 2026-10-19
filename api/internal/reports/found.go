@@ -545,6 +545,184 @@ func (s *Service) Receive(ctx context.Context, p *access.Principal, ref string, 
 	return s.GetFound(ctx, p, id.String())
 }
 
+// transition C4
+func (s *Service) Transfer(ctx context.Context, p *access.Principal, ref string, toPost uuid.UUID, note *string) (openapi.FoundReport, error) {
+	now := s.clock.Now()
+	var id uuid.UUID
+	err := db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.q.WithTx(tx)
+		row, err := s.loadFound(ctx, q, ref)
+		if err != nil {
+			return err
+		}
+		r := row.FoundReport
+		id = r.ID
+		if !canReadFound(p, r) {
+			return apperr.NotFound()
+		}
+		if r.HoldingPostID == nil || !p.AssignedTo(*r.HoldingPostID) {
+			return custody.NotAssigned()
+		}
+		if r.CustodyStatus != "in_custody" {
+			return apperr.InvalidTransition(r.CustodyStatus)
+		}
+		if err := s.custody.Transfer(ctx, q, p, custody.TransferInput{
+			FoundID: r.ID, Version: r.Version, FromPost: r.HoldingPostID, ToPostID: toPost, Note: note,
+		}); err != nil {
+			return err
+		}
+		return audit.Record(ctx, q, now, audit.Entry{Action: "custody.transfer", EntityType: "found_report", EntityID: r.ID,
+			Changes: map[string]any{"holding_post_id": audit.Change(r.HoldingPostID, toPost)}})
+	})
+	if err != nil {
+		return openapi.FoundReport{}, err
+	}
+	return s.GetFound(ctx, p, id.String())
+}
+
+// BR-CUS-06
+func (s *Service) ExtendRetention(ctx context.Context, p *access.Principal, ref string, days int32, reason string) (openapi.FoundReport, error) {
+	now := s.clock.Now()
+	var id uuid.UUID
+	err := db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.q.WithTx(tx)
+		row, err := s.loadFound(ctx, q, ref)
+		if err != nil {
+			return err
+		}
+		r := row.FoundReport
+		id = r.ID
+		if !canReadFound(p, r) {
+			return apperr.NotFound()
+		}
+		if r.HoldingPostID == nil || !p.AssignedTo(*r.HoldingPostID) {
+			return custody.NotAssigned()
+		}
+		if r.CustodyStatus != "in_custody" {
+			return apperr.InvalidTransition(r.CustodyStatus)
+		}
+		if err := s.custody.ExtendRetention(ctx, q, p, custody.ExtendRetentionInput{
+			FoundID: r.ID, Version: r.Version, PostID: r.HoldingPostID, Days: days, Reason: reason,
+		}); err != nil {
+			return err
+		}
+		return audit.Record(ctx, q, now, audit.Entry{Action: "custody.extend", EntityType: "found_report", EntityID: r.ID,
+			Changes: map[string]any{"days": days, "reason": reason}})
+	})
+	if err != nil {
+		return openapi.FoundReport{}, err
+	}
+	return s.GetFound(ctx, p, id.String())
+}
+
+// transition F12, C6, BR-CUS-04
+func (s *Service) Dispose(ctx context.Context, p *access.Principal, ref, kind string, recipient *string, note string) (openapi.FoundReport, error) {
+	now := s.clock.Now()
+	var id uuid.UUID
+	err := db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.q.WithTx(tx)
+		row, err := s.loadFound(ctx, q, ref)
+		if err != nil {
+			return err
+		}
+		r := row.FoundReport
+		id = r.ID
+		if !canReadFound(p, r) {
+			return apperr.NotFound()
+		}
+		if r.HoldingPostID == nil || !p.AssignedTo(*r.HoldingPostID) {
+			return custody.NotAssigned()
+		}
+		if r.Status != "unclaimed" {
+			return apperr.InvalidTransition(r.Status)
+		}
+		if r.CustodyStatus != "in_custody" {
+			return apperr.InvalidTransition(r.CustodyStatus)
+		}
+		cat, _, err := s.md.Leaf(ctx, q, r.CategoryID)
+		if err != nil {
+			return err
+		}
+		if err := s.custody.Dispose(ctx, q, p, custody.DisposeInput{
+			FoundID: r.ID, Version: r.Version, PostID: r.HoldingPostID, Sensitivity: cat.SensitivityValue(), Kind: kind, Recipient: recipient, Note: note,
+		}); err != nil {
+			return err
+		}
+		if err := s.history(ctx, q, "found_report", r.ID, r.Status, "closed", "F12", &kind); err != nil {
+			return err
+		}
+		if err := s.history(ctx, q, "custody", r.ID, r.CustodyStatus, "disposed", "C6", &kind); err != nil {
+			return err
+		}
+		if kind == "returned_to_finder" && r.FinderID != nil {
+			if err := s.notifier.Send(ctx, tx, notify.Message{
+				Event: notify.FoundReturnedThanks, To: *r.FinderID, Link: "/laporan/temuan/" + r.Code,
+				Data:       map[string]string{"item_name": r.ItemName},
+				EntityType: "found_report", EntityID: &r.ID,
+			}); err != nil {
+				return err
+			}
+		}
+		return audit.Record(ctx, q, now, audit.Entry{Action: "found_report.dispose", EntityType: "found_report", EntityID: r.ID,
+			Changes: map[string]any{"kind": kind, "note": note}})
+	})
+	if err != nil {
+		return openapi.FoundReport{}, err
+	}
+	return s.GetFound(ctx, p, id.String())
+}
+
+// transition F11
+func (s *Service) RevertUnclaimed(ctx context.Context, p *access.Principal, ref string) (openapi.FoundReport, error) {
+	now := s.clock.Now()
+	var id uuid.UUID
+	err := db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.q.WithTx(tx)
+		row, err := s.loadFound(ctx, q, ref)
+		if err != nil {
+			return err
+		}
+		r := row.FoundReport
+		id = r.ID
+		if !canReadFound(p, r) {
+			return apperr.NotFound()
+		}
+		if r.HoldingPostID == nil || !p.AssignedTo(*r.HoldingPostID) {
+			return custody.NotAssigned()
+		}
+		if r.Status != "unclaimed" {
+			return apperr.InvalidTransition(r.Status)
+		}
+		if r.CustodyStatus != "in_custody" {
+			return apperr.InvalidTransition(r.CustodyStatus)
+		}
+		due, err := s.custody.RevertUnclaimed(ctx, q, p, r.ID, r.Version)
+		if err != nil {
+			return err
+		}
+		if err := s.history(ctx, q, "found_report", r.ID, r.Status, "reported", "F11", nil); err != nil {
+			return err
+		}
+		photos, err := s.media.Photos(ctx, q, nil, &r.ID)
+		if err != nil {
+			return err
+		}
+		var photoIDs []uuid.UUID
+		for _, ph := range photos {
+			photoIDs = append(photoIDs, ph.ID)
+		}
+		if err := s.matching.ReportChanged(ctx, tx, "found", r.ID, photoIDs); err != nil {
+			return err
+		}
+		return audit.Record(ctx, q, now, audit.Entry{Action: "found_report.revert_unclaimed", EntityType: "found_report", EntityID: r.ID,
+			Changes: map[string]any{"status": audit.Change(r.Status, "reported"), "retention_due_at": due}})
+	})
+	if err != nil {
+		return openapi.FoundReport{}, err
+	}
+	return s.GetFound(ctx, p, id.String())
+}
+
 func (s *Service) ListFound(ctx context.Context, p *access.Principal, in ListInput, cur *ListCursor) ([]sqlc.ListFoundReportsRow, error) {
 	if err := validStatuses(in.Statuses, foundStatuses); err != nil {
 		return nil, err

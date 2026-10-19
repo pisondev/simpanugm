@@ -1022,6 +1022,31 @@ func (q *Queries) CompatibilityForUpdate(ctx context.Context, arg CompatibilityF
 	return i, err
 }
 
+const confirmLostReceipt = `-- name: ConfirmLostReceipt :one
+UPDATE lost_reports
+SET status = 'closed',
+    close_reason = 'returned',
+    closed_at = $1::timestamptz,
+    last_activity_at = $1::timestamptz,
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $2 AND version = $3 AND status = 'returned'
+RETURNING version
+`
+
+type ConfirmLostReceiptParams struct {
+	Now     time.Time
+	ID      uuid.UUID
+	Version int32
+}
+
+func (q *Queries) ConfirmLostReceipt(ctx context.Context, arg ConfirmLostReceiptParams) (int32, error) {
+	row := q.db.QueryRow(ctx, confirmLostReceipt, arg.Now, arg.ID, arg.Version)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
 const countActiveAdmins = `-- name: CountActiveAdmins :one
 SELECT count(*)::int FROM users WHERE role = 'admin' AND status = 'active'
 `
@@ -1363,6 +1388,38 @@ func (q *Queries) DeleteUnverifiedUsersBefore(ctx context.Context, before time.T
 	return result.RowsAffected(), nil
 }
 
+const disposeCustody = `-- name: DisposeCustody :one
+UPDATE found_reports
+SET status = 'closed',
+    close_reason = 'disposed',
+    close_note = $1,
+    closed_at = $2::timestamptz,
+    custody_status = 'disposed',
+    version = version + 1,
+    updated_at = $2::timestamptz
+WHERE id = $3 AND version = $4 AND status = 'unclaimed' AND custody_status = 'in_custody'
+RETURNING version
+`
+
+type DisposeCustodyParams struct {
+	Note    *string
+	Now     time.Time
+	ID      uuid.UUID
+	Version int32
+}
+
+func (q *Queries) DisposeCustody(ctx context.Context, arg DisposeCustodyParams) (int32, error) {
+	row := q.db.QueryRow(ctx, disposeCustody,
+		arg.Note,
+		arg.Now,
+		arg.ID,
+		arg.Version,
+	)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
 const e5Cosines = `-- name: E5Cosines :many
 SELECT b.report_id AS candidate_id, (1 - (a.embedding <=> b.embedding))::float8 AS cosine
 FROM text_embeddings_e5 a
@@ -1523,6 +1580,62 @@ func (q *Queries) ExistingLostOfFound(ctx context.Context, foundReportID uuid.UU
 		return nil, err
 	}
 	return items, nil
+}
+
+const expireLostReport = `-- name: ExpireLostReport :one
+UPDATE lost_reports
+SET status = 'closed',
+    close_reason = 'expired',
+    closed_at = $1::timestamptz,
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $2 AND version = $3 AND status IN ('reported', 'potential_match')
+RETURNING version
+`
+
+type ExpireLostReportParams struct {
+	Now     time.Time
+	ID      uuid.UUID
+	Version int32
+}
+
+func (q *Queries) ExpireLostReport(ctx context.Context, arg ExpireLostReportParams) (int32, error) {
+	row := q.db.QueryRow(ctx, expireLostReport, arg.Now, arg.ID, arg.Version)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
+const extendRetention = `-- name: ExtendRetention :one
+UPDATE found_reports
+SET retention_due_at = retention_due_at + ($1::int * interval '1 day'),
+    retention_extended_at = $2::timestamptz,
+    retention_extension_reason = $3,
+    version = version + 1,
+    updated_at = $2::timestamptz
+WHERE id = $4 AND version = $5 AND custody_status = 'in_custody' AND retention_extended_at IS NULL
+RETURNING version
+`
+
+type ExtendRetentionParams struct {
+	Days    int32
+	Now     time.Time
+	Reason  *string
+	ID      uuid.UUID
+	Version int32
+}
+
+func (q *Queries) ExtendRetention(ctx context.Context, arg ExtendRetentionParams) (int32, error) {
+	row := q.db.QueryRow(ctx, extendRetention,
+		arg.Days,
+		arg.Now,
+		arg.Reason,
+		arg.ID,
+		arg.Version,
+	)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
 }
 
 const finderHint = `-- name: FinderHint :many
@@ -2945,6 +3058,32 @@ func (q *Queries) InsertCustodyEvent(ctx context.Context, arg InsertCustodyEvent
 	return err
 }
 
+const insertDisposition = `-- name: InsertDisposition :exec
+INSERT INTO dispositions (found_report_id, kind, recipient, note, officer_id, created_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+`
+
+type InsertDispositionParams struct {
+	FoundReportID uuid.UUID
+	Kind          string
+	Recipient     *string
+	Note          string
+	OfficerID     uuid.UUID
+	CreatedAt     time.Time
+}
+
+func (q *Queries) InsertDisposition(ctx context.Context, arg InsertDispositionParams) error {
+	_, err := q.db.Exec(ctx, insertDisposition,
+		arg.FoundReportID,
+		arg.Kind,
+		arg.Recipient,
+		arg.Note,
+		arg.OfficerID,
+		arg.CreatedAt,
+	)
+	return err
+}
+
 const insertFoundReport = `-- name: InsertFoundReport :exec
 INSERT INTO found_reports (
     id, code, finder_id, created_by, proxy_finder_name, category_id, item_name, description, hidden_details,
@@ -3463,6 +3602,29 @@ func (q *Queries) IsOfficerOfPost(ctx context.Context, arg IsOfficerOfPostParams
 	return exists, err
 }
 
+const keepOpenLostReport = `-- name: KeepOpenLostReport :one
+UPDATE lost_reports
+SET last_activity_at = $1::timestamptz,
+    stale_reminded_at = NULL,
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $2 AND version = $3 AND status IN ('reported', 'potential_match', 'under_verification')
+RETURNING version
+`
+
+type KeepOpenLostReportParams struct {
+	Now     time.Time
+	ID      uuid.UUID
+	Version int32
+}
+
+func (q *Queries) KeepOpenLostReport(ctx context.Context, arg KeepOpenLostReportParams) (int32, error) {
+	row := q.db.QueryRow(ctx, keepOpenLostReport, arg.Now, arg.ID, arg.Version)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
 const lastMatchNotification = `-- name: LastMatchNotification :one
 SELECT coalesce(max(created_at), 'epoch'::timestamptz)::timestamptz AS at FROM notifications
 WHERE recipient_id = $1 AND entity_id = $2 AND event IN ('match.high_for_owner', 'match.medium_digest_for_owner')
@@ -3918,6 +4080,185 @@ func (q *Queries) ListDigestRecipients(ctx context.Context, arg ListDigestRecipi
 	for rows.Next() {
 		var i ListDigestRecipientsRow
 		if err := rows.Scan(&i.RecipientID, &i.Email, &i.FullName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listExpiredLostReports = `-- name: ListExpiredLostReports :many
+SELECT lr.id, lr.code, lr.reporter_id, lr.version
+FROM lost_reports lr
+WHERE lr.status IN ('reported', 'potential_match')
+  AND lr.stale_reminded_at IS NOT NULL
+  AND lr.stale_reminded_at <= $1::timestamptz
+  AND NOT EXISTS (
+      SELECT 1 FROM claims c WHERE c.lost_report_id = lr.id AND c.status IN ('submitted', 'under_review', 'info_requested', 'approved', 'on_hold')
+  )
+`
+
+type ListExpiredLostReportsRow struct {
+	ID         uuid.UUID
+	Code       string
+	ReporterID *uuid.UUID
+	Version    int32
+}
+
+func (q *Queries) ListExpiredLostReports(ctx context.Context, expiredBefore time.Time) ([]ListExpiredLostReportsRow, error) {
+	rows, err := q.db.Query(ctx, listExpiredLostReports, expiredBefore)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListExpiredLostReportsRow{}
+	for rows.Next() {
+		var i ListExpiredLostReportsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.ReporterID,
+			&i.Version,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFinderCustodyDue24h = `-- name: ListFinderCustodyDue24h :many
+SELECT fr.id, fr.code, fr.finder_id, fr.item_name, coalesce(ip.name, '')::text AS post_name
+FROM found_reports fr
+LEFT JOIN posts ip ON ip.id = fr.intended_post_id
+WHERE fr.custody_status = 'with_finder'
+  AND fr.status IN ('reported', 'potential_match', 'under_verification')
+  AND fr.finder_id IS NOT NULL
+  AND fr.created_at <= $1::timestamptz
+  AND NOT EXISTS (
+      SELECT 1 FROM notifications n WHERE n.entity_type = 'found_report' AND n.entity_id = fr.id AND n.event = 'found.custody_reminder_24h'
+  )
+`
+
+type ListFinderCustodyDue24hRow struct {
+	ID       uuid.UUID
+	Code     string
+	FinderID *uuid.UUID
+	ItemName string
+	PostName string
+}
+
+func (q *Queries) ListFinderCustodyDue24h(ctx context.Context, before24h time.Time) ([]ListFinderCustodyDue24hRow, error) {
+	rows, err := q.db.Query(ctx, listFinderCustodyDue24h, before24h)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFinderCustodyDue24hRow{}
+	for rows.Next() {
+		var i ListFinderCustodyDue24hRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.FinderID,
+			&i.ItemName,
+			&i.PostName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFinderCustodyDue48h = `-- name: ListFinderCustodyDue48h :many
+SELECT fr.id, fr.code, fr.finder_id, fr.intended_post_id, fr.item_name, coalesce(ip.name, '')::text AS post_name
+FROM found_reports fr
+LEFT JOIN posts ip ON ip.id = fr.intended_post_id
+WHERE fr.custody_status = 'with_finder'
+  AND fr.status IN ('reported', 'potential_match', 'under_verification')
+  AND fr.created_at <= $1::timestamptz
+  AND NOT EXISTS (
+      SELECT 1 FROM notifications n WHERE n.entity_type = 'found_report' AND n.entity_id = fr.id AND n.event = 'found.custody_reminder_48h'
+  )
+`
+
+type ListFinderCustodyDue48hRow struct {
+	ID             uuid.UUID
+	Code           string
+	FinderID       *uuid.UUID
+	IntendedPostID *uuid.UUID
+	ItemName       string
+	PostName       string
+}
+
+func (q *Queries) ListFinderCustodyDue48h(ctx context.Context, before48h time.Time) ([]ListFinderCustodyDue48hRow, error) {
+	rows, err := q.db.Query(ctx, listFinderCustodyDue48h, before48h)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFinderCustodyDue48hRow{}
+	for rows.Next() {
+		var i ListFinderCustodyDue48hRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.FinderID,
+			&i.IntendedPostID,
+			&i.ItemName,
+			&i.PostName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFinderCustodyDue72h = `-- name: ListFinderCustodyDue72h :many
+SELECT fr.id, fr.code, fr.intended_post_id, fr.version
+FROM found_reports fr
+WHERE fr.custody_status = 'with_finder'
+  AND fr.status IN ('reported', 'potential_match', 'under_verification')
+  AND fr.overdue_flagged_at IS NULL
+  AND fr.created_at <= $1::timestamptz
+`
+
+type ListFinderCustodyDue72hRow struct {
+	ID             uuid.UUID
+	Code           string
+	IntendedPostID *uuid.UUID
+	Version        int32
+}
+
+func (q *Queries) ListFinderCustodyDue72h(ctx context.Context, before72h time.Time) ([]ListFinderCustodyDue72hRow, error) {
+	rows, err := q.db.Query(ctx, listFinderCustodyDue72h, before72h)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFinderCustodyDue72hRow{}
+	for rows.Next() {
+		var i ListFinderCustodyDue72hRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.IntendedPostID,
+			&i.Version,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -4643,6 +4984,90 @@ func (q *Queries) ListReportMedia(ctx context.Context, arg ListReportMediaParams
 	return items, nil
 }
 
+const listRetentionExpired = `-- name: ListRetentionExpired :many
+SELECT fr.id, fr.code, fr.version, fr.holding_post_id
+FROM found_reports fr
+WHERE fr.custody_status = 'in_custody'
+  AND fr.status IN ('reported', 'potential_match')
+  AND fr.retention_due_at <= $1::timestamptz
+  AND NOT EXISTS (
+      SELECT 1 FROM claims c WHERE c.found_report_id = fr.id AND c.status IN ('submitted', 'under_review', 'info_requested', 'approved', 'on_hold')
+  )
+`
+
+type ListRetentionExpiredRow struct {
+	ID            uuid.UUID
+	Code          string
+	Version       int32
+	HoldingPostID *uuid.UUID
+}
+
+func (q *Queries) ListRetentionExpired(ctx context.Context, now time.Time) ([]ListRetentionExpiredRow, error) {
+	rows, err := q.db.Query(ctx, listRetentionExpired, now)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListRetentionExpiredRow{}
+	for rows.Next() {
+		var i ListRetentionExpiredRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.Version,
+			&i.HoldingPostID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRetentionWarningPosts = `-- name: ListRetentionWarningPosts :many
+SELECT fr.holding_post_id, count(*)::int AS item_count
+FROM found_reports fr
+WHERE fr.custody_status = 'in_custody'
+  AND fr.status IN ('reported', 'potential_match')
+  AND fr.holding_post_id IS NOT NULL
+  AND fr.retention_due_at > $1::timestamptz
+  AND fr.retention_due_at <= $2::timestamptz
+GROUP BY fr.holding_post_id
+`
+
+type ListRetentionWarningPostsParams struct {
+	Now        time.Time
+	WarnBefore time.Time
+}
+
+type ListRetentionWarningPostsRow struct {
+	HoldingPostID *uuid.UUID
+	ItemCount     int32
+}
+
+func (q *Queries) ListRetentionWarningPosts(ctx context.Context, arg ListRetentionWarningPostsParams) ([]ListRetentionWarningPostsRow, error) {
+	rows, err := q.db.Query(ctx, listRetentionWarningPosts, arg.Now, arg.WarnBefore)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListRetentionWarningPostsRow{}
+	for rows.Next() {
+		var i ListRetentionWarningPostsRow
+		if err := rows.Scan(&i.HoldingPostID, &i.ItemCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSettings = `-- name: ListSettings :many
 SELECT key, value FROM system_settings ORDER BY key
 `
@@ -4691,6 +5116,47 @@ func (q *Queries) ListStagedMediaBefore(ctx context.Context, createdAt time.Time
 	for rows.Next() {
 		var i ListStagedMediaBeforeRow
 		if err := rows.Scan(&i.ID, &i.StorageKeys); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStaleLostReports = `-- name: ListStaleLostReports :many
+SELECT lr.id, lr.code, lr.reporter_id, lr.item_name
+FROM lost_reports lr
+WHERE lr.status IN ('reported', 'potential_match')
+  AND lr.stale_reminded_at IS NULL
+  AND lr.last_activity_at <= $1::timestamptz
+  AND lr.reporter_id IS NOT NULL
+`
+
+type ListStaleLostReportsRow struct {
+	ID         uuid.UUID
+	Code       string
+	ReporterID *uuid.UUID
+	ItemName   string
+}
+
+func (q *Queries) ListStaleLostReports(ctx context.Context, staleBefore time.Time) ([]ListStaleLostReportsRow, error) {
+	rows, err := q.db.Query(ctx, listStaleLostReports, staleBefore)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListStaleLostReportsRow{}
+	for rows.Next() {
+		var i ListStaleLostReportsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.ReporterID,
+			&i.ItemName,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -5453,6 +5919,67 @@ type MarkEmailVerifiedParams struct {
 
 func (q *Queries) MarkEmailVerified(ctx context.Context, arg MarkEmailVerifiedParams) error {
 	_, err := q.db.Exec(ctx, markEmailVerified, arg.Now, arg.ID)
+	return err
+}
+
+const markFoundCustodyOverdue = `-- name: MarkFoundCustodyOverdue :one
+UPDATE found_reports
+SET overdue_flagged_at = $1::timestamptz,
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $2 AND version = $3 AND overdue_flagged_at IS NULL
+RETURNING version
+`
+
+type MarkFoundCustodyOverdueParams struct {
+	Now     time.Time
+	ID      uuid.UUID
+	Version int32
+}
+
+func (q *Queries) MarkFoundCustodyOverdue(ctx context.Context, arg MarkFoundCustodyOverdueParams) (int32, error) {
+	row := q.db.QueryRow(ctx, markFoundCustodyOverdue, arg.Now, arg.ID, arg.Version)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
+const markFoundUnclaimed = `-- name: MarkFoundUnclaimed :one
+UPDATE found_reports
+SET status = 'unclaimed',
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $2 AND version = $3 AND status IN ('reported', 'potential_match') AND custody_status = 'in_custody'
+RETURNING version
+`
+
+type MarkFoundUnclaimedParams struct {
+	Now     time.Time
+	ID      uuid.UUID
+	Version int32
+}
+
+func (q *Queries) MarkFoundUnclaimed(ctx context.Context, arg MarkFoundUnclaimedParams) (int32, error) {
+	row := q.db.QueryRow(ctx, markFoundUnclaimed, arg.Now, arg.ID, arg.Version)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
+const markLostStaleReminded = `-- name: MarkLostStaleReminded :exec
+UPDATE lost_reports
+SET stale_reminded_at = $2::timestamptz,
+    updated_at = $2::timestamptz
+WHERE id = $1
+`
+
+type MarkLostStaleRemindedParams struct {
+	ID  uuid.UUID
+	Now time.Time
+}
+
+func (q *Queries) MarkLostStaleReminded(ctx context.Context, arg MarkLostStaleRemindedParams) error {
+	_, err := q.db.Exec(ctx, markLostStaleReminded, arg.ID, arg.Now)
 	return err
 }
 
@@ -6276,6 +6803,32 @@ func (q *Queries) ReopenClaim(ctx context.Context, arg ReopenClaimParams) error 
 	return err
 }
 
+const reopenLostReport = `-- name: ReopenLostReport :one
+UPDATE lost_reports
+SET status = 'reported',
+    close_reason = NULL,
+    closed_at = NULL,
+    last_activity_at = $1::timestamptz,
+    stale_reminded_at = NULL,
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $2 AND version = $3 AND status = 'closed'
+RETURNING version
+`
+
+type ReopenLostReportParams struct {
+	Now     time.Time
+	ID      uuid.UUID
+	Version int32
+}
+
+func (q *Queries) ReopenLostReport(ctx context.Context, arg ReopenLostReportParams) (int32, error) {
+	row := q.db.QueryRow(ctx, reopenLostReport, arg.Now, arg.ID, arg.Version)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
 const reportMediaForEmbedding = `-- name: ReportMediaForEmbedding :many
 SELECT m.id, m.storage_keys FROM media m
 WHERE m.state = 'ready' AND (($1::text = 'lost' AND m.lost_report_id = $2)
@@ -6401,6 +6954,35 @@ type ReturnLostReportParams struct {
 func (q *Queries) ReturnLostReport(ctx context.Context, arg ReturnLostReportParams) error {
 	_, err := q.db.Exec(ctx, returnLostReport, arg.ID, arg.LastActivityAt)
 	return err
+}
+
+const revertUnclaimed = `-- name: RevertUnclaimed :one
+UPDATE found_reports
+SET status = 'reported',
+    retention_due_at = $1::timestamptz,
+    version = version + 1,
+    updated_at = $2::timestamptz
+WHERE id = $3 AND version = $4 AND status = 'unclaimed' AND custody_status = 'in_custody'
+RETURNING version
+`
+
+type RevertUnclaimedParams struct {
+	RetentionDueAt time.Time
+	Now            time.Time
+	ID             uuid.UUID
+	Version        int32
+}
+
+func (q *Queries) RevertUnclaimed(ctx context.Context, arg RevertUnclaimedParams) (int32, error) {
+	row := q.db.QueryRow(ctx, revertUnclaimed,
+		arg.RetentionDueAt,
+		arg.Now,
+		arg.ID,
+		arg.Version,
+	)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
 }
 
 const revokeOtherSessions = `-- name: RevokeOtherSessions :execrows
@@ -7014,6 +7596,34 @@ func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) erro
 		arg.ID,
 	)
 	return err
+}
+
+const transferCustody = `-- name: TransferCustody :one
+UPDATE found_reports
+SET holding_post_id = $1,
+    version = version + 1,
+    updated_at = $2::timestamptz
+WHERE id = $3 AND version = $4 AND custody_status = 'in_custody'
+RETURNING version
+`
+
+type TransferCustodyParams struct {
+	ToPostID *uuid.UUID
+	Now      time.Time
+	ID       uuid.UUID
+	Version  int32
+}
+
+func (q *Queries) TransferCustody(ctx context.Context, arg TransferCustodyParams) (int32, error) {
+	row := q.db.QueryRow(ctx, transferCustody,
+		arg.ToPostID,
+		arg.Now,
+		arg.ID,
+		arg.Version,
+	)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
 }
 
 const unnotifiedCandidates = `-- name: UnnotifiedCandidates :many

@@ -29,6 +29,7 @@ const (
 	ReportLostRead       Permission = "report.lost.read"
 	ReportLostUpdate     Permission = "report.lost.update"
 	ReportLostClose      Permission = "report.lost.close"
+	ReportLostReopen     Permission = "report.lost.reopen"
 	ReportFoundCreate    Permission = "report.found.create"
 	ReportFoundRead      Permission = "report.found.read"
 	ReportFoundUpdate    Permission = "report.found.update"
@@ -69,7 +70,7 @@ const (
 
 var memberPerms = []Permission{
 	AccountSelfRead, AccountSelfUpdate, AccountSessions,
-	ReportLostCreate, ReportLostRead, ReportLostUpdate, ReportLostClose,
+	ReportLostCreate, ReportLostRead, ReportLostUpdate, ReportLostClose, ReportLostReopen,
 	ReportFoundCreate, ReportFoundRead, ReportFoundUpdate, ReportFoundClose,
 	ReportPrivateRead, ReportHistoryRead,
 	MediaUpload, MediaRead, MediaDelete,
@@ -161,6 +162,9 @@ var Operations = map[string]Rule{
 	"getLostReport":              {Permission: ReportLostRead},
 	"updateLostReport":           {Permission: ReportLostUpdate, Verified: true},
 	"closeLostReport":            {Permission: ReportLostClose},
+	"reopenLostReport":           {Permission: ReportLostReopen, Verified: true},
+	"keepOpenLostReport":         {Permission: ReportLostUpdate},
+	"confirmLostReceipt":         {Permission: ReportLostUpdate},
 	"getLostReportHistory":       {Permission: ReportHistoryRead},
 	"createFoundReport":          {Permission: ReportFoundCreate, Verified: true},
 	"listFoundReports":           {Permission: ReportFoundRead},
@@ -170,6 +174,10 @@ var Operations = map[string]Rule{
 	"closeFoundReport":           {Permission: ReportFoundClose},
 	"getFoundReportHistory":      {Permission: ReportHistoryRead},
 	"receiveFoundReport":         {Permission: CustodyReceive},
+	"transferCustody":            {Permission: CustodyTransfer},
+	"extendRetention":            {Permission: CustodyExtend},
+	"disposeFoundReport":         {Permission: CustodyDispose},
+	"revertUnclaimed":            {Permission: CustodyDispose},
 	"getPostInventory":           {Permission: CustodyInventoryRead},
 	"searchReports":              {Permission: SearchReports},
 	"adminListUsers":             {Permission: UserRead},

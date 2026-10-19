@@ -2,6 +2,7 @@ package custody
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/pisondev/simpanugm/api/internal/access"
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
+	"github.com/pisondev/simpanugm/api/internal/notify"
 	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
 	"github.com/pisondev/simpanugm/api/internal/platform/clock"
 	"github.com/pisondev/simpanugm/api/internal/platform/db"
@@ -22,10 +24,11 @@ type Service struct {
 	q        *sqlc.Queries
 	clock    clock.Clock
 	settings *settings.Store
+	notifier *notify.Notifier
 }
 
-func NewService(pool *pgxpool.Pool, c clock.Clock, st *settings.Store) *Service {
-	return &Service{pool: pool, q: sqlc.New(pool), clock: c, settings: st}
+func NewService(pool *pgxpool.Pool, c clock.Clock, st *settings.Store, n *notify.Notifier) *Service {
+	return &Service{pool: pool, q: sqlc.New(pool), clock: c, settings: st, notifier: n}
 }
 
 func NotAssigned() *apperr.Error {
@@ -123,4 +126,120 @@ func (s *Service) Inventory(ctx context.Context, post uuid.UUID, sort string) (s
 		out = append(out, InventoryItem{ListInventoryRow: it, AgeDays: int(now.Sub(it.ReceivedAt).Hours() / 24)})
 	}
 	return row, out, nil
+}
+
+type TransferInput struct {
+	FoundID  uuid.UUID
+	Version  int32
+	FromPost *uuid.UUID
+	ToPostID uuid.UUID
+	Note     *string
+}
+
+// transition C4
+func (s *Service) Transfer(ctx context.Context, q *sqlc.Queries, p *access.Principal, in TransferInput) error {
+	if in.FromPost != nil && *in.FromPost == in.ToPostID {
+		return apperr.Validation(apperr.FieldError{Field: "to_post_id", Code: "same_post", Message: "Pos tujuan tidak boleh sama dengan pos saat ini"})
+	}
+	row, err := q.GetPost(ctx, in.ToPostID)
+	if db.IsNoRows(err) || (err == nil && !row.Active) {
+		return apperr.Validation(apperr.FieldError{Field: "to_post_id", Code: "unknown_post", Message: "Pos tujuan tidak ditemukan atau tidak aktif"})
+	}
+	if err != nil {
+		return err
+	}
+	now := s.clock.Now()
+	_, err = q.TransferCustody(ctx, sqlc.TransferCustodyParams{
+		ToPostID: &in.ToPostID, Now: now, ID: in.FoundID, Version: in.Version,
+	})
+	if db.IsNoRows(err) {
+		return apperr.StaleVersion()
+	}
+	if err != nil {
+		return err
+	}
+	return s.Event(ctx, q, in.FoundID, "transferred", in.FromPost, &in.ToPostID, p.UserID, in.Note)
+}
+
+type ExtendRetentionInput struct {
+	FoundID uuid.UUID
+	Version int32
+	PostID  *uuid.UUID
+	Days    int32
+	Reason  string
+}
+
+// BR-CUS-06
+func (s *Service) ExtendRetention(ctx context.Context, q *sqlc.Queries, p *access.Principal, in ExtendRetentionInput) error {
+	if in.Days < 1 || in.Days > 30 {
+		return apperr.Validation(apperr.FieldError{Field: "days", Code: "invalid_range", Message: "Perpanjangan antara 1 sampai 30 hari"})
+	}
+	if n := textx.Len(in.Reason); n < 5 || n > 500 {
+		return apperr.Validation(apperr.FieldError{Field: "reason", Code: "invalid_length", Message: "Alasan 5 sampai 500 karakter"})
+	}
+	now := s.clock.Now()
+	_, err := q.ExtendRetention(ctx, sqlc.ExtendRetentionParams{
+		Days: in.Days, Reason: &in.Reason, Now: now, ID: in.FoundID, Version: in.Version,
+	})
+	if db.IsNoRows(err) {
+		return apperr.Unprocessable("already_extended", "Masa simpan sudah diperpanjang", "Perpanjangan masa simpan hanya dapat dilakukan satu kali.")
+	}
+	if err != nil {
+		return err
+	}
+	return s.Event(ctx, q, in.FoundID, "extended", in.PostID, in.PostID, p.UserID, &in.Reason)
+}
+
+type DisposeInput struct {
+	FoundID     uuid.UUID
+	Version     int32
+	PostID      *uuid.UUID
+	Sensitivity string
+	Kind        string
+	Recipient   *string
+	Note        string
+}
+
+var validDispositionKinds = []string{"donated", "destroyed", "transferred_to_unit", "returned_to_finder"}
+
+// transition C6, BR-CUS-04
+func (s *Service) Dispose(ctx context.Context, q *sqlc.Queries, p *access.Principal, in DisposeInput) error {
+	if !slices.Contains(validDispositionKinds, in.Kind) {
+		return apperr.Validation(apperr.FieldError{Field: "kind", Code: "invalid", Message: "Jenis tindak lanjut tidak valid"})
+	}
+	if in.Sensitivity == "identity" && in.Kind != "transferred_to_unit" {
+		return apperr.Validation(apperr.FieldError{Field: "kind", Code: "identity_must_transfer_to_unit", Message: "Barang identitas hanya dapat dialihkan ke unit penerbit (transferred_to_unit)"})
+	}
+	if n := textx.Len(in.Note); n < 5 || n > 500 {
+		return apperr.Validation(apperr.FieldError{Field: "note", Code: "invalid_length", Message: "Catatan 5 sampai 500 karakter"})
+	}
+	now := s.clock.Now()
+	if err := q.InsertDisposition(ctx, sqlc.InsertDispositionParams{
+		FoundReportID: in.FoundID, Kind: in.Kind, Recipient: textx.Opt(in.Recipient), Note: in.Note, OfficerID: p.UserID, CreatedAt: now,
+	}); err != nil {
+		return err
+	}
+	_, err := q.DisposeCustody(ctx, sqlc.DisposeCustodyParams{
+		Note: &in.Note, Now: now, ID: in.FoundID, Version: in.Version,
+	})
+	if db.IsNoRows(err) {
+		return apperr.StaleVersion()
+	}
+	if err != nil {
+		return err
+	}
+	return s.Event(ctx, q, in.FoundID, "disposed", in.PostID, nil, p.UserID, &in.Note)
+}
+
+// transition F11
+func (s *Service) RevertUnclaimed(ctx context.Context, q *sqlc.Queries, p *access.Principal, foundID uuid.UUID, version int32) (time.Time, error) {
+	now := s.clock.Now()
+	due := now.AddDate(0, 0, 7)
+	_, err := q.RevertUnclaimed(ctx, sqlc.RevertUnclaimedParams{
+		RetentionDueAt: due, Now: now, ID: foundID, Version: version,
+	})
+	if db.IsNoRows(err) {
+		return time.Time{}, apperr.StaleVersion()
+	}
+	return due, err
 }

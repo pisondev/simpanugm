@@ -78,7 +78,7 @@ func NewServices(d Deps) *Services {
 	hub := notify.NewHub(d.Pool)
 	md := masterdata.NewService(d.Pool, d.Clock, st)
 	med := media.NewService(d.Pool, d.Store, d.Clock)
-	cs := custody.NewService(d.Pool, d.Clock, st)
+	cs := custody.NewService(d.Pool, d.Clock, st, notifier)
 	ml := mlclient.New(d.Config.MLBaseURL, d.Config.MLInternalToken)
 	enq := &jobargs.Enqueuer{Jobs: d.Jobs, Inference: ml != nil}
 	rep := reports.NewService(d.Pool, d.Clock, med, md, cs, st, notifier, enq)
@@ -157,7 +157,7 @@ func NewRouter(d Deps, s *Services) (http.Handler, error) {
 		masterdataHandlers: masterdata.NewHandlers(s.Masterdata),
 		mediaHandlers:      media.NewHandlers(s.Media),
 		reportHandlers:     reports.NewHandlers(s.Reports),
-		custodyHandlers:    custody.NewHandlers(s.Custody),
+		custodyHandlers:    custody.NewHandlers(s.Custody, s.Reports),
 		searchHandlers:     search.NewHandlers(s.Search),
 		notifyHandlers:     notify.NewHandlers(s.Notify),
 		matchingHandlers:   matching.NewHandlers(s.Matching),

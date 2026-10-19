@@ -204,3 +204,69 @@ FROM status_history h
 LEFT JOIN users u ON u.id = h.actor_id
 WHERE h.entity_id = sqlc.arg(entity_id) AND h.entity_type = ANY(sqlc.arg(entity_types)::text[])
 ORDER BY h.created_at, h.id;
+
+-- name: ReopenLostReport :one
+UPDATE lost_reports
+SET status = 'reported',
+    close_reason = NULL,
+    closed_at = NULL,
+    last_activity_at = sqlc.arg(now)::timestamptz,
+    stale_reminded_at = NULL,
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = sqlc.arg(id) AND version = sqlc.arg(version) AND status = 'closed'
+RETURNING version;
+
+-- name: KeepOpenLostReport :one
+UPDATE lost_reports
+SET last_activity_at = sqlc.arg(now)::timestamptz,
+    stale_reminded_at = NULL,
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = sqlc.arg(id) AND version = sqlc.arg(version) AND status IN ('reported', 'potential_match', 'under_verification')
+RETURNING version;
+
+-- name: ConfirmLostReceipt :one
+UPDATE lost_reports
+SET status = 'closed',
+    close_reason = 'returned',
+    closed_at = sqlc.arg(now)::timestamptz,
+    last_activity_at = sqlc.arg(now)::timestamptz,
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = sqlc.arg(id) AND version = sqlc.arg(version) AND status = 'returned'
+RETURNING version;
+
+-- name: ListStaleLostReports :many
+SELECT lr.id, lr.code, lr.reporter_id, lr.item_name
+FROM lost_reports lr
+WHERE lr.status IN ('reported', 'potential_match')
+  AND lr.stale_reminded_at IS NULL
+  AND lr.last_activity_at <= sqlc.arg(stale_before)::timestamptz
+  AND lr.reporter_id IS NOT NULL;
+
+-- name: MarkLostStaleReminded :exec
+UPDATE lost_reports
+SET stale_reminded_at = sqlc.arg(now)::timestamptz,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = $1;
+
+-- name: ListExpiredLostReports :many
+SELECT lr.id, lr.code, lr.reporter_id, lr.version
+FROM lost_reports lr
+WHERE lr.status IN ('reported', 'potential_match')
+  AND lr.stale_reminded_at IS NOT NULL
+  AND lr.stale_reminded_at <= sqlc.arg(expired_before)::timestamptz
+  AND NOT EXISTS (
+      SELECT 1 FROM claims c WHERE c.lost_report_id = lr.id AND c.status IN ('submitted', 'under_review', 'info_requested', 'approved', 'on_hold')
+  );
+
+-- name: ExpireLostReport :one
+UPDATE lost_reports
+SET status = 'closed',
+    close_reason = 'expired',
+    closed_at = sqlc.arg(now)::timestamptz,
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = sqlc.arg(id) AND version = sqlc.arg(version) AND status IN ('reported', 'potential_match')
+RETURNING version;

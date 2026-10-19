@@ -315,6 +315,30 @@ func (e CustodyStatus) Valid() bool {
 	}
 }
 
+// Defines values for DisposeFoundReportRequestKind.
+const (
+	Destroyed         DisposeFoundReportRequestKind = "destroyed"
+	Donated           DisposeFoundReportRequestKind = "donated"
+	ReturnedToFinder  DisposeFoundReportRequestKind = "returned_to_finder"
+	TransferredToUnit DisposeFoundReportRequestKind = "transferred_to_unit"
+)
+
+// Valid indicates whether the value is a known member of the DisposeFoundReportRequestKind enum.
+func (e DisposeFoundReportRequestKind) Valid() bool {
+	switch e {
+	case Destroyed:
+		return true
+	case Donated:
+		return true
+	case ReturnedToFinder:
+		return true
+	case TransferredToUnit:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ExplanationLineLevel.
 const (
 	ExplanationLineLevelHigh   ExplanationLineLevel = "high"
@@ -1325,6 +1349,16 @@ type DismissMatchRequest struct {
 	Reason *string `json:"reason,omitempty"`
 }
 
+// DisposeFoundReportRequest defines model for DisposeFoundReportRequest.
+type DisposeFoundReportRequest struct {
+	Kind      DisposeFoundReportRequestKind `json:"kind"`
+	Note      string                        `json:"note"`
+	Recipient *string                       `json:"recipient,omitempty"`
+}
+
+// DisposeFoundReportRequestKind defines model for DisposeFoundReportRequest.Kind.
+type DisposeFoundReportRequestKind string
+
 // EmailChangeRequest defines model for EmailChangeRequest.
 type EmailChangeRequest struct {
 	Email    string `json:"email"`
@@ -1346,6 +1380,12 @@ type ExplanationLine struct {
 
 // ExplanationLineLevel defines model for ExplanationLine.Level.
 type ExplanationLineLevel string
+
+// ExtendRetentionRequest defines model for ExtendRetentionRequest.
+type ExtendRetentionRequest struct {
+	Days   int    `json:"days"`
+	Reason string `json:"reason"`
+}
 
 // FieldError defines model for FieldError.
 type FieldError struct {
@@ -2056,6 +2096,12 @@ type TokenRequest struct {
 	Token string `json:"token"`
 }
 
+// TransferCustodyRequest defines model for TransferCustodyRequest.
+type TransferCustodyRequest struct {
+	Note     *string            `json:"note,omitempty"`
+	ToPostId openapi_types.UUID `json:"to_post_id"`
+}
+
 // UnreadCount defines model for UnreadCount.
 type UnreadCount struct {
 	Count int `json:"count"`
@@ -2382,11 +2428,20 @@ type UpdateFoundReportJSONRequestBody = FoundReportUpdate
 // CloseFoundReportJSONRequestBody defines body for CloseFoundReport for application/json ContentType.
 type CloseFoundReportJSONRequestBody = CloseFoundReportRequest
 
+// DisposeFoundReportJSONRequestBody defines body for DisposeFoundReport for application/json ContentType.
+type DisposeFoundReportJSONRequestBody = DisposeFoundReportRequest
+
+// ExtendRetentionJSONRequestBody defines body for ExtendRetention for application/json ContentType.
+type ExtendRetentionJSONRequestBody = ExtendRetentionRequest
+
 // HandoverFoundReportJSONRequestBody defines body for HandoverFoundReport for application/json ContentType.
 type HandoverFoundReportJSONRequestBody = HandoverRequest
 
 // ReceiveFoundReportJSONRequestBody defines body for ReceiveFoundReport for application/json ContentType.
 type ReceiveFoundReportJSONRequestBody = ReceiveFoundReportRequest
+
+// TransferCustodyJSONRequestBody defines body for TransferCustody for application/json ContentType.
+type TransferCustodyJSONRequestBody = TransferCustodyRequest
 
 // CreateLostReportJSONRequestBody defines body for CreateLostReport for application/json ContentType.
 type CreateLostReportJSONRequestBody = LostReportCreate
@@ -2580,6 +2635,12 @@ type ServerInterface interface {
 	// (POST /found-reports/{id}/close)
 	CloseFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode)
 
+	// (POST /found-reports/{id}/dispose)
+	DisposeFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /found-reports/{id}/extend-retention)
+	ExtendRetention(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
 	// (POST /found-reports/{id}/handover)
 	HandoverFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode)
 
@@ -2594,6 +2655,12 @@ type ServerInterface interface {
 
 	// (POST /found-reports/{id}/receive)
 	ReceiveFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /found-reports/{id}/revert-unclaimed)
+	RevertUnclaimed(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
+	// (POST /found-reports/{id}/transfer)
+	TransferCustody(w http.ResponseWriter, r *http.Request, id IdOrCode)
 
 	// (GET /locations)
 	ListLocations(w http.ResponseWriter, r *http.Request, params ListLocationsParams)
@@ -2613,11 +2680,20 @@ type ServerInterface interface {
 	// (POST /lost-reports/{id}/close)
 	CloseLostReport(w http.ResponseWriter, r *http.Request, id IdOrCode)
 
+	// (POST /lost-reports/{id}/confirm-receipt)
+	ConfirmLostReceipt(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
 	// (GET /lost-reports/{id}/history)
 	GetLostReportHistory(w http.ResponseWriter, r *http.Request, id IdOrCode)
 
+	// (POST /lost-reports/{id}/keep-open)
+	KeepOpenLostReport(w http.ResponseWriter, r *http.Request, id IdOrCode)
+
 	// (GET /lost-reports/{id}/matches)
 	ListLostReportMatches(w http.ResponseWriter, r *http.Request, id IdOrCode, params ListLostReportMatchesParams)
+
+	// (POST /lost-reports/{id}/reopen)
+	ReopenLostReport(w http.ResponseWriter, r *http.Request, id IdOrCode)
 
 	// (GET /matches/{id})
 	GetMatch(w http.ResponseWriter, r *http.Request, id UUIDPath)
@@ -2955,6 +3031,16 @@ func (_ Unimplemented) CloseFoundReport(w http.ResponseWriter, r *http.Request, 
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// (POST /found-reports/{id}/dispose)
+func (_ Unimplemented) DisposeFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /found-reports/{id}/extend-retention)
+func (_ Unimplemented) ExtendRetention(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (POST /found-reports/{id}/handover)
 func (_ Unimplemented) HandoverFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -2977,6 +3063,16 @@ func (_ Unimplemented) ListFoundReportMatches(w http.ResponseWriter, r *http.Req
 
 // (POST /found-reports/{id}/receive)
 func (_ Unimplemented) ReceiveFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /found-reports/{id}/revert-unclaimed)
+func (_ Unimplemented) RevertUnclaimed(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /found-reports/{id}/transfer)
+func (_ Unimplemented) TransferCustody(w http.ResponseWriter, r *http.Request, id IdOrCode) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -3010,13 +3106,28 @@ func (_ Unimplemented) CloseLostReport(w http.ResponseWriter, r *http.Request, i
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// (POST /lost-reports/{id}/confirm-receipt)
+func (_ Unimplemented) ConfirmLostReceipt(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (GET /lost-reports/{id}/history)
 func (_ Unimplemented) GetLostReportHistory(w http.ResponseWriter, r *http.Request, id IdOrCode) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// (POST /lost-reports/{id}/keep-open)
+func (_ Unimplemented) KeepOpenLostReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (GET /lost-reports/{id}/matches)
 func (_ Unimplemented) ListLostReportMatches(w http.ResponseWriter, r *http.Request, id IdOrCode, params ListLostReportMatchesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /lost-reports/{id}/reopen)
+func (_ Unimplemented) ReopenLostReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -4597,6 +4708,58 @@ func (siw *ServerInterfaceWrapper) CloseFoundReport(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
+// DisposeFoundReport operation middleware
+func (siw *ServerInterfaceWrapper) DisposeFoundReport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DisposeFoundReport(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ExtendRetention operation middleware
+func (siw *ServerInterfaceWrapper) ExtendRetention(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ExtendRetention(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // HandoverFoundReport operation middleware
 func (siw *ServerInterfaceWrapper) HandoverFoundReport(w http.ResponseWriter, r *http.Request) {
 
@@ -4734,6 +4897,58 @@ func (siw *ServerInterfaceWrapper) ReceiveFoundReport(w http.ResponseWriter, r *
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ReceiveFoundReport(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevertUnclaimed operation middleware
+func (siw *ServerInterfaceWrapper) RevertUnclaimed(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevertUnclaimed(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// TransferCustody operation middleware
+func (siw *ServerInterfaceWrapper) TransferCustody(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.TransferCustody(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -5025,6 +5240,32 @@ func (siw *ServerInterfaceWrapper) CloseLostReport(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
+// ConfirmLostReceipt operation middleware
+func (siw *ServerInterfaceWrapper) ConfirmLostReceipt(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ConfirmLostReceipt(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetLostReportHistory operation middleware
 func (siw *ServerInterfaceWrapper) GetLostReportHistory(w http.ResponseWriter, r *http.Request) {
 
@@ -5042,6 +5283,32 @@ func (siw *ServerInterfaceWrapper) GetLostReportHistory(w http.ResponseWriter, r
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetLostReportHistory(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// KeepOpenLostReport operation middleware
+func (siw *ServerInterfaceWrapper) KeepOpenLostReport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.KeepOpenLostReport(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -5084,6 +5351,32 @@ func (siw *ServerInterfaceWrapper) ListLostReportMatches(w http.ResponseWriter, 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListLostReportMatches(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ReopenLostReport operation middleware
+func (siw *ServerInterfaceWrapper) ReopenLostReport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id IdOrCode
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ReopenLostReport(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -5928,6 +6221,15 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/lost-reports/{id}/close", wrapper.CloseLostReport)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/lost-reports/{id}/reopen", wrapper.ReopenLostReport)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/lost-reports/{id}/keep-open", wrapper.KeepOpenLostReport)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/lost-reports/{id}/confirm-receipt", wrapper.ConfirmLostReceipt)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/lost-reports/{id}/history", wrapper.GetLostReportHistory)
 	})
 	r.Group(func(r chi.Router) {
@@ -6124,6 +6426,18 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/found-reports/{id}/handover", wrapper.HandoverFoundReport)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/found-reports/{id}/transfer", wrapper.TransferCustody)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/found-reports/{id}/extend-retention", wrapper.ExtendRetention)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/found-reports/{id}/dispose", wrapper.DisposeFoundReport)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/found-reports/{id}/revert-unclaimed", wrapper.RevertUnclaimed)
 	})
 
 	return r
@@ -8205,6 +8519,86 @@ func (response CloseFoundReportdefaultApplicationProblemPlusJSONResponse) VisitC
 	return err
 }
 
+type DisposeFoundReportRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *DisposeFoundReportJSONRequestBody
+}
+
+type DisposeFoundReportResponseObject interface {
+	VisitDisposeFoundReportResponse(w http.ResponseWriter) error
+}
+
+type DisposeFoundReport200JSONResponse FoundReport
+
+func (response DisposeFoundReport200JSONResponse) VisitDisposeFoundReportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DisposeFoundReportdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DisposeFoundReportdefaultApplicationProblemPlusJSONResponse) VisitDisposeFoundReportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ExtendRetentionRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *ExtendRetentionJSONRequestBody
+}
+
+type ExtendRetentionResponseObject interface {
+	VisitExtendRetentionResponse(w http.ResponseWriter) error
+}
+
+type ExtendRetention200JSONResponse FoundReport
+
+func (response ExtendRetention200JSONResponse) VisitExtendRetentionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ExtendRetentiondefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ExtendRetentiondefaultApplicationProblemPlusJSONResponse) VisitExtendRetentionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type HandoverFoundReportRequestObject struct {
 	Id   IdOrCode `json:"id"`
 	Body *HandoverFoundReportJSONRequestBody
@@ -8392,6 +8786,85 @@ type ReceiveFoundReportdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response ReceiveFoundReportdefaultApplicationProblemPlusJSONResponse) VisitReceiveFoundReportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevertUnclaimedRequestObject struct {
+	Id IdOrCode `json:"id"`
+}
+
+type RevertUnclaimedResponseObject interface {
+	VisitRevertUnclaimedResponse(w http.ResponseWriter) error
+}
+
+type RevertUnclaimed200JSONResponse FoundReport
+
+func (response RevertUnclaimed200JSONResponse) VisitRevertUnclaimedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevertUnclaimeddefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RevertUnclaimeddefaultApplicationProblemPlusJSONResponse) VisitRevertUnclaimedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TransferCustodyRequestObject struct {
+	Id   IdOrCode `json:"id"`
+	Body *TransferCustodyJSONRequestBody
+}
+
+type TransferCustodyResponseObject interface {
+	VisitTransferCustodyResponse(w http.ResponseWriter) error
+}
+
+type TransferCustody200JSONResponse FoundReport
+
+func (response TransferCustody200JSONResponse) VisitTransferCustodyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TransferCustodydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response TransferCustodydefaultApplicationProblemPlusJSONResponse) VisitTransferCustodyResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -8641,6 +9114,45 @@ func (response CloseLostReportdefaultApplicationProblemPlusJSONResponse) VisitCl
 	return err
 }
 
+type ConfirmLostReceiptRequestObject struct {
+	Id IdOrCode `json:"id"`
+}
+
+type ConfirmLostReceiptResponseObject interface {
+	VisitConfirmLostReceiptResponse(w http.ResponseWriter) error
+}
+
+type ConfirmLostReceipt200JSONResponse LostReport
+
+func (response ConfirmLostReceipt200JSONResponse) VisitConfirmLostReceiptResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ConfirmLostReceiptdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ConfirmLostReceiptdefaultApplicationProblemPlusJSONResponse) VisitConfirmLostReceiptResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetLostReportHistoryRequestObject struct {
 	Id IdOrCode `json:"id"`
 }
@@ -8669,6 +9181,45 @@ type GetLostReportHistorydefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response GetLostReportHistorydefaultApplicationProblemPlusJSONResponse) VisitGetLostReportHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type KeepOpenLostReportRequestObject struct {
+	Id IdOrCode `json:"id"`
+}
+
+type KeepOpenLostReportResponseObject interface {
+	VisitKeepOpenLostReportResponse(w http.ResponseWriter) error
+}
+
+type KeepOpenLostReport200JSONResponse LostReport
+
+func (response KeepOpenLostReport200JSONResponse) VisitKeepOpenLostReportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type KeepOpenLostReportdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response KeepOpenLostReportdefaultApplicationProblemPlusJSONResponse) VisitKeepOpenLostReportResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -8709,6 +9260,45 @@ type ListLostReportMatchesdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response ListLostReportMatchesdefaultApplicationProblemPlusJSONResponse) VisitListLostReportMatchesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ReopenLostReportRequestObject struct {
+	Id IdOrCode `json:"id"`
+}
+
+type ReopenLostReportResponseObject interface {
+	VisitReopenLostReportResponse(w http.ResponseWriter) error
+}
+
+type ReopenLostReport200JSONResponse LostReport
+
+func (response ReopenLostReport200JSONResponse) VisitReopenLostReportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ReopenLostReportdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ReopenLostReportdefaultApplicationProblemPlusJSONResponse) VisitReopenLostReportResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -9702,6 +10292,12 @@ type StrictServerInterface interface {
 	// (POST /found-reports/{id}/close)
 	CloseFoundReport(ctx context.Context, request CloseFoundReportRequestObject) (CloseFoundReportResponseObject, error)
 
+	// (POST /found-reports/{id}/dispose)
+	DisposeFoundReport(ctx context.Context, request DisposeFoundReportRequestObject) (DisposeFoundReportResponseObject, error)
+
+	// (POST /found-reports/{id}/extend-retention)
+	ExtendRetention(ctx context.Context, request ExtendRetentionRequestObject) (ExtendRetentionResponseObject, error)
+
 	// (POST /found-reports/{id}/handover)
 	HandoverFoundReport(ctx context.Context, request HandoverFoundReportRequestObject) (HandoverFoundReportResponseObject, error)
 
@@ -9716,6 +10312,12 @@ type StrictServerInterface interface {
 
 	// (POST /found-reports/{id}/receive)
 	ReceiveFoundReport(ctx context.Context, request ReceiveFoundReportRequestObject) (ReceiveFoundReportResponseObject, error)
+
+	// (POST /found-reports/{id}/revert-unclaimed)
+	RevertUnclaimed(ctx context.Context, request RevertUnclaimedRequestObject) (RevertUnclaimedResponseObject, error)
+
+	// (POST /found-reports/{id}/transfer)
+	TransferCustody(ctx context.Context, request TransferCustodyRequestObject) (TransferCustodyResponseObject, error)
 
 	// (GET /locations)
 	ListLocations(ctx context.Context, request ListLocationsRequestObject) (ListLocationsResponseObject, error)
@@ -9735,11 +10337,20 @@ type StrictServerInterface interface {
 	// (POST /lost-reports/{id}/close)
 	CloseLostReport(ctx context.Context, request CloseLostReportRequestObject) (CloseLostReportResponseObject, error)
 
+	// (POST /lost-reports/{id}/confirm-receipt)
+	ConfirmLostReceipt(ctx context.Context, request ConfirmLostReceiptRequestObject) (ConfirmLostReceiptResponseObject, error)
+
 	// (GET /lost-reports/{id}/history)
 	GetLostReportHistory(ctx context.Context, request GetLostReportHistoryRequestObject) (GetLostReportHistoryResponseObject, error)
 
+	// (POST /lost-reports/{id}/keep-open)
+	KeepOpenLostReport(ctx context.Context, request KeepOpenLostReportRequestObject) (KeepOpenLostReportResponseObject, error)
+
 	// (GET /lost-reports/{id}/matches)
 	ListLostReportMatches(ctx context.Context, request ListLostReportMatchesRequestObject) (ListLostReportMatchesResponseObject, error)
+
+	// (POST /lost-reports/{id}/reopen)
+	ReopenLostReport(ctx context.Context, request ReopenLostReportRequestObject) (ReopenLostReportResponseObject, error)
 
 	// (GET /matches/{id})
 	GetMatch(ctx context.Context, request GetMatchRequestObject) (GetMatchResponseObject, error)
@@ -11414,6 +12025,72 @@ func (sh *strictHandler) CloseFoundReport(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// DisposeFoundReport operation middleware
+func (sh *strictHandler) DisposeFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request DisposeFoundReportRequestObject
+
+	request.Id = id
+
+	var body DisposeFoundReportJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DisposeFoundReport(ctx, request.(DisposeFoundReportRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DisposeFoundReport")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DisposeFoundReportResponseObject); ok {
+		if err := validResponse.VisitDisposeFoundReportResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ExtendRetention operation middleware
+func (sh *strictHandler) ExtendRetention(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request ExtendRetentionRequestObject
+
+	request.Id = id
+
+	var body ExtendRetentionJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ExtendRetention(ctx, request.(ExtendRetentionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ExtendRetention")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ExtendRetentionResponseObject); ok {
+		if err := validResponse.VisitExtendRetentionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // HandoverFoundReport operation middleware
 func (sh *strictHandler) HandoverFoundReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
 	var request HandoverFoundReportRequestObject
@@ -11552,6 +12229,65 @@ func (sh *strictHandler) ReceiveFoundReport(w http.ResponseWriter, r *http.Reque
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ReceiveFoundReportResponseObject); ok {
 		if err := validResponse.VisitReceiveFoundReportResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RevertUnclaimed operation middleware
+func (sh *strictHandler) RevertUnclaimed(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request RevertUnclaimedRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RevertUnclaimed(ctx, request.(RevertUnclaimedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RevertUnclaimed")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RevertUnclaimedResponseObject); ok {
+		if err := validResponse.VisitRevertUnclaimedResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// TransferCustody operation middleware
+func (sh *strictHandler) TransferCustody(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request TransferCustodyRequestObject
+
+	request.Id = id
+
+	var body TransferCustodyJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.TransferCustody(ctx, request.(TransferCustodyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TransferCustody")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(TransferCustodyResponseObject); ok {
+		if err := validResponse.VisitTransferCustodyResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -11737,6 +12473,32 @@ func (sh *strictHandler) CloseLostReport(w http.ResponseWriter, r *http.Request,
 	}
 }
 
+// ConfirmLostReceipt operation middleware
+func (sh *strictHandler) ConfirmLostReceipt(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request ConfirmLostReceiptRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ConfirmLostReceipt(ctx, request.(ConfirmLostReceiptRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ConfirmLostReceipt")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ConfirmLostReceiptResponseObject); ok {
+		if err := validResponse.VisitConfirmLostReceiptResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetLostReportHistory operation middleware
 func (sh *strictHandler) GetLostReportHistory(w http.ResponseWriter, r *http.Request, id IdOrCode) {
 	var request GetLostReportHistoryRequestObject
@@ -11756,6 +12518,32 @@ func (sh *strictHandler) GetLostReportHistory(w http.ResponseWriter, r *http.Req
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetLostReportHistoryResponseObject); ok {
 		if err := validResponse.VisitGetLostReportHistoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// KeepOpenLostReport operation middleware
+func (sh *strictHandler) KeepOpenLostReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request KeepOpenLostReportRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.KeepOpenLostReport(ctx, request.(KeepOpenLostReportRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "KeepOpenLostReport")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(KeepOpenLostReportResponseObject); ok {
+		if err := validResponse.VisitKeepOpenLostReportResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -11783,6 +12571,32 @@ func (sh *strictHandler) ListLostReportMatches(w http.ResponseWriter, r *http.Re
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ListLostReportMatchesResponseObject); ok {
 		if err := validResponse.VisitListLostReportMatchesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ReopenLostReport operation middleware
+func (sh *strictHandler) ReopenLostReport(w http.ResponseWriter, r *http.Request, id IdOrCode) {
+	var request ReopenLostReportRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ReopenLostReport(ctx, request.(ReopenLostReportRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ReopenLostReport")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ReopenLostReportResponseObject); ok {
+		if err := validResponse.VisitReopenLostReportResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

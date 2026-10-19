@@ -318,6 +318,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/lost-reports/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reopenLostReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lost-reports/{id}/keep-open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["keepOpenLostReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lost-reports/{id}/confirm-receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["confirmLostReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/lost-reports/{id}/history": {
         parameters: {
             query?: never;
@@ -1307,6 +1364,82 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/found-reports/{id}/transfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["transferCustody"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/found-reports/{id}/extend-retention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["extendRetention"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/found-reports/{id}/dispose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["disposeFoundReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/found-reports/{id}/revert-unclaimed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["revertUnclaimed"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1763,6 +1896,21 @@ export interface components {
             post_id: string;
             storage_slot: string;
             condition_note?: string;
+        };
+        TransferCustodyRequest: {
+            /** Format: uuid */
+            to_post_id: string;
+            note?: string;
+        };
+        ExtendRetentionRequest: {
+            days: number;
+            reason: string;
+        };
+        DisposeFoundReportRequest: {
+            /** @enum {string} */
+            kind: "donated" | "destroyed" | "transferred_to_unit" | "returned_to_finder";
+            recipient?: string;
+            note: string;
         };
         InventoryItem: {
             /** Format: uuid */
@@ -3027,6 +3175,78 @@ export interface operations {
         };
         responses: {
             /** @description Closed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LostReport"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    reopenLostReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reopened */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LostReport"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    keepOpenLostReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kept open, resetting stale timer */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LostReport"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    confirmLostReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Receipt confirmed, report closed */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4730,6 +4950,114 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    transferCustody: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransferCustodyRequest"];
+            };
+        };
+        responses: {
+            /** @description Custody transferred, holding post changed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FoundReport"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    extendRetention: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtendRetentionRequest"];
+            };
+        };
+        responses: {
+            /** @description Retention extended once, due date updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FoundReport"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    disposeFoundReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DisposeFoundReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Disposition recorded, found report closed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FoundReport"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    revertUnclaimed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reverted from unclaimed, matching restarted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FoundReport"];
                 };
             };
             default: components["responses"]["Problem"];

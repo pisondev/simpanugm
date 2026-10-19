@@ -127,4 +127,16 @@ func (s *Store) RetentionDays(ctx context.Context, sensitivity string, categoryO
 	return s.Int(ctx, "custody.retention_days."+sensitivity)
 }
 
+func (s *Store) LostStaleDays(ctx context.Context) int {
+	return s.Int(ctx, "lost.stale_days")
+}
+
+func (s *Store) LostExpiryGraceDays(ctx context.Context) int {
+	return s.Int(ctx, "lost.expiry_grace_days")
+}
+
+func (s *Store) LostReopenDays(ctx context.Context) int {
+	return s.Int(ctx, "lost.reopen_days")
+}
+
 func Defaults() map[string]any { return defaults }

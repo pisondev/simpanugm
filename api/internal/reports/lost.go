@@ -475,6 +475,156 @@ func (s *Service) CloseLost(ctx context.Context, p *access.Principal, ref, reaso
 	return s.GetLost(ctx, p, id.String())
 }
 
+// transition L12, BR-LST-04
+func (s *Service) ReopenLost(ctx context.Context, p *access.Principal, ref string) (openapi.LostReport, error) {
+	now := s.clock.Now()
+	var id uuid.UUID
+	err := db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.q.WithTx(tx)
+		row, err := s.loadLost(ctx, q, ref)
+		if err != nil {
+			return err
+		}
+		r := row.LostReport
+		id = r.ID
+		if !canReadLost(p, r) || (!isOwnerLost(p, r) && !p.IsAdmin()) {
+			return apperr.NotFound()
+		}
+		if r.Status != "closed" {
+			return apperr.InvalidTransition(r.Status)
+		}
+		if r.CloseReason == nil || (*r.CloseReason != "expired" && *r.CloseReason != "found_by_owner" && *r.CloseReason != "no_longer_needed") {
+			return apperr.Unprocessable("cannot_reopen", "Laporan tidak dapat dibuka kembali", "Hanya laporan yang ditutup sendiri atau kedaluwarsa yang dapat dibuka kembali.")
+		}
+		reopenWindow := time.Duration(s.settings.LostReopenDays(ctx)) * 24 * time.Hour
+		if r.ClosedAt != nil && now.Sub(*r.ClosedAt) > reopenWindow {
+			return apperr.Unprocessable("reopen_window_expired", "Batas waktu pembukaan kembali telah lewat", "Laporan yang ditutup lebih dari 30 hari tidak dapat dibuka kembali.")
+		}
+		if r.ReporterID != nil {
+			count, err := q.CountOpenLostByReporter(ctx, r.ReporterID)
+			if err != nil {
+				return err
+			}
+			if count >= 5 {
+				return apperr.Unprocessable("too_many_open_reports", "Batas laporan tercapai", "Kamu sudah memiliki 5 laporan kehilangan yang aktif.")
+			}
+		}
+		tid, err := Lost.Step(r.Status, "reopen", "reported")
+		if err != nil {
+			return err
+		}
+		_, err = q.ReopenLostReport(ctx, sqlc.ReopenLostReportParams{
+			Now: now, ID: r.ID, Version: r.Version,
+		})
+		if db.IsNoRows(err) {
+			return apperr.StaleVersion()
+		}
+		if err != nil {
+			return err
+		}
+		if err := s.history(ctx, q, "lost_report", r.ID, r.Status, "reported", tid, nil); err != nil {
+			return err
+		}
+		photos, err := s.media.Photos(ctx, q, &r.ID, nil)
+		if err != nil {
+			return err
+		}
+		var photoIDs []uuid.UUID
+		for _, ph := range photos {
+			photoIDs = append(photoIDs, ph.ID)
+		}
+		if err := s.matching.ReportChanged(ctx, tx, "lost", r.ID, photoIDs); err != nil {
+			return err
+		}
+		return audit.Record(ctx, q, now, audit.Entry{Action: "lost_report.reopen", EntityType: "lost_report", EntityID: r.ID,
+			Changes: map[string]any{"status": audit.Change(r.Status, "reported")}})
+	})
+	if err != nil {
+		return openapi.LostReport{}, err
+	}
+	return s.GetLost(ctx, p, id.String())
+}
+
+// US-11 criterion 1
+func (s *Service) KeepOpenLost(ctx context.Context, p *access.Principal, ref string) (openapi.LostReport, error) {
+	now := s.clock.Now()
+	var id uuid.UUID
+	err := db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.q.WithTx(tx)
+		row, err := s.loadLost(ctx, q, ref)
+		if err != nil {
+			return err
+		}
+		r := row.LostReport
+		id = r.ID
+		if !canReadLost(p, r) || (!isOwnerLost(p, r) && !p.IsAdmin()) {
+			return apperr.NotFound()
+		}
+		if r.Status == "closed" || r.Status == "returned" {
+			return apperr.InvalidTransition(r.Status)
+		}
+		_, err = q.KeepOpenLostReport(ctx, sqlc.KeepOpenLostReportParams{
+			Now: now, ID: r.ID, Version: r.Version,
+		})
+		if db.IsNoRows(err) {
+			return apperr.StaleVersion()
+		}
+		if err != nil {
+			return err
+		}
+		return audit.Record(ctx, q, now, audit.Entry{Action: "lost_report.keep_open", EntityType: "lost_report", EntityID: r.ID,
+			Changes: map[string]any{"last_activity_at": now}})
+	})
+	if err != nil {
+		return openapi.LostReport{}, err
+	}
+	return s.GetLost(ctx, p, id.String())
+}
+
+// transition L9
+func (s *Service) ConfirmReceipt(ctx context.Context, p *access.Principal, ref string) (openapi.LostReport, error) {
+	now := s.clock.Now()
+	var id uuid.UUID
+	err := db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.q.WithTx(tx)
+		row, err := s.loadLost(ctx, q, ref)
+		if err != nil {
+			return err
+		}
+		r := row.LostReport
+		id = r.ID
+		if !canReadLost(p, r) || (!isOwnerLost(p, r) && !p.IsAdmin()) {
+			return apperr.NotFound()
+		}
+		if r.Status != "returned" {
+			return apperr.InvalidTransition(r.Status)
+		}
+		tid, err := Lost.Step(r.Status, "receipt_confirmed", "closed")
+		if err != nil {
+			return err
+		}
+		_, err = q.ConfirmLostReceipt(ctx, sqlc.ConfirmLostReceiptParams{
+			Now: now, ID: r.ID, Version: r.Version,
+		})
+		if db.IsNoRows(err) {
+			return apperr.StaleVersion()
+		}
+		if err != nil {
+			return err
+		}
+		reason := "returned"
+		if err := s.history(ctx, q, "lost_report", r.ID, r.Status, "closed", tid, &reason); err != nil {
+			return err
+		}
+		return audit.Record(ctx, q, now, audit.Entry{Action: "lost_report.confirm_receipt", EntityType: "lost_report", EntityID: r.ID,
+			Changes: map[string]any{"status": audit.Change(r.Status, "closed"), "close_reason": "returned"}})
+	})
+	if err != nil {
+		return openapi.LostReport{}, err
+	}
+	return s.GetLost(ctx, p, id.String())
+}
+
 type ListInput struct {
 	Mine     bool
 	Statuses []string

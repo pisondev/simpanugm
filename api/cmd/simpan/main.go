@@ -29,6 +29,7 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/access"
 	"github.com/pisondev/simpanugm/api/internal/auth"
 	"github.com/pisondev/simpanugm/api/internal/claims"
+	"github.com/pisondev/simpanugm/api/internal/custody"
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/maintenance"
 	"github.com/pisondev/simpanugm/api/internal/masterdata"
@@ -42,6 +43,7 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/platform/metrics"
 	"github.com/pisondev/simpanugm/api/internal/platform/settings"
 	"github.com/pisondev/simpanugm/api/internal/platform/storage"
+	"github.com/pisondev/simpanugm/api/internal/reports"
 	"github.com/pisondev/simpanugm/api/internal/server"
 	"github.com/pisondev/simpanugm/api/migrations"
 )
@@ -203,6 +205,8 @@ func worker(ctx context.Context) error {
 	river.AddWorker(workers, &maintenance.PurgeWorker{Media: svcs.Media, Auth: svcs.Auth, Q: sqlc.New(pool), Clock: c})
 	matching.AddWorkers(workers, svcs.Engine)
 	river.AddWorker(workers, &claims.ExpireWorker{S: svcs.Claims})
+	river.AddWorker(workers, &custody.SweepWorker{S: svcs.Custody})
+	river.AddWorker(workers, &reports.SweepWorker{S: svcs.Reports})
 	// scoring needs an active fusion version, a fresh database gets the embedded one
 	if err := matching.EnsureDefaultFusion(ctx, sqlc.New(pool), c.Now()); err != nil {
 		return err
@@ -216,7 +220,7 @@ func worker(ctx context.Context) error {
 		queues[name] = river.QueueConfig{MaxWorkers: n}
 	}
 	client, err := river.NewClient(riverpgxv5.New(pool), &river.Config{
-		Queues: queues, Workers: workers, PeriodicJobs: slices.Concat(maintenance.Periodic(), notify.Periodic(), matching.Periodic(), claims.Periodic()),
+		Queues: queues, Workers: workers, PeriodicJobs: slices.Concat(maintenance.Periodic(), notify.Periodic(), matching.Periodic(), claims.Periodic(), custody.Periodic(), reports.Periodic()),
 		CompletedJobRetentionPeriod: time.Hour, Logger: slog.Default(),
 	})
 	if err != nil {

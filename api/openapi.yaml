@@ -401,6 +401,48 @@ paths:
               schema: { $ref: '#/components/schemas/LostReport' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /lost-reports/{id}/reopen:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [lost]
+      operationId: reopenLostReport
+      responses:
+        '200':
+          description: Reopened
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LostReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /lost-reports/{id}/keep-open:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [lost]
+      operationId: keepOpenLostReport
+      responses:
+        '200':
+          description: "Kept open, resetting stale timer"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LostReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /lost-reports/{id}/confirm-receipt:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [lost]
+      operationId: confirmLostReceipt
+      responses:
+        '200':
+          description: "Receipt confirmed, report closed"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LostReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
   /lost-reports/{id}/history:
     parameters:
       - $ref: '#/components/parameters/IdOrCode'
@@ -1520,6 +1562,77 @@ paths:
               schema: { $ref: '#/components/schemas/Claim' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /found-reports/{id}/transfer:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [custody]
+      operationId: transferCustody
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransferCustodyRequest' }
+      responses:
+        '200':
+          description: "Custody transferred, holding post changed"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FoundReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports/{id}/extend-retention:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [custody]
+      operationId: extendRetention
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExtendRetentionRequest' }
+      responses:
+        '200':
+          description: "Retention extended once, due date updated"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FoundReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports/{id}/dispose:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [custody]
+      operationId: disposeFoundReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DisposeFoundReportRequest' }
+      responses:
+        '200':
+          description: "Disposition recorded, found report closed"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FoundReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /found-reports/{id}/revert-unclaimed:
+    parameters:
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [custody]
+      operationId: revertUnclaimed
+      responses:
+        '200':
+          description: "Reverted from unclaimed, matching restarted"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FoundReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
 components:
   securitySchemes:
     cookieAuth:
@@ -2225,6 +2338,33 @@ components:
         post_id: { type: string, format: uuid }
         storage_slot: { type: string, maxLength: 40 }
         condition_note: { type: string, maxLength: 500 }
+
+    TransferCustodyRequest:
+      type: object
+      additionalProperties: false
+      required: [to_post_id]
+      properties:
+        to_post_id: { type: string, format: uuid }
+        note: { type: string, maxLength: 500 }
+
+    ExtendRetentionRequest:
+      type: object
+      additionalProperties: false
+      required: [days, reason]
+      properties:
+        days: { type: integer, minimum: 1, maximum: 30 }
+        reason: { type: string, minLength: 5, maxLength: 500 }
+
+    DisposeFoundReportRequest:
+      type: object
+      additionalProperties: false
+      required: [kind, note]
+      properties:
+        kind:
+          type: string
+          enum: [donated, destroyed, transferred_to_unit, returned_to_finder]
+        recipient: { type: string, maxLength: 200 }
+        note: { type: string, minLength: 5, maxLength: 500 }
 
     InventoryItem:
       type: object

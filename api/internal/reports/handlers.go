@@ -134,6 +134,30 @@ func (h *Handlers) CloseLostReport(ctx context.Context, req openapi.CloseLostRep
 	return openapi.CloseLostReport200JSONResponse(out), nil
 }
 
+func (h *Handlers) ReopenLostReport(ctx context.Context, req openapi.ReopenLostReportRequestObject) (openapi.ReopenLostReportResponseObject, error) {
+	out, err := h.svc.ReopenLost(ctx, access.FromContext(ctx), req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return openapi.ReopenLostReport200JSONResponse(out), nil
+}
+
+func (h *Handlers) KeepOpenLostReport(ctx context.Context, req openapi.KeepOpenLostReportRequestObject) (openapi.KeepOpenLostReportResponseObject, error) {
+	out, err := h.svc.KeepOpenLost(ctx, access.FromContext(ctx), req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return openapi.KeepOpenLostReport200JSONResponse(out), nil
+}
+
+func (h *Handlers) ConfirmLostReceipt(ctx context.Context, req openapi.ConfirmLostReceiptRequestObject) (openapi.ConfirmLostReceiptResponseObject, error) {
+	out, err := h.svc.ConfirmReceipt(ctx, access.FromContext(ctx), req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return openapi.ConfirmLostReceipt200JSONResponse(out), nil
+}
+
 func (h *Handlers) GetLostReportHistory(ctx context.Context, req openapi.GetLostReportHistoryRequestObject) (openapi.GetLostReportHistoryResponseObject, error) {
 	rows, err := h.svc.LostHistory(ctx, access.FromContext(ctx), req.Id)
 	if err != nil {
