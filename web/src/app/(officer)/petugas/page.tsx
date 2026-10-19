@@ -87,6 +87,10 @@ export default async function OfficerHomePage({ searchParams }: PageProps) {
                 {t("scopeCampus")}
               </Link>
             </div>
+            <ButtonLink href="/petugas/papan" variant="outline">
+              <Sparkles aria-hidden />
+              {t("boardTitle")}
+            </ButtonLink>
             <ButtonLink href="/petugas/duplikat" variant="outline">
               <CopyCheck aria-hidden />
               {t("duplicatesLink")}

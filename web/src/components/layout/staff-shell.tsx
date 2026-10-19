@@ -11,6 +11,7 @@ import {
   PackageOpen,
   Search,
   ShieldQuestion,
+  Sparkles,
   UserRound,
   Users,
   Warehouse,
@@ -51,6 +52,7 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
     inventory,
     search,
     { href: "/petugas/klaim", label: t("officerClaims"), icon: ShieldQuestion },
+    { href: "/petugas/papan", label: t("board"), icon: Sparkles },
     { href: "/petugas/lapor-hilang", label: t("proxyLost"), icon: FileSearch },
     { href: "/petugas/lapor-temuan", label: t("proxyFound"), icon: HandHeart },
   ]

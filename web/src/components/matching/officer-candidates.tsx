@@ -34,6 +34,9 @@ export function OfficerCandidates({ items, side, reportId, showLow, toggleHref }
           {t("title")}
         </h2>
         <div className="flex flex-wrap gap-2">
+          <ButtonLink href={`/petugas/papan?report_type=${side}&report_id=${reportId}`} variant="outline" size="sm">
+            {t("board")}
+          </ButtonLink>
           <ButtonLink href={toggleHref} variant="ghost" size="sm" scroll={false}>
             {showLow ? t("hideLow") : t("showLow")}
           </ButtonLink>
