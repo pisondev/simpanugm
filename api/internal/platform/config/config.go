@@ -39,11 +39,12 @@ type Config struct {
 	SMTPTLS      string `env:"SMTP_TLS" envDefault:"starttls"`
 	MailFrom     string `env:"MAIL_FROM" envDefault:"SimpanUGM <no-reply@simpanugm.my.id>"`
 
-	SessionCookieSecure bool     `env:"SESSION_COOKIE_SECURE" envDefault:"true"`
-	TrustedProxies      []string `env:"TRUSTED_PROXIES" envSeparator:"," envDefault:"127.0.0.1/32,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"`
-	WorkerQueues        string   `env:"WORKER_QUEUES" envDefault:"default=10,ml=2,email=2,maintenance=1"`
-	LogLevel            string   `env:"LOG_LEVEL" envDefault:"info"`
-	FeatureFakeClock    bool     `env:"FEATURE_FAKE_CLOCK" envDefault:"false"`
+	SessionCookieSecure   bool     `env:"SESSION_COOKIE_SECURE" envDefault:"true"`
+	TrustedProxies        []string `env:"TRUSTED_PROXIES" envSeparator:"," envDefault:"127.0.0.1/32,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"`
+	WorkerQueues          string   `env:"WORKER_QUEUES" envDefault:"default=10,ml=2,email=2,maintenance=1"`
+	LogLevel              string   `env:"LOG_LEVEL" envDefault:"info"`
+	FeatureFakeClock      bool     `env:"FEATURE_FAKE_CLOCK" envDefault:"false"`
+	FeatureSemanticSearch bool     `env:"FEATURE_SEMANTIC_SEARCH" envDefault:"false"`
 }
 
 var validEnvs = map[string]bool{"development": true, "test": true, "e2e": true, "staging": true, "production": true}

@@ -4555,6 +4555,7 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string;
+                semantic?: boolean;
                 type?: "lost" | "found";
                 category_id?: string;
                 zone_id?: string;

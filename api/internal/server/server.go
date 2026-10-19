@@ -106,7 +106,7 @@ func NewServices(d Deps) *Services {
 		Masterdata: md, Media: med, Custody: cs,
 		Reports:   rep,
 		Claims:    claims.NewService(d.Pool, d.Clock, st, notifier, med, md, cs, rep, d.Config.HandoverPepper),
-		Search:    search.NewService(d.Pool),
+		Search:    search.NewService(d.Pool).WithML(ml).WithSemanticSearch(d.Config.FeatureSemanticSearch),
 		Engine:    engine,
 		Assist:    assist.NewService(d.Pool, ml, d.Store, md),
 		Matching:  matchingSvc,

@@ -3114,6 +3114,7 @@ type GetPostInventoryParamsSort string
 // SearchReportsParams defines parameters for SearchReports.
 type SearchReportsParams struct {
 	Q          *string                  `form:"q,omitempty" json:"q,omitempty"`
+	Semantic   *bool                    `form:"semantic,omitempty" json:"semantic,omitempty"`
 	Type       *SearchReportsParamsType `form:"type,omitempty" json:"type,omitempty"`
 	CategoryId *openapi_types.UUID      `form:"category_id,omitempty" json:"category_id,omitempty"`
 	ZoneId     *openapi_types.UUID      `form:"zone_id,omitempty" json:"zone_id,omitempty"`
@@ -8018,6 +8019,19 @@ func (siw *ServerInterfaceWrapper) SearchReports(w http.ResponseWriter, r *http.
 			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "q"})
 		} else {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "q", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "semantic" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "semantic", r.URL.Query(), &params.Semantic, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "semantic"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "semantic", Err: err})
 		}
 		return
 	}

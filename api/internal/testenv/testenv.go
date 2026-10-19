@@ -177,6 +177,9 @@ type Option func(*config.Config)
 // points the inference client at a fake, normally NewFakeML
 func WithML(url string) Option { return func(c *config.Config) { c.MLBaseURL = url } }
 
+// enables semantic search feature flag
+func WithSemanticSearch() Option { return func(c *config.Config) { c.FeatureSemanticSearch = true } }
+
 func New(t testing.TB, opts ...Option) *Env {
 	t.Helper()
 	d := Shared(t)

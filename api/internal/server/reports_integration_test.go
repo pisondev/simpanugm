@@ -4,9 +4,11 @@ package server_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -396,6 +398,88 @@ func containsCode(items []struct {
 		}
 	}
 	return false
+}
+
+func TestSearchReportsSemantic_US41(t *testing.T) {
+	fake := testenv.NewFakeML(t)
+	e := testenv.New(t, testenv.WithML(fake.URL), testenv.WithSemanticSearch())
+	ctx := context.Background()
+	now := e.Clock.Now()
+	owner := e.User(access.Member)
+	officer := e.User(access.Officer, e.Post("pos-pusat"))
+
+	// US-41: "tempat minum biru" finds a report described as "tumbler warna biru dongker" in top five
+	body := lostBody(e, now, nil)
+	body["item_name"] = "tumbler warna biru dongker"
+	body["category_id"] = e.Category("tumbler").String()
+	var r lostReport
+	owner.Client.JSON(http.MethodPost, "/api/v1/lost-reports", body, "Idempotency-Key", "us41-search-key").Decode(t, &r)
+
+	// Register text_encoder model version
+	var versionID uuid.UUID
+	err := e.Pool.QueryRow(ctx, "SELECT id FROM model_versions WHERE component = 'text_encoder' AND status = 'active' LIMIT 1").Scan(&versionID)
+	if err != nil {
+		versionID = uuid.New()
+		if _, err := e.Pool.Exec(ctx, "INSERT INTO model_versions (id, component, name, status, created_at) VALUES ($1, 'text_encoder', 'test-e5-r1', 'active', $2)", versionID, now); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Fetch query vector for "query: tempat minum biru" from FakeML
+	var embOut struct {
+		E5 struct {
+			Embeddings [][]float32 `json:"embeddings"`
+		} `json:"e5"`
+	}
+	reqBody := `{"texts": ["query: tempat minum biru"], "kinds": ["e5"]}`
+	resp, err := http.Post(fake.URL+"/v1/embed/text", "application/json", strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if err := json.NewDecoder(resp.Body).Decode(&embOut); err != nil {
+		t.Fatal(err)
+	}
+
+	var vecLitBuilder strings.Builder
+	vecLitBuilder.WriteByte('[')
+	for i, x := range embOut.E5.Embeddings[0] {
+		if i > 0 {
+			vecLitBuilder.WriteByte(',')
+		}
+		fmt.Fprintf(&vecLitBuilder, "%f", x)
+	}
+	vecLitBuilder.WriteByte(']')
+
+	// Store embedding for the lost report
+	_, err = e.Pool.Exec(ctx, "INSERT INTO text_embeddings_e5 (report_type, report_id, model_version_id, embedding, text_sha256, created_at, updated_at) VALUES ('lost', $1, $2, $3::vector, $4, $5, $5)", r.ID, versionID, vecLitBuilder.String(), []byte("sha256"), now)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Semantic search with semantic=true finds the report in top five
+	var out struct {
+		Items []struct {
+			Code       string   `json:"code"`
+			ItemName   string   `json:"item_name"`
+			Relevance  *float64 `json:"relevance"`
+			PersonName string   `json:"person_name"`
+		} `json:"items"`
+	}
+	officer.Client.JSON(http.MethodGet, "/api/v1/search?q=tempat%20minum%20biru&type=lost&semantic=true", nil).Decode(t, &out)
+	foundInTop5 := false
+	for i, it := range out.Items {
+		if i < 5 && it.Code == r.Code {
+			foundInTop5 = true
+			if it.Relevance == nil || *it.Relevance <= 0.0 {
+				t.Fatalf("expected positive relevance, got %+v", it.Relevance)
+			}
+			break
+		}
+	}
+	if !foundInTop5 {
+		t.Fatalf("semantic search US-41 failed to find %s in top five: %+v", r.Code, out.Items)
+	}
 }
 
 func TestAuditLogIsAppendOnly(t *testing.T) {
