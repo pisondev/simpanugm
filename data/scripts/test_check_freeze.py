@@ -35,6 +35,46 @@ class FreezeCheckTests(unittest.TestCase):
             errors = validate_freeze(Path("dataset"), Path("seed"), "full")
         self.assertIn("full: --split, --distractor-split, and --val-count are required", errors)
 
+    def test_full_runs_split_gates_with_private_configuration(self) -> None:
+        labels = [{"item_id": "I001"}]
+        with (
+            patch("check_freeze.validate_dataset", return_value=[]) as dataset_check,
+            patch("check_freeze.validate_auxiliary", return_value=[]) as auxiliary_check,
+            patch("check_freeze.read_labels", return_value=labels) as labels_reader,
+            patch("check_freeze.read_split", return_value=[]) as split_reader,
+            patch("check_freeze.verify_split_rows", return_value=[]) as split_check,
+            patch("check_freeze.read_distractor_ids", return_value=["D001"]),
+            patch("check_freeze.read_distractor_split", return_value=[]) as distractor_reader,
+            patch("check_freeze.verify_distractor_split_rows", return_value=[]) as distractor_check,
+        ):
+            errors = validate_freeze(
+                Path("dataset"),
+                Path("seed"),
+                "full",
+                expected_count=2,
+                split_path=Path("split.csv"),
+                distractor_split_path=Path("distractor-splits.csv"),
+                val_count=1,
+                expected_distractors=4,
+                expected_duplicates=2,
+                expected_queries=3,
+            )
+
+        self.assertEqual(errors, [])
+        dataset_check.assert_called_once_with(Path("dataset"), Path("seed"), 2)
+        auxiliary_check.assert_called_once_with(
+            Path("dataset"),
+            Path("seed"),
+            expected_distractors=4,
+            expected_duplicates=2,
+            expected_queries=3,
+        )
+        labels_reader.assert_called_once_with(Path("dataset") / "labels.csv", Path("seed"))
+        split_reader.assert_called_once_with(Path("split.csv"))
+        split_check.assert_called_once_with([], labels, val_count=1)
+        distractor_reader.assert_called_once_with(Path("distractor-splits.csv"))
+        distractor_check.assert_called_once_with([], ["D001"], 1, 1)
+
     def test_unknown_profile_is_rejected(self) -> None:
         errors = validate_freeze(Path("dataset"), Path("seed"), "unknown")
         self.assertEqual(errors, ["unknown profile: unknown"])
