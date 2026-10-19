@@ -99,7 +99,7 @@ func NewServices(d Deps) *Services {
 	matchingSvc := matching.NewService(engine, enq)
 	officerSvc := officer.NewService(d.Pool, d.Clock).WithReportsAndMatching(rep, matchingSvc)
 	auditSvc := audit.NewService(sqlc.New(d.Pool))
-	analyticsSvc := analytics.NewService(d.Pool, d.Clock, ml, st)
+	analyticsSvc := analytics.NewService(d.Pool, d.Clock, ml, st).WithJobs(d.Jobs)
 	return &Services{
 		Settings: st, Mailer: mailer, Notifier: notifier, Hub: hub, Notify: notify.NewService(d.Pool, d.Clock, hub),
 		Auth:       authSvc,

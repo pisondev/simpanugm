@@ -56,8 +56,16 @@ export function ModelVersionActivator({ allVersions }: { allVersions: ModelVersi
 
         <div className="flex flex-col gap-4 py-4">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Pilih Versi Model</label>
-            <NativeSelect value={selectedId} onChange={(e) => setSelectedId(e.target.value)} className="text-sm" aria-label="Pilih model versi">
+            <label htmlFor="model-version-select" className="text-sm font-medium">
+              Pilih Versi Model
+            </label>
+            <NativeSelect
+              id="model-version-select"
+              value={selectedId}
+              onChange={(e) => setSelectedId(e.target.value)}
+              className="text-sm"
+              aria-label="Pilih model versi"
+            >
               <option value="">-- Pilih versi model --</option>
               {inactiveVersions.map((v) => (
                 <option key={v.id} value={v.id}>

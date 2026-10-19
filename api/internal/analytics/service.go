@@ -13,7 +13,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/riverqueue/river"
 
+	"github.com/pisondev/simpanugm/api/internal/audit"
+	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
+	"github.com/pisondev/simpanugm/api/internal/matching/jobargs"
 	"github.com/pisondev/simpanugm/api/internal/mlclient"
 	"github.com/pisondev/simpanugm/api/internal/openapi"
 	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
@@ -26,6 +30,7 @@ type Service struct {
 	clock    clock.Clock
 	ml       *mlclient.Client
 	settings *settings.Store
+	jobs     *river.Client[pgx.Tx]
 }
 
 func NewService(pool *pgxpool.Pool, clk clock.Clock, ml *mlclient.Client, st *settings.Store) *Service {
@@ -35,6 +40,11 @@ func NewService(pool *pgxpool.Pool, clk clock.Clock, ml *mlclient.Client, st *se
 		ml:       ml,
 		settings: st,
 	}
+}
+
+func (s *Service) WithJobs(jobs *river.Client[pgx.Tx]) *Service {
+	s.jobs = jobs
+	return s
 }
 
 func (s *Service) ListModelVersions(ctx context.Context, component *string) ([]openapi.ModelVersionItem, error) {
@@ -153,6 +163,26 @@ func (s *Service) ActivateModelVersion(ctx context.Context, id uuid.UUID, actorI
 	)
 	if err != nil {
 		return nil, fmt.Errorf("activate target version: %w", err)
+	}
+
+	qtx := sqlc.New(tx)
+	if err := audit.Record(ctx, qtx, now, audit.Entry{
+		Action:     "model_version.activate",
+		EntityType: "model_version",
+		EntityID:   id,
+		Changes: map[string]any{
+			"component": comp,
+			"name":      name,
+			"status":    "active",
+		},
+	}); err != nil {
+		return nil, fmt.Errorf("audit activate model version: %w", err)
+	}
+
+	if s.jobs != nil {
+		if _, err := s.jobs.InsertTx(ctx, tx, jobargs.MatchSweep{}, nil); err != nil {
+			return nil, fmt.Errorf("enqueue match sweep: %w", err)
+		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
