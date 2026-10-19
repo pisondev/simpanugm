@@ -1025,6 +1025,288 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listClaims"];
+        put?: never;
+        post: operations["createClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get: operations["getClaim"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/pick-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["pickUpClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/request-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["requestClaimInfo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/respond": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["respondToClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get: operations["getClaimChecks"];
+        put: operations["putClaimChecks"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["approveClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["rejectClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["revokeClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reopenClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["withdrawClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/handover-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["regenerateHandoverCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get: operations["listClaimMessages"];
+        put?: never;
+        post: operations["postClaimMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/claims/{id}/internal-note": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["setClaimInternalNote"];
+        trace?: never;
+    };
+    "/found-reports/{id}/handover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["handoverFoundReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1951,6 +2233,217 @@ export interface components {
             colours?: components["schemas"]["AssistFieldOutcome"];
             brand?: components["schemas"]["AssistFieldOutcome"];
             description?: components["schemas"]["AssistFieldOutcome"];
+        };
+        /** @enum {string} */
+        ClaimStatus: "submitted" | "under_review" | "info_requested" | "on_hold" | "approved" | "handed_over" | "rejected" | "withdrawn" | "expired";
+        /** @enum {string} */
+        ClaimSource: "candidate" | "listing" | "officer_invite" | "proxy";
+        /** @enum {string} */
+        RejectionReason: "details_mismatch" | "insufficient_evidence" | "item_already_returned" | "duplicate_claim" | "suspected_fraud" | "other";
+        ClaimAnswerInput: {
+            key: string;
+            answer: string;
+        };
+        ClaimCreate: {
+            /** Format: uuid */
+            found_report_id: string;
+            /**
+             * Format: uuid
+             * @description absent when the claim comes from the public listing and a lost report is created from lost_report
+             */
+            lost_report_id?: string;
+            /** Format: uuid */
+            match_id?: string;
+            lost_report?: components["schemas"]["LostReportCreate"];
+            statement: string;
+            answers: components["schemas"]["ClaimAnswerInput"][];
+            evidence_media_ids: string[];
+            preferred_visit?: string;
+        };
+        ClaimAnswer: {
+            key: string;
+            question: string;
+            answer: string;
+        };
+        ClaimFound: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            item_name: string;
+            category: components["schemas"]["CategoryRef"];
+            description: string;
+            colours: string[];
+            brand?: string | null;
+            /** Format: date-time */
+            found_at: string;
+            found_location_name: string;
+            holding_post?: components["schemas"]["NamedRef"];
+            intended_post?: components["schemas"]["NamedRef"];
+            custody_status: components["schemas"]["CustodyStatus"];
+            status: components["schemas"]["FoundStatus"];
+            photos: components["schemas"]["CandidatePhoto"][];
+            /** @description officers only, access logged */
+            hidden_details?: string | null;
+            /** @description officers only */
+            storage_slot?: string | null;
+        };
+        ClaimLost: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            item_name: string;
+            colours: string[];
+            brand?: string | null;
+            /** Format: date-time */
+            lost_from: string;
+            /** Format: date-time */
+            lost_until: string;
+            /** @description officers only, access logged */
+            private_details?: string | null;
+        };
+        ClaimPerson: {
+            /** Format: uuid */
+            id?: string;
+            full_name: string;
+            /** @description officers only */
+            email?: string;
+            /** @description officers only */
+            phone?: string | null;
+        };
+        ClaimCheckSuggestion: {
+            level?: string;
+            text?: string;
+            links?: string[];
+        };
+        ClaimCheck: {
+            item_key: string;
+            label: string;
+            required: boolean;
+            info_only: boolean;
+            suggestion: components["schemas"]["ClaimCheckSuggestion"];
+            /** @enum {string} */
+            result: "pending" | "pass" | "fail" | "not_applicable";
+            note?: string | null;
+        };
+        ClaimCheckList: {
+            items: components["schemas"]["ClaimCheck"][];
+            /** @description every required item is pass or not_applicable with a note */
+            complete: boolean;
+        };
+        ClaimCheckUpdate: {
+            items: {
+                item_key: string;
+                /** @enum {string} */
+                result: "pending" | "pass" | "fail" | "not_applicable";
+                note?: string;
+            }[];
+        };
+        Claim: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            status: components["schemas"]["ClaimStatus"];
+            source: components["schemas"]["ClaimSource"];
+            found_report: components["schemas"]["ClaimFound"];
+            lost_report: components["schemas"]["ClaimLost"];
+            claimant?: components["schemas"]["ClaimPerson"];
+            /** @description the walk in visitor of a proxy claim */
+            visitor_name?: string | null;
+            statement: string;
+            answers: components["schemas"]["ClaimAnswer"][];
+            preferred_visit?: string | null;
+            evidence: components["schemas"]["PhotoRef"][];
+            decision_reason?: components["schemas"]["RejectionReason"];
+            decision_note?: string | null;
+            /** @description officers only */
+            internal_note?: string | null;
+            reviewer?: components["schemas"]["NamedRef"];
+            /** @description the claimant only, while the claim is approved */
+            handover_code?: string | null;
+            handover_locked: boolean;
+            /** Format: date-time */
+            approved_expires_at?: string | null;
+            /** Format: date-time */
+            info_requested_at?: string | null;
+            /** Format: date-time */
+            handed_over_at?: string | null;
+            /** @description what the caller may do next */
+            actions: string[];
+            version: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ClaimSummary: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            status: components["schemas"]["ClaimStatus"];
+            source: components["schemas"]["ClaimSource"];
+            found_code: string;
+            found_item_name: string;
+            lost_code: string;
+            lost_item_name: string;
+            claimant_name: string;
+            custody_status: components["schemas"]["CustodyStatus"];
+            holding_post_name?: string | null;
+            /** Format: uuid */
+            thumb_media_id?: string | null;
+            /** Format: date-time */
+            approved_expires_at?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ClaimList: {
+            items: components["schemas"]["ClaimSummary"][];
+            next_cursor?: string | null;
+        };
+        ClaimMessageCreate: {
+            message: string;
+        };
+        ClaimRespond: {
+            message: string;
+            evidence_media_ids?: string[];
+        };
+        ClaimMessage: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            author_role: "member" | "officer" | "admin" | "system";
+            author_name: string;
+            body: string;
+            mine: boolean;
+            /** Format: date-time */
+            created_at: string;
+        };
+        ClaimMessageList: {
+            items: components["schemas"]["ClaimMessage"][];
+        };
+        ClaimApprove: {
+            decision_note?: string;
+        };
+        ClaimReject: {
+            reason: components["schemas"]["RejectionReason"];
+            note?: string;
+        };
+        ClaimReason: {
+            reason: string;
+        };
+        ClaimInternalNote: {
+            note: string;
+        };
+        HandoverRequest: {
+            /** Format: uuid */
+            claim_id: string;
+            /** @description absent for a walk in visitor claim */
+            code?: string;
+            /** @enum {string} */
+            recipient_id_type: "ktm" | "ktp" | "sim" | "passport" | "other";
+            recipient_id_last4: string;
+            name_confirmed: boolean;
         };
     };
     responses: {
@@ -3756,6 +4249,487 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssistDescription"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listClaims: {
+        parameters: {
+            query?: {
+                status?: components["parameters"]["StatusFilter"];
+                post_id?: string;
+                found_report_id?: string;
+                cursor?: components["parameters"]["Cursor"];
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Members see their own claims, officers the queue of their posts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createClaim: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimCreate"];
+            };
+        };
+        responses: {
+            /** @description Claim submitted */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getClaim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The claim, projected for the caller */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    pickUpClaim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description K2 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    requestClaimInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimMessageCreate"];
+            };
+        };
+        responses: {
+            /** @description K3 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    respondToClaim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimRespond"];
+            };
+        };
+        responses: {
+            /** @description K4 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getClaimChecks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The verification checklist of AI-08. Opening it is an access logged read */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimCheckList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    putClaimChecks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimCheckUpdate"];
+            };
+        };
+        responses: {
+            /** @description Results stored */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimCheckList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    approveClaim: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The version from the last read, quoted or bare */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimApprove"];
+            };
+        };
+        responses: {
+            /** @description K6, the handover code is issued */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    rejectClaim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimReject"];
+            };
+        };
+        responses: {
+            /** @description K10 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    revokeClaim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimReason"];
+            };
+        };
+        responses: {
+            /** @description K13 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    reopenClaim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimReason"];
+            };
+        };
+        responses: {
+            /** @description K15 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    withdrawClaim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description K14 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    regenerateHandoverCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A new code, shown to the claimant only (BR-HND-02) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listClaimMessages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The thread between claimant and officers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimMessageList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    postClaimMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimMessageCreate"];
+            };
+        };
+        responses: {
+            /** @description Posted */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimMessage"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    setClaimInternalNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimInternalNote"];
+            };
+        };
+        responses: {
+            /** @description Officers only */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    handoverFoundReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HandoverRequest"];
+            };
+        };
+        responses: {
+            /** @description C5, K11, F8 and L8 in one transaction */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Claim"];
                 };
             };
             default: components["responses"]["Problem"];

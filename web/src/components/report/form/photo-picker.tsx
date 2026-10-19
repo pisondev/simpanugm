@@ -37,6 +37,8 @@ export function busy(items: PhotoItem[]): boolean {
 
 type Props = {
   purpose: UploadPurpose
+  // claim evidence takes three images, reports five
+  max?: number
   items: PhotoItem[]
   setItems: Dispatch<SetStateAction<PhotoItem[]>>
   describedBy?: string
@@ -44,7 +46,7 @@ type Props = {
 }
 
 // FR-MEDIA-01 to FR-MEDIA-03: camera or gallery, HEIC conversion, resize, per image progress
-export function PhotoPicker({ purpose, items, setItems, describedBy, invalid }: Props) {
+export function PhotoPicker({ purpose, max = maxPhotos, items, setItems, describedBy, invalid }: Props) {
   const t = useTranslations("form.photos")
   const galleryId = useId()
   const cameraId = useId()
@@ -89,7 +91,7 @@ export function PhotoPicker({ purpose, items, setItems, describedBy, invalid }: 
     if (!files) {
       return
     }
-    const room = maxPhotos - items.length
+    const room = max - items.length
     const picked = Array.from(files).slice(0, Math.max(0, room))
     const fresh = picked.map((file) => ({ file, item: { key: crypto.randomUUID(), progress: 0, state: "preparing" as const } }))
     setItems((prev) => [...prev, ...fresh.map((f) => f.item)])
@@ -109,7 +111,7 @@ export function PhotoPicker({ purpose, items, setItems, describedBy, invalid }: 
     }
   }
 
-  const full = items.length >= maxPhotos
+  const full = items.length >= max
   return (
     <div className="flex flex-col gap-3" aria-describedby={describedBy}>
       <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -146,7 +148,7 @@ export function PhotoPicker({ purpose, items, setItems, describedBy, invalid }: 
         ))}
       </ul>
       {full ? (
-        <p className="text-sm text-muted-foreground">{t("limit")}</p>
+        <p className="text-sm text-muted-foreground">{t("limit", { max })}</p>
       ) : (
         <div className="flex flex-wrap gap-2">
           <label

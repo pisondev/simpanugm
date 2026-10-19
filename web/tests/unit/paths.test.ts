@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { isOpenNow } from "@/lib/hours"
-import { codePattern, homeFor, reportPath, safeNext } from "@/lib/paths"
+import { claimPath, codePattern, homeFor, reportPath, safeNext } from "@/lib/paths"
 import { pick, pickOne, queryString, uuidPattern } from "@/lib/query"
 
 describe("safeNext", () => {
@@ -26,6 +26,11 @@ describe("codes and homes", () => {
   it("routes a code to the right record view", () => {
     expect(reportPath("fnd-2610-0042", true)).toBe("/petugas/laporan/temuan/FND-2610-0042")
     expect(reportPath("LST-2611-0007", false)).toBe("/laporan/hilang/LST-2611-0007")
+  })
+
+  it("routes a claim code to the right view", () => {
+    expect(claimPath("CLM-2611-0001", true)).toBe("/petugas/klaim/CLM-2611-0001")
+    expect(claimPath("CLM-2611-0001", false)).toBe("/klaim/CLM-2611-0001")
   })
 
   it("sends each role to its home", () => {

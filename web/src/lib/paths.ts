@@ -8,6 +8,10 @@ export function safeNext(next: string | null | undefined, fallback: string): str
   return next
 }
 
+export function claimPath(code: string, staff: boolean): string {
+  return staff ? `/petugas/klaim/${code}` : `/klaim/${code}`
+}
+
 export const codePattern = /^(LST|FND)-\d{4}-\d{4,}$/i
 
 export function reportPath(code: string, staff: boolean): string {

@@ -16,7 +16,7 @@ export function idempotencyKey(): string {
   return crypto.randomUUID()
 }
 
-export type UploadPurpose = "lost_report" | "found_report"
+export type UploadPurpose = "lost_report" | "found_report" | "claim_evidence"
 
 // openapi-fetch does not stream multipart progress, so uploads use XMLHttpRequest
 export function uploadMedia(file: Blob, purpose: UploadPurpose, onProgress?: (fraction: number) => void): Promise<{ id: string }> {

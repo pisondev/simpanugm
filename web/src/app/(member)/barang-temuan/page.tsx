@@ -115,6 +115,16 @@ export default async function PublicFoundPage({ searchParams }: PageProps<"/bara
                 <Warehouse className="size-4" aria-hidden />
                 {item.holding_post ? t("atPost", { post: item.holding_post.name }) : t("withFinder")}
               </p>
+              <div className="mt-2 border-t pt-2">
+                <ButtonLink
+                  href={`/klaim/baru?temuan=${item.id}&kategori=${item.category.id}&nama=${encodeURIComponent(item.item_name)}`}
+                  size="sm"
+                  variant="outline"
+                  className="w-full"
+                >
+                  {t("claimAction")}
+                </ButtonLink>
+              </div>
             </li>
           ))}
         </ul>

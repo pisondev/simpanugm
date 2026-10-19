@@ -95,6 +95,7 @@ export default async function CandidatePage({ params }: PageProps<"/laporan/hila
             </div>
           </section>
           <div className="flex flex-wrap gap-2">
+            <ButtonLink href={`/klaim/baru?pasangan=${match.id}`}>{t("claimAction")}</ButtonLink>
             <MaybeMineButton matchId={match.id} />
             <DismissDialog matchId={match.id} scope="owner" then={`/laporan/hilang/${code}`} />
           </div>

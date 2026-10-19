@@ -4,7 +4,7 @@ import { resolve } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import messages from "@/messages/id.json"
-import { custodyStatus, foundStatus, lostStatus } from "@/lib/status"
+import { claimStatus, custodyStatus, foundStatus, lostStatus } from "@/lib/status"
 
 // vitest runs from web/, the contract lives next door in api/
 const spec = readFileSync(resolve(process.cwd(), "../api/openapi.yaml"), "utf8")
@@ -23,6 +23,7 @@ describe("status vocabulary", () => {
     { name: "LostStatus", map: lostStatus, labels: messages.status.lost },
     { name: "FoundStatus", map: foundStatus, labels: messages.status.found },
     { name: "CustodyStatus", map: custodyStatus, labels: messages.status.custody },
+    { name: "ClaimStatus", map: claimStatus, labels: messages.status.claim },
   ]
   for (const c of cases) {
     it(`covers every ${c.name} value`, () => {

@@ -17,4 +17,9 @@ describe("StatusBadge", () => {
     renderUi(<StatusBadge kind="custody" status="in_custody" />)
     expect(screen.getByText("Disimpan di pos")).toBeInTheDocument()
   })
+
+  it("uses the claim vocabulary for claims", () => {
+    renderUi(<StatusBadge kind="claim" status="under_review" />)
+    expect(screen.getByText("Sedang Ditinjau")).toBeInTheDocument()
+  })
 })

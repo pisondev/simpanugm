@@ -1,6 +1,20 @@
 "use client"
 
-import { Database, Ellipsis, FileSearch, FolderOpen, HandHeart, House, LayoutDashboard, PackageOpen, Search, UserRound, Users, Warehouse } from "lucide-react"
+import {
+  Database,
+  Ellipsis,
+  FileSearch,
+  FolderOpen,
+  HandHeart,
+  House,
+  LayoutDashboard,
+  PackageOpen,
+  Search,
+  ShieldQuestion,
+  UserRound,
+  Users,
+  Warehouse,
+} from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 
@@ -36,6 +50,7 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
     receive,
     inventory,
     search,
+    { href: "/petugas/klaim", label: t("officerClaims"), icon: ShieldQuestion },
     { href: "/petugas/lapor-hilang", label: t("proxyLost"), icon: FileSearch },
     { href: "/petugas/lapor-temuan", label: t("proxyFound"), icon: HandHeart },
   ]

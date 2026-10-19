@@ -1,6 +1,6 @@
 "use client"
 
-import { Briefcase, LogOut, UserRound } from "lucide-react"
+import { Briefcase, KeyRound, LogOut, UserRound } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 
@@ -51,6 +51,10 @@ export function UserMenu({ me }: { me: Pick<Me, "full_name" | "email" | "role"> 
         <DropdownMenuLinkItem render={<Link href="/profil" />}>
           <UserRound aria-hidden />
           {t("profile")}
+        </DropdownMenuLinkItem>
+        <DropdownMenuLinkItem render={<Link href="/klaim" />}>
+          <KeyRound aria-hidden />
+          {t("claims")}
         </DropdownMenuLinkItem>
         {staff ? (
           <DropdownMenuLinkItem render={<Link href={me.role === "admin" ? "/admin" : "/petugas"} />}>

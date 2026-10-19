@@ -7,14 +7,20 @@ import {
   FileText,
   Hand,
   Handshake,
+  Hourglass,
+  Inbox,
   type LucideIcon,
+  MessageCircleQuestion,
+  Pause,
   ShieldCheck,
   ShieldQuestion,
   Sparkles,
+  Undo2,
   Warehouse,
+  XCircle,
 } from "lucide-react"
 
-import type { CustodyStatus, FoundStatus, LostStatus } from "./api/types"
+import type { ClaimStatus, CustodyStatus, FoundStatus, LostStatus } from "./api/types"
 
 export type Tone = "neutral" | "info" | "warning" | "primary" | "success" | "danger"
 
@@ -47,6 +53,21 @@ export const custodyStatus = {
   disposed: { icon: ArchiveX, tone: "neutral" },
   cancelled: { icon: Ban, tone: "neutral" },
 } satisfies Record<CustodyStatus, StatusMeta>
+
+export const claimStatus = {
+  submitted: { icon: Inbox, tone: "info" },
+  under_review: { icon: ShieldQuestion, tone: "warning" },
+  info_requested: { icon: MessageCircleQuestion, tone: "warning" },
+  on_hold: { icon: Pause, tone: "neutral" },
+  approved: { icon: ShieldCheck, tone: "primary" },
+  handed_over: { icon: CircleCheck, tone: "success" },
+  rejected: { icon: XCircle, tone: "danger" },
+  withdrawn: { icon: Undo2, tone: "neutral" },
+  expired: { icon: Hourglass, tone: "neutral" },
+} satisfies Record<ClaimStatus, StatusMeta>
+
+// claims that still need a decision or a handover
+export const claimOpen: readonly ClaimStatus[] = ["submitted", "under_review", "info_requested", "on_hold", "approved"]
 
 // tinted badges use the darker text tokens, the base tones fall just under 4.5 to 1 on their own tint
 export const toneClass: Record<Tone, string> = {

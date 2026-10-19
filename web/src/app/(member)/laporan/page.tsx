@@ -29,8 +29,9 @@ export default async function MyReportsPage({ searchParams }: PageProps<"/lapora
       ? { kind: "lost" as const, data: await load(api.GET("/lost-reports", { params: { query } })) }
       : { kind: "found" as const, data: await load(api.GET("/found-reports", { params: { query } })) }
   const tabs = [
-    { id: "hilang", label: t("tabLost") },
-    { id: "temuan", label: t("tabFound") },
+    { id: "hilang", label: t("tabLost"), href: "/laporan" },
+    { id: "temuan", label: t("tabFound"), href: "/laporan?tab=temuan" },
+    { id: "klaim", label: t("tabClaims"), href: "/klaim" },
   ]
   return (
     <>
@@ -39,7 +40,7 @@ export default async function MyReportsPage({ searchParams }: PageProps<"/lapora
         {tabs.map((x) => (
           <Link
             key={x.id}
-            href={x.id === "hilang" ? "/laporan" : "/laporan?tab=temuan"}
+            href={x.href}
             aria-current={tab === x.id ? "page" : undefined}
             className={cn(
               "inline-flex min-h-10 items-center rounded-md px-4 text-sm font-medium text-muted-foreground",
