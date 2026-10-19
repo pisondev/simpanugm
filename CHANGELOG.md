@@ -31,6 +31,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 
 ### Fixed
 
+- The web build works again: a `middleware.ts` next to `proxy.ts` made Next.js 16 refuse to build, the request id is set in `proxy.ts` alone.
 - Migrations up and down verified: automated test `TestMigrationsUpDownUp` validates all 13 goose migrations rolling up, down to 0, and up again on a clean PostgreSQL instance.
 - Corrected post restore report verification query in `deploy/scripts/restore.sh` to count from `lost_reports` and `found_reports`.
 - Resolved River job deduplication interference on `MatchSweep` during model activation and rollback.
