@@ -210,6 +210,18 @@ Reason chips, for example: "Skor kecocokan 86%", "Kartu identitas", "Klaim menun
 Cells under 3 outcomes are suppressed. Every metric can be filtered by model version so a
 newly activated version is compared with the one before.
 
+#### Sprint 4 Data Foundations Available
+
+The database foundation for AI-12 monitoring is prepared through migration 00012. The following views are available for Sprint 4 UI endpoints:
+
+- `ai_monitoring_assist_outcomes`: aggregates assistant field suggestions and outcomes (accepted, edited, ignored, guessed) across lost and found reports.
+- `ai_monitoring_dismiss_rates`: computes total matches, owner dismissals, officer dismissals, and dismiss rates per tier.
+- `ai_monitoring_confirmed_ranks`: computes confirmed match counts, rank distribution (rank 1, rank <= 5, rank <= 10), and online Recall@1, Recall@5, and Recall@10.
+- `ai_monitoring_top1_histogram`: computes counts of top 1 match scores across fixed score buckets (< 0.40, 0.40 to 0.54, 0.55 to 0.71, 0.72 to 0.84, >= 0.85).
+- `ai_monitoring_summary`: aggregates all four metric groups in a single unified JSON query row for dashboard consumers.
+
+In addition, Prometheus runtime metrics in `api` (`match_top1_score`, `match_pipeline_seconds`, `match_candidates_stored`, `ml_request_duration_seconds`) and `ml` (`ml_models_loaded`, `ml_inference_seconds`, `ml_request_duration_seconds`) feed operational dashboards.
+
 ## Officer and administrator
 
 ### AI-13 Semantic Search

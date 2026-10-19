@@ -30,6 +30,8 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Database foundation for AI monitoring (Sprint 3 AI handoff, AI-12, FR-ANL-07, FR-ADMIN-06): migration 00012 adding database views `ai_monitoring_assist_outcomes`, `ai_monitoring_dismiss_rates`, `ai_monitoring_confirmed_ranks`, `ai_monitoring_top1_histogram`, and composite summary view `ai_monitoring_summary`; documented Sprint 4 data foundations in `docs/ai/ai-features.md`; verified with integration test suite.
+
 - Observability metrics for matching engine and ML inference (Sprint 3 AI handoff, AI-12, NFR-OBS-01 to NFR-OBS-03): added `ml_models_loaded`, `ml_inference_seconds`, and `ml_request_duration_seconds` to the ML service; added `ml_request_duration_seconds`, `match_pipeline_seconds`, `match_top1_score`, and `match_candidates_stored` to API platform metrics; wired Prometheus observation across HTTP client and worker scoring pipeline; verified with unit test suites.
 
 - ML case clustering endpoint (Sprint 3 AI handoff, AI-11, US-48, FR-ANL-06, ML-02): implemented `POST /v1/cluster` using HDBSCAN from scikit-learn on L2-normalized vectors with configurable `min_cluster_size` and `min_samples`, returning cluster assignments, cluster membership probabilities, and the scikit-learn version; updated OpenAPI contract in `ml/openapi.json` and endpoint documentation in `ml/README.md`; verified with unit and contract test suites.
