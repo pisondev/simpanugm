@@ -6,6 +6,7 @@ This document lists attribution, sources, and open licenses for all photographs 
 
 - Sources: Wikimedia Commons official API, Open Images CC subset, or team fixtures.
 - Licenses: Only CC0 1.0, CC-BY, CC-BY-SA, or Public Domain.
+- Share alike: images marked derived are adaptations of a listed source, and an adaptation of a CC BY-SA source is shared under the same CC BY-SA licence.
 - Privacy: No photographs contain identifiable faces, persons, or real identity documents.
 - Storage: All images downscaled to max 1024px longest edge to keep repo footprint minimal.
 
