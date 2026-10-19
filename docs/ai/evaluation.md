@@ -232,7 +232,7 @@ the same grouping and gates.
 | T6 brand recall | >= 0.50 | 0.000 | FAIL (SINTETIS) | SINTETIS; TERTUNDA |
 | T7 duplicate precision | >= 0.80 | 0.000 | FAIL (SINTETIS) | SINTETIS; TERTUNDA |
 | T8 semantic recall@5 | >= 0.80 | 0.000 | FAIL (SINTETIS) | SINTETIS; TERTUNDA |
-| T9 CPU Latency | matching-engine sec 10 | p50 19 to 737 ms, p95 23 to 747 ms | PASS | Verified with `make eval-latency` on reference laptop |
+| T9 CPU Latency | matching-engine sec 10 | Ref Laptop: p50 19 to 737 ms, p95 23 to 747 ms (PASS); VPS: TERTUNDA | PASS (Ref Laptop) / TERTUNDA (VPS) | Measured with `make eval-latency` on reference laptop; VPS drill pending staging deploy |
 
 ### 13.3 Learned fusion experiment (B4 vs B3 on synthetic data | SINTETIS)
 

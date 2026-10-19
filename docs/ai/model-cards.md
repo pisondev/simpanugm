@@ -18,8 +18,8 @@ Evaluation metrics requiring real campus data are marked TERTUNDA until the data
 | License | MIT |
 | Source | Hugging Face Hub / OpenAI CLIP architecture |
 | Input Format | JPEG/WebP, resized to 224x224, bicubic interpolation, normalized with CLIP mean/std |
-| Measured Latency | p50: 72 ms (1 image), 117 ms (2 images); p95: 78 ms (1 image), 129 ms (2 images) |
-| Hardware Profile | Reference laptop (Windows 11, Intel 12 logical CPUs, 4 PyTorch threads) |
+| Measured Latency | Ref laptop: p50 72 ms (1 img), 117 ms (2 img); p95 78 ms (1 img), 129 ms (2 img). Target VPS server: TERTUNDA |
+| Hardware Profile | Ref laptop (Windows 11, Intel 12 logical CPUs, 4 PyTorch threads). Target VPS: 4 vCPU (TERTUNDA) |
 
 ### Intended Use
 Extract dense 512-dimensional visual feature vectors for:
@@ -50,8 +50,8 @@ Extract dense 512-dimensional visual feature vectors for:
 | License | Apache-2.0 |
 | Source | Hugging Face Hub / Sentence-Transformers (multilingual distillation of CLIP text tower) |
 | Input Format | Raw text string, tokenized with multilingual tokenizer, max 128 tokens |
-| Measured Latency | p50: 24 ms; p95: 28 ms (1 text) |
-| Hardware Profile | Reference laptop (Windows 11, Intel 12 logical CPUs, 4 PyTorch threads) |
+| Measured Latency | Ref laptop: p50 24 ms; p95 28 ms (1 text). Target VPS server: TERTUNDA |
+| Hardware Profile | Ref laptop (Windows 11, Intel 12 logical CPUs, 4 PyTorch threads). Target VPS: 4 vCPU (TERTUNDA) |
 
 ### Intended Use
 Encode textual descriptions of lost reports directly into CLIP visual embedding space when
@@ -79,8 +79,8 @@ the lost report does not have an attached photo (cross-modal matching T2).
 | License | MIT |
 | Source | Hugging Face Hub / Microsoft |
 | Input Format | Structured text with prefix `query: ` or `passage: `, max 512 tokens |
-| Measured Latency | p50: 19 ms; p95: 23 ms (1 text) |
-| Hardware Profile | Reference laptop (Windows 11, Intel 12 logical CPUs, 4 PyTorch threads) |
+| Measured Latency | Ref laptop: p50 19 ms; p95 23 ms (1 text). Target VPS server: TERTUNDA |
+| Hardware Profile | Ref laptop (Windows 11, Intel 12 logical CPUs, 4 PyTorch threads). Target VPS: 4 vCPU (TERTUNDA) |
 
 ### Intended Use
 Compute dense semantic representations of report titles, descriptions, categories, colors,
@@ -109,8 +109,8 @@ and brands for text similarity matching and semantic search (AI-01, AI-13).
 | License | Apache-2.0 |
 | Source | JaidedAI EasyOCR |
 | Input Format | Image scaled to short side 1024 px |
-| Measured Latency | p50: 737 ms; p95: 747 ms (mock identity card) |
-| Hardware Profile | Reference laptop (Windows 11, Intel 12 logical CPUs, 4 PyTorch threads) |
+| Measured Latency | Ref laptop: p50 737 ms; p95 747 ms (mock identity card). Target VPS server: TERTUNDA |
+| Hardware Profile | Ref laptop (Windows 11, Intel 12 logical CPUs, 4 PyTorch threads). Target VPS: 4 vCPU (TERTUNDA) |
 
 ### Intended Use
 Detect printed and card text on items (e.g. KTM, name tags, student cards) to:
