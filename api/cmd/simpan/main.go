@@ -111,7 +111,7 @@ func setup(ctx context.Context, service string) (config.Config, *pgxpool.Pool, e
 
 func clockFor(cfg config.Config) clock.Clock {
 	if cfg.FeatureFakeClock {
-		return clock.NewFake(time.Now())
+		return clock.NewRunning(time.Now())
 	}
 	return clock.System{}
 }

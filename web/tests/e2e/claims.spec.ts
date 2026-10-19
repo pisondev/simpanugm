@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test"
 
-import { bootstrapAdmin, expectAccessible, latestLink, photo, registerMember, setPassword, signIn, uniqueEmail } from "./helpers"
+import { bootstrapAdmin, expectAccessible, attachPhoto, latestLink, registerMember, setPassword, signIn, uniqueEmail } from "./helpers"
 
 test.describe.configure({ mode: "serial" })
 
@@ -58,8 +58,7 @@ test("officer records found item in custody and member files lost report", async
   await expect(officer).toHaveURL(/\/petugas$/)
   await officer.goto("/petugas/lapor-temuan")
   await expect(officer.getByRole("heading", { name: "Lapor temuan atas nama" })).toBeVisible()
-  await officer.locator('input[type="file"][multiple]').setInputFiles(await photo(officer))
-  await expect(officer.getByRole("button", { name: "Hapus foto 1" })).toBeVisible()
+  await attachPhoto(officer)
   await expect(officer.getByText(/Mengunggah|Menyiapkan/)).toHaveCount(0, { timeout: 20_000 })
   await officer.getByRole("button", { name: "Lanjut" }).click()
   await pickCategory(officer, "kunci", "Kunci Motor")
@@ -237,8 +236,7 @@ test("J6 retention passes on fake clock, officer disposes unclaimed item", async
   // Officer records an item in custody at the post
   await officer.goto("/petugas/lapor-temuan")
   await expect(officer.getByRole("heading", { name: "Lapor temuan atas nama" })).toBeVisible()
-  await officer.locator('input[type="file"][multiple]').setInputFiles(await photo(officer))
-  await expect(officer.getByRole("button", { name: "Hapus foto 1" })).toBeVisible()
+  await attachPhoto(officer)
   await expect(officer.getByText(/Mengunggah|Menyiapkan/)).toHaveCount(0, { timeout: 20_000 })
   await officer.getByRole("button", { name: "Lanjut" }).click()
   await pickCategory(officer, "payung", "Payung")

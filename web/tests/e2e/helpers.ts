@@ -105,3 +105,12 @@ export async function photo(page: Page): Promise<{ name: string; mimeType: strin
   })
   return { name: "tumbler.jpg", mimeType: "image/jpeg", buffer: Buffer.from(data.split(",")[1] ?? "", "base64") }
 }
+
+// the file input can change before React has hydrated the page, so the file is set again until the thumbnail shows
+export async function attachPhoto(page: Page) {
+  const payload = await photo(page)
+  await expect(async () => {
+    await page.locator('input[type="file"][multiple]').setInputFiles(payload)
+    await expect(page.getByRole("button", { name: "Hapus foto 1" })).toBeVisible({ timeout: 3000 })
+  }).toPass({ timeout: 20_000 })
+}

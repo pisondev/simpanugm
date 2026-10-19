@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type AiMonitoringAssistOutcome struct {
@@ -161,6 +162,24 @@ type ClaimMessage struct {
 	AuthorRole string
 	Body       string
 	CreatedAt  time.Time
+}
+
+type ClusterMember struct {
+	RunID        uuid.UUID
+	ReportType   string
+	ReportID     uuid.UUID
+	ClusterLabel int32
+	Probability  float32
+}
+
+type ClusterRun struct {
+	ID          uuid.UUID
+	Params      []byte
+	Versions    []byte
+	Status      string
+	TriggeredBy *uuid.UUID
+	StartedAt   time.Time
+	FinishedAt  *time.Time
 }
 
 type CodeSequence struct {
@@ -405,6 +424,40 @@ type ModelVersion struct {
 	ActivatedBy  *uuid.UUID
 	RetiredAt    *time.Time
 	CreatedAt    time.Time
+}
+
+type MvHourWeekday struct {
+	ReportType string
+	Weekday    int32
+	HourWib    int32
+	Count      int64
+}
+
+type MvMatchOutcome struct {
+	ClaimID         uuid.UUID
+	Tier            *string
+	RankAtClaim     *int16
+	Outcome         string
+	FusionVersionID uuid.UUID
+	ClosedAt        time.Time
+}
+
+type MvReportsDaily struct {
+	DayWib     pgtype.Date
+	ReportType string
+	CategoryID uuid.UUID
+	LocationID *uuid.UUID
+	Count      int64
+}
+
+type MvReturnTime struct {
+	FoundReportID uuid.UUID
+	CategoryID    uuid.UUID
+	ZoneID        uuid.UUID
+	FoundAt       time.Time
+	ReceivedAt    *time.Time
+	ReturnedAt    *time.Time
+	HoursToReturn interface{}
 }
 
 type Notification struct {

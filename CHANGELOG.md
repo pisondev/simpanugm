@@ -23,6 +23,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Fixed
 
+- The fake clock of the end to end stack keeps running from where it was set instead of freezing, so a long suite no longer falls behind the browser and gets "found in the future" refusals. The generated sqlc models match the migrations again, and the photo step of the end to end journeys retries until the page has hydrated.
 - The end to end suite no longer trips the registration limit of five accounts per hour and address: `AUTH_REGISTER_PER_HOUR` sets it, the dev Compose override raises it, and the axe helper waits for a fading toast before it scans.
 - Resending a verification link or starting an email change no longer fails for an account without earlier tokens of that kind: the issue statistics default to the epoch instead of minus infinity, which Go cannot represent.
 - `api/internal/media` and `api/internal/platform/storage` are in the repository: unanchored `media/` and `storage/` ignore rules had kept them out, so a fresh clone did not build. The rules are anchored to the root now.

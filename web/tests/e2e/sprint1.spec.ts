@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test"
 
-import { bootstrapAdmin, expectAccessible, latestLink, photo, registerMember, setPassword, signIn, uniqueEmail } from "./helpers"
+import { bootstrapAdmin, expectAccessible, attachPhoto, latestLink, registerMember, setPassword, signIn, uniqueEmail } from "./helpers"
 
 // release v0.1.0 exit of project-plan Sprint 1: staff are invited, a member files both report types with a photo,
 // an officer receives the item into custody and finds reports by code and by text. J2 continues with the same accounts
@@ -85,8 +85,7 @@ test("the member files a found report with a photo and is told where to hand it 
   await expect(page).toHaveURL(/\/beranda$/)
 
   await page.goto("/lapor/temuan")
-  await page.locator('input[type="file"][multiple]').setInputFiles(await photo(page))
-  await expect(page.getByRole("button", { name: "Hapus foto 1" })).toBeVisible()
+  await attachPhoto(page)
   await expect(page.getByText(/Mengunggah|Menyiapkan/)).toHaveCount(0, { timeout: 20_000 })
   await page.getByRole("button", { name: "Lanjut" }).click()
   // J3: the assistant looks at the photo and either fills the form or says it cannot, the form works both ways
@@ -140,7 +139,7 @@ test("J2 an officer records a matching item handed in at the desk and sees the c
   await signIn(page, officerEmail, password)
   await expect(page).toHaveURL(/\/petugas$/)
   await page.goto("/petugas/lapor-temuan")
-  await page.locator('input[type="file"][multiple]').setInputFiles(await photo(page))
+  await attachPhoto(page)
   await expect(page.getByText(/Mengunggah|Menyiapkan/)).toHaveCount(0, { timeout: 20_000 })
   await page.getByRole("button", { name: "Lanjut" }).click()
   await pickCategory(page, "tumbler", "Tumbler")
