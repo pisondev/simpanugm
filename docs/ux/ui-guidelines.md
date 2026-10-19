@@ -64,8 +64,10 @@ Inter through `next/font`, with system UI as fallback.
 ### 3.3 Space, shape, elevation
 
 Tailwind's 4 px scale. Page padding 16 px on mobile, 24 px from `md`. Radius 8 px on
-inputs and buttons, 12 px on cards and sheets. Two shadows only: `shadow-sm` for cards,
-`shadow-lg` for dialogs and sheets.
+inputs and buttons, 12 px on cards and sheets. Semantic elevation roles extend the
+original two-shadow baseline: `shadow-surface` for resting cards, `shadow-raised` for
+featured content, `shadow-floating` for dialogs and sheets. Existing `shadow-sm` and
+`shadow-lg` remain valid during migration. Only decorative heroes use 24 px corners.
 
 ### 3.4 Breakpoints
 
@@ -196,3 +198,40 @@ Use these words consistently. The glossary has the English equivalents.
 - Form errors are announced with `aria-live="polite"` and linked with `aria-describedby`.
 - Motion limited to 200 ms transitions and disabled under `prefers-reduced-motion`.
 - No information by colour alone: every badge has a label, every chart a table.
+
+## 8. Visual and motion foundations
+
+Research and rationale: [design-research.md](design-research.md).
+
+| Token or class | Use |
+|---|---|
+| `bg-surface-inset`, `bg-surface-raised` | Recessed evidence header and raised content |
+| `surface` | Bordered white 12 px panel with resting elevation |
+| `ai-panel` | Quiet blue to white gradient and border for model evidence |
+| `hero-wash` | Local gradient with 24 px corners, no remote background |
+| `auth-texture` | Optional CSS dot texture behind an auth card, applied in phase 2 |
+| `--elevation-1`, `--elevation-2`, `--elevation-3` | Resting, featured, floating shadows |
+| `--motion-fast`, `--motion-enter`, `--motion-score` | 120, 160, 200 ms |
+| `--motion-ease` | Standard easing with no overshoot |
+| `motion-press`, `motion-lift` | Press feedback; hover lift only with a fine hover device |
+| `motion-fade`, `motion-slide`, `motion-stagger` | Decorative entrance; stagger uses `--motion-index`, capped at 120 ms |
+| `motion-shimmer` | Reserved skeleton with three decorative shimmer passes |
+| `suggested-field` | One short opacity highlight, never delays setting the actual value |
+
+`components/motion/primitives.tsx` exports `Reveal`, `Stagger`, `CountUp`, `AnimatedBar`,
+`PageTransition` and `useReducedMotion`. Counts keep a final accessible value and a
+reserved-width visual layer. Bars scale only the fill and retain final ARIA values.
+Observers and animation frames are cleaned up; changing motion preference cancels motion.
+
+`PageTransition` names one content region for native cross-document View Transitions.
+CSS opts in only for no-preference users. Unsupported browsers and Next.js soft
+navigations render immediately without a page effect. Do not intercept the router or
+enable experimental React transitions. Render only one named region per document.
+
+`ComparisonPanel` is the canonical two-column evidence layout. Use unique translated
+side titles and place photos, status, details and scores in each side. It stacks below
+`lg`; the officer board adopts it in phase 2. `EmptyState` uses original Lucide geometry.
+
+Inter's Latin variable subset is checked into `web/src/app/fonts/`, loaded through
+`next/font/local`, and accompanied by its OFL license. Both build and runtime font
+delivery work without a connection to Google Fonts.

@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next"
-import { Inter } from "next/font/google"
+import localFont from "next/font/local"
 import { NextIntlClientProvider } from "next-intl"
 import { getTranslations } from "next-intl/server"
 
 import { Providers } from "./providers"
 import "./globals.css"
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" })
+const inter = localFont({ src: "./fonts/inter-latin-variable.woff2", weight: "100 900", variable: "--font-inter", display: "swap" })
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("meta")

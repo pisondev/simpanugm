@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Add semantic surfaces, local Inter, accessible motion primitives, finite skeleton shimmer and a reusable evidence comparison panel.
 - Document visual and motion research for the three phase 1 reference screens, including offline, performance and accessibility budgets.
 
 ## [1.0.0] - Draft
