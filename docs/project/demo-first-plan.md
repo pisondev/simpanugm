@@ -11,6 +11,12 @@ demo that is smooth, good looking and convincing, on top of the platform that is
 built and tested. Hosting (VPS and domain) is on hold until Pison says otherwise, the demo
 runs from a laptop with Docker Compose.
 
+The demo is the real system, not a mock. Every feature works and anyone, including the
+lecturer, can register, file a report with their own photo, receive candidates, claim,
+review and hand over without a script. The demo only skips the slow research steps:
+annotation, dataset freezing and the official evaluation. What the user sees must behave
+as a production system would.
+
 Nothing built so far is removed. Items that no longer have priority are parked, not
 deleted.
 
@@ -38,8 +44,10 @@ Four actors, each with one moment where the AI is visibly useful.
 ## 4. Data for the demo
 
 - A curated set of about 12 hero scenarios, each a lost report and a found report of the
-  same kind of object so that a visible match exists, plus about 40 background reports so
-  lists, the map and the charts look alive.
+  same kind of object so that a visible match exists, plus a background pool of about 150
+  found items across the categories and zones. The pool matters: when someone files a new
+  report with their own photo, the matching engine must find plausible neighbours in it,
+  and the lists, the map and the charts must look alive.
 - Photos come from two places: photos the team takes of its own belongings, and public
   images with a free licence. Every file is listed with source and licence in
   `data/demo/SOURCES.csv`. Nothing from social media, nothing with a recognisable person
@@ -67,6 +75,7 @@ Each one has its done condition. Work is done in order, one commit per stage.
 | W4 | AI made visible | Every AI moment of section 3 is clear on screen, has a graceful state when the service is slow, and is covered by a Playwright journey with screenshots |
 | W5 | Demo run kit | `docs/project/demo-script.md` with minutes, clicks and Indonesian speaker notes, a Playwright run that records video and screenshots of the happy paths as a fallback |
 | W6 | Light usability pass | A one page kit for 3 to 5 classmates, 10 minutes each, the findings are fixed or listed. Optional, replaces the formal study |
+| W8 | Try it yourself | A visitor can register and verify the email through the capture inbox (Mailpit link in the demo banner), or sign in as any demo actor with one click on the login page when demo mode is on. An admin can reset the demo data. Demo mode is refused in production |
 | W7 | Live demo reliability | `make demo-check` verifies services, models loaded, seeded accounts, an end to end smoke over the story, and memory use on a laptop. No external network call is needed during the demo |
 
 ## 6. Who does what
@@ -80,6 +89,7 @@ Each one has its done condition. Work is done in order, one commit per stage.
 
 ## 7. Minimum the team must still do by hand
 
+- Allow the download of free licence images for the background pool (Pison decides, see W2), or supply about 150 photos.
 - Photograph about 12 own items twice (finder style, owner style), 30 minutes in total.
 - Walk through the demo script once as each actor and say what feels wrong.
 - Decide the demo date, the machine it runs on and who speaks when.
