@@ -85,21 +85,22 @@ candidates after an activation.
 | Configuration | `restic backup /opt/simpanugm --exclude backups` | daily | same policy |
 
 The restic repository is an S3 compatible bucket in a different provider from the VPS.
-`deploy/backup/backup.sh` runs from a systemd timer, reports success to Prometheus through
+`deploy/scripts/backup.sh` runs from a systemd timer, reports success to Prometheus through
 a textfile metric, and `BackupMissing` alerts when that metric is older than 26 hours.
 
 ## 4. Restore
 
-Practised once before v1.0.0 on a fresh VPS, timed and recorded in
-`docs/operations/restore-drill.md`. Target: under 4 hours (NFR-AVAIL-04).
+Scheduled to be practiced on a fresh staging VPS prior to production launch (PENDING HUMAN),
+timed and recorded using the protocol template in `docs/operations/restore-drill.md`.
+Target: under 4 hours (NFR-AVAIL-04).
 
 1. Provision a server per deployment section 2 and install Docker.
 2. Copy `/opt/simpanugm` from the restic snapshot: `restic restore latest --target / --include /opt/simpanugm`.
 3. `docker compose up -d postgres` and wait for health.
-4. `restic dump latest /backups/simpan.dump > simpan.dump`, then
-   `docker compose exec -T postgres pg_restore --clean --if-exists -U simpan_owner -d simpan < simpan.dump`.
+4. `restic dump latest /backups/simpan.dump > simpan.dump`, then execute
+   `./deploy/scripts/restore.sh simpan.dump simpan` to restore and verify schema integrity.
 5. Restore the media volume snapshot into the new volume path.
-6. `docker compose up -d`, run the smoke test of deployment section 5.
+6. Run `./deploy/scripts/deploy.sh` or `docker compose -f deploy/compose.prod.yaml up -d`, then run smoke tests.
 7. Point DNS to the new server if the old one is gone.
 8. Run `simpan admin sweep` so matching state is recomputed for anything the dump missed.
 
