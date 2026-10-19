@@ -7,10 +7,10 @@ AI matching engine ranks the most likely pairs from photos, descriptions, locati
 time, and campus security officers verify ownership before anything is handed back. The
 AI ranks, people decide.
 
-> Status: **Sprint 1 foundation running.** `make dev` starts the whole stack: the Go API
-> with accounts, master data, reports, photos, custody and search, the Next.js app for
-> members, officers and admins, the inference service skeleton, and the `data/` seed
-> foundation. AI matching follows in Sprint 2. See [docs/project/project-plan.md](docs/project/project-plan.md).
+> Status: **Sprint 3 complete.** `make dev` starts the whole stack: the Go API
+> with accounts, master data, reports, photos, custody, search, matching, review board, and duplicate management,
+> the Next.js app for members, officers and admins, the FastAPI inference and clustering service,
+> and the `data/` seed foundation. See [docs/project/project-plan.md](docs/project/project-plan.md).
 
 ## What it does
 

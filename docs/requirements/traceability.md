@@ -17,7 +17,7 @@ Test levels: **U** unit, **I** integration, **C** contract, **E** end to end jou
 | Claim and Ownership Verification | FR-CLAIM-01 to FR-CLAIM-12, FR-CUST-03, FR-CUST-04, BR-CLM, BR-HND | US-25 to US-29, US-31 | `api/internal/claims`, `api/internal/custody` | U, I, E J4, J5 |
 | Case Status and History Tracking | state-machines L, F, C, M, K, FR-AUDIT-04, FR-LOST-11, FR-LOST-12, FR-CUST-06 | US-09, US-11, US-29, US-33 | `machine.go` in each module | U per transition, E J6 |
 | Alerts and Notification System | FR-NOTIF-01 to FR-NOTIF-07, notifications catalog | US-22, US-35, US-36 | `api/internal/notify` | U, I, E J1, J2 |
-| Search and Operational Dashboard | FR-SEARCH-01 to FR-SEARCH-06, FR-OFF-01 to FR-OFF-06 | US-37 to US-41 | `api/internal/search`, `api/internal/officer` | U, I, E J4 |
+| Search and Operational Dashboard | FR-SEARCH-01 to FR-SEARCH-06, FR-OFF-01 to FR-OFF-06 | US-37 to US-41 | `api/internal/search`, `api/internal/officer`, `web/src/app/(officer)/petugas` | U, I, E J4 |
 
 ## 2. System features
 
@@ -77,9 +77,9 @@ Test levels: **U** unit, **I** integration, **C** contract, **E** end to end jou
 |---|---|
 | User and Access Data | `users`, `sessions`, `auth_tokens`, `officer_posts` |
 | Lost Item Report Data | `lost_reports`, `lost_report_places` |
-| Found Item Report Data, including storage status and receiving officer | `found_reports` (`custody_status`, `received_by`, `holding_post_id`), `custody_events` |
+| Found Item Report Data, including storage status and receiving officer | `found_reports` (`custody_status`, `received_by`, `holding_post_id`), `custody_events`, `duplicate_links` |
 | Media and AI Feature Data | `media`, `image_attributes`, `image_embeddings`, `text_embeddings_e5`, `text_embeddings_clip` |
-| AI Match Data, including model and version metadata | `matches` (`fusion_version_id`, `component_versions`), `model_versions`, `match_feedback` |
+| AI Match Data, including model and version metadata | `matches` (`fusion_version_id`, `component_versions`, `pinned_at`), `model_versions`, `match_feedback`, `ai_monitoring_views` |
 | Claim and Verification Data | `claims`, `claim_checks`, `claim_messages`, `media` with `claim_id` |
 | Notification and Audit Data | `notifications`, `audit_logs`, `status_history` |
 

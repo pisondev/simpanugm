@@ -510,6 +510,18 @@ unique index that requires.
 The suppression of BR-PRV-05 is applied in the query layer, not in the views, so the
 threshold stays a setting.
 
+### 5.2 AI monitoring views
+
+Standard views provided by migration 00012 for AI-12 monitoring metrics:
+
+| View | Purpose |
+|---|---|
+| `ai_monitoring_assist_outcomes` | Assist acceptance, edit, and rejection aggregates |
+| `ai_monitoring_dismiss_rates` | Dismissal rate across matches, partitioned by tier |
+| `ai_monitoring_confirmed_ranks` | Confirmed match ranks and counts for reciprocal rank computation |
+| `ai_monitoring_top1_histogram` | Histogram distribution of top-1 match scores across 10-percentile bins |
+| `ai_monitoring_summary` | Summary table joining AI performance indicators in a single row |
+
 ## 6. Retention jobs
 
 Periodic jobs on the `maintenance` queue, daily at 03:30 WIB unless stated.

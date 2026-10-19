@@ -201,6 +201,7 @@ Permission names are from [permissions.md](../requirements/permissions.md).
 | GET | `/officer/duplicates` | `report.mark_duplicate` | Suggested duplicate pairs |
 | POST | `/officer/duplicates/{id}/confirm` | `report.mark_duplicate` | Merge, FR-OFF-05 |
 | POST | `/officer/duplicates/{id}/reject` | `report.mark_duplicate` | |
+| POST | `/officer/duplicates/merge` | `report.mark_duplicate` | Manual merge of two reports (FR-OFF-05, AI-06) |
 | GET | `/search` | `search.reports` | `?q=&type=&category_id=&zone_id=&location_id=&from=&to=&status=&custody=&post_id=&semantic=true`. Staff only. Members find their own reports through the list endpoints and everything else through the public listing |
 
 ### 2.10 Notifications
