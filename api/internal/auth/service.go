@@ -74,6 +74,11 @@ func NewService(pool *pgxpool.Pool, c clock.Clock, mailer *notify.Mailer, st *se
 	}
 }
 
+// the default of five an hour per address stays for production, the e2e stack lifts it
+func (s *Service) LimitRegistrations(perHour int) {
+	s.register = ratelimit.New(perHour, time.Hour, s.clock.Now)
+}
+
 type Session struct {
 	Token     string
 	ExpiresAt time.Time

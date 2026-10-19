@@ -76,6 +76,10 @@ func NewServices(d Deps) *Services {
 	mailer := notify.NewMailer(d.Jobs, strings.TrimRight(d.Config.PublicBaseURL, "/"))
 	notifier := notify.NewNotifier(d.Jobs, d.Config.PublicBaseURL, st, d.Clock)
 	hub := notify.NewHub(d.Pool)
+	authSvc := auth.NewService(d.Pool, d.Clock, mailer, st)
+	if d.Config.RegisterPerHour > 0 {
+		authSvc.LimitRegistrations(d.Config.RegisterPerHour)
+	}
 	md := masterdata.NewService(d.Pool, d.Clock, st)
 	med := media.NewService(d.Pool, d.Store, d.Clock)
 	cs := custody.NewService(d.Pool, d.Clock, st, notifier)
@@ -85,7 +89,7 @@ func NewServices(d Deps) *Services {
 	engine := matching.NewEngine(d.Pool, d.Clock, ml, d.Store, notifier, st, d.Jobs)
 	return &Services{
 		Settings: st, Mailer: mailer, Notifier: notifier, Hub: hub, Notify: notify.NewService(d.Pool, d.Clock, hub),
-		Auth:       auth.NewService(d.Pool, d.Clock, mailer, st),
+		Auth:       authSvc,
 		Masterdata: md, Media: med, Custody: cs,
 		Reports:  rep,
 		Claims:   claims.NewService(d.Pool, d.Clock, st, notifier, med, md, cs, rep, d.Config.HandoverPepper),

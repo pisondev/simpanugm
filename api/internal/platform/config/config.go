@@ -26,6 +26,9 @@ type Config struct {
 	// BR-HND-01, the pepper of the handover codes, at least 16 characters
 	HandoverPepper string `env:"HANDOVER_PEPPER"`
 
+	// registrations per hour from one address, the end to end suite registers more accounts than the default allows
+	RegisterPerHour int `env:"AUTH_REGISTER_PER_HOUR" envDefault:"5"`
+
 	MLBaseURL       string `env:"ML_BASE_URL"`
 	MLInternalToken string `env:"ML_INTERNAL_TOKEN"`
 

@@ -7,6 +7,12 @@ const mailpit = process.env.E2E_MAILPIT_URL ?? "http://localhost:8025"
 
 // NFR-USE-03: WCAG 2.1 AA on every page a journey visits
 export async function expectAccessible(page: Page) {
+  // a toast that is still fading in or out has no stable contrast, scan once it is gone
+  await page
+    .locator("[data-sonner-toast]")
+    .first()
+    .waitFor({ state: "detached", timeout: 10_000 })
+    .catch(() => undefined)
   const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()
   expect(result.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([])
 }

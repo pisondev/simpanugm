@@ -8,6 +8,8 @@ services:
     command: ["seed", "--overlay", "/app/dev-seed"]
 
   api:
+    environment:
+      AUTH_REGISTER_PER_HOUR: "500"
     ports:
       - "8090:8090"
       - "9091:9091"

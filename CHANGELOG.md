@@ -20,6 +20,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Fixed
 
+- The end to end suite no longer trips the registration limit of five accounts per hour and address: `AUTH_REGISTER_PER_HOUR` sets it, the dev Compose override raises it, and the axe helper waits for a fading toast before it scans.
 - Resending a verification link or starting an email change no longer fails for an account without earlier tokens of that kind: the issue statistics default to the epoch instead of minus infinity, which Go cannot represent.
 - `api/internal/media` and `api/internal/platform/storage` are in the repository: unanchored `media/` and `storage/` ignore rules had kept them out, so a fresh clone did not build. The rules are anchored to the root now.
 - The API image starts again: it is built with the `nodynamic` tag, so `gen2brain/webp` stays on its WebAssembly encoder instead of linking libc through purego, which `distroless/static` cannot load. A root `.dockerignore` replaces the one in `api/` that the root build context never read.
