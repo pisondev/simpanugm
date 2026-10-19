@@ -140,7 +140,7 @@ export default async function CampusHotspotsPage({ searchParams }: { searchParam
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div tabIndex={0} className="overflow-x-auto rounded-md border">
+          <div className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>

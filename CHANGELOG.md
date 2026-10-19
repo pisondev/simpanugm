@@ -31,7 +31,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 
 ### Fixed
 
-- Admin analytics pages pass the contrast and scrollable region checks of axe (success text token, focusable tables), and the end to end admin bootstrap runs with `--no-deps` so parallel workers no longer fight over the migrate container.
+- Admin analytics pages pass the contrast and scrollable region checks of axe (success text token, keyboard focusable table containers), and the end to end admin bootstrap runs with `--no-deps` so parallel workers no longer fight over the migrate container.
 - The web build works again: a `middleware.ts` next to `proxy.ts` made Next.js 16 refuse to build, the request id is set in `proxy.ts` alone.
 - Migrations up and down verified: automated test `TestMigrationsUpDownUp` validates all 13 goose migrations rolling up, down to 0, and up again on a clean PostgreSQL instance.
 - Corrected post restore report verification query in `deploy/scripts/restore.sh` to count from `lost_reports` and `found_reports`.
