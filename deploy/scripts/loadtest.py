@@ -192,19 +192,11 @@ def run_scenario(
     delay_sec: float,
     login_rounds: int,
     budget_p95_ms: float,
+    session_cookie: Optional[str] = None,
 ) -> bool:
     print(f"Starting {name} (concurrency={concurrency}, duration={duration_sec}s, delay={delay_sec}s)...")
     result = ScenarioResult(name, budget_p95_ms)
     stop_event = [False]
-
-    session_cookie = None
-    if scenario_type in ("public", "claims"):
-        auth_client = SessionClient(base_url)
-        session_cookie = auth_client.login(email, password)
-        if not session_cookie:
-            print(f"Error: Failed to obtain session cookie for {email}", file=sys.stderr)
-            result.record(401, 0.0, "Failed to authenticate session")
-            return False
 
     start_time = time.perf_counter()
     with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as executor:
@@ -259,11 +251,20 @@ def main():
             sys.exit(1)
 
     print(f"Testing against {args.base_url} with user {email}")
+
+    session_cookie = None
+    if args.scenario in ("all", "public", "claims"):
+        auth_client = SessionClient(args.base_url)
+        session_cookie = auth_client.login(email, args.password)
+        if not session_cookie:
+            print(f"Error: Failed to obtain session cookie for {email}", file=sys.stderr)
+            sys.exit(1)
+
     all_passed = True
 
     if args.scenario in ("all", "public"):
         # NFR-PERF-01: API read endpoints p95 at most 300 ms
-        ok = run_scenario("Public Found Reports Listing", "public", args.base_url, email, args.password, args.concurrency, args.duration, args.delay, 1, 300.0)
+        ok = run_scenario("Public Found Reports Listing", "public", args.base_url, email, args.password, args.concurrency, args.duration, args.delay, 1, 300.0, session_cookie=session_cookie)
         all_passed = all_passed and ok
 
     if args.scenario in ("all", "login"):
@@ -274,7 +275,7 @@ def main():
 
     if args.scenario in ("all", "claims"):
         # NFR-PERF-01: API read endpoints p95 at most 300 ms
-        ok = run_scenario("Claims Listing", "claims", args.base_url, email, args.password, args.concurrency, args.duration, args.delay, 1, 300.0)
+        ok = run_scenario("Claims Listing", "claims", args.base_url, email, args.password, args.concurrency, args.duration, args.delay, 1, 300.0, session_cookie=session_cookie)
         all_passed = all_passed and ok
 
     if all_passed:
