@@ -149,3 +149,4 @@
   provenance or zone checks.
 - Hardened prepared-dataset metadata readers to reject malformed item and label rows
   before content checks.
+- Expanded orchestration coverage for the private trial/full evaluation freeze gate.

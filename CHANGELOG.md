@@ -88,6 +88,7 @@ All notable changes to this project are recorded here. The format follows
 - Added a final private trial-review gate for completed collection records.
 - Bound trial completion to a current agreement report generated from both annotation sheets.
 - Added a read-only private evaluation freeze gate that aggregates the required checks.
+- Expanded orchestration coverage for the private trial/full evaluation freeze gate.
 - Stabilized synthetic fixture image CI validation with reviewed SHA-256 integrity hashes.
 - Added an explicit campus-bbox check for complete location seeds.
 - Made evaluation image intake convert accepted inputs to canonical JPEG files.

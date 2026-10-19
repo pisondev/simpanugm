@@ -205,7 +205,8 @@ python3 data/scripts/check_freeze.py \
 ```
 
 For the full dataset, add `--split`, `--distractor-split`, and `--val-count 60`; the
-command validates but does not publish or copy any private files.
+command validates but does not publish or copy any private files. The profile routing and
+private split-error handling are covered by `data/scripts/test_check_freeze.py`.
 
 Once the full private dataset has its auxiliary reports, run the additional metadata
 check:
