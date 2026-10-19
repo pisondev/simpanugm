@@ -105,6 +105,100 @@
         "title": "BrandHit",
         "type": "object"
       },
+      "ClusterItem": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "vector": {
+            "items": {
+              "type": "number"
+            },
+            "minItems": 1,
+            "title": "Vector",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "vector"
+        ],
+        "title": "ClusterItem",
+        "type": "object"
+      },
+      "ClusterLabel": {
+        "properties": {
+          "cluster": {
+            "title": "Cluster",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "probability": {
+            "title": "Probability",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "cluster",
+          "probability"
+        ],
+        "title": "ClusterLabel",
+        "type": "object"
+      },
+      "ClusterRequest": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ClusterItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "min_cluster_size": {
+            "default": 2,
+            "minimum": 2.0,
+            "title": "Min Cluster Size",
+            "type": "integer"
+          },
+          "min_samples": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Min Samples",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "ClusterRequest",
+        "type": "object"
+      },
+      "ClusterResult": {
+        "properties": {
+          "labels": {
+            "items": {
+              "$ref": "#/components/schemas/ClusterLabel"
+            },
+            "title": "Labels",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "labels",
+          "version"
+        ],
+        "title": "ClusterResult",
+        "type": "object"
+      },
       "DetectedColour": {
         "properties": {
           "hex": {
@@ -444,6 +538,62 @@
           }
         },
         "summary": "Analyze Image"
+      }
+    },
+    "/v1/cluster": {
+      "post": {
+        "operationId": "cluster_vectors_v1_cluster_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClusterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cluster Vectors"
       }
     },
     "/v1/embed/image": {

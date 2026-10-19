@@ -19,5 +19,13 @@ def test_committed_openapi_matches_the_service():
 
 def test_the_contract_lists_the_endpoints_the_api_calls():
     paths = json.loads((ROOT / "openapi.json").read_text(encoding="utf-8"))["paths"]
-    for path in ("/v1/models", "/v1/embed/image", "/v1/embed/text", "/v1/analyze/image", "/healthz", "/readyz"):
+    for path in (
+        "/v1/models",
+        "/v1/embed/image",
+        "/v1/embed/text",
+        "/v1/analyze/image",
+        "/v1/cluster",
+        "/healthz",
+        "/readyz",
+    ):
         assert path in paths

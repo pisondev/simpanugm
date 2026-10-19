@@ -12,7 +12,7 @@ from app.backend import Backend, TorchBackend
 from app.config import Settings
 from app.inference import Inference
 from app.registry import Registry
-from app.routers import health, inference, models
+from app.routers import cluster, health, inference, models
 from app.security import require_token
 
 log = logging.getLogger("simpanugm.ml")
@@ -40,6 +40,7 @@ def create_app(settings: Settings | None = None, backend: Backend | None = None)
     guard = [Depends(require_token(settings.ml_internal_token))]
     app.include_router(models.router, dependencies=guard)
     app.include_router(inference.router, dependencies=guard)
+    app.include_router(cluster.router, dependencies=guard)
     Instrumentator().instrument(app).expose(app, include_in_schema=False)
     return app
 

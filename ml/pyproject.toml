@@ -69,7 +69,7 @@ follow_untyped_imports = true
 
 # the scientific libraries are untyped, these two modules are where they are called
 [[tool.mypy.overrides]]
-module = ["app.analysis.colour", "app.backend", "eval.engine", "eval.dataset", "eval.components"]
+module = ["app.analysis.colour", "app.backend", "app.routers.cluster", "eval.engine", "eval.dataset", "eval.components"]
 disallow_untyped_calls = false
 warn_return_any = false
 

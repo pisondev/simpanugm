@@ -36,6 +36,7 @@ after changing an endpoint, a test fails when it drifts.
 | `POST /v1/embed/image` | 1 to 8 JPEG, WebP or PNG files, unit vectors of 512 numbers |
 | `POST /v1/embed/text` | up to 32 texts, `e5` (384) and `clip_text` (512), each answer echoes model and revision |
 | `POST /v1/analyze/image` | zero shot categories, colours, masked visible text, brand candidates |
+| `POST /v1/cluster` | HDBSCAN clustering on normalized vectors, labels and version |
 
 Errors are problem details with the codes `invalid_image`, `too_large`, `too_many_items`,
 `invalid_request` and `not_ready`. `/readyz` stays 503 until every component of the lock is
