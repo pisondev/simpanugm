@@ -18,6 +18,9 @@ Test levels: **U** unit, **I** integration, **C** contract, **E** end to end jou
 | Case Status and History Tracking | state-machines L, F, C, M, K, FR-AUDIT-04, FR-LOST-11, FR-LOST-12, FR-CUST-06 | US-09, US-11, US-29, US-33 | `machine.go` in each module | U per transition, E J6 |
 | Alerts and Notification System | FR-NOTIF-01 to FR-NOTIF-07, notifications catalog | US-22, US-35, US-36 | `api/internal/notify` | U, I, E J1, J2 |
 | Search and Operational Dashboard | FR-SEARCH-01 to FR-SEARCH-06, FR-OFF-01 to FR-OFF-06 | US-37 to US-41 | `api/internal/search`, `api/internal/officer`, `web/src/app/(officer)/petugas` | U, I, E J4 |
+| Administration, Moderation, and Settings | FR-ADMIN-01 to FR-ADMIN-05, BR-RET-05 | US-42 to US-45 | `api/internal/server`, `web/src/app/(admin)/admin` | U, I |
+| Analytics, Hotspots, and Case Clustering | FR-ANL-01 to FR-ANL-07, FR-ADMIN-06, FR-ADMIN-07, AI-10 to AI-12 | US-46 to US-49 | `api/internal/analytics`, `ml/app/routers/cluster.py`, `web/src/app/(admin)/admin` | U, I, C |
+| Platform Operations and Deployment | NFR-OBS-01 to NFR-OBS-03, NFR-SEC-01 to NFR-SEC-10, NFR-AVAIL-04, NFR-AVAIL-05, NFR-PORT-01 | US-52 to US-55 | `deploy/`, `api/internal/platform/metrics` | U, I, load |
 
 ## 2. System features
 
@@ -29,6 +32,9 @@ Test levels: **U** unit, **I** integration, **C** contract, **E** end to end jou
 | AI Assisted Item Description | FR-ASSIST-01 to FR-ASSIST-05, AI-03, AI-04 | US-23, US-24 | `api/internal/assist`, `ml/app/analysis` | U, I, V T4 to T6 |
 | Explainable Match View | AI-02, FR-AI-12, BR-VIS-04 | US-20 | `matching/explain.go`, `web/src/components/match` | U, snapshot, S |
 | Lost and Found Hotspot Analytics | FR-ANL-01 to FR-ANL-05, AI-10 | US-46, US-47 | `api/internal/analytics`, `web/src/app/(admin)/admin/analitik` | I, E |
+| Officer Semantic Search | FR-SEARCH-04, AI-13 | US-41 | `api/internal/search`, `web/src/app/(officer)/petugas/cari` | U, I |
+| Case Clustering Engine | FR-ANL-06, AI-11 | US-48 | `ml/app/routers/cluster.py`, `api/internal/analytics` | U, I, C |
+| AI Monitoring and Drift Detection | FR-ANL-07, FR-ADMIN-06, AI-12 | US-49 | `api/internal/analytics`, `web/src/app/(admin)/admin/ai` | U, I |
 | Cross Platform Responsive Dashboard | UI-01 to UI-05, NFR-USE-01 to NFR-USE-05 | every `web` story | `web/` | E with axe, S |
 
 ## 3. Module specifications
