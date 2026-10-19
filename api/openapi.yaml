@@ -1230,6 +1230,171 @@ paths:
                 type: string
         default: { $ref: '#/components/responses/Problem' }
 
+  /admin/model-versions:
+    get:
+      tags: [admin]
+      operationId: listModelVersions
+      parameters:
+        - name: component
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: List of model versions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ModelVersionList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/model-versions/{id}/activate:
+    post:
+      tags: [admin]
+      operationId: activateModelVersion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Activated model version
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ModelVersionItem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/ai/monitoring:
+    get:
+      tags: [admin]
+      operationId: getAiMonitoring
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: model_version_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: AI and matching monitoring metrics
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AiMonitoringResponse' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/ai/clusters:
+    get:
+      tags: [admin]
+      operationId: getAiClusters
+      parameters:
+        - name: run_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Latest clustering run or specified run
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AiClustersResponse' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/ai/clusters/runs:
+    post:
+      tags: [admin]
+      operationId: createAiClusterRun
+      responses:
+        '200':
+          description: Clustering run started or completed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClusterRunSummary' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /analytics/hotspots:
+    get:
+      tags: [analytics]
+      operationId: getHotspots
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: type
+          in: query
+          schema: { type: string, enum: [lost, found, all], default: all }
+        - name: category_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: zone_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Campus hotspot locations
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HotspotsResponse' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /analytics/summary:
+    get:
+      tags: [analytics]
+      operationId: getAnalyticsSummary
+      responses:
+        '200':
+          description: Operational summary metrics
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnalyticsSummary' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /analytics/trends:
+    get:
+      tags: [analytics]
+      operationId: getAnalyticsTrends
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: category_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: zone_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Operational trends and patterns
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnalyticsTrendsResponse' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /analytics/export:
+    get:
+      tags: [analytics]
+      operationId: exportAnalytics
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema: { type: string, pattern: '^\d{4}-\d{2}$' }
+      responses:
+        '200':
+          description: Monthly operational CSV
+          content:
+            text/csv:
+              schema: { type: string }
+        default: { $ref: '#/components/responses/Problem' }
+
   /lost-reports/{id}/matches:
     parameters:
       - $ref: '#/components/parameters/IdOrCode'
@@ -3983,3 +4148,227 @@ components:
           type: array
           items: { $ref: '#/components/schemas/AuditLogItem' }
         next_cursor: { type: string, nullable: true }
+
+    ModelVersionItem:
+      type: object
+      required: [id, component, name, status, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        component: { type: string }
+        name: { type: string }
+        identity: { type: object, additionalProperties: true }
+        config: { type: object, additionalProperties: true, nullable: true }
+        eval_run_id: { type: string, nullable: true }
+        metrics: { type: object, additionalProperties: true, nullable: true }
+        status: { type: string, enum: [candidate, active, retired] }
+        activated_at: { type: string, format: date-time, nullable: true }
+        activated_by: { type: string, format: uuid, nullable: true }
+        retired_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    ModelVersionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ModelVersionItem' }
+
+    AiMonitoringAssistOutcome:
+      type: object
+      required: [field, outcome, count]
+      properties:
+        field: { type: string }
+        outcome: { type: string }
+        count: { type: integer }
+
+    AiMonitoringDismissRate:
+      type: object
+      required: [tier, total, owner_dismissed, officer_dismissed, dismiss_rate]
+      properties:
+        tier: { type: string }
+        total: { type: integer }
+        owner_dismissed: { type: integer }
+        officer_dismissed: { type: integer }
+        dismiss_rate: { type: number, format: float }
+
+    AiMonitoringConfirmedRanks:
+      type: object
+      required: [confirmed_total, rank_1_count, rank_5_count, rank_10_count, recall_at_1, recall_at_5, recall_at_10]
+      properties:
+        confirmed_total: { type: integer }
+        rank_1_count: { type: integer }
+        rank_5_count: { type: integer }
+        rank_10_count: { type: integer }
+        recall_at_1: { type: number, format: float }
+        recall_at_5: { type: number, format: float }
+        recall_at_10: { type: number, format: float }
+
+    AiMonitoringHistogramBucket:
+      type: object
+      required: [bucket, count, bucket_floor, bucket_ceil]
+      properties:
+        bucket: { type: string }
+        count: { type: integer }
+        bucket_floor: { type: number, format: float }
+        bucket_ceil: { type: number, format: float }
+
+    AiMonitoringResponse:
+      type: object
+      required: [assist_outcomes, dismiss_rates, confirmed_ranks, top1_histogram, score_psi, psi_warning, active_versions]
+      properties:
+        from: { type: string, format: date-time, nullable: true }
+        to: { type: string, format: date-time, nullable: true }
+        assist_outcomes:
+          type: array
+          items: { $ref: '#/components/schemas/AiMonitoringAssistOutcome' }
+        dismiss_rates:
+          type: array
+          items: { $ref: '#/components/schemas/AiMonitoringDismissRate' }
+        confirmed_ranks: { $ref: '#/components/schemas/AiMonitoringConfirmedRanks' }
+        top1_histogram:
+          type: array
+          items: { $ref: '#/components/schemas/AiMonitoringHistogramBucket' }
+        score_psi: { type: number, format: float }
+        psi_warning: { type: boolean }
+        active_versions:
+          type: array
+          items: { $ref: '#/components/schemas/ModelVersionItem' }
+
+    ClusterRunSummary:
+      type: object
+      required: [id, status, started_at, cluster_count, item_count]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [running, done, failed] }
+        started_at: { type: string, format: date-time }
+        finished_at: { type: string, format: date-time, nullable: true }
+        cluster_count: { type: integer }
+        item_count: { type: integer }
+
+    AiClusterMember:
+      type: object
+      required: [report_type, report_id, code, item_name, category_name, location_name, occurred_at, probability]
+      properties:
+        report_type: { type: string, enum: [lost, found] }
+        report_id: { type: string, format: uuid }
+        code: { type: string }
+        item_name: { type: string }
+        category_name: { type: string }
+        location_name: { type: string }
+        occurred_at: { type: string, format: date-time }
+        probability: { type: number, format: float }
+        thumb_media_id: { type: string, format: uuid, nullable: true }
+
+    AiClusterItem:
+      type: object
+      required: [cluster_id, size, dominant_category, dominant_zone, thumbnails, members]
+      properties:
+        cluster_id: { type: integer }
+        size: { type: integer }
+        dominant_category: { type: string }
+        dominant_zone: { type: string }
+        earliest_at: { type: string, format: date-time, nullable: true }
+        latest_at: { type: string, format: date-time, nullable: true }
+        thumbnails:
+          type: array
+          items: { type: string }
+        members:
+          type: array
+          items: { $ref: '#/components/schemas/AiClusterMember' }
+
+    AiClustersResponse:
+      type: object
+      required: [clusters]
+      properties:
+        run: { $ref: '#/components/schemas/ClusterRunSummary' }
+        clusters:
+          type: array
+          items: { $ref: '#/components/schemas/AiClusterItem' }
+
+    HotspotLocation:
+      type: object
+      required: [location_id, location_name, zone_id, zone_name, lat, lng, lost_count, found_count, total_count, display_lost, display_found, display_total, return_rate]
+      properties:
+        location_id: { type: string, format: uuid }
+        location_name: { type: string }
+        zone_id: { type: string, format: uuid }
+        zone_name: { type: string }
+        lat: { type: number, format: float }
+        lng: { type: number, format: float }
+        lost_count: { type: integer }
+        found_count: { type: integer }
+        total_count: { type: integer }
+        display_lost: { type: string }
+        display_found: { type: string }
+        display_total: { type: string }
+        return_rate: { type: number, format: float }
+        median_return_hours: { type: number, format: float, nullable: true }
+
+    HotspotsResponse:
+      type: object
+      required: [locations, insights]
+      properties:
+        locations:
+          type: array
+          items: { $ref: '#/components/schemas/HotspotLocation' }
+        insights:
+          type: array
+          items: { type: string }
+
+    AnalyticsSummary:
+      type: object
+      required: [total_lost, total_found, total_returned, return_rate, active_claims, period_lost, period_found, period_returned]
+      properties:
+        total_lost: { type: integer }
+        total_found: { type: integer }
+        total_returned: { type: integer }
+        return_rate: { type: number, format: float }
+        active_claims: { type: integer }
+        period_lost: { type: integer }
+        period_found: { type: integer }
+        period_returned: { type: integer }
+
+    WeeklyTrend:
+      type: object
+      required: [week_start, lost_count, found_count, returned_count]
+      properties:
+        week_start: { type: string }
+        lost_count: { type: integer }
+        found_count: { type: integer }
+        returned_count: { type: integer }
+
+    CategoryBreakdown:
+      type: object
+      required: [category_id, category_name, lost_count, found_count]
+      properties:
+        category_id: { type: string, format: uuid }
+        category_name: { type: string }
+        lost_count: { type: integer }
+        found_count: { type: integer }
+
+    HourWeekdayCell:
+      type: object
+      required: [weekday, hour, count, display_count]
+      properties:
+        weekday: { type: integer }
+        hour: { type: integer }
+        count: { type: integer }
+        display_count: { type: string }
+
+    AnalyticsTrendsResponse:
+      type: object
+      required: [weekly, categories, hourly, return_rate]
+      properties:
+        weekly:
+          type: array
+          items: { $ref: '#/components/schemas/WeeklyTrend' }
+        categories:
+          type: array
+          items: { $ref: '#/components/schemas/CategoryBreakdown' }
+        hourly:
+          type: array
+          items: { $ref: '#/components/schemas/HourWeekdayCell' }
+        return_rate: { type: number, format: float }
+        median_return_hours: { type: number, format: float, nullable: true }
+

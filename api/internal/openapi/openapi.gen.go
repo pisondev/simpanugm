@@ -43,6 +43,24 @@ func (e AccountStatus) Valid() bool {
 	}
 }
 
+// Defines values for AiClusterMemberReportType.
+const (
+	AiClusterMemberReportTypeFound AiClusterMemberReportType = "found"
+	AiClusterMemberReportTypeLost  AiClusterMemberReportType = "lost"
+)
+
+// Valid indicates whether the value is a known member of the AiClusterMemberReportType enum.
+func (e AiClusterMemberReportType) Valid() bool {
+	switch e {
+	case AiClusterMemberReportTypeFound:
+		return true
+	case AiClusterMemberReportTypeLost:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for AssistAnalyzeRequestReportType.
 const (
 	AssistAnalyzeRequestReportTypeFound AssistAnalyzeRequestReportType = "found"
@@ -174,22 +192,22 @@ func (e ClaimMessageAuthorRole) Valid() bool {
 
 // Defines values for ClaimSource.
 const (
-	Candidate     ClaimSource = "candidate"
-	Listing       ClaimSource = "listing"
-	OfficerInvite ClaimSource = "officer_invite"
-	Proxy         ClaimSource = "proxy"
+	ClaimSourceCandidate     ClaimSource = "candidate"
+	ClaimSourceListing       ClaimSource = "listing"
+	ClaimSourceOfficerInvite ClaimSource = "officer_invite"
+	ClaimSourceProxy         ClaimSource = "proxy"
 )
 
 // Valid indicates whether the value is a known member of the ClaimSource enum.
 func (e ClaimSource) Valid() bool {
 	switch e {
-	case Candidate:
+	case ClaimSourceCandidate:
 		return true
-	case Listing:
+	case ClaimSourceListing:
 		return true
-	case OfficerInvite:
+	case ClaimSourceOfficerInvite:
 		return true
-	case Proxy:
+	case ClaimSourceProxy:
 		return true
 	default:
 		return false
@@ -265,6 +283,27 @@ func (e CloseLostReportRequestReason) Valid() bool {
 	case FoundByOwner:
 		return true
 	case NoLongerNeeded:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ClusterRunSummaryStatus.
+const (
+	Done    ClusterRunSummaryStatus = "done"
+	Failed  ClusterRunSummaryStatus = "failed"
+	Running ClusterRunSummaryStatus = "running"
+)
+
+// Valid indicates whether the value is a known member of the ClusterRunSummaryStatus enum.
+func (e ClusterRunSummaryStatus) Valid() bool {
+	switch e {
+	case Done:
+		return true
+	case Failed:
+		return true
+	case Running:
 		return true
 	default:
 		return false
@@ -700,6 +739,27 @@ func (e MergeDuplicatesRequestReportType) Valid() bool {
 	}
 }
 
+// Defines values for ModelVersionItemStatus.
+const (
+	ModelVersionItemStatusActive    ModelVersionItemStatus = "active"
+	ModelVersionItemStatusCandidate ModelVersionItemStatus = "candidate"
+	ModelVersionItemStatusRetired   ModelVersionItemStatus = "retired"
+)
+
+// Valid indicates whether the value is a known member of the ModelVersionItemStatus enum.
+func (e ModelVersionItemStatus) Valid() bool {
+	switch e {
+	case ModelVersionItemStatusActive:
+		return true
+	case ModelVersionItemStatusCandidate:
+		return true
+	case ModelVersionItemStatusRetired:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for NotificationPreferenceGroup.
 const (
 	NotificationPreferenceGroupClaim NotificationPreferenceGroup = "claim"
@@ -910,6 +970,27 @@ func (e AdminListAuditLogsParamsFormat) Valid() bool {
 	case Csv:
 		return true
 	case Json:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetHotspotsParamsType.
+const (
+	GetHotspotsParamsTypeAll   GetHotspotsParamsType = "all"
+	GetHotspotsParamsTypeFound GetHotspotsParamsType = "found"
+	GetHotspotsParamsTypeLost  GetHotspotsParamsType = "lost"
+)
+
+// Valid indicates whether the value is a known member of the GetHotspotsParamsType enum.
+func (e GetHotspotsParamsType) Valid() bool {
+	switch e {
+	case GetHotspotsParamsTypeAll:
+		return true
+	case GetHotspotsParamsTypeFound:
+		return true
+	case GetHotspotsParamsTypeLost:
 		return true
 	default:
 		return false
@@ -1161,6 +1242,109 @@ type AdminZoneList struct {
 	Items []AdminZone `json:"items"`
 }
 
+// AiClusterItem defines model for AiClusterItem.
+type AiClusterItem struct {
+	ClusterId        int               `json:"cluster_id"`
+	DominantCategory string            `json:"dominant_category"`
+	DominantZone     string            `json:"dominant_zone"`
+	EarliestAt       *time.Time        `json:"earliest_at,omitempty"`
+	LatestAt         *time.Time        `json:"latest_at,omitempty"`
+	Members          []AiClusterMember `json:"members"`
+	Size             int               `json:"size"`
+	Thumbnails       []string          `json:"thumbnails"`
+}
+
+// AiClusterMember defines model for AiClusterMember.
+type AiClusterMember struct {
+	CategoryName string                    `json:"category_name"`
+	Code         string                    `json:"code"`
+	ItemName     string                    `json:"item_name"`
+	LocationName string                    `json:"location_name"`
+	OccurredAt   time.Time                 `json:"occurred_at"`
+	Probability  float32                   `json:"probability"`
+	ReportId     openapi_types.UUID        `json:"report_id"`
+	ReportType   AiClusterMemberReportType `json:"report_type"`
+	ThumbMediaId *openapi_types.UUID       `json:"thumb_media_id,omitempty"`
+}
+
+// AiClusterMemberReportType defines model for AiClusterMember.ReportType.
+type AiClusterMemberReportType string
+
+// AiClustersResponse defines model for AiClustersResponse.
+type AiClustersResponse struct {
+	Clusters []AiClusterItem    `json:"clusters"`
+	Run      *ClusterRunSummary `json:"run,omitempty"`
+}
+
+// AiMonitoringAssistOutcome defines model for AiMonitoringAssistOutcome.
+type AiMonitoringAssistOutcome struct {
+	Count   int    `json:"count"`
+	Field   string `json:"field"`
+	Outcome string `json:"outcome"`
+}
+
+// AiMonitoringConfirmedRanks defines model for AiMonitoringConfirmedRanks.
+type AiMonitoringConfirmedRanks struct {
+	ConfirmedTotal int     `json:"confirmed_total"`
+	Rank10Count    int     `json:"rank_10_count"`
+	Rank1Count     int     `json:"rank_1_count"`
+	Rank5Count     int     `json:"rank_5_count"`
+	RecallAt1      float32 `json:"recall_at_1"`
+	RecallAt10     float32 `json:"recall_at_10"`
+	RecallAt5      float32 `json:"recall_at_5"`
+}
+
+// AiMonitoringDismissRate defines model for AiMonitoringDismissRate.
+type AiMonitoringDismissRate struct {
+	DismissRate      float32 `json:"dismiss_rate"`
+	OfficerDismissed int     `json:"officer_dismissed"`
+	OwnerDismissed   int     `json:"owner_dismissed"`
+	Tier             string  `json:"tier"`
+	Total            int     `json:"total"`
+}
+
+// AiMonitoringHistogramBucket defines model for AiMonitoringHistogramBucket.
+type AiMonitoringHistogramBucket struct {
+	Bucket      string  `json:"bucket"`
+	BucketCeil  float32 `json:"bucket_ceil"`
+	BucketFloor float32 `json:"bucket_floor"`
+	Count       int     `json:"count"`
+}
+
+// AiMonitoringResponse defines model for AiMonitoringResponse.
+type AiMonitoringResponse struct {
+	ActiveVersions []ModelVersionItem            `json:"active_versions"`
+	AssistOutcomes []AiMonitoringAssistOutcome   `json:"assist_outcomes"`
+	ConfirmedRanks AiMonitoringConfirmedRanks    `json:"confirmed_ranks"`
+	DismissRates   []AiMonitoringDismissRate     `json:"dismiss_rates"`
+	From           *time.Time                    `json:"from,omitempty"`
+	PsiWarning     bool                          `json:"psi_warning"`
+	ScorePsi       float32                       `json:"score_psi"`
+	To             *time.Time                    `json:"to,omitempty"`
+	Top1Histogram  []AiMonitoringHistogramBucket `json:"top1_histogram"`
+}
+
+// AnalyticsSummary defines model for AnalyticsSummary.
+type AnalyticsSummary struct {
+	ActiveClaims   int     `json:"active_claims"`
+	PeriodFound    int     `json:"period_found"`
+	PeriodLost     int     `json:"period_lost"`
+	PeriodReturned int     `json:"period_returned"`
+	ReturnRate     float32 `json:"return_rate"`
+	TotalFound     int     `json:"total_found"`
+	TotalLost      int     `json:"total_lost"`
+	TotalReturned  int     `json:"total_returned"`
+}
+
+// AnalyticsTrendsResponse defines model for AnalyticsTrendsResponse.
+type AnalyticsTrendsResponse struct {
+	Categories        []CategoryBreakdown `json:"categories"`
+	Hourly            []HourWeekdayCell   `json:"hourly"`
+	MedianReturnHours *float32            `json:"median_return_hours,omitempty"`
+	ReturnRate        float32             `json:"return_rate"`
+	Weekly            []WeeklyTrend       `json:"weekly"`
+}
+
 // AssistAnalyzeRequest defines model for AssistAnalyzeRequest.
 type AssistAnalyzeRequest struct {
 	MediaId    openapi_types.UUID             `json:"media_id"`
@@ -1259,6 +1443,14 @@ type Category struct {
 	Sensitivity           *Sensitivity            `json:"sensitivity,omitempty"`
 	Slug                  string                  `json:"slug"`
 	VerificationQuestions *[]VerificationQuestion `json:"verification_questions,omitempty"`
+}
+
+// CategoryBreakdown defines model for CategoryBreakdown.
+type CategoryBreakdown struct {
+	CategoryId   openapi_types.UUID `json:"category_id"`
+	CategoryName string             `json:"category_name"`
+	FoundCount   int                `json:"found_count"`
+	LostCount    int                `json:"lost_count"`
 }
 
 // CategoryCreate defines model for CategoryCreate.
@@ -1559,6 +1751,19 @@ type CloseLostReportRequest struct {
 // CloseLostReportRequestReason defines model for CloseLostReportRequest.Reason.
 type CloseLostReportRequestReason string
 
+// ClusterRunSummary defines model for ClusterRunSummary.
+type ClusterRunSummary struct {
+	ClusterCount int                     `json:"cluster_count"`
+	FinishedAt   *time.Time              `json:"finished_at,omitempty"`
+	Id           openapi_types.UUID      `json:"id"`
+	ItemCount    int                     `json:"item_count"`
+	StartedAt    time.Time               `json:"started_at"`
+	Status       ClusterRunSummaryStatus `json:"status"`
+}
+
+// ClusterRunSummaryStatus defines model for ClusterRunSummary.Status.
+type ClusterRunSummaryStatus string
+
 // Colour defines model for Colour.
 type Colour struct {
 	Hex  string `json:"hex"`
@@ -1829,6 +2034,38 @@ type HistoryEntryEntity string
 // HistoryList defines model for HistoryList.
 type HistoryList struct {
 	Items []HistoryEntry `json:"items"`
+}
+
+// HotspotLocation defines model for HotspotLocation.
+type HotspotLocation struct {
+	DisplayFound      string             `json:"display_found"`
+	DisplayLost       string             `json:"display_lost"`
+	DisplayTotal      string             `json:"display_total"`
+	FoundCount        int                `json:"found_count"`
+	Lat               float32            `json:"lat"`
+	Lng               float32            `json:"lng"`
+	LocationId        openapi_types.UUID `json:"location_id"`
+	LocationName      string             `json:"location_name"`
+	LostCount         int                `json:"lost_count"`
+	MedianReturnHours *float32           `json:"median_return_hours,omitempty"`
+	ReturnRate        float32            `json:"return_rate"`
+	TotalCount        int                `json:"total_count"`
+	ZoneId            openapi_types.UUID `json:"zone_id"`
+	ZoneName          string             `json:"zone_name"`
+}
+
+// HotspotsResponse defines model for HotspotsResponse.
+type HotspotsResponse struct {
+	Insights  []string          `json:"insights"`
+	Locations []HotspotLocation `json:"locations"`
+}
+
+// HourWeekdayCell defines model for HourWeekdayCell.
+type HourWeekdayCell struct {
+	Count        int    `json:"count"`
+	DisplayCount string `json:"display_count"`
+	Hour         int    `json:"hour"`
+	Weekday      int    `json:"weekday"`
 }
 
 // InventoryItem defines model for InventoryItem.
@@ -2140,6 +2377,30 @@ type MergeDuplicatesRequest struct {
 
 // MergeDuplicatesRequestReportType defines model for MergeDuplicatesRequest.ReportType.
 type MergeDuplicatesRequestReportType string
+
+// ModelVersionItem defines model for ModelVersionItem.
+type ModelVersionItem struct {
+	ActivatedAt *time.Time              `json:"activated_at,omitempty"`
+	ActivatedBy *openapi_types.UUID     `json:"activated_by,omitempty"`
+	Component   string                  `json:"component"`
+	Config      *map[string]interface{} `json:"config,omitempty"`
+	CreatedAt   time.Time               `json:"created_at"`
+	EvalRunId   *string                 `json:"eval_run_id,omitempty"`
+	Id          openapi_types.UUID      `json:"id"`
+	Identity    *map[string]interface{} `json:"identity,omitempty"`
+	Metrics     *map[string]interface{} `json:"metrics,omitempty"`
+	Name        string                  `json:"name"`
+	RetiredAt   *time.Time              `json:"retired_at,omitempty"`
+	Status      ModelVersionItemStatus  `json:"status"`
+}
+
+// ModelVersionItemStatus defines model for ModelVersionItem.Status.
+type ModelVersionItemStatus string
+
+// ModelVersionList defines model for ModelVersionList.
+type ModelVersionList struct {
+	Items []ModelVersionItem `json:"items"`
+}
 
 // ModerateReportRequest defines model for ModerateReportRequest.
 type ModerateReportRequest struct {
@@ -2554,6 +2815,14 @@ type VerificationQuestion struct {
 	Required  bool    `json:"required"`
 }
 
+// WeeklyTrend defines model for WeeklyTrend.
+type WeeklyTrend struct {
+	FoundCount    int    `json:"found_count"`
+	LostCount     int    `json:"lost_count"`
+	ReturnedCount int    `json:"returned_count"`
+	WeekStart     string `json:"week_start"`
+}
+
 // Zone defines model for Zone.
 type Zone struct {
 	CentroidLat float64            `json:"centroid_lat"`
@@ -2611,6 +2880,18 @@ type StatusFilter = []string
 // UUIDPath defines model for UUIDPath.
 type UUIDPath = openapi_types.UUID
 
+// GetAiClustersParams defines parameters for GetAiClusters.
+type GetAiClustersParams struct {
+	RunId *openapi_types.UUID `form:"run_id,omitempty" json:"run_id,omitempty"`
+}
+
+// GetAiMonitoringParams defines parameters for GetAiMonitoring.
+type GetAiMonitoringParams struct {
+	From           *time.Time          `form:"from,omitempty" json:"from,omitempty"`
+	To             *time.Time          `form:"to,omitempty" json:"to,omitempty"`
+	ModelVersionId *openapi_types.UUID `form:"model_version_id,omitempty" json:"model_version_id,omitempty"`
+}
+
 // AdminListAuditLogsParams defines parameters for AdminListAuditLogs.
 type AdminListAuditLogsParams struct {
 	ActorId    *openapi_types.UUID             `form:"actor_id,omitempty" json:"actor_id,omitempty"`
@@ -2633,12 +2914,42 @@ type AdminListLocationsParams struct {
 	ZoneId *openapi_types.UUID `form:"zone_id,omitempty" json:"zone_id,omitempty"`
 }
 
+// ListModelVersionsParams defines parameters for ListModelVersions.
+type ListModelVersionsParams struct {
+	Component *string `form:"component,omitempty" json:"component,omitempty"`
+}
+
 // AdminListUsersParams defines parameters for AdminListUsers.
 type AdminListUsersParams struct {
 	Q      *string `form:"q,omitempty" json:"q,omitempty"`
 	Role   *Role   `form:"role,omitempty" json:"role,omitempty"`
 	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
 	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ExportAnalyticsParams defines parameters for ExportAnalytics.
+type ExportAnalyticsParams struct {
+	Month string `form:"month" json:"month"`
+}
+
+// GetHotspotsParams defines parameters for GetHotspots.
+type GetHotspotsParams struct {
+	From       *time.Time             `form:"from,omitempty" json:"from,omitempty"`
+	To         *time.Time             `form:"to,omitempty" json:"to,omitempty"`
+	Type       *GetHotspotsParamsType `form:"type,omitempty" json:"type,omitempty"`
+	CategoryId *openapi_types.UUID    `form:"category_id,omitempty" json:"category_id,omitempty"`
+	ZoneId     *openapi_types.UUID    `form:"zone_id,omitempty" json:"zone_id,omitempty"`
+}
+
+// GetHotspotsParamsType defines parameters for GetHotspots.
+type GetHotspotsParamsType string
+
+// GetAnalyticsTrendsParams defines parameters for GetAnalyticsTrends.
+type GetAnalyticsTrendsParams struct {
+	From       *time.Time          `form:"from,omitempty" json:"from,omitempty"`
+	To         *time.Time          `form:"to,omitempty" json:"to,omitempty"`
+	CategoryId *openapi_types.UUID `form:"category_id,omitempty" json:"category_id,omitempty"`
+	ZoneId     *openapi_types.UUID `form:"zone_id,omitempty" json:"zone_id,omitempty"`
 }
 
 // LogoutParams defines parameters for Logout.
@@ -2984,6 +3295,15 @@ type ConfirmOfficerDuplicateJSONRequestBody = ConfirmDuplicateRequest
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (GET /admin/ai/clusters)
+	GetAiClusters(w http.ResponseWriter, r *http.Request, params GetAiClustersParams)
+
+	// (POST /admin/ai/clusters/runs)
+	CreateAiClusterRun(w http.ResponseWriter, r *http.Request)
+
+	// (GET /admin/ai/monitoring)
+	GetAiMonitoring(w http.ResponseWriter, r *http.Request, params GetAiMonitoringParams)
+
 	// (GET /admin/audit-logs)
 	AdminListAuditLogs(w http.ResponseWriter, r *http.Request, params AdminListAuditLogsParams)
 
@@ -3010,6 +3330,12 @@ type ServerInterface interface {
 
 	// (PATCH /admin/locations/{id})
 	AdminUpdateLocation(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
+	// (GET /admin/model-versions)
+	ListModelVersions(w http.ResponseWriter, r *http.Request, params ListModelVersionsParams)
+
+	// (POST /admin/model-versions/{id}/activate)
+	ActivateModelVersion(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 
 	// (GET /admin/posts)
 	AdminListPosts(w http.ResponseWriter, r *http.Request)
@@ -3064,6 +3390,18 @@ type ServerInterface interface {
 
 	// (PATCH /admin/zones/{id})
 	AdminUpdateZone(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
+	// (GET /analytics/export)
+	ExportAnalytics(w http.ResponseWriter, r *http.Request, params ExportAnalyticsParams)
+
+	// (GET /analytics/hotspots)
+	GetHotspots(w http.ResponseWriter, r *http.Request, params GetHotspotsParams)
+
+	// (GET /analytics/summary)
+	GetAnalyticsSummary(w http.ResponseWriter, r *http.Request)
+
+	// (GET /analytics/trends)
+	GetAnalyticsTrends(w http.ResponseWriter, r *http.Request, params GetAnalyticsTrendsParams)
 
 	// (POST /assist/analyze-image)
 	AssistAnalyzeImage(w http.ResponseWriter, r *http.Request)
@@ -3337,6 +3675,21 @@ type ServerInterface interface {
 
 type Unimplemented struct{}
 
+// (GET /admin/ai/clusters)
+func (_ Unimplemented) GetAiClusters(w http.ResponseWriter, r *http.Request, params GetAiClustersParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /admin/ai/clusters/runs)
+func (_ Unimplemented) CreateAiClusterRun(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /admin/ai/monitoring)
+func (_ Unimplemented) GetAiMonitoring(w http.ResponseWriter, r *http.Request, params GetAiMonitoringParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (GET /admin/audit-logs)
 func (_ Unimplemented) AdminListAuditLogs(w http.ResponseWriter, r *http.Request, params AdminListAuditLogsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -3379,6 +3732,16 @@ func (_ Unimplemented) AdminCreateLocation(w http.ResponseWriter, r *http.Reques
 
 // (PATCH /admin/locations/{id})
 func (_ Unimplemented) AdminUpdateLocation(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /admin/model-versions)
+func (_ Unimplemented) ListModelVersions(w http.ResponseWriter, r *http.Request, params ListModelVersionsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /admin/model-versions/{id}/activate)
+func (_ Unimplemented) ActivateModelVersion(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -3469,6 +3832,26 @@ func (_ Unimplemented) AdminCreateZone(w http.ResponseWriter, r *http.Request) {
 
 // (PATCH /admin/zones/{id})
 func (_ Unimplemented) AdminUpdateZone(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /analytics/export)
+func (_ Unimplemented) ExportAnalytics(w http.ResponseWriter, r *http.Request, params ExportAnalyticsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /analytics/hotspots)
+func (_ Unimplemented) GetHotspots(w http.ResponseWriter, r *http.Request, params GetHotspotsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /analytics/summary)
+func (_ Unimplemented) GetAnalyticsSummary(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /analytics/trends)
+func (_ Unimplemented) GetAnalyticsTrends(w http.ResponseWriter, r *http.Request, params GetAnalyticsTrendsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -3926,6 +4309,112 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
+// GetAiClusters operation middleware
+func (siw *ServerInterfaceWrapper) GetAiClusters(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAiClustersParams
+
+	// ------------- Optional query parameter "run_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "run_id", r.URL.Query(), &params.RunId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "run_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "run_id", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAiClusters(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateAiClusterRun operation middleware
+func (siw *ServerInterfaceWrapper) CreateAiClusterRun(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateAiClusterRun(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAiMonitoring operation middleware
+func (siw *ServerInterfaceWrapper) GetAiMonitoring(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAiMonitoringParams
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "from", r.URL.Query(), &params.From, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "from"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "from", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "to", r.URL.Query(), &params.To, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "to"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "to", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "model_version_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "model_version_id", r.URL.Query(), &params.ModelVersionId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "model_version_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "model_version_id", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAiMonitoring(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // AdminListAuditLogs operation middleware
 func (siw *ServerInterfaceWrapper) AdminListAuditLogs(w http.ResponseWriter, r *http.Request) {
 
@@ -4222,6 +4711,65 @@ func (siw *ServerInterfaceWrapper) AdminUpdateLocation(w http.ResponseWriter, r 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminUpdateLocation(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListModelVersions operation middleware
+func (siw *ServerInterfaceWrapper) ListModelVersions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListModelVersionsParams
+
+	// ------------- Optional query parameter "component" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "component", r.URL.Query(), &params.Component, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "component"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "component", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListModelVersions(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ActivateModelVersion operation middleware
+func (siw *ServerInterfaceWrapper) ActivateModelVersion(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ActivateModelVersion(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -4670,6 +5218,210 @@ func (siw *ServerInterfaceWrapper) AdminUpdateZone(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminUpdateZone(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ExportAnalytics operation middleware
+func (siw *ServerInterfaceWrapper) ExportAnalytics(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ExportAnalyticsParams
+
+	// ------------- Required query parameter "month" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "month", r.URL.Query(), &params.Month, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "month"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "month", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ExportAnalytics(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetHotspots operation middleware
+func (siw *ServerInterfaceWrapper) GetHotspots(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetHotspotsParams
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "from", r.URL.Query(), &params.From, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "from"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "from", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "to", r.URL.Query(), &params.To, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "to"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "to", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "type", r.URL.Query(), &params.Type, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "type"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "type", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "category_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "category_id", r.URL.Query(), &params.CategoryId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "category_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "category_id", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "zone_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "zone_id", r.URL.Query(), &params.ZoneId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "zone_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "zone_id", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetHotspots(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAnalyticsSummary operation middleware
+func (siw *ServerInterfaceWrapper) GetAnalyticsSummary(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAnalyticsSummary(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAnalyticsTrends operation middleware
+func (siw *ServerInterfaceWrapper) GetAnalyticsTrends(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAnalyticsTrendsParams
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "from", r.URL.Query(), &params.From, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "from"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "from", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "to", r.URL.Query(), &params.To, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "to"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "to", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "category_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "category_id", r.URL.Query(), &params.CategoryId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "category_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "category_id", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "zone_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "zone_id", r.URL.Query(), &params.ZoneId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "zone_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "zone_id", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAnalyticsTrends(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -7756,6 +8508,33 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/admin/audit-logs", wrapper.AdminListAuditLogs)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/admin/model-versions", wrapper.ListModelVersions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/admin/model-versions/{id}/activate", wrapper.ActivateModelVersion)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/admin/ai/monitoring", wrapper.GetAiMonitoring)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/admin/ai/clusters", wrapper.GetAiClusters)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/admin/ai/clusters/runs", wrapper.CreateAiClusterRun)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/analytics/hotspots", wrapper.GetHotspots)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/analytics/summary", wrapper.GetAnalyticsSummary)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/analytics/trends", wrapper.GetAnalyticsTrends)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/analytics/export", wrapper.ExportAnalytics)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/lost-reports/{id}/matches", wrapper.ListLostReportMatches)
 	})
 	r.Group(func(r chi.Router) {
@@ -7904,6 +8683,122 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 }
 
 type ProblemApplicationProblemPlusJSONResponse Problem
+
+type GetAiClustersRequestObject struct {
+	Params GetAiClustersParams
+}
+
+type GetAiClustersResponseObject interface {
+	VisitGetAiClustersResponse(w http.ResponseWriter) error
+}
+
+type GetAiClusters200JSONResponse AiClustersResponse
+
+func (response GetAiClusters200JSONResponse) VisitGetAiClustersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAiClustersdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetAiClustersdefaultApplicationProblemPlusJSONResponse) VisitGetAiClustersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAiClusterRunRequestObject struct {
+}
+
+type CreateAiClusterRunResponseObject interface {
+	VisitCreateAiClusterRunResponse(w http.ResponseWriter) error
+}
+
+type CreateAiClusterRun200JSONResponse ClusterRunSummary
+
+func (response CreateAiClusterRun200JSONResponse) VisitCreateAiClusterRunResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAiClusterRundefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateAiClusterRundefaultApplicationProblemPlusJSONResponse) VisitCreateAiClusterRunResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAiMonitoringRequestObject struct {
+	Params GetAiMonitoringParams
+}
+
+type GetAiMonitoringResponseObject interface {
+	VisitGetAiMonitoringResponse(w http.ResponseWriter) error
+}
+
+type GetAiMonitoring200JSONResponse AiMonitoringResponse
+
+func (response GetAiMonitoring200JSONResponse) VisitGetAiMonitoringResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAiMonitoringdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetAiMonitoringdefaultApplicationProblemPlusJSONResponse) VisitGetAiMonitoringResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
 
 type AdminListAuditLogsRequestObject struct {
 	Params AdminListAuditLogsParams
@@ -8265,6 +9160,84 @@ type AdminUpdateLocationdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response AdminUpdateLocationdefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateLocationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListModelVersionsRequestObject struct {
+	Params ListModelVersionsParams
+}
+
+type ListModelVersionsResponseObject interface {
+	VisitListModelVersionsResponse(w http.ResponseWriter) error
+}
+
+type ListModelVersions200JSONResponse ModelVersionList
+
+func (response ListModelVersions200JSONResponse) VisitListModelVersionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListModelVersionsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListModelVersionsdefaultApplicationProblemPlusJSONResponse) VisitListModelVersionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ActivateModelVersionRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type ActivateModelVersionResponseObject interface {
+	VisitActivateModelVersionResponse(w http.ResponseWriter) error
+}
+
+type ActivateModelVersion200JSONResponse ModelVersionItem
+
+func (response ActivateModelVersion200JSONResponse) VisitActivateModelVersionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ActivateModelVersiondefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ActivateModelVersiondefaultApplicationProblemPlusJSONResponse) VisitActivateModelVersionResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -8964,6 +9937,167 @@ type AdminUpdateZonedefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response AdminUpdateZonedefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateZoneResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ExportAnalyticsRequestObject struct {
+	Params ExportAnalyticsParams
+}
+
+type ExportAnalyticsResponseObject interface {
+	VisitExportAnalyticsResponse(w http.ResponseWriter) error
+}
+
+type ExportAnalytics200TextcsvResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response ExportAnalytics200TextcsvResponse) VisitExportAnalyticsResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "text/csv")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type ExportAnalyticsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ExportAnalyticsdefaultApplicationProblemPlusJSONResponse) VisitExportAnalyticsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetHotspotsRequestObject struct {
+	Params GetHotspotsParams
+}
+
+type GetHotspotsResponseObject interface {
+	VisitGetHotspotsResponse(w http.ResponseWriter) error
+}
+
+type GetHotspots200JSONResponse HotspotsResponse
+
+func (response GetHotspots200JSONResponse) VisitGetHotspotsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetHotspotsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetHotspotsdefaultApplicationProblemPlusJSONResponse) VisitGetHotspotsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAnalyticsSummaryRequestObject struct {
+}
+
+type GetAnalyticsSummaryResponseObject interface {
+	VisitGetAnalyticsSummaryResponse(w http.ResponseWriter) error
+}
+
+type GetAnalyticsSummary200JSONResponse AnalyticsSummary
+
+func (response GetAnalyticsSummary200JSONResponse) VisitGetAnalyticsSummaryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAnalyticsSummarydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetAnalyticsSummarydefaultApplicationProblemPlusJSONResponse) VisitGetAnalyticsSummaryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAnalyticsTrendsRequestObject struct {
+	Params GetAnalyticsTrendsParams
+}
+
+type GetAnalyticsTrendsResponseObject interface {
+	VisitGetAnalyticsTrendsResponse(w http.ResponseWriter) error
+}
+
+type GetAnalyticsTrends200JSONResponse AnalyticsTrendsResponse
+
+func (response GetAnalyticsTrends200JSONResponse) VisitGetAnalyticsTrendsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAnalyticsTrendsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetAnalyticsTrendsdefaultApplicationProblemPlusJSONResponse) VisitGetAnalyticsTrendsResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -12430,6 +13564,15 @@ func (response ListZonesdefaultApplicationProblemPlusJSONResponse) VisitListZone
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
+	// (GET /admin/ai/clusters)
+	GetAiClusters(ctx context.Context, request GetAiClustersRequestObject) (GetAiClustersResponseObject, error)
+
+	// (POST /admin/ai/clusters/runs)
+	CreateAiClusterRun(ctx context.Context, request CreateAiClusterRunRequestObject) (CreateAiClusterRunResponseObject, error)
+
+	// (GET /admin/ai/monitoring)
+	GetAiMonitoring(ctx context.Context, request GetAiMonitoringRequestObject) (GetAiMonitoringResponseObject, error)
+
 	// (GET /admin/audit-logs)
 	AdminListAuditLogs(ctx context.Context, request AdminListAuditLogsRequestObject) (AdminListAuditLogsResponseObject, error)
 
@@ -12456,6 +13599,12 @@ type StrictServerInterface interface {
 
 	// (PATCH /admin/locations/{id})
 	AdminUpdateLocation(ctx context.Context, request AdminUpdateLocationRequestObject) (AdminUpdateLocationResponseObject, error)
+
+	// (GET /admin/model-versions)
+	ListModelVersions(ctx context.Context, request ListModelVersionsRequestObject) (ListModelVersionsResponseObject, error)
+
+	// (POST /admin/model-versions/{id}/activate)
+	ActivateModelVersion(ctx context.Context, request ActivateModelVersionRequestObject) (ActivateModelVersionResponseObject, error)
 
 	// (GET /admin/posts)
 	AdminListPosts(ctx context.Context, request AdminListPostsRequestObject) (AdminListPostsResponseObject, error)
@@ -12510,6 +13659,18 @@ type StrictServerInterface interface {
 
 	// (PATCH /admin/zones/{id})
 	AdminUpdateZone(ctx context.Context, request AdminUpdateZoneRequestObject) (AdminUpdateZoneResponseObject, error)
+
+	// (GET /analytics/export)
+	ExportAnalytics(ctx context.Context, request ExportAnalyticsRequestObject) (ExportAnalyticsResponseObject, error)
+
+	// (GET /analytics/hotspots)
+	GetHotspots(ctx context.Context, request GetHotspotsRequestObject) (GetHotspotsResponseObject, error)
+
+	// (GET /analytics/summary)
+	GetAnalyticsSummary(ctx context.Context, request GetAnalyticsSummaryRequestObject) (GetAnalyticsSummaryResponseObject, error)
+
+	// (GET /analytics/trends)
+	GetAnalyticsTrends(ctx context.Context, request GetAnalyticsTrendsRequestObject) (GetAnalyticsTrendsResponseObject, error)
 
 	// (POST /assist/analyze-image)
 	AssistAnalyzeImage(ctx context.Context, request AssistAnalyzeImageRequestObject) (AssistAnalyzeImageResponseObject, error)
@@ -12818,6 +13979,82 @@ type strictHandler struct {
 	options     StrictHTTPServerOptions
 }
 
+// GetAiClusters operation middleware
+func (sh *strictHandler) GetAiClusters(w http.ResponseWriter, r *http.Request, params GetAiClustersParams) {
+	var request GetAiClustersRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAiClusters(ctx, request.(GetAiClustersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAiClusters")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAiClustersResponseObject); ok {
+		if err := validResponse.VisitGetAiClustersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateAiClusterRun operation middleware
+func (sh *strictHandler) CreateAiClusterRun(w http.ResponseWriter, r *http.Request) {
+	var request CreateAiClusterRunRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateAiClusterRun(ctx, request.(CreateAiClusterRunRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateAiClusterRun")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateAiClusterRunResponseObject); ok {
+		if err := validResponse.VisitCreateAiClusterRunResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetAiMonitoring operation middleware
+func (sh *strictHandler) GetAiMonitoring(w http.ResponseWriter, r *http.Request, params GetAiMonitoringParams) {
+	var request GetAiMonitoringRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAiMonitoring(ctx, request.(GetAiMonitoringRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAiMonitoring")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAiMonitoringResponseObject); ok {
+		if err := validResponse.VisitGetAiMonitoringResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // AdminListAuditLogs operation middleware
 func (sh *strictHandler) AdminListAuditLogs(w http.ResponseWriter, r *http.Request, params AdminListAuditLogsParams) {
 	var request AdminListAuditLogsRequestObject
@@ -13070,6 +14307,58 @@ func (sh *strictHandler) AdminUpdateLocation(w http.ResponseWriter, r *http.Requ
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(AdminUpdateLocationResponseObject); ok {
 		if err := validResponse.VisitAdminUpdateLocationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListModelVersions operation middleware
+func (sh *strictHandler) ListModelVersions(w http.ResponseWriter, r *http.Request, params ListModelVersionsParams) {
+	var request ListModelVersionsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListModelVersions(ctx, request.(ListModelVersionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListModelVersions")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListModelVersionsResponseObject); ok {
+		if err := validResponse.VisitListModelVersionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ActivateModelVersion operation middleware
+func (sh *strictHandler) ActivateModelVersion(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request ActivateModelVersionRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ActivateModelVersion(ctx, request.(ActivateModelVersionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ActivateModelVersion")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ActivateModelVersionResponseObject); ok {
+		if err := validResponse.VisitActivateModelVersionResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -13582,6 +14871,108 @@ func (sh *strictHandler) AdminUpdateZone(w http.ResponseWriter, r *http.Request,
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(AdminUpdateZoneResponseObject); ok {
 		if err := validResponse.VisitAdminUpdateZoneResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ExportAnalytics operation middleware
+func (sh *strictHandler) ExportAnalytics(w http.ResponseWriter, r *http.Request, params ExportAnalyticsParams) {
+	var request ExportAnalyticsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ExportAnalytics(ctx, request.(ExportAnalyticsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ExportAnalytics")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ExportAnalyticsResponseObject); ok {
+		if err := validResponse.VisitExportAnalyticsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetHotspots operation middleware
+func (sh *strictHandler) GetHotspots(w http.ResponseWriter, r *http.Request, params GetHotspotsParams) {
+	var request GetHotspotsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetHotspots(ctx, request.(GetHotspotsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetHotspots")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetHotspotsResponseObject); ok {
+		if err := validResponse.VisitGetHotspotsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetAnalyticsSummary operation middleware
+func (sh *strictHandler) GetAnalyticsSummary(w http.ResponseWriter, r *http.Request) {
+	var request GetAnalyticsSummaryRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAnalyticsSummary(ctx, request.(GetAnalyticsSummaryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAnalyticsSummary")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAnalyticsSummaryResponseObject); ok {
+		if err := validResponse.VisitGetAnalyticsSummaryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetAnalyticsTrends operation middleware
+func (sh *strictHandler) GetAnalyticsTrends(w http.ResponseWriter, r *http.Request, params GetAnalyticsTrendsParams) {
+	var request GetAnalyticsTrendsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAnalyticsTrends(ctx, request.(GetAnalyticsTrendsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAnalyticsTrends")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAnalyticsTrendsResponseObject); ok {
+		if err := validResponse.VisitGetAnalyticsTrendsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

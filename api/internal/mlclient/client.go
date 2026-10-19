@@ -189,6 +189,41 @@ func (c *Client) AnalyzeImage(ctx context.Context, image []byte, categories []Ca
 	return out, err
 }
 
+type ClusterItem struct {
+	ID     string    `json:"id"`
+	Vector []float32 `json:"vector"`
+}
+
+type ClusterRequest struct {
+	Items          []ClusterItem `json:"items"`
+	MinClusterSize int           `json:"min_cluster_size"`
+	MinSamples     int           `json:"min_samples"`
+}
+
+type ClusterLabel struct {
+	ID          string  `json:"id"`
+	Cluster     int     `json:"cluster"`
+	Probability float64 `json:"probability"`
+}
+
+type ClusterResult struct {
+	Labels  []ClusterLabel `json:"labels"`
+	Version string         `json:"version"`
+}
+
+func (c *Client) Cluster(ctx context.Context, req ClusterRequest) (ClusterResult, error) {
+	if c == nil {
+		return ClusterResult{}, ErrUnavailable
+	}
+	body, err := json.Marshal(req)
+	if err != nil {
+		return ClusterResult{}, err
+	}
+	var out ClusterResult
+	err = c.do(ctx, 30*time.Second, http.MethodPost, "/v1/cluster", bytes.NewReader(body), "application/json", &out)
+	return out, err
+}
+
 func (c *Client) do(ctx context.Context, timeout time.Duration, method, path string, body io.Reader, contentType string, out any) error {
 	if c == nil {
 		return ErrUnavailable

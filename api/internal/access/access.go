@@ -79,6 +79,13 @@ const (
 	SettingsManage            Permission = "settings.manage"
 	AuditRead                 Permission = "audit.read"
 	AuditExport               Permission = "audit.export"
+	AIModelsRead              Permission = "ai.models.read"
+	AIModelsActivate          Permission = "ai.models.activate"
+	AIMonitoringRead          Permission = "ai.monitoring.read"
+	AIClustersRead            Permission = "ai.clusters.read"
+	AIClustersRun             Permission = "ai.clusters.run"
+	AnalyticsRead             Permission = "analytics.read"
+	AnalyticsExport           Permission = "analytics.export"
 )
 
 var memberPerms = []Permission{
@@ -96,12 +103,15 @@ var officerPerms = append(slices.Clone(memberPerms),
 	ReportProxyCreate, CustodyReceive, CustodyInventoryRead, SearchReports, OfficerQueueRead, MatchRematch,
 	ClaimReview, ClaimApprove, ClaimInternalNote, CustodyHandover, CustodyTransfer, CustodyExtend, CustodyDispose,
 	ReportMarkDuplicate, OfficerBoardRead, MatchPin, MatchInviteClaim,
+	AnalyticsRead,
 )
 
 var adminPerms = append(slices.Clone(officerPerms),
 	UserRead, UserInvite, UserUpdateRole, UserAssignPost, MasterdataManage,
 	UserSuspend, UserDelete, UserClearClaimRestriction, ReportModerate,
 	SettingsRead, SettingsManage, AuditRead, AuditExport,
+	AIModelsRead, AIModelsActivate, AIMonitoringRead, AIClustersRead, AIClustersRun,
+	AnalyticsExport,
 )
 
 var rolePerms = map[Role][]Permission{Member: memberPerms, Officer: officerPerms, Admin: adminPerms}
@@ -274,6 +284,15 @@ var Operations = map[string]Rule{
 	"adminGetSettings":           {Permission: SettingsRead},
 	"adminUpdateSettings":        {Permission: SettingsManage},
 	"adminListAuditLogs":         {Permission: AuditRead},
+	"listModelVersions":          {Permission: AIModelsRead},
+	"activateModelVersion":       {Permission: AIModelsActivate},
+	"getAiMonitoring":            {Permission: AIMonitoringRead},
+	"getAiClusters":              {Permission: AIClustersRead},
+	"createAiClusterRun":         {Permission: AIClustersRun},
+	"getHotspots":                {Permission: AnalyticsRead},
+	"getAnalyticsSummary":        {Permission: AnalyticsRead},
+	"getAnalyticsTrends":         {Permission: AnalyticsRead},
+	"exportAnalytics":            {Permission: AnalyticsExport},
 }
 
 func Check(p *Principal, operationID string) error {
