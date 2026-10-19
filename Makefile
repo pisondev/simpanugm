@@ -96,6 +96,10 @@ EVAL_SPLIT ?= val
 eval:
 	cd ml && uv run python -m eval.run --dataset ../$(EVAL_DATA) --split $(EVAL_SPLIT) --hf-home $${HF_HOME:-$$HOME/.cache/huggingface}
 
+# the official evaluation pipeline: verifies freeze, calibrates on val, evaluates on test, writes REPORT.md
+eval-real:
+	cd ml && uv run python -m eval.run_real --dataset ../$(EVAL_DATA) --hf-home $${HF_HOME:-$$HOME/.cache/huggingface}
+
 # the CPU latency of every component on this machine (T9, matching-engine section 10)
 eval-latency:
 	cd ml && uv run python -m eval.latency

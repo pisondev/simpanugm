@@ -197,3 +197,118 @@ def test_learned_fusion_experiment(tmp_path):
     assert "ece" in res.b4_metrics
     assert len(res.coefficients) == 13
     assert "recommendation" in res.gate_decision
+
+
+def test_run_real_refuses_without_freeze_report(tmp_path):
+    from eval.run_real import run_real
+
+    lock = write_lock(tmp_path / "lock.json", COMPONENTS)
+    data_dir = build(tmp_path / "data", items=10, distractors=6, val_count=5)
+    with pytest.raises(SystemExit):
+        run_real(
+            data_dir,
+            tmp_path / "runs",
+            backend=FakeBackend(Registry.from_lock(lock)),
+            lock=lock,
+            allow_dirty=True,
+        )
+
+
+def test_run_real_refuses_failed_freeze_report(tmp_path):
+    from eval.run_real import run_real
+
+    lock = write_lock(tmp_path / "lock.json", COMPONENTS)
+    data_dir = build(tmp_path / "data", items=10, distractors=6, val_count=5)
+    freeze_file = data_dir / "freeze_report.json"
+    freeze_file.write_text(json.dumps({"status": "failed", "passed": False, "errors": ["item count mismatch"]}))
+
+    with pytest.raises(SystemExit):
+        run_real(
+            data_dir,
+            tmp_path / "runs",
+            freeze_report_path=freeze_file,
+            backend=FakeBackend(Registry.from_lock(lock)),
+            lock=lock,
+            allow_dirty=True,
+        )
+
+
+def test_run_real_generates_packaged_artifacts_and_sintetis_report(tmp_path):
+    from eval.run_real import run_real
+
+    lock = write_lock(tmp_path / "lock.json", COMPONENTS)
+    data_dir = build(tmp_path / "data", items=10, distractors=6, val_count=5)
+    freeze_file = data_dir / "freeze_report.json"
+    freeze_file.write_text(
+        json.dumps(
+            {
+                "status": "passed",
+                "passed": True,
+                "profile": "trial",
+                "is_synthetic": True,
+                "item_count": 10,
+                "errors": [],
+            }
+        )
+    )
+
+    configs_dir = tmp_path / "configs"
+    configs_dir.mkdir()
+
+    out = run_real(
+        data_dir,
+        tmp_path / "runs",
+        freeze_report_path=freeze_file,
+        backend=FakeBackend(Registry.from_lock(lock)),
+        lock=lock,
+        allow_dirty=True,
+        run_id="test-run-synthetic",
+        config_dir=configs_dir,
+    )
+
+    assert out.is_dir()
+    for fname in ("metrics.json", "per_query.csv", "slices.csv", "config.yaml", "environment.json", "REPORT.md"):
+        assert (out / fname).is_file()
+
+    report_content = (out / "REPORT.md").read_text(encoding="utf-8")
+    assert "STATUS: SINTETIS" in report_content
+    assert "Acceptance Gate Results" in report_content
+    assert "Primary Variant Metrics" in report_content
+
+
+def test_run_real_labels_resmi_for_official_freeze(tmp_path):
+    from eval.run_real import run_real
+
+    lock = write_lock(tmp_path / "lock.json", COMPONENTS)
+    data_dir = build(tmp_path / "data", items=10, distractors=6, val_count=5)
+    freeze_file = data_dir / "freeze_report.json"
+    freeze_file.write_text(
+        json.dumps(
+            {
+                "status": "passed",
+                "passed": True,
+                "profile": "full",
+                "is_synthetic": False,
+                "item_count": 150,
+                "errors": [],
+            }
+        )
+    )
+
+    configs_dir = tmp_path / "configs"
+    configs_dir.mkdir()
+
+    out = run_real(
+        data_dir,
+        tmp_path / "runs",
+        freeze_report_path=freeze_file,
+        backend=FakeBackend(Registry.from_lock(lock)),
+        lock=lock,
+        allow_dirty=True,
+        run_id="test-run-official",
+        config_dir=configs_dir,
+    )
+
+    report_content = (out / "REPORT.md").read_text(encoding="utf-8")
+    assert "STATUS: RESMI" in report_content
+    assert "Official acceptance gate decisions are official" in report_content or "STATUS: RESMI" in report_content

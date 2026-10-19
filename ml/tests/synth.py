@@ -28,7 +28,7 @@ def _write(path: Path, header: list[str], rows: list[list[str]]) -> None:
         writer.writerows(rows)
 
 
-def build(root: Path, items: int = 10, distractors: int = 6, leak: bool = False) -> Path:
+def build(root: Path, items: int = 10, distractors: int = 6, leak: bool = False, val_count: int | None = None) -> Path:
     rng = random.Random(7)  # noqa: S311
     item_rows, label_rows, split_rows, dist_rows, dsplit_rows = [], [], [], [], []
     for n in range(1, items + 1):
@@ -54,7 +54,8 @@ def build(root: Path, items: int = 10, distractors: int = 6, leak: bool = False)
                 "true" if photo else "false",
             ]
         )
-        split_rows.append([iid, "val", "x", "x"])
+        split = "val" if (val_count is None or n <= val_count) else "test"
+        split_rows.append([iid, split, "x", "x"])
         _image(root / "images" / iid / "finder_1.jpg", n)
         _image(root / "images" / iid / "finder_2.jpg", 100 + n)
         if photo:
@@ -65,7 +66,9 @@ def build(root: Path, items: int = 10, distractors: int = 6, leak: bool = False)
         dist_rows.append(
             [did, leaf, COLOURS[rng.randrange(len(COLOURS))], "generic", f"{leaf} tanpa pemilik nomor {n}"]
         )
-        dsplit_rows.append([did, "val"])
+        dist_val = (val_count * distractors // items) if val_count is not None else distractors
+        dsplit = "val" if (val_count is None or n <= dist_val) else "test"
+        dsplit_rows.append([did, dsplit])
         _image(root / "images" / did / "finder_1.jpg", 300 + n)
     if leak:
         # the finder photo of I001 filed again under a distractor of the test split

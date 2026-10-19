@@ -101,6 +101,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--expected-distractors", type=int, default=400)
     parser.add_argument("--expected-duplicates", type=int, default=40)
     parser.add_argument("--expected-queries", type=int, default=50)
+    parser.add_argument("--output", type=Path, help="write freeze validation report JSON to path")
     return parser.parse_args(argv)
 
 
@@ -119,6 +120,23 @@ def main(argv: list[str] | None = None) -> int:
         expected_duplicates=args.expected_duplicates,
         expected_queries=args.expected_queries,
     )
+    if args.output:
+        import json
+        from datetime import datetime, timezone
+
+        item_count = args.expected_count if args.expected_count is not None else (20 if args.profile == "trial" else 150)
+        report = {
+            "status": "passed" if not errors else "failed",
+            "passed": len(errors) == 0,
+            "profile": args.profile,
+            "dataset_dir": str(args.dataset_dir),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "item_count": item_count,
+            "is_synthetic": False if args.profile == "full" and item_count >= 150 else True,
+            "errors": errors,
+        }
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)

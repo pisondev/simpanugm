@@ -274,3 +274,55 @@ project constraints, learned fusion CANNOT be activated in production based on s
 The active production configuration remains `fusion-linear-2026.11.0.json`. Official activation
 is TERTUNDA pending evaluation on the frozen real campus dataset (`simpanugm-eval` v1).
 
+## 14. Real Evaluation Runbook (for Irfan and Axelle)
+
+This one-page runbook guides Irfan and Axelle to execute official model evaluation once
+the real dataset (`simpanugm-eval` v1) is collected and frozen on campus.
+
+### 14.1 Prerequisites
+1. Axelle completes private data collection and verifies checklist in [dataset-collection.md](dataset-collection.md) section 10.
+2. Axelle runs freeze checks and exports the freeze report:
+   ```bash
+   python3 data/scripts/check_freeze.py \
+     --dataset-dir /private/simpanugm-eval/v1 \
+     --profile full \
+     --split /private/simpanugm-eval/v1/splits.csv \
+     --distractor-split /private/simpanugm-eval/v1/distractor-splits.csv \
+     --val-count 60 \
+     --output /private/simpanugm-eval/v1/freeze_report.json
+   ```
+3. Public manifest published to `data/eval/manifest.json`.
+4. Irfan downloads evaluation data into `data/eval/` and copies `freeze_report.json`:
+   ```bash
+   python3 data/scripts/fetch.py --manifest data/eval/manifest.json --source /private/simpanugm-eval/v1 --output data/eval
+   cp /private/simpanugm-eval/v1/freeze_report.json data/eval/freeze_report.json
+   ```
+
+### 14.2 Running Official Evaluation
+From repository root, execute one command:
+```bash
+make eval-real
+```
+
+The runner (`ml/eval/run_real.py`):
+1. Verifies `data/eval/freeze_report.json`. If missing, invalid, or failed, it exits immediately with error.
+2. Calibrates component bands, weights, and tiers on the `val` split (60 items) using seed 2026.
+3. Evaluates all variants (B0 to B3, A1 to A7) and acceptance gates on the `test` split (90 items).
+4. Packages run artifacts under `ml/eval/runs/<run-id>/`:
+   - `config.yaml`: Calibrated parameters and pool sizes.
+   - `environment.json`: Git commit, seed, dataset version, model revisions.
+   - `metrics.json`: Full metric outputs including CI95 and component gates.
+   - `per_query.csv`: Query-level rank and true score logs.
+   - `slices.csv`: Performance across subgroups.
+   - `REPORT.md`: Authoritative markdown evaluation report labeled `RESMI` (or `SINTETIS` if run on non-frozen/synthetic data).
+
+### 14.3 Post-Evaluation Decision
+1. Check `ml/eval/runs/<run-id>/REPORT.md` Section 3 (Acceptance Gate Results).
+2. If all gates pass with status `PASS (RESMI)`:
+   - Commit calibrated config `ml/eval/configs/fusion-linear-<run-id>.json`.
+   - Update `docs/ai/evaluation-report.md` with official numbers and run ID.
+   - Proceed with candidate registration in admin UI.
+3. If any gate fails:
+   - Record failed gates and slice diagnostics in `docs/ai/evaluation-report.md`.
+   - Do not activate the version in production.
+

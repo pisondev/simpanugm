@@ -90,6 +90,23 @@ class FreezeCheckTests(unittest.TestCase):
             )
         self.assertIn("trial: split arguments are only valid for the full profile", errors)
 
+    def test_main_writes_freeze_report(self) -> None:
+        import json
+        import tempfile
+        from check_freeze import main
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            out_file = Path(tmp_dir) / "freeze_report.json"
+            with patch("check_freeze.validate_freeze", return_value=[]):
+                code = main(["--dataset-dir", "fake_dir", "--profile", "trial", "--output", str(out_file)])
+            self.assertEqual(code, 0)
+            self.assertTrue(out_file.is_file())
+            data = json.loads(out_file.read_text(encoding="utf-8"))
+            self.assertEqual(data["status"], "passed")
+            self.assertTrue(data["passed"])
+            self.assertEqual(data["profile"], "trial")
+            self.assertTrue(data["is_synthetic"])
+
 
 if __name__ == "__main__":
     unittest.main()

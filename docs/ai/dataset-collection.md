@@ -187,10 +187,16 @@ Once data collection in `/private/simpanugm-eval/v1` is complete, execute the va
      --val-count 60 \
      --seed 2026
    ```
-4. **Execute auxiliary file checks and read-only freeze profile**:
+4. **Execute auxiliary file checks and generate freeze verification report**:
    ```bash
    python3 data/scripts/check_auxiliary.py --dir /private/simpanugm-eval/v1
-   python3 data/scripts/check_freeze.py --dir /private/simpanugm-eval/v1 --profile full
+   python3 data/scripts/check_freeze.py \
+     --dataset-dir /private/simpanugm-eval/v1 \
+     --profile full \
+     --split /private/simpanugm-eval/v1/splits.csv \
+     --distractor-split /private/simpanugm-eval/v1/distractor-splits.csv \
+     --val-count 60 \
+     --output /private/simpanugm-eval/v1/freeze_report.json
    ```
 5. **Publish public manifest to git repository**:
    ```bash
@@ -199,5 +205,10 @@ Once data collection in `/private/simpanugm-eval/v1` is complete, execute the va
 6. **Fetch files and run official benchmark evaluation**:
    ```bash
    python3 data/scripts/fetch.py --manifest data/eval/manifest.json --source /private/simpanugm-eval/v1 --output data/eval
-   make eval
+   cp /private/simpanugm-eval/v1/freeze_report.json data/eval/freeze_report.json
+   make eval-real
    ```
+   The `make eval-real` command automatically verifies `data/eval/freeze_report.json`,
+   executes fusion calibration on `val`, evaluates acceptance gates on `test`, and
+   generates `ml/eval/runs/<run-id>/REPORT.md` with status `RESMI`. If the freeze report
+   is missing or indicates validation failures, execution is immediately aborted.
