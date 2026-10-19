@@ -78,3 +78,24 @@ func TestDemoSeedIntegration(t *testing.T) {
 		t.Errorf("expected at least 7 demo users on second run, got %d", res2.UsersCount)
 	}
 }
+
+func TestDemoRefusedInProduction(t *testing.T) {
+	ctx := context.Background()
+	e := testenv.New(t)
+
+	prodCfg := e.Config
+	prodCfg.AppEnv = "production"
+
+	deps := demo.Deps{
+		Config: prodCfg,
+		Pool:   e.Pool,
+	}
+
+	_, err := demo.Run(ctx, deps)
+	if err == nil {
+		t.Fatal("expected demo.Run to fail in production, got nil error")
+	}
+	if err.Error() != "simpan demo is refused in production" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
