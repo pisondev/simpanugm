@@ -4,6 +4,12 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Document visual and motion research for the three phase 1 reference screens, including offline, performance and accessibility budgets.
+
 ## [1.0.0] - Draft
 
 First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pengembalian Barang, Universitas Gadjah Mada), a campus lost and found platform featuring multimodal AI matching with human in the loop verification by campus security officers.
