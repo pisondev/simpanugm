@@ -71,7 +71,7 @@ Port 8080 is avoided on purpose because it is commonly taken by other local serv
 | `make gen` | regenerate sqlc code, the Go server from `openapi.yaml`, the TypeScript client |
 | `make check` | format, lint, types and unit tests for every area, the pre push gate |
 | `make test-api`, `make test-api-integration`, `make test-web`, `make test-ml`, `make test-data` | one area |
-| `make e2e` | restart `api` for fresh rate limiters, then Playwright against the running stack |
+| `make e2e` | apply `deploy/compose.e2e.yaml` override (`APP_ENV=e2e`, fake clock), restart `api`, then Playwright journeys |
 | `make eval-data`, `make eval-check`, `make eval` | evaluation dataset download, checks, run. Sprint 2 |
 | `make load` | k6 scenarios against the local stack. Sprint 3 |
 | `make obs` | start Prometheus and Grafana. Sprint 4 |

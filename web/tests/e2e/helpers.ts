@@ -46,7 +46,8 @@ export function uniqueEmail(prefix: string, domain = "mail.ugm.ac.id"): string {
 }
 
 const compose = (
-  process.env.E2E_COMPOSE ?? "docker compose -f ../deploy/compose.yaml -f ../deploy/compose.dev.yaml --env-file ../deploy/env/compose.env"
+  process.env.E2E_COMPOSE ??
+  "docker compose -f ../deploy/compose.yaml -f ../deploy/compose.dev.yaml -f ../deploy/compose.e2e.yaml --env-file ../deploy/env/compose.env"
 ).split(" ")
 
 // the first administrator comes from the command line, exactly as on a fresh server (FR-AUTH-09)

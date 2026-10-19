@@ -9,9 +9,7 @@ services:
 
   api:
     environment:
-      APP_ENV: "e2e"
       AUTH_REGISTER_PER_HOUR: "500"
-      FEATURE_FAKE_CLOCK: "true"
     ports:
       - "8090:8090"
       - "9091:9091"

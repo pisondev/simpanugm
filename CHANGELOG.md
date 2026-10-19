@@ -12,6 +12,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Changed
 
+- The fake clock and e2e application environment move from `deploy/compose.dev.yaml` to `deploy/compose.e2e.yaml`, so local development with `make dev` runs on the real system clock while e2e workflows and `make e2e` apply the e2e compose override.
 - `simpan seed` no longer overwrites a master data row an administrator edited, and a compatibility pair an administrator switched off stays off. A leaf under a switched off parent can no longer be picked for a new report.
 - Lost reports carry their real `candidate_count`. The owner of a lost report with a visible candidate may open that found item's display photo, or only its blurred thumbnail for an identity item (BR-VIS 5.2).
 - Dependabot proposes only patch and digest updates for the Go, Python and Node base images. A runtime upgrade changes code, CI and docs together, so it is made by hand.

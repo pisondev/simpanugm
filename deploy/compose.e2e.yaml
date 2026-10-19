@@ -1,0 +1,6 @@
+# end to end test overrides: fake clock and e2e app env for time travel tests
+services:
+  api:
+    environment:
+      APP_ENV: "e2e"
+      FEATURE_FAKE_CLOCK: "true"

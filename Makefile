@@ -1,6 +1,7 @@
 # docs/engineering/local-development.md section 4, every target runs from the repository root
 SHELL := /bin/sh
 COMPOSE := docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/env/compose.env
+COMPOSE_E2E := docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml -f deploy/compose.e2e.yaml --env-file deploy/env/compose.env
 SQLC := docker run --rm -v "$(CURDIR)/api:/src" -w /src sqlc/sqlc:1.31.1
 s ?= api
 
@@ -100,9 +101,10 @@ eval-latency:
 	cd ml && uv run python -m eval.latency
 
 # the auth limiters live in api memory, a restart gives the journeys a fresh BR-SEC-01 budget
-e2e:
-	$(COMPOSE) restart api
-	$(COMPOSE) up -d --wait api
+e2e: env
+	$(COMPOSE_E2E) up -d --wait
+	$(COMPOSE_E2E) restart api
+	$(COMPOSE_E2E) up -d --wait api
 	cd web && pnpm e2e
 
 load:
