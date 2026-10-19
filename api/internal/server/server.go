@@ -209,6 +209,9 @@ func NewRouter(d Deps, s *Services) (http.Handler, error) {
 	}
 	r := chi.NewRouter()
 	r.Use(httpx.RequestMeta(trusted), httpx.Observe(observe))
+	if d.Metrics != nil {
+		r.Use(d.Metrics.InflightMiddleware)
+	}
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) { httpx.WriteProblem(w, r, apperr.NotFound()) })
 	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteProblem(w, r, apperr.New(http.StatusMethodNotAllowed, "method_not_allowed", "Metode tidak didukung", "Metode ini tidak tersedia untuk alamat tersebut."))

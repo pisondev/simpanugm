@@ -1,0 +1,93 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "River Queue Depth per Queue",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "river_queue_depth",
+          "legendFormat": "Queue: {{queue}}"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "title": "River Job Outcomes",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(river_jobs_total[5m])) by (kind, state)",
+          "legendFormat": "{{kind}} - {{state}}"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "title": "Match Pipeline Latency (p50 / p95)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(match_pipeline_seconds_bucket[5m]))",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.50, rate(match_pipeline_seconds_bucket[5m]))",
+          "legendFormat": "p50"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "title": "ML Inference Latency per Component",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ml_inference_seconds_bucket[5m])) by (le, component))",
+          "legendFormat": "p95 {{component}}"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(ml_inference_seconds_bucket[5m])) by (le, component))",
+          "legendFormat": "p50 {{component}}"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "id": 5,
+      "title": "Top-1 Match Score Histogram",
+      "type": "histogram",
+      "targets": [
+        {
+          "expr": "sum(increase(match_top1_score_bucket[1h])) by (le)",
+          "legendFormat": "le={{le}}"
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["simpanugm", "jobs", "matching"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "SimpanUGM - Jobs and Matching",
+  "version": 1
+}

@@ -18,6 +18,14 @@ func TestMetricsExposed(t *testing.T) {
 	m.ObserveMatchPipeline(150 * time.Millisecond)
 	m.ObserveMatchTop1(0.88)
 	m.ObserveMatchCandidates(5)
+	m.IncSSE()
+	m.DecSSE()
+	m.ObserveLogin("ok")
+	m.ObserveRateLimited("ip_hour")
+	m.ObserveDomainTransition("report", "publish")
+	m.ObserveRiverJob("match.report", "completed", 50*time.Millisecond)
+	m.SetRiverQueueDepth("default", 2)
+	m.ObserveEmailSent("report_submitted", "ok")
 
 	rec := httptest.NewRecorder()
 	m.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/metrics", nil))
@@ -30,6 +38,15 @@ func TestMetricsExposed(t *testing.T) {
 	for _, expected := range []string{
 		"http_requests_total",
 		"http_request_duration_seconds",
+		"http_inflight_requests",
+		"sse_connections",
+		"auth_login_total",
+		"rate_limited_total",
+		"domain_transitions_total",
+		"river_jobs_total",
+		"river_job_duration_seconds",
+		"river_queue_depth",
+		"emails_sent_total",
 		"ml_request_duration_seconds",
 		"match_pipeline_seconds",
 		"match_top1_score",

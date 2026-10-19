@@ -131,6 +131,7 @@ func serve(ctx context.Context) error {
 		return err
 	}
 	m := metrics.NewHTTP("api")
+	m.RegisterPool(pool)
 	deps := server.Deps{Config: cfg, Pool: pool, Clock: clockFor(cfg), Store: store, Jobs: jobs, Metrics: m}
 	svcs := server.NewServices(deps)
 	router, err := server.NewRouter(deps, svcs)
@@ -199,6 +200,7 @@ func worker(ctx context.Context) error {
 	}
 	c := clockFor(cfg)
 	m := metrics.NewHTTP("worker")
+	m.RegisterPool(pool)
 	svcs := server.NewServices(server.Deps{Config: cfg, Pool: pool, Clock: c, Store: store, Jobs: insert, Metrics: m})
 	workers := river.NewWorkers()
 	river.AddWorker(workers, &notify.EmailWorker{Sender: sender, Q: sqlc.New(pool)})

@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Security
 
+- Pre-release security hardening and dependency audit (US-55, NFR-SEC-01 to NFR-SEC-10, NFR-PRIV-06): verified zero vulnerabilities across production runtime dependencies (`pnpm audit --prod`, `pip-audit`, and `govulncheck` on application packages); added `Strict-Transport-Security` header to Caddy configuration; documented status in `docs/operations/release-checklist-v1.0.0.md`.
 - The API pins the go1.26.9 toolchain, which fixes the HTTP/2 HPACK race GO-2026-6617, and lifts `golang.org/x/image` from a 2019 snapshot to v0.47.0, closing eight TIFF and BMP decoding denial of service advisories reachable through image decoding, plus `moby/go-archive` to v0.3.3 for the integration tests. `govulncheck` reports no reachable vulnerability.
 
 ### Changed
@@ -29,6 +30,10 @@ All notable changes to this project are recorded here. The format follows
 - Masking now hides every 16 digit run, so NIK numbers are covered although they fail the Luhn check, and treats digits grouped by single spaces or hyphens as one run, as BR-PRV-03 requires.
 
 ### Added
+
+- Observability dashboards, alert rules, and runtime metrics (US-52, NFR-OBS-01 to NFR-OBS-03): expanded API platform metrics to include in-flight HTTP requests, SSE connection counts, database pool connection tracking, login outcomes, rate limiting counters, state machine transitions, River job outcomes, queue depth, and notification delivery counters; added `/readyz` probe to web service checking API reachability; provisioned Prometheus alert rules in `deploy/prometheus/alerts.yml` covering site liveness, error rates, slow API reads, matching stalls, ML readiness, discarded jobs, disk thresholds, backup staleness, and TLS cert expiry; added Grafana dashboard definitions in `deploy/grafana/dashboards/` for Overview, Jobs and Matching, Database, and Host.
+
+- Production deployment artifacts, backup, and restore automation (US-53, US-54, NFR-AVAIL-04, NFR-AVAIL-05, NFR-PORT-01): created `deploy/compose.prod.yaml` with production image tags, log rotation policies, and resource limits; created `deploy/scripts/deploy.sh` with zero-downtime phased restart, migration execution, automated smoke tests, and rollback; created `deploy/scripts/backup.sh` for custom-format pg_dump with Prometheus metrics and retention rotation; created `deploy/scripts/restore.sh` with post-restore integrity verification across schemas and tables; created `deploy/env/compose.prod.env.example`.
 
 - Learned fusion experiment and evaluation comparison (Sprint 4 Irfan scope, matching-engine section 7.2, evaluation.md section 13.3): implemented logistic regression learned fusion on 13 multimodal components (`ml/eval/learned_fusion.py`) with 5-fold GroupKFold cross-validation grouped by item; benchmarked against calibrated linear fusion B3 on synthetic evaluation fixture (SINTETIS), achieving Recall@5 1.0000 vs 0.4000, MRR 0.9500 vs 0.4000, and high-tier precision 1.0000; retained calibrated linear fusion as active production model per project policy until frozen real dataset evaluation (TERTUNDA); updated `docs/ai/evaluation.md` and added fusion model card to `docs/ai/model-cards.md`.
 

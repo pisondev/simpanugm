@@ -1,0 +1,66 @@
+# Production Docker Compose overrides (deployment.md section 2 and 3, US-53)
+services:
+  postgres:
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  api:
+    image: ghcr.io/pisondev/simpanugm-api:${VERSION:-latest}
+    pull_policy: always
+    build: !reset null
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  worker:
+    image: ghcr.io/pisondev/simpanugm-api:${VERSION:-latest}
+    pull_policy: always
+    build: !reset null
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  ml:
+    image: ghcr.io/pisondev/simpanugm-ml:${VERSION:-latest}
+    pull_policy: always
+    build: !reset null
+    deploy:
+      resources:
+        limits:
+          memory: 3072M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  web:
+    image: ghcr.io/pisondev/simpanugm-web:${VERSION:-latest}
+    pull_policy: always
+    build: !reset null
+    environment:
+      NODE_ENV: production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  caddy:
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-simpanugm.my.id}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"

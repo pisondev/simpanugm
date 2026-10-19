@@ -1,0 +1,90 @@
+groups:
+  - name: simpanugm.alerts
+    rules:
+      - alert: SiteDown
+        expr: probe_success == 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "Site down or health check failing"
+          description: "Synthetic health check of /api/healthz has failed for more than 2 minutes."
+
+      - alert: HighErrorRate
+        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) > 0.02
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "High HTTP 5xx error rate"
+          description: "5xx HTTP responses exceed 2 percent of total requests for 5 minutes."
+
+      - alert: SlowAPI
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{method="GET"}[10m])) by (le)) > 0.6
+        for: 10m
+        labels:
+          severity: warn
+        annotations:
+          summary: "Slow API read latency"
+          description: "p95 read latency exceeds 600 ms for more than 10 minutes."
+
+      - alert: MatchingStalled
+        expr: (river_queue_depth{queue="ml"} > 50) or (rate(river_jobs_total{kind="match.report",state="completed"}[30m]) == 0 and rate(http_requests_total{route=~".*/reports",method="POST",status="201"}[30m]) > 0)
+        for: 10m
+        labels:
+          severity: page
+        annotations:
+          summary: "Matching engine processing stalled"
+          description: "ML queue depth above 50 for 10 minutes or no match.report completed in 30 minutes while reports were created."
+
+      - alert: MLNotReady
+        expr: probe_success{instance=~".*ml:8100/readyz"} == 0
+        for: 5m
+        labels:
+          severity: warn
+        annotations:
+          summary: "ML service not ready"
+          description: "ML inference service /readyz health probe has been failing for 5 minutes."
+
+      - alert: JobsDiscarded
+        expr: increase(river_jobs_total{state="discarded"}[15m]) > 0
+        labels:
+          severity: warn
+        annotations:
+          summary: "River background jobs discarded"
+          description: "One or more River jobs were discarded within the last 15 minutes."
+
+      - alert: DiskFilling
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.20
+        for: 5m
+        labels:
+          severity: warn
+        annotations:
+          summary: "Host disk usage high"
+          description: "Available disk space is under 20 percent."
+
+      - alert: DiskCritical
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.10
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "Host disk usage critical"
+          description: "Available disk space is under 10 percent."
+
+      - alert: BackupMissing
+        expr: (time() - backup_last_success_timestamp_seconds) > (26 * 3600)
+        labels:
+          severity: page
+        annotations:
+          summary: "Missing database backup"
+          description: "No successful database backup recorded within the last 26 hours."
+
+      - alert: CertExpiry
+        expr: (probe_ssl_earliest_cert_expiry - time()) < (14 * 86400)
+        for: 1h
+        labels:
+          severity: warn
+        annotations:
+          summary: "TLS certificate expiring soon"
+          description: "TLS certificate will expire within 14 days."
