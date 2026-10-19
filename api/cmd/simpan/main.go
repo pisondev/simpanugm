@@ -355,7 +355,7 @@ func demoAccounts(ctx context.Context, cfg config.Config, pool *pgxpool.Pool) er
 	if err != nil {
 		return err
 	}
-	svc := auth.NewService(pool, clock.System{}, notify.NewMailer(jobs, cfg.PublicBaseURL), settings.New(sqlc.New(pool), time.Now))
+	svc := auth.NewService(pool, clock.System{}, notify.NewMailer(jobs, cfg.PublicBaseURL), settings.New(pool, sqlc.New(pool), time.Now))
 	posts, err := sqlc.New(pool).ListPosts(ctx)
 	if err != nil {
 		return err
@@ -408,7 +408,7 @@ func admin(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
-	svc := auth.NewService(pool, clock.System{}, notify.NewMailer(jobs, cfg.PublicBaseURL), settings.New(sqlc.New(pool), time.Now))
+	svc := auth.NewService(pool, clock.System{}, notify.NewMailer(jobs, cfg.PublicBaseURL), settings.New(pool, sqlc.New(pool), time.Now))
 	link, err := svc.BootstrapAdmin(ctx, *email, *name)
 	if err != nil {
 		return err

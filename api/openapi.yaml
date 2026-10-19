@@ -990,6 +990,15 @@ paths:
               schema: { $ref: '#/components/schemas/NotificationPreferences' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /me/deletion:
+    post:
+      tags: [account]
+      operationId: deleteMe
+      responses:
+        '204':
+          description: Account deleted and personal data anonymized
+        default: { $ref: '#/components/responses/Problem' }
+
   /admin/users:
     get:
       tags: [admin]
@@ -1045,6 +1054,180 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AdminUser' }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      tags: [admin]
+      operationId: adminDeleteUser
+      responses:
+        '204':
+          description: User deleted and personal data anonymized
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/users/{id}/suspend:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    post:
+      tags: [admin]
+      operationId: adminSuspendUser
+      responses:
+        '200':
+          description: User suspended and sessions revoked
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionSuccess' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/users/{id}/unsuspend:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    post:
+      tags: [admin]
+      operationId: adminUnsuspendUser
+      responses:
+        '200':
+          description: User unsuspended
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionSuccess' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/users/{id}/revoke-sessions:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    post:
+      tags: [admin]
+      operationId: adminRevokeUserSessions
+      responses:
+        '200':
+          description: Active sessions revoked
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RevokeSessionsResponse' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/users/{id}/clear-claim-restriction:
+    parameters:
+      - $ref: '#/components/parameters/UUIDPath'
+    post:
+      tags: [admin]
+      operationId: adminClearClaimRestriction
+      responses:
+        '200':
+          description: Claim restriction cleared
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionSuccess' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/reports/{type}/{id}/hide:
+    parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [lost, found]
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [admin]
+      operationId: adminHideReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ModerateReportRequest' }
+      responses:
+        '200':
+          description: Report hidden and candidates superseded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionSuccess' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/reports/{type}/{id}/unhide:
+    parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [lost, found]
+      - $ref: '#/components/parameters/IdOrCode'
+    post:
+      tags: [admin]
+      operationId: adminUnhideReport
+      responses:
+        '200':
+          description: Report unhidden
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionSuccess' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/settings:
+    get:
+      tags: [admin]
+      operationId: adminGetSettings
+      responses:
+        '200':
+          description: System settings
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SystemSettingsList' }
+        default: { $ref: '#/components/responses/Problem' }
+    patch:
+      tags: [admin]
+      operationId: adminUpdateSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateSettingsRequest' }
+      responses:
+        '200':
+          description: Updated system settings
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SystemSettingsList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/audit-logs:
+    get:
+      tags: [admin]
+      operationId: adminListAuditLogs
+      parameters:
+        - name: actor_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: action
+          in: query
+          schema: { type: string }
+        - name: entity_type
+          in: query
+          schema: { type: string }
+        - name: entity_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: format
+          in: query
+          schema: { type: string, enum: [json, csv], default: json }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Audit logs list or CSV
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuditLogList' }
+            text/csv:
+              schema:
+                type: string
         default: { $ref: '#/components/responses/Problem' }
 
   /lost-reports/{id}/matches:
@@ -2736,6 +2919,7 @@ components:
           items: { type: string, format: uuid }
         created_at: { type: string, format: date-time }
         last_login_at: { type: string, format: date-time, nullable: true }
+        claim_restricted_at: { type: string, format: date-time, nullable: true }
 
     AdminUserList:
       type: object
@@ -3715,3 +3899,87 @@ components:
         report_type: { type: string, enum: [lost, found] }
         survivor_id: { type: string, format: uuid }
         duplicate_id: { type: string, format: uuid }
+
+    ModerateReportRequest:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 500
+
+    ActionSuccess:
+      type: object
+      additionalProperties: false
+      required: [success, message]
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+
+    RevokeSessionsResponse:
+      type: object
+      additionalProperties: false
+      required: [revoked_count]
+      properties:
+        revoked_count: { type: integer }
+
+    SystemSettingItem:
+      type: object
+      required: [key, value]
+      properties:
+        key: { type: string }
+        value: {}
+        updated_at: { type: string, format: date-time, nullable: true }
+        updated_by: { type: string, format: uuid, nullable: true }
+        updated_by_name: { type: string, nullable: true }
+
+    SystemSettingsList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/SystemSettingItem' }
+
+    UpdateSettingEntry:
+      type: object
+      required: [key, value]
+      properties:
+        key: { type: string }
+        value: {}
+
+    UpdateSettingsRequest:
+      type: object
+      required: [settings]
+      properties:
+        settings:
+          type: array
+          items: { $ref: '#/components/schemas/UpdateSettingEntry' }
+
+    AuditLogItem:
+      type: object
+      required: [id, occurred_at, action, entity_type]
+      properties:
+        id: { type: integer }
+        occurred_at: { type: string, format: date-time }
+        actor_id: { type: string, format: uuid, nullable: true }
+        actor_name: { type: string, nullable: true }
+        actor_role: { type: string, nullable: true }
+        action: { type: string }
+        entity_type: { type: string }
+        entity_id: { type: string, format: uuid, nullable: true }
+        changes: { type: object, additionalProperties: true, nullable: true }
+        request_id: { type: string, nullable: true }
+        ip: { type: string, nullable: true }
+        user_agent: { type: string, nullable: true }
+
+    AuditLogList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AuditLogItem' }
+        next_cursor: { type: string, nullable: true }

@@ -264,3 +264,54 @@ func (h *Handlers) RevokeMySession(ctx context.Context, req openapi.RevokeMySess
 	}
 	return openapi.RevokeMySession204Response{}, nil
 }
+
+func (h *Handlers) AdminSuspendUser(ctx context.Context, req openapi.AdminSuspendUserRequestObject) (openapi.AdminSuspendUserResponseObject, error) {
+	if err := h.svc.SuspendUser(ctx, req.Id, access.FromContext(ctx)); err != nil {
+		return nil, err
+	}
+	return openapi.AdminSuspendUser200JSONResponse{Success: true, Message: "Pengguna berhasil ditangguhkan."}, nil
+}
+
+func (h *Handlers) AdminUnsuspendUser(ctx context.Context, req openapi.AdminUnsuspendUserRequestObject) (openapi.AdminUnsuspendUserResponseObject, error) {
+	if err := h.svc.UnsuspendUser(ctx, req.Id); err != nil {
+		return nil, err
+	}
+	return openapi.AdminUnsuspendUser200JSONResponse{Success: true, Message: "Penangguhan pengguna berhasil dicabut."}, nil
+}
+
+func (h *Handlers) AdminRevokeUserSessions(ctx context.Context, req openapi.AdminRevokeUserSessionsRequestObject) (openapi.AdminRevokeUserSessionsResponseObject, error) {
+	n, err := h.svc.RevokeSessions(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return openapi.AdminRevokeUserSessions200JSONResponse{RevokedCount: int(n)}, nil
+}
+
+func (h *Handlers) AdminClearClaimRestriction(ctx context.Context, req openapi.AdminClearClaimRestrictionRequestObject) (openapi.AdminClearClaimRestrictionResponseObject, error) {
+	if err := h.svc.ClearClaimRestriction(ctx, req.Id); err != nil {
+		return nil, err
+	}
+	return openapi.AdminClearClaimRestriction200JSONResponse{Success: true, Message: "Pembatasan klaim berhasil dicabut."}, nil
+}
+
+func (h *Handlers) AdminDeleteUser(ctx context.Context, req openapi.AdminDeleteUserRequestObject) (openapi.AdminDeleteUserResponseObject, error) {
+	p := access.FromContext(ctx)
+	if p != nil && p.UserID == req.Id {
+		return nil, apperr.Unprocessable("cannot_delete_self", "Aksi ditolak", "Admin tidak dapat menghapus akun sendiri melalui endpoint ini.")
+	}
+	if err := h.svc.DeleteAccount(ctx, req.Id, false); err != nil {
+		return nil, err
+	}
+	return openapi.AdminDeleteUser204Response{}, nil
+}
+
+func (h *Handlers) DeleteMe(ctx context.Context, _ openapi.DeleteMeRequestObject) (openapi.DeleteMeResponseObject, error) {
+	p := access.FromContext(ctx)
+	if p == nil {
+		return nil, apperr.Unauthenticated()
+	}
+	if err := h.svc.DeleteAccount(ctx, p.UserID, true); err != nil {
+		return nil, err
+	}
+	return openapi.DeleteMe204Response{}, nil
+}

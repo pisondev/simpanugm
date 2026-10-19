@@ -317,6 +317,30 @@ func (q *Queries) AdminListZones(ctx context.Context) ([]Zone, error) {
 	return items, nil
 }
 
+const anonymizeUser = `-- name: AnonymizeUser :exec
+UPDATE users
+SET full_name = 'Pengguna terhapus',
+    email = $1::text,
+    nim_nip = NULL,
+    phone = NULL,
+    password_hash = '',
+    status = 'deleted',
+    version = version + 1,
+    updated_at = $2::timestamptz
+WHERE id = $3
+`
+
+type AnonymizeUserParams struct {
+	AnonymizedEmail string
+	Now             time.Time
+	ID              uuid.UUID
+}
+
+func (q *Queries) AnonymizeUser(ctx context.Context, arg AnonymizeUserParams) error {
+	_, err := q.db.Exec(ctx, anonymizeUser, arg.AnonymizedEmail, arg.Now, arg.ID)
+	return err
+}
+
 const approveClaim = `-- name: ApproveClaim :exec
 UPDATE claims
 SET status = 'approved', decided_by = $2, decided_at = $3, decision_note = $6, decision_reason = NULL,
@@ -961,6 +985,42 @@ func (q *Queries) CloseFoundReport(ctx context.Context, arg CloseFoundReportPara
 	var version int32
 	err := row.Scan(&version)
 	return version, err
+}
+
+const closeLostReportsForDeletedUser = `-- name: CloseLostReportsForDeletedUser :many
+UPDATE lost_reports
+SET status = 'closed',
+    close_reason = 'account_deleted',
+    closed_at = $1::timestamptz,
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE reporter_id = $2 AND status <> 'closed'
+RETURNING id
+`
+
+type CloseLostReportsForDeletedUserParams struct {
+	Now    time.Time
+	UserID *uuid.UUID
+}
+
+func (q *Queries) CloseLostReportsForDeletedUser(ctx context.Context, arg CloseLostReportsForDeletedUserParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, closeLostReportsForDeletedUser, arg.Now, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const compatibilityFor = `-- name: CompatibilityFor :many
@@ -1636,6 +1696,87 @@ func (q *Queries) ExpireLostReport(ctx context.Context, arg ExpireLostReportPara
 	var version int32
 	err := row.Scan(&version)
 	return version, err
+}
+
+const exportAuditLogs = `-- name: ExportAuditLogs :many
+SELECT al.id, al.occurred_at, al.actor_id, al.actor_role, al.action, al.entity_type, al.entity_id,
+       al.changes, al.request_id, al.ip, al.user_agent, u.full_name AS actor_name
+FROM audit_logs al
+LEFT JOIN users u ON u.id = al.actor_id
+WHERE ($1::uuid IS NULL OR al.actor_id = $1::uuid)
+  AND ($2::text IS NULL OR al.action = $2::text)
+  AND ($3::text IS NULL OR al.entity_type = $3::text)
+  AND ($4::uuid IS NULL OR al.entity_id = $4::uuid)
+  AND ($5::timestamptz IS NULL OR al.occurred_at >= $5::timestamptz)
+  AND ($6::timestamptz IS NULL OR al.occurred_at <= $6::timestamptz)
+ORDER BY al.occurred_at DESC, al.id DESC
+LIMIT $7
+`
+
+type ExportAuditLogsParams struct {
+	ActorID    *uuid.UUID
+	Action     *string
+	EntityType *string
+	EntityID   *uuid.UUID
+	FromTime   *time.Time
+	ToTime     *time.Time
+	RowLimit   int32
+}
+
+type ExportAuditLogsRow struct {
+	ID         int64
+	OccurredAt time.Time
+	ActorID    *uuid.UUID
+	ActorRole  *string
+	Action     string
+	EntityType string
+	EntityID   *uuid.UUID
+	Changes    []byte
+	RequestID  *string
+	Ip         *netip.Addr
+	UserAgent  *string
+	ActorName  *string
+}
+
+func (q *Queries) ExportAuditLogs(ctx context.Context, arg ExportAuditLogsParams) ([]ExportAuditLogsRow, error) {
+	rows, err := q.db.Query(ctx, exportAuditLogs,
+		arg.ActorID,
+		arg.Action,
+		arg.EntityType,
+		arg.EntityID,
+		arg.FromTime,
+		arg.ToTime,
+		arg.RowLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ExportAuditLogsRow{}
+	for rows.Next() {
+		var i ExportAuditLogsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OccurredAt,
+			&i.ActorID,
+			&i.ActorRole,
+			&i.Action,
+			&i.EntityType,
+			&i.EntityID,
+			&i.Changes,
+			&i.RequestID,
+			&i.Ip,
+			&i.UserAgent,
+			&i.ActorName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const extendRetention = `-- name: ExtendRetention :one
@@ -2951,6 +3092,19 @@ func (q *Queries) HandOverClaim(ctx context.Context, arg HandOverClaimParams) er
 	return err
 }
 
+const hasApprovedClaim = `-- name: HasApprovedClaim :one
+SELECT EXISTS (
+    SELECT 1 FROM claims WHERE claimant_id = $1 AND status = 'approved'
+)::bool
+`
+
+func (q *Queries) HasApprovedClaim(ctx context.Context, claimantID *uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, hasApprovedClaim, claimantID)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const hasRejectedClaim = `-- name: HasRejectedClaim :one
 SELECT EXISTS (SELECT 1 FROM claims WHERE claimant_id = $1 AND found_report_id = $2 AND status = 'rejected')::bool
 `
@@ -2966,6 +3120,64 @@ func (q *Queries) HasRejectedClaim(ctx context.Context, arg HasRejectedClaimPara
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const hideFoundReport = `-- name: HideFoundReport :one
+UPDATE found_reports
+SET hidden_at = $1::timestamptz,
+    hidden_reason = $2::text,
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $3 AND hidden_at IS NULL
+RETURNING id, code, version
+`
+
+type HideFoundReportParams struct {
+	Now    time.Time
+	Reason string
+	ID     uuid.UUID
+}
+
+type HideFoundReportRow struct {
+	ID      uuid.UUID
+	Code    string
+	Version int32
+}
+
+func (q *Queries) HideFoundReport(ctx context.Context, arg HideFoundReportParams) (HideFoundReportRow, error) {
+	row := q.db.QueryRow(ctx, hideFoundReport, arg.Now, arg.Reason, arg.ID)
+	var i HideFoundReportRow
+	err := row.Scan(&i.ID, &i.Code, &i.Version)
+	return i, err
+}
+
+const hideLostReport = `-- name: HideLostReport :one
+UPDATE lost_reports
+SET hidden_at = $1::timestamptz,
+    hidden_reason = $2::text,
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $3 AND hidden_at IS NULL
+RETURNING id, code, version
+`
+
+type HideLostReportParams struct {
+	Now    time.Time
+	Reason string
+	ID     uuid.UUID
+}
+
+type HideLostReportRow struct {
+	ID      uuid.UUID
+	Code    string
+	Version int32
+}
+
+func (q *Queries) HideLostReport(ctx context.Context, arg HideLostReportParams) (HideLostReportRow, error) {
+	row := q.db.QueryRow(ctx, hideLostReport, arg.Now, arg.Reason, arg.ID)
+	var i HideLostReportRow
+	err := row.Scan(&i.ID, &i.Code, &i.Version)
+	return i, err
 }
 
 const highMatchesOfFound = `-- name: HighMatchesOfFound :many
@@ -3973,6 +4185,92 @@ func (q *Queries) ListAuditForEntity(ctx context.Context, arg ListAuditForEntity
 			&i.RequestID,
 			&i.Ip,
 			&i.UserAgent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAuditLogs = `-- name: ListAuditLogs :many
+SELECT al.id, al.occurred_at, al.actor_id, al.actor_role, al.action, al.entity_type, al.entity_id,
+       al.changes, al.request_id, al.ip, al.user_agent, u.full_name AS actor_name
+FROM audit_logs al
+LEFT JOIN users u ON u.id = al.actor_id
+WHERE ($1::uuid IS NULL OR al.actor_id = $1::uuid)
+  AND ($2::text IS NULL OR al.action = $2::text)
+  AND ($3::text IS NULL OR al.entity_type = $3::text)
+  AND ($4::uuid IS NULL OR al.entity_id = $4::uuid)
+  AND ($5::timestamptz IS NULL OR al.occurred_at >= $5::timestamptz)
+  AND ($6::timestamptz IS NULL OR al.occurred_at <= $6::timestamptz)
+  AND ($7::timestamptz IS NULL OR (al.occurred_at, al.id) < ($7::timestamptz, $8::bigint))
+ORDER BY al.occurred_at DESC, al.id DESC
+LIMIT $9
+`
+
+type ListAuditLogsParams struct {
+	ActorID    *uuid.UUID
+	Action     *string
+	EntityType *string
+	EntityID   *uuid.UUID
+	FromTime   *time.Time
+	ToTime     *time.Time
+	CursorTime *time.Time
+	CursorID   *int64
+	RowLimit   int32
+}
+
+type ListAuditLogsRow struct {
+	ID         int64
+	OccurredAt time.Time
+	ActorID    *uuid.UUID
+	ActorRole  *string
+	Action     string
+	EntityType string
+	EntityID   *uuid.UUID
+	Changes    []byte
+	RequestID  *string
+	Ip         *netip.Addr
+	UserAgent  *string
+	ActorName  *string
+}
+
+func (q *Queries) ListAuditLogs(ctx context.Context, arg ListAuditLogsParams) ([]ListAuditLogsRow, error) {
+	rows, err := q.db.Query(ctx, listAuditLogs,
+		arg.ActorID,
+		arg.Action,
+		arg.EntityType,
+		arg.EntityID,
+		arg.FromTime,
+		arg.ToTime,
+		arg.CursorTime,
+		arg.CursorID,
+		arg.RowLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAuditLogsRow{}
+	for rows.Next() {
+		var i ListAuditLogsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OccurredAt,
+			&i.ActorID,
+			&i.ActorRole,
+			&i.Action,
+			&i.EntityType,
+			&i.EntityID,
+			&i.Changes,
+			&i.RequestID,
+			&i.Ip,
+			&i.UserAgent,
+			&i.ActorName,
 		); err != nil {
 			return nil, err
 		}
@@ -5684,6 +5982,47 @@ func (q *Queries) ListSettings(ctx context.Context) ([]ListSettingsRow, error) {
 	for rows.Next() {
 		var i ListSettingsRow
 		if err := rows.Scan(&i.Key, &i.Value); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSettingsDetailed = `-- name: ListSettingsDetailed :many
+SELECT s.key, s.value, s.updated_at, s.updated_by, u.full_name AS updated_by_name
+FROM system_settings s
+LEFT JOIN users u ON u.id = s.updated_by
+ORDER BY s.key
+`
+
+type ListSettingsDetailedRow struct {
+	Key           string
+	Value         []byte
+	UpdatedAt     time.Time
+	UpdatedBy     *uuid.UUID
+	UpdatedByName *string
+}
+
+func (q *Queries) ListSettingsDetailed(ctx context.Context) ([]ListSettingsDetailedRow, error) {
+	rows, err := q.db.Query(ctx, listSettingsDetailed)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListSettingsDetailedRow{}
+	for rows.Next() {
+		var i ListSettingsDetailedRow
+		if err := rows.Scan(
+			&i.Key,
+			&i.Value,
+			&i.UpdatedAt,
+			&i.UpdatedBy,
+			&i.UpdatedByName,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -8366,6 +8705,24 @@ func (q *Queries) SupersedeLostMatches(ctx context.Context, duplicateID uuid.UUI
 	return err
 }
 
+const suspendUser = `-- name: SuspendUser :exec
+UPDATE users
+SET status = 'suspended',
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $2
+`
+
+type SuspendUserParams struct {
+	Now time.Time
+	ID  uuid.UUID
+}
+
+func (q *Queries) SuspendUser(ctx context.Context, arg SuspendUserParams) error {
+	_, err := q.db.Exec(ctx, suspendUser, arg.Now, arg.ID)
+	return err
+}
+
 const textHashE5 = `-- name: TextHashE5 :one
 SELECT text_sha256 FROM text_embeddings_e5 WHERE report_type = $1 AND report_id = $2 AND model_version_id = $3
 `
@@ -8461,6 +8818,62 @@ func (q *Queries) TransferCustody(ctx context.Context, arg TransferCustodyParams
 	return version, err
 }
 
+const unhideFoundReport = `-- name: UnhideFoundReport :one
+UPDATE found_reports
+SET hidden_at = NULL,
+    hidden_reason = NULL,
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $2 AND hidden_at IS NOT NULL
+RETURNING id, code, version
+`
+
+type UnhideFoundReportParams struct {
+	Now time.Time
+	ID  uuid.UUID
+}
+
+type UnhideFoundReportRow struct {
+	ID      uuid.UUID
+	Code    string
+	Version int32
+}
+
+func (q *Queries) UnhideFoundReport(ctx context.Context, arg UnhideFoundReportParams) (UnhideFoundReportRow, error) {
+	row := q.db.QueryRow(ctx, unhideFoundReport, arg.Now, arg.ID)
+	var i UnhideFoundReportRow
+	err := row.Scan(&i.ID, &i.Code, &i.Version)
+	return i, err
+}
+
+const unhideLostReport = `-- name: UnhideLostReport :one
+UPDATE lost_reports
+SET hidden_at = NULL,
+    hidden_reason = NULL,
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $2 AND hidden_at IS NOT NULL
+RETURNING id, code, version
+`
+
+type UnhideLostReportParams struct {
+	Now time.Time
+	ID  uuid.UUID
+}
+
+type UnhideLostReportRow struct {
+	ID      uuid.UUID
+	Code    string
+	Version int32
+}
+
+func (q *Queries) UnhideLostReport(ctx context.Context, arg UnhideLostReportParams) (UnhideLostReportRow, error) {
+	row := q.db.QueryRow(ctx, unhideLostReport, arg.Now, arg.ID)
+	var i UnhideLostReportRow
+	err := row.Scan(&i.ID, &i.Code, &i.Version)
+	return i, err
+}
+
 const unnotifiedCandidates = `-- name: UnnotifiedCandidates :many
 SELECT id, tier::text AS tier FROM matches
 WHERE lost_report_id = $1 AND status = 'active' AND tier IN ('high', 'medium') AND rank_for_lost IS NOT NULL
@@ -8491,6 +8904,24 @@ func (q *Queries) UnnotifiedCandidates(ctx context.Context, lostReportID uuid.UU
 		return nil, err
 	}
 	return items, nil
+}
+
+const unsuspendUser = `-- name: UnsuspendUser :exec
+UPDATE users
+SET status = 'active',
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $2
+`
+
+type UnsuspendUserParams struct {
+	Now time.Time
+	ID  uuid.UUID
+}
+
+func (q *Queries) UnsuspendUser(ctx context.Context, arg UnsuspendUserParams) error {
+	_, err := q.db.Exec(ctx, unsuspendUser, arg.Now, arg.ID)
+	return err
 }
 
 const updateCategory = `-- name: UpdateCategory :exec
@@ -9240,6 +9671,30 @@ func (q *Queries) UpsertPreference(ctx context.Context, arg UpsertPreferencePara
 	return err
 }
 
+const upsertSetting = `-- name: UpsertSetting :exec
+INSERT INTO system_settings (key, value, updated_at, updated_by)
+VALUES ($1, $2, $4::timestamptz, $3)
+ON CONFLICT (key) DO UPDATE
+SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by
+`
+
+type UpsertSettingParams struct {
+	Key       string
+	Value     []byte
+	UpdatedBy *uuid.UUID
+	Now       time.Time
+}
+
+func (q *Queries) UpsertSetting(ctx context.Context, arg UpsertSettingParams) error {
+	_, err := q.db.Exec(ctx, upsertSetting,
+		arg.Key,
+		arg.Value,
+		arg.UpdatedBy,
+		arg.Now,
+	)
+	return err
+}
+
 const upsertSynonym = `-- name: UpsertSynonym :exec
 INSERT INTO synonyms (term, expansion) VALUES ($1, $2)
 ON CONFLICT (term) DO UPDATE SET expansion = excluded.expansion
@@ -9410,6 +9865,27 @@ func (q *Queries) VisibleCandidatesOfLost(ctx context.Context, lostReportID uuid
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const withdrawOpenClaimsForUser = `-- name: WithdrawOpenClaimsForUser :execrows
+UPDATE claims
+SET status = 'withdrawn',
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE claimant_id = $2 AND status IN ('submitted', 'under_review', 'info_requested', 'on_hold')
+`
+
+type WithdrawOpenClaimsForUserParams struct {
+	Now    time.Time
+	UserID *uuid.UUID
+}
+
+func (q *Queries) WithdrawOpenClaimsForUser(ctx context.Context, arg WithdrawOpenClaimsForUserParams) (int64, error) {
+	result, err := q.db.Exec(ctx, withdrawOpenClaimsForUser, arg.Now, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const zoneForUpdate = `-- name: ZoneForUpdate :one

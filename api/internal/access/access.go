@@ -22,58 +22,67 @@ func (r Role) Valid() bool { return r == Member || r == Officer || r == Admin }
 type Permission string
 
 const (
-	AccountSelfRead      Permission = "account.self.read"
-	AccountSelfUpdate    Permission = "account.self.update"
-	AccountSessions      Permission = "account.sessions.manage"
-	ReportLostCreate     Permission = "report.lost.create"
-	ReportLostRead       Permission = "report.lost.read"
-	ReportLostUpdate     Permission = "report.lost.update"
-	ReportLostClose      Permission = "report.lost.close"
-	ReportLostReopen     Permission = "report.lost.reopen"
-	ReportFoundCreate    Permission = "report.found.create"
-	ReportFoundRead      Permission = "report.found.read"
-	ReportFoundUpdate    Permission = "report.found.update"
-	ReportFoundClose     Permission = "report.found.close"
-	ReportPrivateRead    Permission = "report.private.read"
-	ReportHistoryRead    Permission = "report.history.read"
-	ReportProxyCreate    Permission = "report.proxy.create"
-	MediaUpload          Permission = "media.upload"
-	MediaRead            Permission = "media.read"
-	MediaDelete          Permission = "media.delete"
-	MasterdataRead       Permission = "masterdata.read"
-	MasterdataManage     Permission = "masterdata.manage"
-	MatchRead            Permission = "match.read"
-	MatchFeedback        Permission = "match.feedback"
-	MatchDismiss         Permission = "match.dismiss"
-	MatchRematch         Permission = "match.rematch"
-	AssistAnalyze        Permission = "assist.analyze"
-	CustodyReceive       Permission = "custody.receive"
-	CustodyInventoryRead Permission = "custody.inventory.read"
-	SearchReports        Permission = "search.reports"
-	OfficerQueueRead     Permission = "officer.queue.read"
-	UserRead             Permission = "user.read"
-	UserInvite           Permission = "user.invite"
-	UserUpdateRole       Permission = "user.update_role"
-	UserAssignPost       Permission = "user.assign_post"
-	ClaimCreate          Permission = "claim.create"
-	ClaimRead            Permission = "claim.read"
-	ClaimWithdraw        Permission = "claim.withdraw"
-	ClaimMessage         Permission = "claim.message"
-	ClaimReview          Permission = "claim.review"
-	ClaimApprove         Permission = "claim.approve"
-	ClaimInternalNote    Permission = "claim.internal_note"
-	CustodyHandover      Permission = "custody.handover"
-	CustodyTransfer      Permission = "custody.transfer"
-	CustodyExtend        Permission = "custody.extend"
-	CustodyDispose       Permission = "custody.dispose"
-	ReportMarkDuplicate  Permission = "report.mark_duplicate"
-	OfficerBoardRead     Permission = "officer.board.read"
-	MatchPin             Permission = "match.pin"
-	MatchInviteClaim     Permission = "match.officer_invites_claim"
+	AccountSelfRead           Permission = "account.self.read"
+	AccountSelfUpdate         Permission = "account.self.update"
+	AccountSessions           Permission = "account.sessions.manage"
+	ReportLostCreate          Permission = "report.lost.create"
+	ReportLostRead            Permission = "report.lost.read"
+	ReportLostUpdate          Permission = "report.lost.update"
+	ReportLostClose           Permission = "report.lost.close"
+	ReportLostReopen          Permission = "report.lost.reopen"
+	ReportFoundCreate         Permission = "report.found.create"
+	ReportFoundRead           Permission = "report.found.read"
+	ReportFoundUpdate         Permission = "report.found.update"
+	ReportFoundClose          Permission = "report.found.close"
+	ReportPrivateRead         Permission = "report.private.read"
+	ReportHistoryRead         Permission = "report.history.read"
+	ReportProxyCreate         Permission = "report.proxy.create"
+	MediaUpload               Permission = "media.upload"
+	MediaRead                 Permission = "media.read"
+	MediaDelete               Permission = "media.delete"
+	MasterdataRead            Permission = "masterdata.read"
+	MasterdataManage          Permission = "masterdata.manage"
+	MatchRead                 Permission = "match.read"
+	MatchFeedback             Permission = "match.feedback"
+	MatchDismiss              Permission = "match.dismiss"
+	MatchRematch              Permission = "match.rematch"
+	AssistAnalyze             Permission = "assist.analyze"
+	CustodyReceive            Permission = "custody.receive"
+	CustodyInventoryRead      Permission = "custody.inventory.read"
+	SearchReports             Permission = "search.reports"
+	OfficerQueueRead          Permission = "officer.queue.read"
+	UserRead                  Permission = "user.read"
+	UserInvite                Permission = "user.invite"
+	UserUpdateRole            Permission = "user.update_role"
+	UserAssignPost            Permission = "user.assign_post"
+	ClaimCreate               Permission = "claim.create"
+	ClaimRead                 Permission = "claim.read"
+	ClaimWithdraw             Permission = "claim.withdraw"
+	ClaimMessage              Permission = "claim.message"
+	ClaimReview               Permission = "claim.review"
+	ClaimApprove              Permission = "claim.approve"
+	ClaimInternalNote         Permission = "claim.internal_note"
+	CustodyHandover           Permission = "custody.handover"
+	CustodyTransfer           Permission = "custody.transfer"
+	CustodyExtend             Permission = "custody.extend"
+	CustodyDispose            Permission = "custody.dispose"
+	ReportMarkDuplicate       Permission = "report.mark_duplicate"
+	OfficerBoardRead          Permission = "officer.board.read"
+	MatchPin                  Permission = "match.pin"
+	MatchInviteClaim          Permission = "match.officer_invites_claim"
+	AccountSelfDelete         Permission = "account.self.delete"
+	UserSuspend               Permission = "user.suspend"
+	UserDelete                Permission = "user.delete"
+	UserClearClaimRestriction Permission = "user.clear_claim_restriction"
+	ReportModerate            Permission = "report.moderate"
+	SettingsRead              Permission = "settings.read"
+	SettingsManage            Permission = "settings.manage"
+	AuditRead                 Permission = "audit.read"
+	AuditExport               Permission = "audit.export"
 )
 
 var memberPerms = []Permission{
-	AccountSelfRead, AccountSelfUpdate, AccountSessions,
+	AccountSelfRead, AccountSelfUpdate, AccountSelfDelete, AccountSessions,
 	ReportLostCreate, ReportLostRead, ReportLostUpdate, ReportLostClose, ReportLostReopen,
 	ReportFoundCreate, ReportFoundRead, ReportFoundUpdate, ReportFoundClose,
 	ReportPrivateRead, ReportHistoryRead,
@@ -91,6 +100,8 @@ var officerPerms = append(slices.Clone(memberPerms),
 
 var adminPerms = append(slices.Clone(officerPerms),
 	UserRead, UserInvite, UserUpdateRole, UserAssignPost, MasterdataManage,
+	UserSuspend, UserDelete, UserClearClaimRestriction, ReportModerate,
+	SettingsRead, SettingsManage, AuditRead, AuditExport,
 )
 
 var rolePerms = map[Role][]Permission{Member: memberPerms, Officer: officerPerms, Admin: adminPerms}
@@ -252,6 +263,17 @@ var Operations = map[string]Rule{
 	"adminListPosts":             {Permission: MasterdataManage},
 	"adminCreatePost":            {Permission: MasterdataManage},
 	"adminUpdatePost":            {Permission: MasterdataManage},
+	"deleteMe":                   {Permission: AccountSelfDelete},
+	"adminDeleteUser":            {Permission: UserDelete},
+	"adminSuspendUser":           {Permission: UserSuspend},
+	"adminUnsuspendUser":         {Permission: UserSuspend},
+	"adminRevokeUserSessions":    {Permission: AccountSessions},
+	"adminClearClaimRestriction": {Permission: UserClearClaimRestriction},
+	"adminHideReport":            {Permission: ReportModerate},
+	"adminUnhideReport":          {Permission: ReportModerate},
+	"adminGetSettings":           {Permission: SettingsRead},
+	"adminUpdateSettings":        {Permission: SettingsManage},
+	"adminListAuditLogs":         {Permission: AuditRead},
 }
 
 func Check(p *Principal, operationID string) error {

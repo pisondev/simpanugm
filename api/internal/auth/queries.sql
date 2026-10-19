@@ -146,3 +146,51 @@ UPDATE sessions SET revoked_at = $3 WHERE id = $1 AND user_id = $2 AND revoked_a
 
 -- name: RevokeOtherSessions :execrows
 UPDATE sessions SET revoked_at = $3 WHERE user_id = $1 AND id <> $2 AND revoked_at IS NULL;
+
+-- name: SuspendUser :exec
+UPDATE users
+SET status = 'suspended',
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = sqlc.arg(id);
+
+-- name: UnsuspendUser :exec
+UPDATE users
+SET status = 'active',
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = sqlc.arg(id);
+
+-- name: HasApprovedClaim :one
+SELECT EXISTS (
+    SELECT 1 FROM claims WHERE claimant_id = $1 AND status = 'approved'
+)::bool;
+
+-- name: WithdrawOpenClaimsForUser :execrows
+UPDATE claims
+SET status = 'withdrawn',
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE claimant_id = sqlc.arg(user_id) AND status IN ('submitted', 'under_review', 'info_requested', 'on_hold');
+
+-- name: CloseLostReportsForDeletedUser :many
+UPDATE lost_reports
+SET status = 'closed',
+    close_reason = 'account_deleted',
+    closed_at = sqlc.arg(now)::timestamptz,
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE reporter_id = sqlc.arg(user_id) AND status <> 'closed'
+RETURNING id;
+
+-- name: AnonymizeUser :exec
+UPDATE users
+SET full_name = 'Pengguna terhapus',
+    email = sqlc.arg(anonymized_email)::text,
+    nim_nip = NULL,
+    phone = NULL,
+    password_hash = '',
+    status = 'deleted',
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = sqlc.arg(id);

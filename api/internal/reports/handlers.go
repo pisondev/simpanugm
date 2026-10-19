@@ -300,3 +300,17 @@ func (h *Handlers) ReceiveFoundReport(ctx context.Context, req openapi.ReceiveFo
 	}
 	return openapi.ReceiveFoundReport200JSONResponse(out), nil
 }
+
+func (h *Handlers) AdminHideReport(ctx context.Context, req openapi.AdminHideReportRequestObject) (openapi.AdminHideReportResponseObject, error) {
+	if err := h.svc.HideReport(ctx, access.FromContext(ctx), req.Type, req.Id, req.Body.Reason); err != nil {
+		return nil, err
+	}
+	return openapi.AdminHideReport200JSONResponse{Success: true, Message: "Laporan berhasil disembunyikan."}, nil
+}
+
+func (h *Handlers) AdminUnhideReport(ctx context.Context, req openapi.AdminUnhideReportRequestObject) (openapi.AdminUnhideReportResponseObject, error) {
+	if err := h.svc.UnhideReport(ctx, access.FromContext(ctx), req.Type, req.Id); err != nil {
+		return nil, err
+	}
+	return openapi.AdminUnhideReport200JSONResponse{Success: true, Message: "Laporan berhasil ditampilkan kembali."}, nil
+}

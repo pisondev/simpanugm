@@ -829,6 +829,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/deletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["deleteMe"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -873,10 +889,154 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        delete: operations["adminDeleteUser"];
         options?: never;
         head?: never;
         patch: operations["adminUpdateUser"];
+        trace?: never;
+    };
+    "/admin/users/{id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminSuspendUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{id}/unsuspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminUnsuspendUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{id}/revoke-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminRevokeUserSessions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{id}/clear-claim-restriction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminClearClaimRestriction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/reports/{type}/{id}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "lost" | "found";
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminHideReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/reports/{type}/{id}/unhide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "lost" | "found";
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminUnhideReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminGetSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["adminUpdateSettings"];
+        trace?: never;
+    };
+    "/admin/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminListAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/lost-reports/{id}/matches": {
@@ -2199,6 +2359,8 @@ export interface components {
             created_at: string;
             /** Format: date-time */
             last_login_at?: string | null;
+            /** Format: date-time */
+            claim_restricted_at?: string | null;
         };
         AdminUserList: {
             items: components["schemas"]["AdminUser"][];
@@ -2904,6 +3066,58 @@ export interface components {
             survivor_id: string;
             /** Format: uuid */
             duplicate_id: string;
+        };
+        ModerateReportRequest: {
+            reason: string;
+        };
+        ActionSuccess: {
+            success: boolean;
+            message: string;
+        };
+        RevokeSessionsResponse: {
+            revoked_count: number;
+        };
+        SystemSettingItem: {
+            key: string;
+            value: unknown;
+            /** Format: date-time */
+            updated_at?: string | null;
+            /** Format: uuid */
+            updated_by?: string | null;
+            updated_by_name?: string | null;
+        };
+        SystemSettingsList: {
+            items: components["schemas"]["SystemSettingItem"][];
+        };
+        UpdateSettingEntry: {
+            key: string;
+            value: unknown;
+        };
+        UpdateSettingsRequest: {
+            settings: components["schemas"]["UpdateSettingEntry"][];
+        };
+        AuditLogItem: {
+            id: number;
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: uuid */
+            actor_id?: string | null;
+            actor_name?: string | null;
+            actor_role?: string | null;
+            action: string;
+            entity_type: string;
+            /** Format: uuid */
+            entity_id?: string | null;
+            changes?: {
+                [key: string]: unknown;
+            } | null;
+            request_id?: string | null;
+            ip?: string | null;
+            user_agent?: string | null;
+        };
+        AuditLogList: {
+            items: components["schemas"]["AuditLogItem"][];
+            next_cursor?: string | null;
         };
     };
     responses: {
@@ -4314,6 +4528,25 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    deleteMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Account deleted and personal data anonymized */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     adminListUsers: {
         parameters: {
             query?: {
@@ -4365,6 +4598,27 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    adminDeleteUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User deleted and personal data anonymized */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     adminUpdateUser: {
         parameters: {
             query?: never;
@@ -4387,6 +4641,230 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSuspendUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User suspended and sessions revoked */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionSuccess"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUnsuspendUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User unsuspended */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionSuccess"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminRevokeUserSessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Active sessions revoked */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevokeSessionsResponse"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminClearClaimRestriction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["UUIDPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Claim restriction cleared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionSuccess"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminHideReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "lost" | "found";
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerateReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Report hidden and candidates superseded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionSuccess"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUnhideReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "lost" | "found";
+                /** @description UUID or human code such as LST-2611-0007 */
+                id: components["parameters"]["IdOrCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Report unhidden */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionSuccess"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminGetSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description System settings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemSettingsList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated system settings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemSettingsList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListAuditLogs: {
+        parameters: {
+            query?: {
+                actor_id?: string;
+                action?: string;
+                entity_type?: string;
+                entity_id?: string;
+                from?: string;
+                to?: string;
+                format?: "json" | "csv";
+                cursor?: components["parameters"]["Cursor"];
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Audit logs list or CSV */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditLogList"];
+                    "text/csv": string;
                 };
             };
             default: components["responses"]["Problem"];

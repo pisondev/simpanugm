@@ -270,3 +270,39 @@ SET status = 'closed',
     updated_at = sqlc.arg(now)::timestamptz
 WHERE id = sqlc.arg(id) AND version = sqlc.arg(version) AND status IN ('reported', 'potential_match')
 RETURNING version;
+
+-- name: HideLostReport :one
+UPDATE lost_reports
+SET hidden_at = sqlc.arg(now)::timestamptz,
+    hidden_reason = sqlc.arg(reason)::text,
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = sqlc.arg(id) AND hidden_at IS NULL
+RETURNING id, code, version;
+
+-- name: UnhideLostReport :one
+UPDATE lost_reports
+SET hidden_at = NULL,
+    hidden_reason = NULL,
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = sqlc.arg(id) AND hidden_at IS NOT NULL
+RETURNING id, code, version;
+
+-- name: HideFoundReport :one
+UPDATE found_reports
+SET hidden_at = sqlc.arg(now)::timestamptz,
+    hidden_reason = sqlc.arg(reason)::text,
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = sqlc.arg(id) AND hidden_at IS NULL
+RETURNING id, code, version;
+
+-- name: UnhideFoundReport :one
+UPDATE found_reports
+SET hidden_at = NULL,
+    hidden_reason = NULL,
+    version = version + 1,
+    updated_at = sqlc.arg(now)::timestamptz
+WHERE id = sqlc.arg(id) AND hidden_at IS NOT NULL
+RETURNING id, code, version;

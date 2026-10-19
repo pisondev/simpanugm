@@ -643,3 +643,116 @@ func (s *Service) Purge(ctx context.Context) (users int64, sessions int64, err e
 	}
 	return users, sessions, nil
 }
+
+func (s *Service) SuspendUser(ctx context.Context, id uuid.UUID, actor *access.Principal) error {
+	if actor != nil && actor.UserID == id {
+		return apperr.Unprocessable("cannot_suspend_self", "Aksi ditolak", "Tidak dapat menangguhkan akun sendiri.")
+	}
+	now := s.clock.Now()
+	return db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		qtx := s.q.WithTx(tx)
+		if err := qtx.SuspendUser(ctx, sqlc.SuspendUserParams{ID: id, Now: now}); err != nil {
+			return fmt.Errorf("auth: suspend user: %w", err)
+		}
+		if _, err := qtx.RevokeUserSessions(ctx, sqlc.RevokeUserSessionsParams{UserID: id, RevokedAt: &now}); err != nil {
+			return fmt.Errorf("auth: revoke sessions: %w", err)
+		}
+		return audit.Record(ctx, qtx, now, audit.Entry{
+			Action:     "user.suspend",
+			EntityType: "user",
+			EntityID:   id,
+		})
+	})
+}
+
+func (s *Service) UnsuspendUser(ctx context.Context, id uuid.UUID) error {
+	now := s.clock.Now()
+	return db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		qtx := s.q.WithTx(tx)
+		if err := qtx.UnsuspendUser(ctx, sqlc.UnsuspendUserParams{ID: id, Now: now}); err != nil {
+			return fmt.Errorf("auth: unsuspend user: %w", err)
+		}
+		return audit.Record(ctx, qtx, now, audit.Entry{
+			Action:     "user.unsuspend",
+			EntityType: "user",
+			EntityID:   id,
+		})
+	})
+}
+
+func (s *Service) RevokeSessions(ctx context.Context, id uuid.UUID) (int64, error) {
+	now := s.clock.Now()
+	var count int64
+	err := db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		qtx := s.q.WithTx(tx)
+		n, err := qtx.RevokeUserSessions(ctx, sqlc.RevokeUserSessionsParams{UserID: id, RevokedAt: &now})
+		if err != nil {
+			return fmt.Errorf("auth: revoke sessions: %w", err)
+		}
+		count = n
+		return audit.Record(ctx, qtx, now, audit.Entry{
+			Action:     "user.revoke_sessions",
+			EntityType: "user",
+			EntityID:   id,
+			Changes:    map[string]any{"revoked_count": n},
+		})
+	})
+	return count, err
+}
+
+func (s *Service) ClearClaimRestriction(ctx context.Context, id uuid.UUID) error {
+	now := s.clock.Now()
+	return db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		qtx := s.q.WithTx(tx)
+		if err := qtx.ClearClaimRestriction(ctx, sqlc.ClearClaimRestrictionParams{ID: id, UpdatedAt: now}); err != nil {
+			return fmt.Errorf("auth: clear claim restriction: %w", err)
+		}
+		return audit.Record(ctx, qtx, now, audit.Entry{
+			Action:     "user.clear_claim_restriction",
+			EntityType: "user",
+			EntityID:   id,
+		})
+	})
+}
+
+func (s *Service) DeleteAccount(ctx context.Context, id uuid.UUID, isSelf bool) error {
+	hasApproved, err := s.q.HasApprovedClaim(ctx, &id)
+	if err != nil {
+		return fmt.Errorf("auth: check approved claim: %w", err)
+	}
+	if hasApproved {
+		return apperr.Unprocessable("claim_exists", "Penghapusan ditolak", "Akun tidak dapat dihapus selama memiliki klaim yang telah disetujui.")
+	}
+	now := s.clock.Now()
+	return db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+		qtx := s.q.WithTx(tx)
+		if _, err := qtx.WithdrawOpenClaimsForUser(ctx, sqlc.WithdrawOpenClaimsForUserParams{UserID: &id, Now: now}); err != nil {
+			return fmt.Errorf("auth: withdraw open claims: %w", err)
+		}
+		closedLostIDs, err := qtx.CloseLostReportsForDeletedUser(ctx, sqlc.CloseLostReportsForDeletedUserParams{UserID: &id, Now: now})
+		if err != nil {
+			return fmt.Errorf("auth: close open reports: %w", err)
+		}
+		for _, lostID := range closedLostIDs {
+			if _, err := qtx.SupersedeForLost(ctx, lostID); err != nil {
+				return fmt.Errorf("auth: supersede matches for lost %s: %w", lostID, err)
+			}
+		}
+		anonEmail := fmt.Sprintf("deleted_%s@anonymized.local", id.String())
+		if err := qtx.AnonymizeUser(ctx, sqlc.AnonymizeUserParams{ID: id, AnonymizedEmail: anonEmail, Now: now}); err != nil {
+			return fmt.Errorf("auth: anonymize user: %w", err)
+		}
+		if _, err := qtx.RevokeUserSessions(ctx, sqlc.RevokeUserSessionsParams{UserID: id, RevokedAt: &now}); err != nil {
+			return fmt.Errorf("auth: revoke sessions: %w", err)
+		}
+		action := "user.delete"
+		if isSelf {
+			action = "account.delete"
+		}
+		return audit.Record(ctx, qtx, now, audit.Entry{
+			Action:     action,
+			EntityType: "user",
+			EntityID:   id,
+		})
+	})
+}

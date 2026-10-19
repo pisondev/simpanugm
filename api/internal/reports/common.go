@@ -8,9 +8,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/pisondev/simpanugm/api/internal/access"
+	"github.com/pisondev/simpanugm/api/internal/audit"
 	"github.com/pisondev/simpanugm/api/internal/custody"
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
 	"github.com/pisondev/simpanugm/api/internal/masterdata"
@@ -19,6 +21,7 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/notify"
 	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
 	"github.com/pisondev/simpanugm/api/internal/platform/clock"
+	"github.com/pisondev/simpanugm/api/internal/platform/db"
 	"github.com/pisondev/simpanugm/api/internal/platform/settings"
 	"github.com/pisondev/simpanugm/api/internal/platform/textx"
 )
@@ -180,4 +183,106 @@ func parseVersion(raw string) (int32, error) {
 		return 0, apperr.BadRequest("Header If-Match tidak valid.")
 	}
 	return n, nil
+}
+
+func (s *Service) HideReport(ctx context.Context, p *access.Principal, reportType, ref, reason string) error {
+	now := s.clock.Now()
+	switch reportType {
+	case "lost":
+		row, err := s.loadLost(ctx, s.q, ref)
+		if err != nil {
+			return err
+		}
+		return db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+			qtx := s.q.WithTx(tx)
+			if _, err := qtx.HideLostReport(ctx, sqlc.HideLostReportParams{
+				ID:     row.LostReport.ID,
+				Reason: reason,
+				Now:    now,
+			}); err != nil {
+				return fmt.Errorf("reports: hide lost: %w", err)
+			}
+			if _, err := qtx.SupersedeForLost(ctx, row.LostReport.ID); err != nil {
+				return fmt.Errorf("reports: supersede for lost: %w", err)
+			}
+			return audit.Record(ctx, qtx, now, audit.Entry{
+				Action:     "report.hide",
+				EntityType: "lost_report",
+				EntityID:   row.LostReport.ID,
+				Changes:    map[string]any{"reason": reason},
+			})
+		})
+	case "found":
+		row, err := s.loadFound(ctx, s.q, ref)
+		if err != nil {
+			return err
+		}
+		return db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+			qtx := s.q.WithTx(tx)
+			if _, err := qtx.HideFoundReport(ctx, sqlc.HideFoundReportParams{
+				ID:     row.FoundReport.ID,
+				Reason: reason,
+				Now:    now,
+			}); err != nil {
+				return fmt.Errorf("reports: hide found: %w", err)
+			}
+			if _, err := qtx.SupersedeForFound(ctx, row.FoundReport.ID); err != nil {
+				return fmt.Errorf("reports: supersede for found: %w", err)
+			}
+			return audit.Record(ctx, qtx, now, audit.Entry{
+				Action:     "report.hide",
+				EntityType: "found_report",
+				EntityID:   row.FoundReport.ID,
+				Changes:    map[string]any{"reason": reason},
+			})
+		})
+	default:
+		return apperr.BadRequest("Tipe laporan tidak valid.")
+	}
+}
+
+func (s *Service) UnhideReport(ctx context.Context, p *access.Principal, reportType, ref string) error {
+	now := s.clock.Now()
+	switch reportType {
+	case "lost":
+		row, err := s.loadLost(ctx, s.q, ref)
+		if err != nil {
+			return err
+		}
+		return db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+			qtx := s.q.WithTx(tx)
+			if _, err := qtx.UnhideLostReport(ctx, sqlc.UnhideLostReportParams{
+				ID:  row.LostReport.ID,
+				Now: now,
+			}); err != nil {
+				return fmt.Errorf("reports: unhide lost: %w", err)
+			}
+			return audit.Record(ctx, qtx, now, audit.Entry{
+				Action:     "report.unhide",
+				EntityType: "lost_report",
+				EntityID:   row.LostReport.ID,
+			})
+		})
+	case "found":
+		row, err := s.loadFound(ctx, s.q, ref)
+		if err != nil {
+			return err
+		}
+		return db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+			qtx := s.q.WithTx(tx)
+			if _, err := qtx.UnhideFoundReport(ctx, sqlc.UnhideFoundReportParams{
+				ID:  row.FoundReport.ID,
+				Now: now,
+			}); err != nil {
+				return fmt.Errorf("reports: unhide found: %w", err)
+			}
+			return audit.Record(ctx, qtx, now, audit.Entry{
+				Action:     "report.unhide",
+				EntityType: "found_report",
+				EntityID:   row.FoundReport.ID,
+			})
+		})
+	default:
+		return apperr.BadRequest("Tipe laporan tidak valid.")
+	}
 }

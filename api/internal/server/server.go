@@ -19,6 +19,7 @@ import (
 	apispec "github.com/pisondev/simpanugm/api"
 	"github.com/pisondev/simpanugm/api/internal/access"
 	"github.com/pisondev/simpanugm/api/internal/assist"
+	"github.com/pisondev/simpanugm/api/internal/audit"
 	"github.com/pisondev/simpanugm/api/internal/auth"
 	"github.com/pisondev/simpanugm/api/internal/claims"
 	"github.com/pisondev/simpanugm/api/internal/custody"
@@ -71,10 +72,11 @@ type Services struct {
 	Claims     *claims.Service
 	Matching   *matching.Service
 	Officer    *officer.Service
+	Audit      *audit.Service
 }
 
 func NewServices(d Deps) *Services {
-	st := settings.New(sqlc.New(d.Pool), d.Clock.Now)
+	st := settings.New(d.Pool, sqlc.New(d.Pool), d.Clock.Now)
 	mailer := notify.NewMailer(d.Jobs, strings.TrimRight(d.Config.PublicBaseURL, "/"))
 	notifier := notify.NewNotifier(d.Jobs, d.Config.PublicBaseURL, st, d.Clock)
 	hub := notify.NewHub(d.Pool)
@@ -94,6 +96,7 @@ func NewServices(d Deps) *Services {
 	engine := matching.NewEngine(d.Pool, d.Clock, ml, d.Store, notifier, st, d.Jobs).WithMetrics(d.Metrics)
 	matchingSvc := matching.NewService(engine, enq)
 	officerSvc := officer.NewService(d.Pool, d.Clock).WithReportsAndMatching(rep, matchingSvc)
+	auditSvc := audit.NewService(sqlc.New(d.Pool))
 	return &Services{
 		Settings: st, Mailer: mailer, Notifier: notifier, Hub: hub, Notify: notify.NewService(d.Pool, d.Clock, hub),
 		Auth:       authSvc,
@@ -105,6 +108,7 @@ func NewServices(d Deps) *Services {
 		Assist:   assist.NewService(d.Pool, ml, d.Store, md),
 		Matching: matchingSvc,
 		Officer:  officerSvc,
+		Audit:    auditSvc,
 	}
 }
 
@@ -120,6 +124,8 @@ type (
 	assistHandlers     = assist.Handlers
 	claimsHandlers     = claims.Handlers
 	officerHandlers    = officer.Handlers
+	settingsHandlers   = settings.Handlers
+	auditHandlers      = audit.Handlers
 )
 
 type strictServer struct {
@@ -134,6 +140,8 @@ type strictServer struct {
 	*assistHandlers
 	*claimsHandlers
 	*officerHandlers
+	*settingsHandlers
+	*auditHandlers
 }
 
 var _ openapi.StrictServerInterface = strictServer{}
@@ -178,6 +186,8 @@ func NewRouter(d Deps, s *Services) (http.Handler, error) {
 		assistHandlers:     assist.NewHandlers(s.Assist),
 		claimsHandlers:     claims.NewHandlers(s.Claims),
 		officerHandlers:    officer.NewHandlers(s.Officer),
+		settingsHandlers:   settings.NewHandlers(s.Settings),
+		auditHandlers:      audit.NewHandlers(s.Audit),
 	}
 	strict := openapi.NewStrictHandlerWithOptions(handlers, nil, openapi.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
