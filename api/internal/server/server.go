@@ -29,6 +29,7 @@ import (
 	"github.com/pisondev/simpanugm/api/internal/media"
 	"github.com/pisondev/simpanugm/api/internal/mlclient"
 	"github.com/pisondev/simpanugm/api/internal/notify"
+	"github.com/pisondev/simpanugm/api/internal/officer"
 	"github.com/pisondev/simpanugm/api/internal/openapi"
 	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
 	"github.com/pisondev/simpanugm/api/internal/platform/clock"
@@ -69,6 +70,7 @@ type Services struct {
 	Assist     *assist.Service
 	Claims     *claims.Service
 	Matching   *matching.Service
+	Officer    *officer.Service
 }
 
 func NewServices(d Deps) *Services {
@@ -97,6 +99,7 @@ func NewServices(d Deps) *Services {
 		Engine:   engine,
 		Assist:   assist.NewService(d.Pool, ml, d.Store, md),
 		Matching: matching.NewService(engine, enq),
+		Officer:  officer.NewService(d.Pool, d.Clock),
 	}
 }
 
@@ -111,6 +114,7 @@ type (
 	matchingHandlers   = matching.Handlers
 	assistHandlers     = assist.Handlers
 	claimsHandlers     = claims.Handlers
+	officerHandlers    = officer.Handlers
 )
 
 type strictServer struct {
@@ -124,6 +128,7 @@ type strictServer struct {
 	*matchingHandlers
 	*assistHandlers
 	*claimsHandlers
+	*officerHandlers
 }
 
 var _ openapi.StrictServerInterface = strictServer{}
@@ -167,6 +172,7 @@ func NewRouter(d Deps, s *Services) (http.Handler, error) {
 		matchingHandlers:   matching.NewHandlers(s.Matching),
 		assistHandlers:     assist.NewHandlers(s.Assist),
 		claimsHandlers:     claims.NewHandlers(s.Claims),
+		officerHandlers:    officer.NewHandlers(s.Officer),
 	}
 	strict := openapi.NewStrictHandlerWithOptions(handlers, nil, openapi.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {

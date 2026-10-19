@@ -702,6 +702,36 @@ func (e NotificationPreferenceGroup) Valid() bool {
 	}
 }
 
+// Defines values for OfficerQueueItemType.
+const (
+	ClaimReview          OfficerQueueItemType = "claim_review"
+	DirectReturnReview   OfficerQueueItemType = "direct_return_review"
+	HighMatchNoClaim     OfficerQueueItemType = "high_match_no_claim"
+	OverdueCustody       OfficerQueueItemType = "overdue_custody"
+	RetentionDue         OfficerQueueItemType = "retention_due"
+	UnclaimedDisposition OfficerQueueItemType = "unclaimed_disposition"
+)
+
+// Valid indicates whether the value is a known member of the OfficerQueueItemType enum.
+func (e OfficerQueueItemType) Valid() bool {
+	switch e {
+	case ClaimReview:
+		return true
+	case DirectReturnReview:
+		return true
+	case HighMatchNoClaim:
+		return true
+	case OverdueCustody:
+		return true
+	case RetentionDue:
+		return true
+	case UnclaimedDisposition:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for RejectionReason.
 const (
 	RejectionReasonDetailsMismatch      RejectionReason = "details_mismatch"
@@ -786,6 +816,42 @@ func (e Sensitivity) Valid() bool {
 	case Normal:
 		return true
 	case Valuable:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetOfficerQueueParamsScope.
+const (
+	GetOfficerQueueParamsScopeCampus GetOfficerQueueParamsScope = "campus"
+	GetOfficerQueueParamsScopePosts  GetOfficerQueueParamsScope = "posts"
+)
+
+// Valid indicates whether the value is a known member of the GetOfficerQueueParamsScope enum.
+func (e GetOfficerQueueParamsScope) Valid() bool {
+	switch e {
+	case GetOfficerQueueParamsScopeCampus:
+		return true
+	case GetOfficerQueueParamsScopePosts:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetOfficerSummaryParamsScope.
+const (
+	GetOfficerSummaryParamsScopeCampus GetOfficerSummaryParamsScope = "campus"
+	GetOfficerSummaryParamsScopePosts  GetOfficerSummaryParamsScope = "posts"
+)
+
+// Valid indicates whether the value is a known member of the GetOfficerSummaryParamsScope enum.
+func (e GetOfficerSummaryParamsScope) Valid() bool {
+	switch e {
+	case GetOfficerSummaryParamsScopeCampus:
+		return true
+	case GetOfficerSummaryParamsScopePosts:
 		return true
 	default:
 		return false
@@ -1879,6 +1945,61 @@ type NotificationPreferences struct {
 	Items []NotificationPreference `json:"items"`
 }
 
+// OfficerQueueItem defines model for OfficerQueueItem.
+type OfficerQueueItem struct {
+	ActionLabel         string                     `json:"action_label"`
+	ActionUrl           string                     `json:"action_url"`
+	CategoryName        string                     `json:"category_name"`
+	CategorySensitivity Sensitivity                `json:"category_sensitivity"`
+	CategorySlug        string                     `json:"category_slug"`
+	ClaimCode           *string                    `json:"claim_code,omitempty"`
+	ClaimId             *openapi_types.UUID        `json:"claim_id,omitempty"`
+	CreatedAt           time.Time                  `json:"created_at"`
+	CustodyStatus       CustodyStatus              `json:"custody_status"`
+	FoundCode           string                     `json:"found_code"`
+	FoundId             openapi_types.UUID         `json:"found_id"`
+	Id                  string                     `json:"id"`
+	OccurredAt          *time.Time                 `json:"occurred_at,omitempty"`
+	PostId              *openapi_types.UUID        `json:"post_id,omitempty"`
+	PostName            *string                    `json:"post_name,omitempty"`
+	PriorityScore       float64                    `json:"priority_score"`
+	ReasonChips         []string                   `json:"reason_chips"`
+	ScoreBreakdown      OfficerQueueScoreBreakdown `json:"score_breakdown"`
+	ThumbMediaId        *openapi_types.UUID        `json:"thumb_media_id,omitempty"`
+	Title               string                     `json:"title"`
+	Type                OfficerQueueItemType       `json:"type"`
+	UpdatedAt           *time.Time                 `json:"updated_at,omitempty"`
+}
+
+// OfficerQueueItemType defines model for OfficerQueueItemType.
+type OfficerQueueItemType string
+
+// OfficerQueueList defines model for OfficerQueueList.
+type OfficerQueueList struct {
+	Items []OfficerQueueItem `json:"items"`
+	Total int                `json:"total"`
+}
+
+// OfficerQueueScoreBreakdown defines model for OfficerQueueScoreBreakdown.
+type OfficerQueueScoreBreakdown struct {
+	A     float64 `json:"a"`
+	M     float64 `json:"m"`
+	S     float64 `json:"s"`
+	Total float64 `json:"total"`
+	U     float64 `json:"u"`
+}
+
+// OfficerSummary defines model for OfficerSummary.
+type OfficerSummary struct {
+	ClaimsPending    int `json:"claims_pending"`
+	FoundToday       int `json:"found_today"`
+	HighMatchNoClaim int `json:"high_match_no_claim"`
+	InCustody        int `json:"in_custody"`
+	RetentionDue     int `json:"retention_due"`
+	Unclaimed        int `json:"unclaimed"`
+	WithFinder       int `json:"with_finder"`
+}
+
 // OpeningHours Weekday keys mon to sun, each a list of [from, to] in WIB, an empty list when closed
 type OpeningHours map[string][][]string
 
@@ -2296,6 +2417,25 @@ type ListNotificationsParams struct {
 	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
 	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
 }
+
+// GetOfficerQueueParams defines parameters for GetOfficerQueue.
+type GetOfficerQueueParams struct {
+	Scope  *GetOfficerQueueParamsScope `form:"scope,omitempty" json:"scope,omitempty"`
+	Type   *OfficerQueueItemType       `form:"type,omitempty" json:"type,omitempty"`
+	PostId *openapi_types.UUID         `form:"post_id,omitempty" json:"post_id,omitempty"`
+	Limit  *int                        `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// GetOfficerQueueParamsScope defines parameters for GetOfficerQueue.
+type GetOfficerQueueParamsScope string
+
+// GetOfficerSummaryParams defines parameters for GetOfficerSummary.
+type GetOfficerSummaryParams struct {
+	Scope *GetOfficerSummaryParamsScope `form:"scope,omitempty" json:"scope,omitempty"`
+}
+
+// GetOfficerSummaryParamsScope defines parameters for GetOfficerSummary.
+type GetOfficerSummaryParamsScope string
 
 // ListPostsParams defines parameters for ListPosts.
 type ListPostsParams struct {
@@ -2745,6 +2885,12 @@ type ServerInterface interface {
 
 	// (POST /notifications/{id}/read)
 	MarkNotificationRead(w http.ResponseWriter, r *http.Request, id UUIDPath)
+
+	// (GET /officer/queue)
+	GetOfficerQueue(w http.ResponseWriter, r *http.Request, params GetOfficerQueueParams)
+
+	// (GET /officer/summary)
+	GetOfficerSummary(w http.ResponseWriter, r *http.Request, params GetOfficerSummaryParams)
 
 	// (GET /posts)
 	ListPosts(w http.ResponseWriter, r *http.Request, params ListPostsParams)
@@ -3213,6 +3359,16 @@ func (_ Unimplemented) CountUnreadNotifications(w http.ResponseWriter, r *http.R
 
 // (POST /notifications/{id}/read)
 func (_ Unimplemented) MarkNotificationRead(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /officer/queue)
+func (_ Unimplemented) GetOfficerQueue(w http.ResponseWriter, r *http.Request, params GetOfficerQueueParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /officer/summary)
+func (_ Unimplemented) GetOfficerSummary(w http.ResponseWriter, r *http.Request, params GetOfficerSummaryParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -5741,6 +5897,111 @@ func (siw *ServerInterfaceWrapper) MarkNotificationRead(w http.ResponseWriter, r
 	handler.ServeHTTP(w, r)
 }
 
+// GetOfficerQueue operation middleware
+func (siw *ServerInterfaceWrapper) GetOfficerQueue(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetOfficerQueueParams
+
+	// ------------- Optional query parameter "scope" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "scope", r.URL.Query(), &params.Scope, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "scope"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "scope", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "type", r.URL.Query(), &params.Type, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "type"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "type", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "post_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "post_id", r.URL.Query(), &params.PostId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "post_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "post_id", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetOfficerQueue(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetOfficerSummary operation middleware
+func (siw *ServerInterfaceWrapper) GetOfficerSummary(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetOfficerSummaryParams
+
+	// ------------- Optional query parameter "scope" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "scope", r.URL.Query(), &params.Scope, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "scope"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "scope", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetOfficerSummary(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListPosts operation middleware
 func (siw *ServerInterfaceWrapper) ListPosts(w http.ResponseWriter, r *http.Request) {
 
@@ -6258,6 +6519,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/posts/{id}/inventory", wrapper.GetPostInventory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/officer/summary", wrapper.GetOfficerSummary)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/officer/queue", wrapper.GetOfficerQueue)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/search", wrapper.SearchReports)
@@ -9934,6 +10201,84 @@ func (response MarkNotificationReaddefaultApplicationProblemPlusJSONResponse) Vi
 	return err
 }
 
+type GetOfficerQueueRequestObject struct {
+	Params GetOfficerQueueParams
+}
+
+type GetOfficerQueueResponseObject interface {
+	VisitGetOfficerQueueResponse(w http.ResponseWriter) error
+}
+
+type GetOfficerQueue200JSONResponse OfficerQueueList
+
+func (response GetOfficerQueue200JSONResponse) VisitGetOfficerQueueResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetOfficerQueuedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetOfficerQueuedefaultApplicationProblemPlusJSONResponse) VisitGetOfficerQueueResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetOfficerSummaryRequestObject struct {
+	Params GetOfficerSummaryParams
+}
+
+type GetOfficerSummaryResponseObject interface {
+	VisitGetOfficerSummaryResponse(w http.ResponseWriter) error
+}
+
+type GetOfficerSummary200JSONResponse OfficerSummary
+
+func (response GetOfficerSummary200JSONResponse) VisitGetOfficerSummaryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetOfficerSummarydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetOfficerSummarydefaultApplicationProblemPlusJSONResponse) VisitGetOfficerSummaryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListPostsRequestObject struct {
 	Params ListPostsParams
 }
@@ -10402,6 +10747,12 @@ type StrictServerInterface interface {
 
 	// (POST /notifications/{id}/read)
 	MarkNotificationRead(ctx context.Context, request MarkNotificationReadRequestObject) (MarkNotificationReadResponseObject, error)
+
+	// (GET /officer/queue)
+	GetOfficerQueue(ctx context.Context, request GetOfficerQueueRequestObject) (GetOfficerQueueResponseObject, error)
+
+	// (GET /officer/summary)
+	GetOfficerSummary(ctx context.Context, request GetOfficerSummaryRequestObject) (GetOfficerSummaryResponseObject, error)
 
 	// (GET /posts)
 	ListPosts(ctx context.Context, request ListPostsRequestObject) (ListPostsResponseObject, error)
@@ -13068,6 +13419,58 @@ func (sh *strictHandler) MarkNotificationRead(w http.ResponseWriter, r *http.Req
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(MarkNotificationReadResponseObject); ok {
 		if err := validResponse.VisitMarkNotificationReadResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetOfficerQueue operation middleware
+func (sh *strictHandler) GetOfficerQueue(w http.ResponseWriter, r *http.Request, params GetOfficerQueueParams) {
+	var request GetOfficerQueueRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetOfficerQueue(ctx, request.(GetOfficerQueueRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetOfficerQueue")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetOfficerQueueResponseObject); ok {
+		if err := validResponse.VisitGetOfficerQueueResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetOfficerSummary operation middleware
+func (sh *strictHandler) GetOfficerSummary(w http.ResponseWriter, r *http.Request, params GetOfficerSummaryParams) {
+	var request GetOfficerSummaryRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetOfficerSummary(ctx, request.(GetOfficerSummaryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetOfficerSummary")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetOfficerSummaryResponseObject); ok {
+		if err := validResponse.VisitGetOfficerSummaryResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

@@ -15,6 +15,7 @@ sql:
       - internal/notify/queries.sql
       - internal/matching/queries.sql
       - internal/claims/queries.sql
+      - internal/officer/queries.sql
     gen:
       go:
         package: sqlc

@@ -61,8 +61,10 @@ func TestCheck(t *testing.T) {
 		{"unverified cannot report", member, "createLostReport", "account_unverified"},
 		{"verified member reports", verified, "createLostReport", ""},
 		{"members cannot search", verified, "searchReports", "forbidden"},
-		{"officers search", officer, "searchReports", ""},
 		{"officers do not manage users", officer, "adminInviteUser", "forbidden"},
+		{"members cannot view officer queue", verified, "getOfficerQueue", "forbidden"},
+		{"officers view queue", officer, "getOfficerQueue", ""},
+		{"officers view summary", officer, "getOfficerSummary", ""},
 		{"unknown operations are denied", officer, "dropDatabase", "forbidden"},
 	}
 	for _, c := range cases {

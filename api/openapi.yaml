@@ -23,6 +23,7 @@ tags:
   - name: matching
   - name: assist
   - name: claims
+  - name: officer
 
 paths:
   /auth/register:
@@ -620,6 +621,53 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/InventoryList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /officer/summary:
+    get:
+      tags: [officer]
+      operationId: getOfficerSummary
+      parameters:
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [posts, campus]
+            default: posts
+      responses:
+        '200':
+          description: Officer workspace summary counters
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfficerSummary' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /officer/queue:
+    get:
+      tags: [officer]
+      operationId: getOfficerQueue
+      parameters:
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [posts, campus]
+            default: posts
+        - name: type
+          in: query
+          schema: { $ref: '#/components/schemas/OfficerQueueItemType' }
+        - name: post_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: AI-09 priority queue work items
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfficerQueueList' }
         default: { $ref: '#/components/responses/Problem' }
 
   /search:
@@ -2420,6 +2468,76 @@ components:
           type: array
           items: { $ref: '#/components/schemas/SearchResult' }
         next_cursor: { type: string, nullable: true }
+
+    OfficerSummary:
+      type: object
+      required: [in_custody, retention_due, with_finder, claims_pending, unclaimed, found_today, high_match_no_claim]
+      properties:
+        in_custody: { type: integer }
+        retention_due: { type: integer }
+        with_finder: { type: integer }
+        claims_pending: { type: integer }
+        unclaimed: { type: integer }
+        found_today: { type: integer }
+        high_match_no_claim: { type: integer }
+
+    OfficerQueueScoreBreakdown:
+      type: object
+      required: [m, s, a, u, total]
+      properties:
+        m: { type: number, format: double }
+        s: { type: number, format: double }
+        a: { type: number, format: double }
+        u: { type: number, format: double }
+        total: { type: number, format: double }
+
+    OfficerQueueItemType:
+      type: string
+      enum:
+        - claim_review
+        - high_match_no_claim
+        - overdue_custody
+        - retention_due
+        - unclaimed_disposition
+        - direct_return_review
+
+    OfficerQueueItem:
+      type: object
+      required: [id, type, priority_score, score_breakdown, reason_chips, action_label, action_url, title, found_id, found_code, category_name, category_slug, category_sensitivity, custody_status, created_at]
+      properties:
+        id: { type: string }
+        type: { $ref: '#/components/schemas/OfficerQueueItemType' }
+        priority_score: { type: number, format: double }
+        score_breakdown: { $ref: '#/components/schemas/OfficerQueueScoreBreakdown' }
+        reason_chips:
+          type: array
+          items: { type: string }
+        action_label: { type: string }
+        action_url: { type: string }
+        title: { type: string }
+        found_id: { type: string, format: uuid }
+        found_code: { type: string }
+        claim_id: { type: string, format: uuid, nullable: true }
+        claim_code: { type: string, nullable: true }
+        category_name: { type: string }
+        category_slug: { type: string }
+        category_sensitivity: { $ref: '#/components/schemas/Sensitivity' }
+        custody_status: { $ref: '#/components/schemas/CustodyStatus' }
+        post_id: { type: string, format: uuid, nullable: true }
+        post_name: { type: string, nullable: true }
+        thumb_media_id: { type: string, format: uuid, nullable: true }
+        occurred_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time, nullable: true }
+
+    OfficerQueueList:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/OfficerQueueItem' }
+        total: { type: integer }
 
     AdminUser:
       type: object

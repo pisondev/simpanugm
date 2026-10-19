@@ -198,6 +198,8 @@ var Operations = map[string]Rule{
 	"revokeMySession":            {Permission: AccountSessions},
 	"listLostReportMatches":      {Permission: MatchRead},
 	"listFoundReportMatches":     {Permission: OfficerQueueRead},
+	"getOfficerSummary":          {Permission: OfficerQueueRead},
+	"getOfficerQueue":            {Permission: OfficerQueueRead},
 	"getFoundReportMatchHint":    {Permission: ReportFoundRead},
 	"getMatch":                   {Permission: MatchRead},
 	"submitMatchFeedback":        {Permission: MatchFeedback},

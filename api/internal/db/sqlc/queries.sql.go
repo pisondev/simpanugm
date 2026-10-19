@@ -2470,6 +2470,76 @@ func (q *Queries) GetNotificationCreated(ctx context.Context, arg GetNotificatio
 	return created_at, err
 }
 
+const getOfficerSummary = `-- name: GetOfficerSummary :one
+SELECT
+    (SELECT count(*)::int FROM found_reports fr
+     WHERE fr.custody_status = 'in_custody' AND fr.status NOT IN ('returned', 'closed')
+       AND ($1::uuid[] IS NULL OR fr.holding_post_id = ANY($1::uuid[]))
+    ) AS in_custody,
+    (SELECT count(*)::int FROM found_reports fr
+     WHERE fr.custody_status = 'in_custody' AND fr.status NOT IN ('returned', 'closed')
+       AND fr.retention_due_at <= $2::timestamptz
+       AND ($1::uuid[] IS NULL OR fr.holding_post_id = ANY($1::uuid[]))
+    ) AS retention_due,
+    (SELECT count(*)::int FROM found_reports fr
+     WHERE fr.custody_status = 'with_finder' AND fr.status IN ('reported', 'potential_match')
+       AND ($1::uuid[] IS NULL OR fr.holding_post_id = ANY($1::uuid[]) OR fr.intended_post_id = ANY($1::uuid[]))
+    ) AS with_finder,
+    (SELECT count(*)::int FROM claims c
+     JOIN found_reports fr ON fr.id = c.found_report_id
+     WHERE c.status IN ('submitted', 'under_review')
+       AND ($1::uuid[] IS NULL OR fr.holding_post_id = ANY($1::uuid[]) OR fr.intended_post_id = ANY($1::uuid[]))
+    ) AS claims_pending,
+    (SELECT count(*)::int FROM found_reports fr
+     WHERE fr.status = 'unclaimed' AND fr.custody_status = 'in_custody'
+       AND ($1::uuid[] IS NULL OR fr.holding_post_id = ANY($1::uuid[]))
+    ) AS unclaimed,
+    (SELECT count(*)::int FROM found_reports fr
+     WHERE fr.created_at >= $3::timestamptz
+       AND ($1::uuid[] IS NULL OR fr.holding_post_id = ANY($1::uuid[]) OR fr.intended_post_id = ANY($1::uuid[]))
+    ) AS found_today,
+    (SELECT count(DISTINCT fr.id)::int FROM found_reports fr
+     JOIN matches m ON m.found_report_id = fr.id AND m.status = 'active' AND m.tier = 'high'
+     WHERE fr.status IN ('reported', 'potential_match')
+       AND ($1::uuid[] IS NULL OR fr.holding_post_id = ANY($1::uuid[]) OR fr.intended_post_id = ANY($1::uuid[]))
+       AND NOT EXISTS (
+           SELECT 1 FROM claims c
+           WHERE c.found_report_id = fr.id AND c.status NOT IN ('rejected', 'withdrawn', 'cancelled')
+       )
+    ) AS high_match_no_claim
+`
+
+type GetOfficerSummaryParams struct {
+	PostIds      []uuid.UUID
+	DueThreshold time.Time
+	TodayStart   time.Time
+}
+
+type GetOfficerSummaryRow struct {
+	InCustody        int32
+	RetentionDue     int32
+	WithFinder       int32
+	ClaimsPending    int32
+	Unclaimed        int32
+	FoundToday       int32
+	HighMatchNoClaim int32
+}
+
+func (q *Queries) GetOfficerSummary(ctx context.Context, arg GetOfficerSummaryParams) (GetOfficerSummaryRow, error) {
+	row := q.db.QueryRow(ctx, getOfficerSummary, arg.PostIds, arg.DueThreshold, arg.TodayStart)
+	var i GetOfficerSummaryRow
+	err := row.Scan(
+		&i.InCustody,
+		&i.RetentionDue,
+		&i.WithFinder,
+		&i.ClaimsPending,
+		&i.Unclaimed,
+		&i.FoundToday,
+		&i.HighMatchNoClaim,
+	)
+	return i, err
+}
+
 const getPost = `-- name: GetPost :one
 SELECT p.id, p.slug, p.name, p.location_id, p.phone, p.opening_hours, p.active, p.created_at, p.updated_at, p.edited_at, l.name AS location_name, l.lat, l.lng, l.zone_id, z.name AS zone_name
 FROM posts p
@@ -4920,6 +4990,224 @@ func (q *Queries) ListPublicFoundReports(ctx context.Context, arg ListPublicFoun
 			&i.CustodyStatus,
 			&i.HoldingPostID,
 			&i.HoldingPostName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listQueueClaims = `-- name: ListQueueClaims :many
+SELECT c.id AS claim_id, c.code AS claim_code, c.status AS claim_status, c.created_at AS claim_created_at, c.updated_at AS claim_updated_at,
+       fr.id AS found_id, fr.code AS found_code, fr.item_name AS found_item_name, fr.custody_status, fr.created_at AS found_created_at,
+       fr.received_at, fr.retention_due_at, fr.found_at,
+       coalesce(fr.holding_post_id, fr.intended_post_id) AS post_id,
+       coalesce(hp.name, ip.name, '')::text AS post_name,
+       cat.name AS category_name, cat.slug AS category_slug, coalesce(cat.sensitivity, 'normal')::text AS category_sensitivity,
+       coalesce(best_m.score, 0)::float8 AS best_match_score,
+       coalesce(thumb.id, '00000000-0000-0000-0000-000000000000'::uuid) AS thumb_media_id
+FROM claims c
+JOIN found_reports fr ON fr.id = c.found_report_id
+JOIN categories cat ON cat.id = fr.category_id
+LEFT JOIN posts hp ON hp.id = fr.holding_post_id
+LEFT JOIN posts ip ON ip.id = fr.intended_post_id
+LEFT JOIN LATERAL (
+    SELECT max(m.overall)::float8 AS score
+    FROM matches m
+    WHERE m.found_report_id = fr.id AND m.status = 'active'
+) best_m ON true
+LEFT JOIN LATERAL (
+    SELECT m.id FROM media m WHERE m.found_report_id = fr.id AND m.state = 'ready' ORDER BY m.position LIMIT 1
+) thumb ON true
+WHERE c.status IN ('submitted', 'under_review')
+  AND ($1::uuid[] IS NULL OR fr.holding_post_id = ANY($1::uuid[]) OR fr.intended_post_id = ANY($1::uuid[]))
+  AND ($2::uuid IS NULL OR fr.holding_post_id = $2::uuid OR fr.intended_post_id = $2::uuid)
+`
+
+type ListQueueClaimsParams struct {
+	PostIds        []uuid.UUID
+	SpecificPostID *uuid.UUID
+}
+
+type ListQueueClaimsRow struct {
+	ClaimID             uuid.UUID
+	ClaimCode           string
+	ClaimStatus         string
+	ClaimCreatedAt      time.Time
+	ClaimUpdatedAt      time.Time
+	FoundID             uuid.UUID
+	FoundCode           string
+	FoundItemName       string
+	CustodyStatus       string
+	FoundCreatedAt      time.Time
+	ReceivedAt          *time.Time
+	RetentionDueAt      *time.Time
+	FoundAt             time.Time
+	PostID              *uuid.UUID
+	PostName            string
+	CategoryName        string
+	CategorySlug        string
+	CategorySensitivity string
+	BestMatchScore      float64
+	ThumbMediaID        uuid.UUID
+}
+
+func (q *Queries) ListQueueClaims(ctx context.Context, arg ListQueueClaimsParams) ([]ListQueueClaimsRow, error) {
+	rows, err := q.db.Query(ctx, listQueueClaims, arg.PostIds, arg.SpecificPostID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListQueueClaimsRow{}
+	for rows.Next() {
+		var i ListQueueClaimsRow
+		if err := rows.Scan(
+			&i.ClaimID,
+			&i.ClaimCode,
+			&i.ClaimStatus,
+			&i.ClaimCreatedAt,
+			&i.ClaimUpdatedAt,
+			&i.FoundID,
+			&i.FoundCode,
+			&i.FoundItemName,
+			&i.CustodyStatus,
+			&i.FoundCreatedAt,
+			&i.ReceivedAt,
+			&i.RetentionDueAt,
+			&i.FoundAt,
+			&i.PostID,
+			&i.PostName,
+			&i.CategoryName,
+			&i.CategorySlug,
+			&i.CategorySensitivity,
+			&i.BestMatchScore,
+			&i.ThumbMediaID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listQueueFoundReports = `-- name: ListQueueFoundReports :many
+SELECT fr.id AS found_id, fr.code AS found_code, fr.item_name AS found_item_name, fr.custody_status, fr.status AS found_status,
+       fr.close_reason, fr.created_at AS found_created_at, fr.updated_at AS found_updated_at,
+       fr.received_at, fr.retention_due_at, fr.overdue_flagged_at, fr.found_at,
+       coalesce(fr.holding_post_id, fr.intended_post_id) AS post_id,
+       coalesce(hp.name, ip.name, '')::text AS post_name,
+       cat.name AS category_name, cat.slug AS category_slug, coalesce(cat.sensitivity, 'normal')::text AS category_sensitivity,
+       coalesce(best_m.score, 0)::float8 AS best_match_score,
+       coalesce(best_m.has_high, false)::boolean AS has_high_match,
+       coalesce(claim_info.has_active_claim, false)::boolean AS has_active_claim,
+       coalesce(thumb.id, '00000000-0000-0000-0000-000000000000'::uuid) AS thumb_media_id
+FROM found_reports fr
+JOIN categories cat ON cat.id = fr.category_id
+LEFT JOIN posts hp ON hp.id = fr.holding_post_id
+LEFT JOIN posts ip ON ip.id = fr.intended_post_id
+LEFT JOIN LATERAL (
+    SELECT max(m.overall)::float8 AS score,
+           bool_or(m.tier = 'high') AS has_high
+    FROM matches m
+    WHERE m.found_report_id = fr.id AND m.status = 'active'
+) best_m ON true
+LEFT JOIN LATERAL (
+    SELECT bool_or(c.status NOT IN ('rejected', 'withdrawn', 'cancelled')) AS has_active_claim
+    FROM claims c
+    WHERE c.found_report_id = fr.id
+) claim_info ON true
+LEFT JOIN LATERAL (
+    SELECT m.id FROM media m WHERE m.found_report_id = fr.id AND m.state = 'ready' ORDER BY m.position LIMIT 1
+) thumb ON true
+WHERE (
+    (fr.status IN ('reported', 'potential_match') AND coalesce(best_m.has_high, false) AND NOT coalesce(claim_info.has_active_claim, false))
+    OR
+    (fr.custody_status = 'with_finder' AND fr.status IN ('reported', 'potential_match') AND (fr.created_at <= $1::timestamptz OR fr.overdue_flagged_at IS NOT NULL))
+    OR
+    (fr.custody_status = 'in_custody' AND fr.status NOT IN ('returned', 'unclaimed', 'closed') AND fr.retention_due_at <= $2::timestamptz AND NOT coalesce(claim_info.has_active_claim, false))
+    OR
+    (fr.status = 'unclaimed' AND fr.custody_status = 'in_custody')
+    OR
+    (fr.status = 'closed' AND fr.close_reason = 'returned_directly')
+)
+  AND ($3::uuid[] IS NULL OR fr.holding_post_id = ANY($3::uuid[]) OR fr.intended_post_id = ANY($3::uuid[]))
+  AND ($4::uuid IS NULL OR fr.holding_post_id = $4::uuid OR fr.intended_post_id = $4::uuid)
+`
+
+type ListQueueFoundReportsParams struct {
+	OverdueThreshold time.Time
+	DueThreshold     time.Time
+	PostIds          []uuid.UUID
+	SpecificPostID   *uuid.UUID
+}
+
+type ListQueueFoundReportsRow struct {
+	FoundID             uuid.UUID
+	FoundCode           string
+	FoundItemName       string
+	CustodyStatus       string
+	FoundStatus         string
+	CloseReason         *string
+	FoundCreatedAt      time.Time
+	FoundUpdatedAt      time.Time
+	ReceivedAt          *time.Time
+	RetentionDueAt      *time.Time
+	OverdueFlaggedAt    *time.Time
+	FoundAt             time.Time
+	PostID              *uuid.UUID
+	PostName            string
+	CategoryName        string
+	CategorySlug        string
+	CategorySensitivity string
+	BestMatchScore      float64
+	HasHighMatch        bool
+	HasActiveClaim      bool
+	ThumbMediaID        uuid.UUID
+}
+
+func (q *Queries) ListQueueFoundReports(ctx context.Context, arg ListQueueFoundReportsParams) ([]ListQueueFoundReportsRow, error) {
+	rows, err := q.db.Query(ctx, listQueueFoundReports,
+		arg.OverdueThreshold,
+		arg.DueThreshold,
+		arg.PostIds,
+		arg.SpecificPostID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListQueueFoundReportsRow{}
+	for rows.Next() {
+		var i ListQueueFoundReportsRow
+		if err := rows.Scan(
+			&i.FoundID,
+			&i.FoundCode,
+			&i.FoundItemName,
+			&i.CustodyStatus,
+			&i.FoundStatus,
+			&i.CloseReason,
+			&i.FoundCreatedAt,
+			&i.FoundUpdatedAt,
+			&i.ReceivedAt,
+			&i.RetentionDueAt,
+			&i.OverdueFlaggedAt,
+			&i.FoundAt,
+			&i.PostID,
+			&i.PostName,
+			&i.CategoryName,
+			&i.CategorySlug,
+			&i.CategorySensitivity,
+			&i.BestMatchScore,
+			&i.HasHighMatch,
+			&i.HasActiveClaim,
+			&i.ThumbMediaID,
 		); err != nil {
 			return nil, err
 		}

@@ -520,6 +520,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/officer/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getOfficerSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/officer/queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getOfficerQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/search": {
         parameters: {
             query?: never;
@@ -1955,6 +1987,65 @@ export interface components {
         SearchResultList: {
             items: components["schemas"]["SearchResult"][];
             next_cursor?: string | null;
+        };
+        OfficerSummary: {
+            in_custody: number;
+            retention_due: number;
+            with_finder: number;
+            claims_pending: number;
+            unclaimed: number;
+            found_today: number;
+            high_match_no_claim: number;
+        };
+        OfficerQueueScoreBreakdown: {
+            /** Format: double */
+            m: number;
+            /** Format: double */
+            s: number;
+            /** Format: double */
+            a: number;
+            /** Format: double */
+            u: number;
+            /** Format: double */
+            total: number;
+        };
+        /** @enum {string} */
+        OfficerQueueItemType: "claim_review" | "high_match_no_claim" | "overdue_custody" | "retention_due" | "unclaimed_disposition" | "direct_return_review";
+        OfficerQueueItem: {
+            id: string;
+            type: components["schemas"]["OfficerQueueItemType"];
+            /** Format: double */
+            priority_score: number;
+            score_breakdown: components["schemas"]["OfficerQueueScoreBreakdown"];
+            reason_chips: string[];
+            action_label: string;
+            action_url: string;
+            title: string;
+            /** Format: uuid */
+            found_id: string;
+            found_code: string;
+            /** Format: uuid */
+            claim_id?: string | null;
+            claim_code?: string | null;
+            category_name: string;
+            category_slug: string;
+            category_sensitivity: components["schemas"]["Sensitivity"];
+            custody_status: components["schemas"]["CustodyStatus"];
+            /** Format: uuid */
+            post_id?: string | null;
+            post_name?: string | null;
+            /** Format: uuid */
+            thumb_media_id?: string | null;
+            /** Format: date-time */
+            occurred_at?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at?: string | null;
+        };
+        OfficerQueueList: {
+            items: components["schemas"]["OfficerQueueItem"][];
+            total: number;
         };
         AdminUser: {
             /** Format: uuid */
@@ -3518,6 +3609,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InventoryList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getOfficerSummary: {
+        parameters: {
+            query?: {
+                scope?: "posts" | "campus";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Officer workspace summary counters */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfficerSummary"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getOfficerQueue: {
+        parameters: {
+            query?: {
+                scope?: "posts" | "campus";
+                type?: components["schemas"]["OfficerQueueItemType"];
+                post_id?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description AI-09 priority queue work items */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfficerQueueList"];
                 };
             };
             default: components["responses"]["Problem"];
