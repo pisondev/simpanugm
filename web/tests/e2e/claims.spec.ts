@@ -228,6 +228,69 @@ test("J5 claimant sees code, officer tries wrong code then correct one, owner co
   await expectAccessible(member)
 })
 
+test("member without prior lost report submits claim directly from public listing (inline lost report, US-26)", async ({ browser }) => {
+  const directItemName = `Kunci motor Beat ${Date.now() % 100000}`
+  const directMemberEmail = uniqueEmail("claim-direct")
+
+  // Officer records an item in custody at the library post
+  const officer = await fresh(browser)
+  await signIn(officer, officerEmail, password)
+  await expect(officer).toHaveURL(/\/petugas$/)
+  await officer.goto("/petugas/lapor-temuan")
+  await expect(officer.getByRole("heading", { name: "Lapor temuan atas nama" })).toBeVisible()
+  await attachPhoto(officer)
+  await expect(officer.getByText(/Mengunggah|Menyiapkan/)).toHaveCount(0, { timeout: 20_000 })
+  await officer.getByRole("button", { name: "Lanjut" }).click()
+  await pickCategory(officer, "kunci", "Kunci Motor")
+  await officer.getByLabel("Nama barang").fill(directItemName)
+  await officer.getByLabel("Deskripsi").fill("Kunci motor Honda Beat tertinggal di area loker.")
+  await officer.getByRole("button", { name: "Lanjut" }).click()
+  await pickPlace(officer, "Tempat ditemukan", "perpus", /Perpustakaan Pusat UGM/)
+  await officer.getByRole("button", { name: "Lanjut" }).click()
+  await officer.getByText("Pos Lost and Found Perpustakaan Pusat").click()
+  await officer.getByLabel("Rak atau slot penyimpanan").fill("Rak K2")
+  await officer.getByRole("button", { name: "Lanjut" }).click()
+  await officer.getByRole("button", { name: "Kirim laporan" }).click()
+  await expect(officer).toHaveURL(/\/petugas\/laporan\/temuan\/FND-\d{4}-\d{4}$/)
+  const directFoundCode = officer.url().split("/").pop() ?? ""
+
+  // Member without prior lost reports browses public listing and files direct claim
+  const member = await fresh(browser)
+  await registerMember(member, "Siti Rahma", directMemberEmail, password)
+  await signIn(member, directMemberEmail, password)
+  await expect(member).toHaveURL(/\/beranda$/)
+
+  await member.goto("/barang-temuan")
+  await expectAccessible(member)
+
+  const card = member.locator("li").filter({ hasText: directItemName })
+  await expect(card).toBeVisible()
+  await card.getByRole("link", { name: "Ini milik saya" }).click()
+
+  await expect(member).toHaveURL(/\/klaim\/baru/)
+  await expectAccessible(member)
+
+  // Verify inline lost report notice and section are displayed
+  await expect(member.getByText("Buat Laporan Kehilangan Sekaligus")).toBeVisible()
+  await expect(member.getByText("Detail Laporan Kehilangan Baru")).toBeVisible()
+
+  // Fill in inline lost report fields
+  await member.getByLabel("Nama barang yang hilang").fill(`Kunci motor Beat ${directItemName}`)
+  await member.getByLabel("Deskripsi barang").fill("Kunci motor Honda Beat warna hitam dengan gantungan karet merah hilang di dekat loker.")
+
+  // Fill claim statement and answers
+  await member
+    .getByLabel(new RegExp(`Mengapa barang ${directItemName} ini milikmu\\?`))
+    .fill("Kunci ini milik saya yang terjatuh saat membuka loker perpustakaan kemarin sore.")
+  await member.getByLabel("Sebutkan merek motor dan bentuk atau isi gantungan kunci.").fill("Honda Beat gantungan karet merah")
+  await member.getByRole("button", { name: "Kirim Pengajuan Klaim" }).click()
+
+  await expect(member).toHaveURL(/\/klaim\/CLM-\d{4}-\d{4}$/)
+  await expect(member.getByText(directFoundCode, { exact: true })).toBeVisible()
+  await expect(member.getByText("Diajukan", { exact: true })).toBeVisible()
+  await expectAccessible(member)
+})
+
 test("J6 retention passes on fake clock, officer disposes unclaimed item", async ({ browser }) => {
   const officer = await fresh(browser)
   await signIn(officer, officerEmail, password)

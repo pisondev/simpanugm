@@ -41,9 +41,21 @@ export default async function NewClaimPage({ searchParams }: PageProps<"/klaim/b
     categoryId = match.found_report.category.id
     matchId = match.id
     presetLostId = match.lost_report.id
+  } else if (foundId && (!foundName || !categoryId)) {
+    try {
+      const foundReport = await load(api.GET("/found-reports/{id}", { params: { path: { id: foundId } } }))
+      foundName = foundReport.item_name
+      categoryId = foundReport.category.id
+    } catch {
+      // fallback to params
+    }
   }
 
-  const [catsRes, lostReportsRes] = await Promise.all([load(api.GET("/categories")), load(api.GET("/lost-reports", { params: { query: { mine: true } } }))])
+  const [catsRes, lostReportsRes, coloursRes] = await Promise.all([
+    load(api.GET("/categories")),
+    load(api.GET("/lost-reports", { params: { query: { mine: true } } })),
+    load(api.GET("/colours")),
+  ])
 
   const allLeaves = catsRes.items.flatMap((p) => (p.children && p.children.length > 0 ? p.children : [p]))
   const category = allLeaves.find((c) => c.id === categoryId)
@@ -73,7 +85,17 @@ export default async function NewClaimPage({ searchParams }: PageProps<"/klaim/b
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title={t("newTitle")} />
-      <ClaimForm foundId={foundId} foundName={foundName} questions={questions} lostOptions={lostOptions} presetLostId={presetLostId} matchId={matchId} />
+      <ClaimForm
+        foundId={foundId}
+        foundName={foundName}
+        questions={questions}
+        lostOptions={lostOptions}
+        presetLostId={presetLostId}
+        matchId={matchId}
+        categories={catsRes.items}
+        colours={coloursRes.items}
+        defaultCategoryId={categoryId}
+      />
     </div>
   )
 }
