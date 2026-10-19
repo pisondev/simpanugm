@@ -21,6 +21,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Notifications and Communication: real time in app notification bell powered by PostgreSQL LISTEN and Server Sent Events; multipart Indonesian email notifications with quiet hours queuing and 07:00 officer digests (US-35, US-36).
 - Platform Operations and Observability: multi service Docker Compose development and production stacks; Prometheus metrics across API, web, ML, database pool, and River queue; Grafana dashboard suites for Overview, Jobs and Matching, Database, and Host; Prometheus alert rules for site liveness, error rates, queue stalls, and backup age; automated pg_dump backup script with retention rotation and restore script with database integrity verification; OCI container release workflow for GHCR; structured JSON logging with request ID propagation across all services (US-50 to US-55).
 - Offline Evaluation Harness: Python evaluation suite (`ml/eval`) with synthetic benchmark dataset (SINTETIS), baseline comparisons (B0 to B2), ablations (A1 to A7), and learned fusion logistic regression benchmark meeting PRD section 8 metrics.
+- Scheduled weekly workflow (`.github/workflows/ml-golden.yml`, with workflow dispatch) running heavy real weight inference golden tests with `models.lock.json` caching.
 
 ### Changed
 

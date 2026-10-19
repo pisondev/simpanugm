@@ -47,7 +47,10 @@ loaded, and a failed load never reports ready.
 `models.lock.json` pins three Hugging Face revisions and, for EasyOCR, the SHA-256 of the two
 weight files it downloads from release assets. The first start downloads about 1.5 GB into
 `HF_HOME`, so the Compose volume `ml-models` keeps it. Golden tests against the real weights
-run with `HF_HOME=... uv run pytest -m models` and are skipped in CI.
+run locally with `HF_HOME=... uv run pytest -m models`. In CI, fast checks run on every commit without
+weights, while a scheduled weekly GitHub Actions workflow (`.github/workflows/ml-golden.yml`, also runnable
+via `workflow_dispatch`) executes the six golden tests with model weight caching from `models.lock.json`
+and a 45-minute timeout.
 
 Docker builds need `data/seed`, Compose passes it as the build context `seed`:
 
