@@ -26,6 +26,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Repeatable learned fusion experiment script (`make eval-learned-fusion`, `ml/eval/learned_fusion.py`) with real weight execution support and strict gate decision rule requiring verified gains on frozen test data before activation.
 - Containerized CPU latency benchmark support in ML Docker container with in-memory image fallbacks, container mount discovery, VPS execution runbook, and production latency tracking template tables.
 - Live demonstration stack seeder (`make demo` and `simpan demo` CLI command) loading realistic scenarios, demo accounts for all actors, lost and found reports, claims across all lifecycle stages, duplicate links, and analytics view refreshes (W1).
+- Demo photo pack and manifest (`data/demo/`): 52 curated and derived open-license photographs meeting strict licensing (CC0, CC-BY, CC-BY-SA, Public Domain) and privacy rules (no faces or identity documents), with automatic fetching from Wikimedia Commons, variation derivation, manifest validator (`validate_manifest.py`), unit tests (`test_demo_manifest.py`), credits documentation (`docs/project/demo-credits.md`), and automated integration into the demo seeder (W2).
 - Demonstration script documentation (`docs/project/demo-script.md`) detailing actor credentials, scene flows, and live presentation steps.
 
 ### Changed

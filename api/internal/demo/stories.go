@@ -61,6 +61,7 @@ type DemoLostReport struct {
 	LocationSlug   string
 	DaysAgo        int
 	AssistOutcome  map[string]string
+	PhotoFilename  string
 }
 
 type DemoFoundReport struct {
@@ -78,6 +79,7 @@ type DemoFoundReport struct {
 	StorageSlot   string
 	DaysAgo       int
 	AssistOutcome map[string]string
+	PhotoFilename string
 }
 
 type DemoClaimSeed struct {
@@ -105,6 +107,7 @@ var HeroLostReports = []DemoLostReport{
 		LocationSlug:   "perpustakaan-pusat",
 		DaysAgo:        1,
 		AssistOutcome:  map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename:  "hero-earbuds-lost.jpg",
 	},
 	{
 		Key:            "lost-wallet",
@@ -118,6 +121,7 @@ var HeroLostReports = []DemoLostReport{
 		LocationSlug:   "gik",
 		DaysAgo:        2,
 		AssistOutcome:  map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename:  "",
 	},
 	{
 		Key:            "lost-keys",
@@ -131,6 +135,7 @@ var HeroLostReports = []DemoLostReport{
 		LocationSlug:   "kantin-biogeo",
 		DaysAgo:        3,
 		AssistOutcome:  map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename:  "hero-keys-lost.jpg",
 	},
 	{
 		Key:            "lost-calculator",
@@ -144,6 +149,7 @@ var HeroLostReports = []DemoLostReport{
 		LocationSlug:   "fakultas-teknik",
 		DaysAgo:        4,
 		AssistOutcome:  map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename:  "hero-calculator-lost.jpg",
 	},
 	{
 		Key:            "lost-umbrella",
@@ -157,6 +163,7 @@ var HeroLostReports = []DemoLostReport{
 		LocationSlug:   "perpustakaan-pusat",
 		DaysAgo:        5,
 		AssistOutcome:  map[string]string{"category": "accepted", "colour": "accepted", "brand": "ignored"},
+		PhotoFilename:  "hero-umbrella-lost.jpg",
 	},
 	{
 		Key:            "lost-tumbler",
@@ -170,6 +177,7 @@ var HeroLostReports = []DemoLostReport{
 		LocationSlug:   "feb",
 		DaysAgo:        6,
 		AssistOutcome:  map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename:  "hero-tumbler-lost.jpg",
 	},
 	{
 		Key:            "lost-jacket",
@@ -183,6 +191,7 @@ var HeroLostReports = []DemoLostReport{
 		LocationSlug:   "fakultas-kehutanan",
 		DaysAgo:        7,
 		AssistOutcome:  map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename:  "hero-jacket-lost.jpg",
 	},
 }
 
@@ -202,6 +211,7 @@ var HeroFoundReports = []DemoFoundReport{
 		StorageSlot:   "Loker A1",
 		DaysAgo:       1,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "hero-earbuds-found.jpg",
 	},
 	{
 		Key:           "found-wallet",
@@ -218,6 +228,7 @@ var HeroFoundReports = []DemoFoundReport{
 		StorageSlot:   "Brankas B2",
 		DaysAgo:       2,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "hero-wallet-found.jpg",
 	},
 	{
 		Key:           "found-keys",
@@ -234,6 +245,7 @@ var HeroFoundReports = []DemoFoundReport{
 		StorageSlot:   "Papan Kunci 04",
 		DaysAgo:       3,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "hero-keys-found.jpg",
 	},
 	{
 		Key:           "found-calculator",
@@ -250,6 +262,7 @@ var HeroFoundReports = []DemoFoundReport{
 		StorageSlot:   "Rak D3",
 		DaysAgo:       4,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "hero-calculator-found.jpg",
 	},
 	{
 		Key:           "found-umbrella",
@@ -266,6 +279,7 @@ var HeroFoundReports = []DemoFoundReport{
 		StorageSlot:   "Tempat Payung P1",
 		DaysAgo:       5,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "ignored"},
+		PhotoFilename: "hero-umbrella-found.jpg",
 	},
 	{
 		Key:           "found-tumbler",
@@ -282,6 +296,7 @@ var HeroFoundReports = []DemoFoundReport{
 		StorageSlot:   "Rak T2",
 		DaysAgo:       6,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "hero-tumbler-found.jpg",
 	},
 	{
 		Key:           "found-jacket",
@@ -298,6 +313,7 @@ var HeroFoundReports = []DemoFoundReport{
 		StorageSlot:   "Gantungan J1",
 		DaysAgo:       7,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "hero-jacket-found.jpg",
 	},
 	{
 		Key:           "dup-glasses-1",
@@ -314,6 +330,7 @@ var HeroFoundReports = []DemoFoundReport{
 		StorageSlot:   "Loker K1",
 		DaysAgo:       3,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "dup-glasses-1.jpg",
 	},
 	{
 		Key:           "dup-glasses-2",
@@ -330,6 +347,7 @@ var HeroFoundReports = []DemoFoundReport{
 		StorageSlot:   "Loker K1",
 		DaysAgo:       3,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "dup-glasses-2.jpg",
 	},
 }
 
@@ -345,6 +363,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "perpustakaan-pusat",
 		DaysAgo:       8,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "hero-flashdisk-lost.jpg",
 	},
 	{
 		Key:           "bg-lost-02",
@@ -357,6 +376,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "perpustakaan-pusat",
 		DaysAgo:       9,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "hero-powerbank-lost.jpg",
 	},
 	{
 		Key:           "bg-lost-03",
@@ -369,6 +389,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "perpustakaan-pusat",
 		DaysAgo:       10,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "ignored"},
+		PhotoFilename: "hero-book-lost.jpg",
 	},
 	{
 		Key:           "bg-lost-04",
@@ -381,6 +402,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "gik",
 		DaysAgo:       11,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "ignored"},
+		PhotoFilename: "",
 	},
 	{
 		Key:           "bg-lost-05",
@@ -393,6 +415,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "gik",
 		DaysAgo:       12,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "ignored"},
+		PhotoFilename: "",
 	},
 	{
 		Key:           "bg-lost-06",
@@ -405,6 +428,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "parkir-perpustakaan",
 		DaysAgo:       13,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "hero-helmet-lost.jpg",
 	},
 	{
 		Key:           "bg-lost-07",
@@ -417,6 +441,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "fmipa",
 		DaysAgo:       14,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "ignored", "brand": "ignored"},
+		PhotoFilename: "",
 	},
 	{
 		Key:           "bg-lost-08",
@@ -429,6 +454,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "gik",
 		DaysAgo:       15,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "hero-backpack-lost.jpg",
 	},
 	{
 		Key:           "bg-lost-09",
@@ -441,6 +467,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "perpustakaan-pusat",
 		DaysAgo:       16,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "",
 	},
 	{
 		Key:           "bg-lost-10",
@@ -453,6 +480,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "kantin-biogeo",
 		DaysAgo:       17,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "",
 	},
 	{
 		Key:           "bg-lost-11",
@@ -465,6 +493,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "kantin-biogeo",
 		DaysAgo:       18,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "",
 	},
 	{
 		Key:           "bg-lost-12",
@@ -477,6 +506,7 @@ var BackgroundLostReports = []DemoLostReport{
 		LocationSlug:  "pusat-jajanan-lembah",
 		DaysAgo:       19,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "ignored"},
+		PhotoFilename: "",
 	},
 }
 
@@ -496,6 +526,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Kotak USB 01",
 		DaysAgo:       8,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "bg-flashdisk-01.jpg",
 	},
 	{
 		Key:           "bg-found-02",
@@ -512,6 +543,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Loker B3",
 		DaysAgo:       9,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "bg-powerbank-01.jpg",
 	},
 	{
 		Key:           "bg-found-03",
@@ -528,6 +560,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Rak Buku 02",
 		DaysAgo:       10,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "ignored"},
+		PhotoFilename: "bg-book-01.jpg",
 	},
 	{
 		Key:           "bg-found-04",
@@ -544,6 +577,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Gantungan G2",
 		DaysAgo:       11,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "ignored"},
+		PhotoFilename: "bg-jacket-01.jpg",
 	},
 	{
 		Key:           "bg-found-05",
@@ -560,6 +594,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Kotak Aksesori 03",
 		DaysAgo:       12,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "ignored"},
+		PhotoFilename: "bg-hat-01.jpg",
 	},
 	{
 		Key:           "bg-found-06",
@@ -576,6 +611,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Rak Helm H1",
 		DaysAgo:       13,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "bg-helmet-01.jpg",
 	},
 	{
 		Key:           "bg-found-07",
@@ -592,6 +628,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Brankas Kartu K2",
 		DaysAgo:       14,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "ignored", "brand": "ignored"},
+		PhotoFilename: "bg-wallet-01.jpg",
 	},
 	{
 		Key:           "bg-found-08",
@@ -608,6 +645,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Rak Tas T1",
 		DaysAgo:       15,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "bg-bag-01.jpg",
 	},
 	{
 		Key:           "bg-found-09",
@@ -624,6 +662,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Kotak Elektronik E2",
 		DaysAgo:       16,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "bg-mouse-01.jpg",
 	},
 	{
 		Key:           "bg-found-10",
@@ -640,6 +679,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Rak Botol B1",
 		DaysAgo:       17,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "bg-tumbler-01.jpg",
 	},
 	{
 		Key:           "bg-found-11",
@@ -656,6 +696,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Gantungan J2",
 		DaysAgo:       18,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
+		PhotoFilename: "bg-jacket-01.jpg",
 	},
 	{
 		Key:           "bg-found-12",
@@ -672,6 +713,7 @@ var BackgroundFoundReports = []DemoFoundReport{
 		StorageSlot:   "Papan Kunci 09",
 		DaysAgo:       19,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "ignored"},
+		PhotoFilename: "bg-keys-01.jpg",
 	},
 }
 

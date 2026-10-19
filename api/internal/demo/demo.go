@@ -11,6 +11,8 @@ import (
 	"image/color"
 	"image/jpeg"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -59,6 +61,25 @@ func sampleJPEG(seed int) []byte {
 	var buf bytes.Buffer
 	_ = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 85})
 	return buf.Bytes()
+}
+
+func loadDemoPhoto(filename string, fallbackSeed int) []byte {
+	if filename != "" {
+		base := filepath.Base(filename)
+		candidates := []string{
+			filepath.Join("data", "demo", "images", base),
+			filepath.Join("..", "data", "demo", "images", base),
+			filepath.Join("..", "..", "data", "demo", "images", base),
+			filepath.Join("/app", "data", "demo", "images", base),
+		}
+		for _, p := range candidates {
+			//nolint:gosec // demo fixture loading from trusted local repository directory
+			if b, err := os.ReadFile(p); err == nil && len(b) > 0 {
+				return b
+			}
+		}
+	}
+	return sampleJPEG(fallbackSeed)
 }
 
 //nolint:gosec // standard deterministic password for demo mode
@@ -248,30 +269,13 @@ func Run(ctx context.Context, deps Deps) (*Result, error) {
 			outcomeBytes, _ = json.Marshal(r.AssistOutcome)
 		}
 
-		in := reports.LostInput{
-			CategoryID:    catID,
-			ItemName:      r.ItemName,
-			Description:   r.Description,
-			Colours:       r.Colours,
-			LostFrom:      lostFrom,
-			LostUntil:     lostUntil,
-			Places:        []reports.Place{{LocationID: &locID}},
-			MediaIDs:      []uuid.UUID{},
-			AssistOutcome: outcomeBytes,
-		}
-		if r.Brand != "" {
-			in.Brand = &r.Brand
-		}
-		if r.PrivateDetails != "" {
-			in.PrivateDetails = &r.PrivateDetails
-		}
-
 		var p *access.Principal
+		proxyName := ""
 		if strings.HasPrefix(r.Key, "bg-lost-") {
 			officerUser := userMap["petugas@demo.simpanugm.my.id"]
 			p = principalFor(officerUser, allPostIDs)
 			visitorName := fmt.Sprintf("Pengunjung Kampus %02d", idx+1)
-			in.ProxyName = &visitorName
+			proxyName = visitorName
 		} else {
 			u, ok := userMap[r.OwnerEmail]
 			if !ok {
@@ -294,6 +298,36 @@ func Run(ctx context.Context, deps Deps) (*Result, error) {
 				lostMap[r.Key] = created
 				continue
 			}
+		}
+
+		var mediaIDs []uuid.UUID
+		if r.PhotoFilename != "" {
+			photoBytes := loadDemoPhoto(r.PhotoFilename, idx+1)
+			m, err := med.Upload(ctx, p, "lost_report", bytes.NewReader(photoBytes))
+			if err == nil {
+				mediaIDs = append(mediaIDs, m.ID)
+			}
+		}
+
+		in := reports.LostInput{
+			CategoryID:    catID,
+			ItemName:      r.ItemName,
+			Description:   r.Description,
+			Colours:       r.Colours,
+			LostFrom:      lostFrom,
+			LostUntil:     lostUntil,
+			Places:        []reports.Place{{LocationID: &locID}},
+			MediaIDs:      mediaIDs,
+			AssistOutcome: outcomeBytes,
+		}
+		if proxyName != "" {
+			in.ProxyName = &proxyName
+		}
+		if r.Brand != "" {
+			in.Brand = &r.Brand
+		}
+		if r.PrivateDetails != "" {
+			in.PrivateDetails = &r.PrivateDetails
 		}
 
 		created, err := repSvc.CreateLost(ctx, p, idemKey, in)
@@ -356,7 +390,8 @@ func Run(ctx context.Context, deps Deps) (*Result, error) {
 			}
 		}
 
-		m, err := med.Upload(ctx, p, "found_report", bytes.NewReader(sampleJPEG(idx+1)))
+		photoBytes := loadDemoPhoto(r.PhotoFilename, idx+1)
+		m, err := med.Upload(ctx, p, "found_report", bytes.NewReader(photoBytes))
 		if err != nil {
 			return nil, fmt.Errorf("upload demo found photo %s: %w", r.Key, err)
 		}
