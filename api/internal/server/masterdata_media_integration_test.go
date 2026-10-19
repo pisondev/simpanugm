@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/pisondev/simpanugm/api/internal/access"
 	"github.com/pisondev/simpanugm/api/internal/masterdata"
 	"github.com/pisondev/simpanugm/api/internal/testenv"
@@ -172,5 +174,109 @@ func TestStagedUploadsArePurgedAfterADay(t *testing.T) {
 	}
 	if r := c.JSON(http.MethodGet, "/api/v1/media/"+id.String(), nil); r.Status != http.StatusNotFound {
 		t.Fatalf("purged upload still served: %d", r.Status)
+	}
+}
+
+func TestMediaAccessMatrix(t *testing.T) {
+	e := testenv.New(t)
+	finder := e.User(access.Member)
+	owner := e.User(access.Member)
+	claimant := e.User(access.Member)
+	stranger := e.User(access.Member)
+	officerSame := e.User(access.Officer, e.Post("pos-perpustakaan"))
+	officerOther := e.User(access.Officer, e.Post("pos-pusat"))
+	anon := e.Client()
+
+	// Finder uploads and attaches photo to found report
+	foundMediaID := finder.Client.UploadID("found_report")
+	found := fileFound(t, e, finder, "matrix-found-1", func(b map[string]any) {
+		b["media_ids"] = []uuid.UUID{foundMediaID}
+	})
+
+	// Receive found report at perpustakaan post
+	res := officerSame.Client.JSON(http.MethodPost, "/api/v1/found-reports/"+found.Code+"/receive", map[string]any{
+		"post_id":      e.Post("pos-perpustakaan").String(),
+		"storage_slot": "Rak Matrix-1",
+	})
+	if res.Status != http.StatusOK {
+		t.Fatalf("receive found report: %d %s", res.Status, res.Body)
+	}
+
+	mediaURL := "/api/v1/media/" + foundMediaID.String() + "?variant=display"
+
+	// 1. Anonymous access -> 401 Unauthorized
+	if r := anon.JSON(http.MethodGet, mediaURL, nil); r.Status != http.StatusUnauthorized {
+		t.Fatalf("anonymous access: want 401, got %d", r.Status)
+	}
+
+	// 2. Finder access -> 200 OK
+	if r := finder.Client.JSON(http.MethodGet, mediaURL, nil); r.Status != http.StatusOK {
+		t.Fatalf("finder access: want 200, got %d", r.Status)
+	}
+
+	// 3. Officer same post access -> 200 OK
+	if r := officerSame.Client.JSON(http.MethodGet, mediaURL, nil); r.Status != http.StatusOK {
+		t.Fatalf("officer same post access: want 200, got %d", r.Status)
+	}
+
+	// 4. Officer other post access -> 200 OK
+	if r := officerOther.Client.JSON(http.MethodGet, mediaURL, nil); r.Status != http.StatusOK {
+		t.Fatalf("officer other post access: want 200, got %d", r.Status)
+	}
+
+	// 5. Stranger access (no match, no claim) -> 404 Not Found
+	if r := stranger.Client.JSON(http.MethodGet, mediaURL, nil); r.Status != http.StatusNotFound {
+		t.Fatalf("stranger access: want 404, got %d", r.Status)
+	}
+
+	// 6. Potential owner before match -> 404 Not Found
+	if r := owner.Client.JSON(http.MethodGet, mediaURL, nil); r.Status != http.StatusNotFound {
+		t.Fatalf("owner before match access: want 404, got %d", r.Status)
+	}
+
+	// 7. Owner after match -> 200 OK
+	lost := fileLost(t, e, owner, "matrix-lost-1", nil)
+	_ = lost
+	score(t, e)
+	if r := owner.Client.JSON(http.MethodGet, mediaURL, nil); r.Status != http.StatusOK {
+		t.Fatalf("owner after match access: want 200, got %d", r.Status)
+	}
+
+	// 8. Claimant before claim -> 404 Not Found
+	if r := claimant.Client.JSON(http.MethodGet, mediaURL, nil); r.Status != http.StatusNotFound {
+		t.Fatalf("claimant before claim access: want 404, got %d", r.Status)
+	}
+
+	// 9. Claimant with active claim -> 200 OK
+	claimantLost := fileLost(t, e, claimant, "matrix-claim-lost-1", nil)
+	claimRes := claimant.Client.JSON(http.MethodPost, "/api/v1/claims", claimBody(found.ID, claimantLost.ID, []map[string]string{
+		{"key": "wallet_contents", "answer": "KTM dan uang"},
+		{"key": "wallet_private_mark", "answer": "Gantungan kunci"},
+	}), "Idempotency-Key", "matrix-claim-key-1")
+	if claimRes.Status != http.StatusCreated {
+		t.Fatalf("create claim: %d %s", claimRes.Status, claimRes.Body)
+	}
+	if r := claimant.Client.JSON(http.MethodGet, mediaURL, nil); r.Status != http.StatusOK {
+		t.Fatalf("claimant after claim access: want 200, got %d", r.Status)
+	}
+
+	// 10. Regression test for operator precedence bug:
+	// A confirmed match on a completely unrelated report must NOT grant access to stranger.
+	unrelatedOwner := e.User(access.Member)
+	unrelatedFinder := e.User(access.Member)
+	unrelatedFound := fileFound(t, e, unrelatedFinder, "matrix-unrel-found-1", nil)
+	unrelatedLost := fileLost(t, e, unrelatedOwner, "matrix-unrel-lost-1", nil)
+	score(t, e)
+
+	tag, err := e.Pool.Exec(context.Background(),
+		"UPDATE matches SET status = 'confirmed' WHERE lost_report_id = $1 AND found_report_id = $2",
+		unrelatedLost.ID, unrelatedFound.ID,
+	)
+	if err != nil || tag.RowsAffected() == 0 {
+		t.Fatalf("updating unrelated match to confirmed failed (rows=%d): %v", tag.RowsAffected(), err)
+	}
+
+	if r := stranger.Client.JSON(http.MethodGet, mediaURL, nil); r.Status != http.StatusNotFound {
+		t.Fatalf("stranger access after unrelated confirmed match (precedence leak regression): want 404, got %d", r.Status)
 	}
 }

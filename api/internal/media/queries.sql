@@ -9,8 +9,10 @@ SELECT m.*, lr.reporter_id AS lost_reporter_id, fr.finder_id AS found_finder_id,
        EXISTS (
            SELECT 1 FROM matches mt JOIN lost_reports ol ON ol.id = mt.lost_report_id
            WHERE mt.found_report_id = m.found_report_id AND ol.reporter_id = sqlc.arg(viewer)::uuid
-             AND mt.status = 'active' AND mt.tier IN ('high', 'medium') AND mt.rank_for_lost IS NOT NULL AND mt.owner_dismissed_at IS NULL
-             OR mt.status = 'confirmed'
+             AND (
+               (mt.status = 'active' AND mt.tier IN ('high', 'medium') AND mt.rank_for_lost IS NOT NULL AND mt.owner_dismissed_at IS NULL)
+               OR mt.status = 'confirmed'
+             )
        )::bool AS candidate_owner,
        EXISTS (
            SELECT 1 FROM claims cl

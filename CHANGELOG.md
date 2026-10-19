@@ -31,6 +31,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 
 ### Fixed
 
+- Fixed operator precedence in GetMediaForAccess query by explicitly grouping candidate match criteria, preventing confirmed matches from leaking media access, and added media access matrix integration tests.
 - Fixed restore script database verification to query system_settings instead of settings, removed invalid role parameter on pg_restore, and validated deployment artifacts with actionlint, shellcheck, and local database restore simulation.
 - Admin analytics pages pass the contrast and scrollable region checks of axe (success text token, keyboard focusable table containers), and the end to end admin bootstrap runs with `--no-deps` so parallel workers no longer fight over the migrate container.
 - The web build works again: a `middleware.ts` next to `proxy.ts` made Next.js 16 refuse to build, the request id is set in `proxy.ts` alone.
