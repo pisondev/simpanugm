@@ -14,9 +14,11 @@ mkdir -p "${BACKUP_DIR}" "${METRICS_DIR}"
 
 echo "Starting backup of simpan database at $(date -u)..."
 
-# Support running directly via pg_dump or through docker compose
+# Support running directly via docker compose, container, or pg_dump
 if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1 && docker compose ps postgres >/dev/null 2>&1; then
   docker compose exec -T postgres pg_dump -U simpan_owner -Fc -d simpan > "${DUMP_FILE}"
+elif [ -n "${POSTGRES_CONTAINER:-}" ] && command -v docker >/dev/null 2>&1; then
+  docker exec -i "${POSTGRES_CONTAINER}" pg_dump -U simpan_owner -Fc -d simpan > "${DUMP_FILE}"
 elif command -v pg_dump >/dev/null 2>&1; then
   PGPASSWORD="${SIMPAN_OWNER_PASSWORD:-${POSTGRES_PASSWORD:-simpan}}" \
     pg_dump -h "${PGHOST:-127.0.0.1}" -p "${PGPORT:-5432}" -U "${PGUSER:-simpan_owner}" -Fc -d "${PGDATABASE:-simpan}" > "${DUMP_FILE}"

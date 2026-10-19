@@ -91,3 +91,24 @@ The operator conducting the physical drill records the empirical measurements be
 | Health Check Verification | PENDING (HUMAN) |
 | Final Outcome | PENDING (HUMAN) |
 | Notes and Observations | Script deploy/scripts/restore.sh tested locally with automated mock dump verification. Real server execution pending human staging provisioning. |
+
+## 4. Local Backup and Restore Verification (Automated Simulation)
+
+This section records the empirical results of executing `deploy/scripts/backup.sh` and
+`deploy/scripts/restore.sh` against an isolated local database, distinct from the physical
+staging drill above.
+
+| Field | Local Simulation Run |
+|---|---|
+| Date and Time | 2026-10-19 12:49 UTC (19:49 WIB) |
+| Environment | Local development stack (Docker Desktop, pgvector/pgvector:pg18) |
+| Tested Scripts | `deploy/scripts/backup.sh` and `deploy/scripts/restore.sh` |
+| Source Database | `simpan` (active local database) |
+| Target Database | `simpan_local_restore` (freshly provisioned empty database) |
+| Backup File | `simpan_20261019_124919Z.dump` |
+| Dump Size | 796,785 bytes (~778 KB) |
+| Backup Execution Time | ~1.2 seconds |
+| Restore Execution Time | ~2.8 seconds |
+| Integrity Check Output | `schema_version=10, user_count=158, report_count=79, settings_count=16` |
+| Verification Status | PASSED. All tables, schemas, and counts verified without overwriting active data. |
+| Scope Note | Confirms script syntax and pg_restore integrity logic. Real server drill remains pending human execution (Section 3). |

@@ -6,6 +6,15 @@ services:
       options:
         max-size: "20m"
         max-file: "5"
+  migrate:
+    image: ghcr.io/pisondev/simpanugm-api:${VERSION:-latest}
+    pull_policy: always
+    build: !reset null
+
+  seed:
+    image: ghcr.io/pisondev/simpanugm-api:${VERSION:-latest}
+    pull_policy: always
+    build: !reset null
 
   api:
     image: ghcr.io/pisondev/simpanugm-api:${VERSION:-latest}

@@ -19,14 +19,16 @@ fi
 
 echo "Starting restore of ${DUMP_FILE} into ${TARGET_DB} at $(date -u)..."
 
-# Run pg_restore via docker compose or direct CLI
+# Run pg_restore via docker compose, container, or direct CLI
 if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1 && docker compose ps postgres >/dev/null 2>&1; then
-  docker compose exec -T postgres pg_restore --clean --if-exists --no-owner --role=simpan_app -U simpan_owner -d "${TARGET_DB}" < "${DUMP_FILE}" || true
+  docker compose exec -T postgres pg_restore --clean --if-exists --no-owner -U simpan_owner -d "${TARGET_DB}" < "${DUMP_FILE}" || true
+elif [ -n "${POSTGRES_CONTAINER:-}" ] && command -v docker >/dev/null 2>&1; then
+  docker exec -i "${POSTGRES_CONTAINER}" pg_restore --clean --if-exists --no-owner -U simpan_owner -d "${TARGET_DB}" < "${DUMP_FILE}" || true
 elif command -v pg_restore >/dev/null 2>&1; then
   PGPASSWORD="${SIMPAN_OWNER_PASSWORD:-${POSTGRES_PASSWORD:-simpan}}" \
-    pg_restore -h "${PGHOST:-127.0.0.1}" -p "${PGPORT:-5432}" -U "${PGUSER:-simpan_owner}" --clean --if-exists --no-owner --role=simpan_app -d "${TARGET_DB}" "${DUMP_FILE}" || true
+    pg_restore -h "${PGHOST:-127.0.0.1}" -p "${PGPORT:-5432}" -U "${PGUSER:-simpan_owner}" --clean --if-exists --no-owner -d "${TARGET_DB}" "${DUMP_FILE}" || true
 else
-  echo "Error: neither docker compose nor pg_restore found" >&2
+  echo "Error: neither docker compose, container, nor pg_restore found" >&2
   exit 1
 fi
 
@@ -37,13 +39,15 @@ VERIFY_SQL="SELECT
   (SELECT coalesce(max(version_id), 0) FROM goose_db_version WHERE is_applied) AS schema_version,
   (SELECT count(*) FROM users) AS user_count,
   (SELECT (SELECT count(*) FROM lost_reports) + (SELECT count(*) FROM found_reports)) AS report_count,
-  (SELECT count(*) FROM settings) AS settings_count;"
+  (SELECT count(*) FROM system_settings) AS settings_count;"
 
 if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1 && docker compose ps postgres >/dev/null 2>&1; then
   RESULT="$(docker compose exec -T postgres psql -U simpan_owner -d "${TARGET_DB}" -t -A -F ',' -c "${VERIFY_SQL}")"
+elif [ -n "${POSTGRES_CONTAINER:-}" ] && command -v docker >/dev/null 2>&1; then
+  RESULT="$(docker exec -i "${POSTGRES_CONTAINER}" psql -U simpan_owner -d "${TARGET_DB}" -t -A -F ',' -c "${VERIFY_SQL}")"
 elif command -v psql >/dev/null 2>&1; then
-  PGPASSWORD="${SIMPAN_OWNER_PASSWORD:-${POSTGRES_PASSWORD:-simpan}}" \
-    RESULT="$(psql -h "${PGHOST:-127.0.0.1}" -p "${PGPORT:-5432}" -U "${PGUSER:-simpan_owner}" -d "${TARGET_DB}" -t -A -F ',' -c "${VERIFY_SQL}")"
+  RESULT="$(PGPASSWORD="${SIMPAN_OWNER_PASSWORD:-${POSTGRES_PASSWORD:-simpan}}" \
+    psql -h "${PGHOST:-127.0.0.1}" -p "${PGPORT:-5432}" -U "${PGUSER:-simpan_owner}" -d "${TARGET_DB}" -t -A -F ',' -c "${VERIFY_SQL}")"
 else
   echo "Restore executed but psql not found to verify results"
   RESULT="unknown"
