@@ -81,7 +81,12 @@ export function NotificationBell() {
             {t("markAll")}
           </Button>
         </div>
-        <div className="max-h-96 overflow-y-auto p-1">
+        <div
+          className="max-h-96 overflow-y-auto p-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          tabIndex={0}
+          role="region"
+          aria-label={t("title")}
+        >
           {latest.isPending ? (
             <div className="flex flex-col gap-2 p-2">
               <Skeleton className="h-14 w-full" />

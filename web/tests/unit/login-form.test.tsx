@@ -62,4 +62,12 @@ describe("LoginForm, US-02", () => {
     await userEvent.click(screen.getByRole("button", { name: "Masuk" }))
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/petugas"))
   })
+
+  it("allows quick login for demo actors", async () => {
+    server.use(http.post(`${apiBase}/auth/login`, () => HttpResponse.json(me)))
+    renderUi(<LoginForm />)
+    const budiButton = screen.getByRole("button", { name: /Penemu \(Mahasiswa\)/ })
+    await userEvent.click(budiButton)
+    await waitFor(() => expect(replace).toHaveBeenCalled())
+  })
 })

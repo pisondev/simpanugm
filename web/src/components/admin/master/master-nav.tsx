@@ -16,7 +16,11 @@ export type MasterTab = (typeof tabs)[number]["key"]
 export function MasterNav({ current }: { current: MasterTab }) {
   const t = useTranslations("admin.master.tabs")
   return (
-    <nav aria-label={t("categories")} className="mb-5 flex gap-1 overflow-x-auto border-b">
+    <nav
+      aria-label={t("categories")}
+      className="mb-5 flex gap-1 overflow-x-auto border-b focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      tabIndex={0}
+    >
       {tabs.map((tab) => (
         <Link
           key={tab.key}

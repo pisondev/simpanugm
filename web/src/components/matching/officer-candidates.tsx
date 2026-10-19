@@ -46,7 +46,12 @@ export function OfficerCandidates({ items, side, reportId, showLow, toggleHref }
       {items.length === 0 ? (
         <p className="text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div
+          className="overflow-x-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          tabIndex={0}
+          role="region"
+          aria-label={t("title")}
+        >
           <table className="w-full min-w-[44rem] text-sm">
             <thead>
               <tr className="border-b text-left text-muted-foreground">

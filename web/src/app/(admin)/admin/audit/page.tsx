@@ -96,7 +96,7 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
       {logs.items.length === 0 ? (
         <EmptyState icon={History}>Tidak ada catatan audit yang cocok dengan filter.</EmptyState>
       ) : (
-        <div className="overflow-x-auto rounded-xl border bg-card">
+        <div className="rounded-xl border bg-card">
           <Table>
             <TableHeader>
               <TableRow>

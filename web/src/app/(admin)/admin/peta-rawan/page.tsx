@@ -112,7 +112,7 @@ export default async function CampusHotspotsPage({ searchParams }: { searchParam
 
       {/* Surge Insights Banner */}
       {hotspots.insights.length > 0 ? (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 text-amber-800 dark:text-amber-200">
+        <div className="flex items-start gap-3 rounded-lg border border-warning/50 bg-warning/10 p-4 text-warning-text">
           <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden />
           <div className="flex flex-col gap-1">
             <p className="text-sm font-semibold">Lonjakan Kasus Terdeteksi (Analisis Statistik AI-10)</p>
@@ -140,7 +140,7 @@ export default async function CampusHotspotsPage({ searchParams }: { searchParam
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-md border">
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>

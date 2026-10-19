@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import type { Me } from "@/lib/api/types"
 
 import { BottomLink, type NavItem, TopLink, useActive } from "./nav-link"
+import { DemoBanner } from "./demo-banner"
 import { OfflineBanner } from "./offline-banner"
 import { ReportMenu } from "./report-menu"
 import { UserMenu } from "./user-menu"
@@ -26,6 +27,7 @@ export function MemberShell({ me, children }: { me: Pick<Me, "full_name" | "emai
   const [home, reports, found, profile] = items as [NavItem, NavItem, NavItem, NavItem]
   return (
     <div className="flex min-h-dvh flex-col">
+      <DemoBanner />
       <OfflineBanner />
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4 md:px-6">

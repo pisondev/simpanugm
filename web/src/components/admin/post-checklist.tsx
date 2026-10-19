@@ -15,7 +15,13 @@ export function PostChecklist({
   describedBy?: string
 }) {
   return (
-    <div className="grid max-h-64 gap-1 overflow-y-auto rounded-lg border p-2" aria-describedby={describedBy}>
+    <div
+      tabIndex={0}
+      role="region"
+      aria-label="Daftar pos"
+      className="grid max-h-64 gap-1 overflow-y-auto rounded-lg border p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      aria-describedby={describedBy}
+    >
       {posts.map((p) => {
         const on = value.includes(p.id)
         return (

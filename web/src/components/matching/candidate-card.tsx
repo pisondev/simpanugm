@@ -1,4 +1,4 @@
-import { ChevronRight, MapPin, Warehouse } from "lucide-react"
+import { ChevronRight, ImageOff, MapPin, Warehouse } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 
@@ -19,7 +19,7 @@ export function CandidateCard({ candidate, href }: { candidate: MatchCandidate; 
       href={href}
       className="flex items-stretch gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-muted/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
     >
-      <div className="size-20 shrink-0 overflow-hidden rounded-lg bg-muted sm:size-24">
+      <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-muted-foreground sm:size-24">
         {photo ? (
           <img
             src={mediaUrl(photo.media_id, photo.variant === "thumb_blur" ? "thumb_blur" : "thumb")}
@@ -27,7 +27,9 @@ export function CandidateCard({ candidate, href }: { candidate: MatchCandidate; 
             className="size-full object-cover"
             loading="lazy"
           />
-        ) : null}
+        ) : (
+          <ImageOff className="size-6 text-muted-foreground" aria-hidden />
+        )}
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">

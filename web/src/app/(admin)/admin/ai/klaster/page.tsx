@@ -104,7 +104,7 @@ export default async function AiClustersPage({ searchParams }: { searchParams: P
                   </div>
                 ) : null}
 
-                <div className="overflow-x-auto rounded-md border">
+                <div className="rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>

@@ -173,8 +173,8 @@ function SelectedLostReportCard({ report }: { report: LostReport }) {
         </div>
 
         {report.private_details ? (
-          <div className="space-y-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
-            <div className="flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-400">
+          <div className="space-y-1 rounded-lg border border-warning/30 bg-warning/10 p-3">
+            <div className="flex items-center gap-1.5 font-semibold text-warning-text">
               <Lock className="size-4" aria-hidden />
               <span>{t("boardPrivateDetails")}</span>
             </div>
@@ -254,8 +254,8 @@ function SelectedFoundReportCard({ report }: { report: FoundReport }) {
         </div>
 
         {report.hidden_details ? (
-          <div className="space-y-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
-            <div className="flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-400">
+          <div className="space-y-1 rounded-lg border border-warning/30 bg-warning/10 p-3">
+            <div className="flex items-center gap-1.5 font-semibold text-warning-text">
               <Lock className="size-4" aria-hidden />
               <span>{t("boardHiddenDetails")}</span>
             </div>
@@ -361,8 +361,8 @@ function CandidateCard({ candidate, reportType }: { candidate: MatchCandidate; r
             {foundCandidate ? <p className="line-clamp-3 text-xs whitespace-pre-line text-foreground sm:text-sm">{foundCandidate.description}</p> : null}
 
             {foundCandidate && foundCandidate.hidden_details ? (
-              <div className="space-y-0.5 rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-xs">
-                <div className="flex items-center gap-1 font-semibold text-amber-700 dark:text-amber-400">
+              <div className="space-y-0.5 rounded-md border border-warning/30 bg-warning/10 p-2 text-xs">
+                <div className="flex items-center gap-1 font-semibold text-warning-text">
                   <Lock className="size-3" aria-hidden />
                   <span>{t("boardHiddenDetails")}</span>
                 </div>

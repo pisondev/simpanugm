@@ -20,7 +20,7 @@ export function OpenNow({ hours, className }: { hours: OpeningHours; className?:
     return null
   }
   return (
-    <span className={cn("inline-flex items-center gap-1.5 text-sm font-medium", open ? "text-success" : "text-muted-foreground", className)}>
+    <span className={cn("inline-flex items-center gap-1.5 text-sm font-medium", open ? "text-success-text" : "text-muted-foreground", className)}>
       <span className={cn("size-2 rounded-full", open ? "bg-success" : "bg-neutral")} aria-hidden />
       {open ? t("openNow") : t("closedNow")}
     </span>

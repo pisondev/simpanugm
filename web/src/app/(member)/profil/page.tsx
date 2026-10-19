@@ -29,7 +29,9 @@ export default async function ProfilePage() {
           <div className="min-w-0">
             <p className="text-sm text-muted-foreground">{t("email")}</p>
             <p className="font-medium break-all">{me.email}</p>
-            <p className={me.email_verified ? "text-sm text-success" : "text-sm text-warning"}>{me.email_verified ? t("verified") : t("notVerified")}</p>
+            <p className={me.email_verified ? "text-sm text-success-text" : "text-sm text-warning-text"}>
+              {me.email_verified ? t("verified") : t("notVerified")}
+            </p>
           </div>
           <EmailChangeDialog />
         </div>

@@ -31,6 +31,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import type { Me } from "@/lib/api/types"
 
 import { BottomLink, type NavItem, SideLink } from "./nav-link"
+import { DemoBanner } from "./demo-banner"
 import { OfflineBanner } from "./offline-banner"
 import { UserMenu } from "./user-menu"
 import { Wordmark } from "./wordmark"
@@ -96,6 +97,7 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
         </nav>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
+        <DemoBanner />
         <OfflineBanner />
         <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
           <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6">

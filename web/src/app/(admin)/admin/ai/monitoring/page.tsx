@@ -131,7 +131,7 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
           <CardDescription>Model yang sedang aktif melayani inferensi embedding dan pencocokan kandidat laporan.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-md border">
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -200,7 +200,7 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
             <CardDescription>Persentase kandidat yang diabaikan oleh pemilik atau ditolak petugas per tier kepercayaan.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto rounded-md border">
+            <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -246,7 +246,7 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
           <CardDescription>Tingkat penerimaan saran otomatis saat pelapor mengisi formulir kehilangan atau penemuan barang.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-md border">
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>

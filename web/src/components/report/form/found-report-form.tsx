@@ -720,13 +720,13 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
           </div>
 
           {!duplicatesDismissed && duplicates.length > 0 ? (
-            <div className="rounded-xl border border-amber-300 bg-amber-50/70 p-4 dark:border-amber-900/50 dark:bg-amber-950/20">
+            <div className="rounded-xl border border-warning/30 bg-warning/10 p-4">
               <div className="flex items-start gap-3">
-                <TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-500" />
+                <TriangleAlert className="mt-0.5 size-5 shrink-0 text-warning" />
                 <div className="flex flex-1 flex-col gap-3">
                   <div>
-                    <h3 className="font-semibold text-amber-900 dark:text-amber-300">{t("found.duplicateWarningTitle")}</h3>
-                    <p className="mt-1 text-sm text-amber-800 dark:text-amber-400">{t("found.duplicateWarningBody")}</p>
+                    <h3 className="font-semibold text-warning-text">{t("found.duplicateWarningTitle")}</h3>
+                    <p className="mt-1 text-sm text-warning-text/90">{t("found.duplicateWarningBody")}</p>
                   </div>
 
                   <div className="grid gap-2">
@@ -742,7 +742,7 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="truncate font-medium">{dup.item_name}</span>
-                            <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                            <span className="shrink-0 rounded-full bg-warning/20 px-2 py-0.5 text-xs font-semibold text-warning-text">
                               {t("found.duplicateMatchPercent", { percent: Math.round(dup.duplicate_score * 100) })}
                             </span>
                           </div>
@@ -764,7 +764,7 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
                       variant="ghost"
                       size="sm"
                       onClick={() => setDuplicatesDismissed(true)}
-                      className="text-amber-900 hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-900/40"
+                      className="text-warning-text hover:bg-warning/20"
                     >
                       {t("found.duplicateDismiss")}
                     </Button>

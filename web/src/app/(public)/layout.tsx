@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 
+import { DemoBanner } from "@/components/layout/demo-banner"
 import { Wordmark } from "@/components/layout/wordmark"
 import { ButtonLink } from "@/components/ui/button-link"
 import { homeFor } from "@/lib/paths"
@@ -18,6 +19,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
   const [t, tl, me] = await Promise.all([getTranslations("nav"), getTranslations("landing"), optionalMe()])
   return (
     <div className="flex min-h-dvh flex-col">
+      <DemoBanner />
       <header className="border-b bg-card">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4 md:px-6">
           <Wordmark />
