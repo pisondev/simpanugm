@@ -30,6 +30,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Demonstration presentation run kit and fallback recording suite (W5): updated `docs/project/demo-script.md` with 12 minute allocation, exact click paths, and Indonesian speaker notes across all four actors, paired with Playwright fallback video and screenshot recording suite (`web/tests/e2e/demo-record.spec.ts`).
 - UX and visual polish pass per actor with accessibility compliance (W3): live demo banner with Mailpit link, one-click quick login buttons for demo actors, missing photo fallback icon, tokenized WCAG AA contrast compliance (`text-success-text`, `text-warning-text`), keyboard focusable scrollable containers (`tabIndex={0}`), and admin loading skeleton (`loading.tsx`).
 - AI moments visibility and verification journeys (W4): end to end Playwright suite (`web/tests/e2e/demo-ai.spec.ts`) validating every AI interaction across all four actors (Finder assistant suggestions and match hint, Owner candidate tier and 4 score bars, Officer priority queue and semantic search, Admin monitoring and hotspot surge alerts) with screenshot capture and accessibility checks.
+- Light usability study kit and feedback log (W6): documented 10 minute testing protocol and task sheets for 4 students with tracked usability findings and fixes in `docs/ux/usability-kit.md`.
 
 ### Changed
 
