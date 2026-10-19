@@ -36,6 +36,7 @@ func NewFakeML(t testing.TB) *FakeML {
 	mux.HandleFunc("POST /v1/embed/image", f.embedImage)
 	mux.HandleFunc("POST /v1/embed/text", f.embedText)
 	mux.HandleFunc("POST /v1/analyze/image", f.analyze)
+	mux.HandleFunc("POST /v1/cluster", f.cluster)
 	f.Server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		f.mu.Lock()
 		status := f.status
@@ -180,4 +181,29 @@ func (f *FakeML) analyze(w http.ResponseWriter, r *http.Request) {
 		out[k] = v
 	}
 	writeJSON(w, out)
+}
+
+func (f *FakeML) cluster(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		Items []struct {
+			ID string `json:"id"`
+		} `json:"items"`
+	}
+	_ = json.NewDecoder(r.Body).Decode(&in)
+	var labels []map[string]any
+	for i, item := range in.Items {
+		c := 0
+		if i >= len(in.Items)/2 {
+			c = 1
+		}
+		labels = append(labels, map[string]any{
+			"id":          item.ID,
+			"cluster":     c,
+			"probability": 0.95,
+		})
+	}
+	writeJSON(w, map[string]any{
+		"labels":  labels,
+		"version": "test/hdbscan",
+	})
 }

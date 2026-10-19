@@ -25,6 +25,8 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Real evaluation runner pipeline (`make eval-real`, `ml/eval/run_real.py`) with automated `check_freeze` verification, `val` split calibration, `test` split gate execution, packaged run artifact logging, and authoritative report generation labeled RESMI or SINTETIS.
 - Repeatable learned fusion experiment script (`make eval-learned-fusion`, `ml/eval/learned_fusion.py`) with real weight execution support and strict gate decision rule requiring verified gains on frozen test data before activation.
 - Containerized CPU latency benchmark support in ML Docker container with in-memory image fallbacks, container mount discovery, VPS execution runbook, and production latency tracking template tables.
+- Live demonstration stack seeder (`make demo` and `simpan demo` CLI command) loading realistic scenarios, demo accounts for all actors, lost and found reports, claims across all lifecycle stages, duplicate links, and analytics view refreshes (W1).
+- Demonstration script documentation (`docs/project/demo-script.md`) detailing actor credentials, scene flows, and live presentation steps.
 
 ### Changed
 

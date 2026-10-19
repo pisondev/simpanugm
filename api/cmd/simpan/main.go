@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
 	"database/sql"
-	"encoding/base64"
 	"errors"
 	"flag"
 	"fmt"
@@ -18,7 +16,6 @@ import (
 	"time"
 	_ "time/tzdata"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
@@ -26,14 +23,15 @@ import (
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	"github.com/riverqueue/river/rivermigrate"
 
-	"github.com/pisondev/simpanugm/api/internal/access"
 	"github.com/pisondev/simpanugm/api/internal/auth"
 	"github.com/pisondev/simpanugm/api/internal/claims"
 	"github.com/pisondev/simpanugm/api/internal/custody"
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
+	"github.com/pisondev/simpanugm/api/internal/demo"
 	"github.com/pisondev/simpanugm/api/internal/maintenance"
 	"github.com/pisondev/simpanugm/api/internal/masterdata"
 	"github.com/pisondev/simpanugm/api/internal/matching"
+	"github.com/pisondev/simpanugm/api/internal/mlclient"
 	"github.com/pisondev/simpanugm/api/internal/notify"
 	"github.com/pisondev/simpanugm/api/internal/platform/clock"
 	"github.com/pisondev/simpanugm/api/internal/platform/config"
@@ -57,6 +55,7 @@ usage:
   simpan worker                      run background jobs
   simpan migrate [up|down|status]    apply database migrations, default up
   simpan seed [--dir path] [--overlay path] [--demo]  load master data from data/seed
+  simpan demo [--dir path] [--overlay path] [--no-reset] load demo stories and accounts
   simpan admin create --email e --name n
   simpan healthcheck URL             exit 0 when URL answers 200, for container health checks
   simpan version`
@@ -82,6 +81,8 @@ func run(args []string) int {
 		err = migrate(ctx, args[2:])
 	case "seed":
 		err = seed(ctx, args[2:])
+	case "demo":
+		err = demoCmd(ctx, args[2:])
 	case "admin":
 		err = admin(ctx, args[2:])
 	case "version":
@@ -349,46 +350,75 @@ func seed(ctx context.Context, args []string) error {
 	if cfg.IsProduction() {
 		return errors.New("seed --demo is refused in production")
 	}
-	return demoAccounts(ctx, cfg, pool)
+	return runDemo(ctx, cfg, pool, dirs, false)
 }
 
-func demoAccounts(ctx context.Context, cfg config.Config, pool *pgxpool.Pool) error {
-	jobs, err := river.NewClient(riverpgxv5.New(pool), &river.Config{})
+func demoCmd(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("demo", flag.ContinueOnError)
+	dir := fs.String("dir", defaultSeedDir(), "reviewed seed directory, normally data/seed")
+	overlay := fs.String("overlay", os.Getenv("SEED_OVERLAY_DIR"), "development files used only where the seed directory has none, refused in production")
+	noReset := fs.Bool("no-reset", false, "skip resetting the database before seeding")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	cfg, pool, err := setup(ctx, "demo")
 	if err != nil {
 		return err
 	}
-	svc := auth.NewService(pool, clock.System{}, notify.NewMailer(jobs, cfg.PublicBaseURL), settings.New(pool, sqlc.New(pool), time.Now))
-	posts, err := sqlc.New(pool).ListPosts(ctx)
-	if err != nil {
-		return err
+	defer pool.Close()
+	if cfg.IsProduction() {
+		return errors.New("simpan demo is refused in production")
 	}
-	postIDs := make([]uuid.UUID, 0, len(posts))
-	for _, p := range posts {
-		postIDs = append(postIDs, p.ID)
+
+	dirs := []string{*dir}
+	if *overlay != "" {
+		dirs = append(dirs, *overlay)
 	}
-	accounts := []auth.ActiveUser{
-		{Email: "anggota@demo.simpanugm.my.id", Name: "Anggota Demo", Role: access.Member},
-		{Email: "petugas@demo.simpanugm.my.id", Name: "Petugas Demo", Role: access.Officer, PostIDs: postIDs},
-		{Email: "admin@demo.simpanugm.my.id", Name: "Admin Demo", Role: access.Admin},
+
+	return runDemo(ctx, cfg, pool, dirs, !*noReset)
+}
+
+func runDemo(ctx context.Context, cfg config.Config, pool *pgxpool.Pool, dirs []string, reset bool) error {
+	if cfg.IsProduction() {
+		return errors.New("demo is refused in production")
 	}
-	for _, a := range accounts {
-		a.Password = randomPassword()
-		u, err := svc.CreateActiveUser(ctx, a)
+	var sqlDB *sql.DB
+	if reset {
+		var err error
+		sqlDB, err = sql.Open("pgx", cfg.DatabaseMigratorURL)
 		if err != nil {
-			return err
+			return fmt.Errorf("open migrator db: %w", err)
 		}
-		if u.Email == a.Email {
-			fmt.Printf("%-8s %-32s %s\n", a.Role, a.Email, a.Password)
-		}
+		defer func() { _ = sqlDB.Close() }()
 	}
-	fmt.Println("passwords are shown once, existing demo accounts keep their old password")
-	return nil
-}
 
-func randomPassword() string {
-	b := make([]byte, 12)
-	_, _ = rand.Read(b)
-	return base64.RawURLEncoding.EncodeToString(b)
+	store, err := storage.NewFS(cfg.StorageFSRoot)
+	if err != nil {
+		return err
+	}
+	ml := mlclient.New(cfg.MLBaseURL, cfg.MLInternalToken)
+	insert, err := river.NewClient(riverpgxv5.New(pool), &river.Config{})
+	if err != nil {
+		return err
+	}
+
+	res, err := demo.Run(ctx, demo.Deps{
+		Config:   cfg,
+		Pool:     pool,
+		SQLDB:    sqlDB,
+		Clock:    clock.System{},
+		Store:    store,
+		ML:       ml,
+		Jobs:     insert,
+		SeedDirs: dirs,
+		Reset:    reset,
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Demo setup complete: %d users, %d lost reports, %d found reports, %d matches, %d claims, %d duplicates\n",
+		res.UsersCount, res.LostReportsCount, res.FoundReportsCount, res.MatchesCount, res.ClaimsCount, res.DuplicatesCount)
+	return nil
 }
 
 func admin(ctx context.Context, args []string) error {
