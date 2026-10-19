@@ -31,7 +31,16 @@ def test_models_list_is_empty_for_an_empty_lock(make_client):
 
 def test_metrics_are_exposed(client):
     client.get("/healthz")
-    assert "http_requests_total" in client.get("/metrics").text
+    client.post(
+        "/v1/cluster",
+        headers={"Authorization": f"Bearer {TOKEN}"},
+        json={"items": [{"id": "1", "vector": [1.0, 0.0]}]},
+    )
+    metrics_text = client.get("/metrics").text
+    assert "http_requests_total" in metrics_text
+    assert "ml_models_loaded" in metrics_text
+    assert "ml_request_duration_seconds" in metrics_text
+    assert "ml_inference_seconds" in metrics_text
 
 
 def test_lock_requires_exact_revisions(tmp_path: Path):

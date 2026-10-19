@@ -37,6 +37,12 @@ const (
 // the report changed while it was being scored, the job runs once more
 var ErrChangedMeanwhile = errors.New("matching: report changed while scoring")
 
+type MetricsObserver interface {
+	ObserveMatchPipeline(d time.Duration)
+	ObserveMatchTop1(score float64)
+	ObserveMatchCandidates(count int)
+}
+
 type Engine struct {
 	pool     *pgxpool.Pool
 	q        *sqlc.Queries
@@ -46,10 +52,18 @@ type Engine struct {
 	notifier *notify.Notifier
 	settings *settings.Store
 	jobs     *river.Client[pgx.Tx]
+	metrics  MetricsObserver
 }
 
 func NewEngine(pool *pgxpool.Pool, c clock.Clock, ml *mlclient.Client, store storage.Store, n *notify.Notifier, st *settings.Store, jobs *river.Client[pgx.Tx]) *Engine {
 	return &Engine{pool: pool, q: sqlc.New(pool), clock: c, ml: ml, store: store, notifier: n, settings: st, jobs: jobs}
+}
+
+func (e *Engine) WithMetrics(m MetricsObserver) *Engine {
+	if e != nil {
+		e.metrics = m
+	}
+	return e
 }
 
 type place struct {
@@ -481,6 +495,7 @@ type change struct {
 
 // ScoreReport is the match.report job of section 10 for one report
 func (e *Engine) ScoreReport(ctx context.Context, typ string, id uuid.UUID) error {
+	start := time.Now()
 	src, err := e.load(ctx, e.q, typ, id)
 	if err != nil || src == nil {
 		return err
@@ -540,20 +555,30 @@ func (e *Engine) ScoreReport(ctx context.Context, typ string, id uuid.UUID) erro
 		}
 		versions, _ := json.Marshal(map[string]string{ComponentImage: enc.Image.String(), ComponentXModal: enc.XModal.String(), ComponentText: enc.Text.String()})
 		lostIDs, foundIDs := map[uuid.UUID]bool{}, map[uuid.UUID]bool{}
+		var top1 float64
+		var storedCount int
 		for candID, cand := range cands {
 			lost, found := src, cand
 			if src.Type == TypeFound {
 				lost, found = cand, src
 			}
 			p := e.score(fa.Config, lost, found, compat, sig, candID)
+			if p.result.Overall > top1 {
+				top1 = p.result.Overall
+			}
 			ch, stored, err := e.upsert(ctx, q, p, fa.ID, versions, now)
 			if err != nil {
 				return err
 			}
 			if stored {
+				storedCount++
 				changes = append(changes, ch)
 				lostIDs[lost.ID], foundIDs[found.ID] = true, true
 			}
+		}
+		if e.metrics != nil && src.Open {
+			e.metrics.ObserveMatchTop1(top1)
+			e.metrics.ObserveMatchCandidates(storedCount)
 		}
 		lostIDs[src.ID] = src.Type == TypeLost
 		foundIDs[src.ID] = src.Type == TypeFound
@@ -568,6 +593,9 @@ func (e *Engine) ScoreReport(ctx context.Context, typ string, id uuid.UUID) erro
 	})
 	if err != nil {
 		return err
+	}
+	if e.metrics != nil {
+		e.metrics.ObserveMatchPipeline(time.Since(start))
 	}
 	// an edit or an embedding that committed while this job ran is scored by running once more
 	if again, err := e.load(ctx, e.q, typ, id); err == nil && again != nil && !again.UpdatedAt.Equal(src.UpdatedAt) {

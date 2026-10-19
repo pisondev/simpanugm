@@ -9,6 +9,7 @@ from app.analysis.category import CategoryPrompts, Scored, ZeroShotClassifier
 from app.analysis.colour import ColourExtractor, Detected, load_palette
 from app.backend import Backend, Vectors
 from app.masking import mask_numbers
+from app.metrics import measure_inference
 from app.registry import Registry
 
 TEXT_LIMIT = 300
@@ -41,27 +42,33 @@ class Inference:
         self._slots = threading.BoundedSemaphore(concurrency)
 
     def embed_images(self, images: list[Image.Image]) -> Vectors:
-        with self._slots:
+        with self._slots, measure_inference("image_encoder"):
             return self.backend.embed_images(images)
 
     def embed_texts(self, texts: list[str], kind: str) -> Vectors:
-        with self._slots:
+        component = "text_encoder" if kind == "e5" else "xmodal_text_encoder"
+        with self._slots, measure_inference(component):
             return self.backend.embed_e5(texts) if kind == "e5" else self.backend.embed_clip_text(texts)
 
     def analyze(self, image: Image.Image, categories: list[CategoryPrompts], prompt_set_hash: str) -> Analysis:
         with self._slots:
-            vector = self.backend.embed_images([image])[0]
-            scored = self.classifier.classify(vector, prompt_set_hash, categories)
-            lines = self.backend.read_text(image)
+            with measure_inference("image_encoder"):
+                vector = self.backend.embed_images([image])[0]
+            with measure_inference("category_classifier"):
+                scored = self.classifier.classify(vector, prompt_set_hash, categories)
+            with measure_inference("ocr"):
+                lines = self.backend.read_text(image)
         raw = " ".join(line.text.strip() for line in lines if line.text.strip())
         masked_text = mask_numbers(raw)
         value = masked_text[:TEXT_LIMIT]
+        with measure_inference("colour_extractor"):
+            colours = self.colours.extract(image)
+        with measure_inference("brand_matcher"):
+            brands = self.brands.match(raw)
         versions = {name: f"{c.model_id}@{c.revision}" for name, c in self.registry.components.items()}
         versions.update(
             category_classifier=CLASSIFIER_VERSION,
             colour_extractor=COLOUR_EXTRACTOR_VERSION,
             brand_matcher=BRAND_MATCHER_VERSION,
         )
-        return Analysis(
-            scored, self.colours.extract(image), value, masked_text != raw, self.brands.match(raw), versions
-        )
+        return Analysis(scored, colours, value, masked_text != raw, brands, versions)

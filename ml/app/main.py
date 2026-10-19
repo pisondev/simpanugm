@@ -1,9 +1,10 @@
 import asyncio
 import logging
+import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app import errors
@@ -11,6 +12,7 @@ from app import logging as applog
 from app.backend import Backend, TorchBackend
 from app.config import Settings
 from app.inference import Inference
+from app.metrics import MODELS_LOADED, REQUEST_DURATION_SECONDS
 from app.registry import Registry
 from app.routers import cluster, health, inference, models
 from app.security import require_token
@@ -36,6 +38,19 @@ def create_app(settings: Settings | None = None, backend: Backend | None = None)
     app.state.registry = registry
     app.state.settings = settings
     errors.install(app)
+
+    @app.middleware("http")
+    async def track_request_duration(request: Request, call_next):  # type: ignore[no-untyped-def]
+        start = time.perf_counter()
+        status_code = 500
+        try:
+            response = await call_next(request)
+            status_code = response.status_code
+            return response
+        finally:
+            dur = time.perf_counter() - start
+            REQUEST_DURATION_SECONDS.labels(handler=request.url.path, status=str(status_code)).observe(dur)
+
     app.include_router(health.router)
     guard = [Depends(require_token(settings.ml_internal_token))]
     app.include_router(models.router, dependencies=guard)
@@ -50,6 +65,8 @@ def _load(backend: Backend, registry: Registry, app: FastAPI, settings: Settings
         backend.load()
         if not registry.ready:
             registry.load_all()
+        for name, spec in registry.components.items():
+            MODELS_LOADED.labels(component=name, revision=spec.revision).set(1)
         app.state.inference = Inference(backend, registry, settings.ml_seed_dir, settings.ml_concurrency)
         log.info("models loaded", extra={"components": len(registry.components)})
     except Exception:

@@ -86,9 +86,12 @@ func NewServices(d Deps) *Services {
 	med := media.NewService(d.Pool, d.Store, d.Clock)
 	cs := custody.NewService(d.Pool, d.Clock, st, notifier)
 	ml := mlclient.New(d.Config.MLBaseURL, d.Config.MLInternalToken)
+	if ml != nil && d.Metrics != nil {
+		ml.WithObserver(d.Metrics)
+	}
 	enq := &jobargs.Enqueuer{Jobs: d.Jobs, Inference: ml != nil}
 	rep := reports.NewService(d.Pool, d.Clock, med, md, cs, st, notifier, enq)
-	engine := matching.NewEngine(d.Pool, d.Clock, ml, d.Store, notifier, st, d.Jobs)
+	engine := matching.NewEngine(d.Pool, d.Clock, ml, d.Store, notifier, st, d.Jobs).WithMetrics(d.Metrics)
 	return &Services{
 		Settings: st, Mailer: mailer, Notifier: notifier, Hub: hub, Notify: notify.NewService(d.Pool, d.Clock, hub),
 		Auth:       authSvc,

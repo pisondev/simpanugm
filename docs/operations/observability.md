@@ -61,6 +61,7 @@ Prometheus scrapes every 15 s on the internal network.
 | Metric | Type | Labels |
 |---|---|---|
 | `http_request_duration_seconds` | histogram | `handler`, `status` |
+| `ml_request_duration_seconds` | histogram | `handler`, `status` |
 | `ml_inference_seconds` | histogram | `component` |
 | `ml_models_loaded` | gauge | `component`, `revision` |
 | `process_resident_memory_bytes` | gauge | |

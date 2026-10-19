@@ -6,6 +6,7 @@ from sklearn.cluster import HDBSCAN
 from starlette.concurrency import run_in_threadpool
 
 from app.errors import ProblemError
+from app.metrics import measure_inference
 
 router = APIRouter(prefix="/v1")
 
@@ -61,7 +62,8 @@ def _run_hdbscan(items: list[ClusterItem], min_cluster_size: int, min_samples: i
         metric="euclidean",
         copy=True,
     )
-    clusterer.fit(norm_mat)
+    with measure_inference("cluster"):
+        clusterer.fit(norm_mat)
 
     return [
         ClusterLabel(

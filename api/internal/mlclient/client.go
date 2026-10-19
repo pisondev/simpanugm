@@ -36,10 +36,15 @@ func IsTemporary(err error) bool {
 	return errors.As(err, &t)
 }
 
+type Observer interface {
+	ObserveMLRequest(endpoint string, status int, d time.Duration)
+}
+
 type Client struct {
-	base  string
-	token string
-	http  *http.Client
+	base     string
+	token    string
+	http     *http.Client
+	observer Observer
 }
 
 // nil when no base URL is configured, every caller then treats inference as missing
@@ -48,6 +53,13 @@ func New(base, token string) *Client {
 		return nil
 	}
 	return &Client{base: strings.TrimRight(base, "/"), token: token, http: &http.Client{}}
+}
+
+func (c *Client) WithObserver(obs Observer) *Client {
+	if c != nil {
+		c.observer = obs
+	}
+	return c
 }
 
 type Version struct {
@@ -191,9 +203,17 @@ func (c *Client) do(ctx context.Context, timeout time.Duration, method, path str
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
 	}
+	start := time.Now()
 	res, err := c.http.Do(req)
+	dur := time.Since(start)
 	if err != nil {
+		if c.observer != nil {
+			c.observer.ObserveMLRequest(path, 0, dur)
+		}
 		return TemporaryError{Err: err}
+	}
+	if c.observer != nil {
+		c.observer.ObserveMLRequest(path, res.StatusCode, dur)
 	}
 	defer func() { _ = res.Body.Close() }()
 	raw, err := io.ReadAll(io.LimitReader(res.Body, maxBody))

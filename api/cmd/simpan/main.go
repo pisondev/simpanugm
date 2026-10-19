@@ -198,7 +198,8 @@ func worker(ctx context.Context) error {
 		return err
 	}
 	c := clockFor(cfg)
-	svcs := server.NewServices(server.Deps{Config: cfg, Pool: pool, Clock: c, Store: store, Jobs: insert})
+	m := metrics.NewHTTP("worker")
+	svcs := server.NewServices(server.Deps{Config: cfg, Pool: pool, Clock: c, Store: store, Jobs: insert, Metrics: m})
 	workers := river.NewWorkers()
 	river.AddWorker(workers, &notify.EmailWorker{Sender: sender, Q: sqlc.New(pool)})
 	river.AddWorker(workers, &notify.DigestWorker{Q: sqlc.New(pool), Jobs: insert, Clock: c, BaseURL: cfg.PublicBaseURL})
@@ -229,7 +230,7 @@ func worker(ctx context.Context) error {
 	if err := client.Start(ctx); err != nil {
 		return err
 	}
-	runErr := listen(ctx, metricsServer(cfg.MetricsAddr, metrics.NewHTTP("worker").Handler(), pool))
+	runErr := listen(ctx, metricsServer(cfg.MetricsAddr, m.Handler(), pool))
 	stopCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	if err := client.Stop(stopCtx); err != nil {
