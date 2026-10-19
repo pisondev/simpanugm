@@ -1,4 +1,4 @@
-import { CalendarClock, ClipboardCheck, Hand, PackageOpen, Sparkles, Warehouse } from "lucide-react"
+import { CalendarClock, ClipboardCheck, CopyCheck, Hand, PackageOpen, Sparkles, Warehouse } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
@@ -87,6 +87,10 @@ export default async function OfficerHomePage({ searchParams }: PageProps) {
                 {t("scopeCampus")}
               </Link>
             </div>
+            <ButtonLink href="/petugas/duplikat" variant="outline">
+              <CopyCheck aria-hidden />
+              {t("duplicatesLink")}
+            </ButtonLink>
             <ButtonLink href="/petugas/terima">
               <PackageOpen aria-hidden />
               {t("receiveTitle")}

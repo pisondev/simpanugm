@@ -15,10 +15,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
-import { api } from "@/lib/api/client"
+import { api, mediaUrl } from "@/lib/api/client"
 import { usePosts } from "@/lib/api/hooks"
 import { call, fieldErrors, isApiError, messageFor } from "@/lib/api/problem"
-import type { Category, Colour, FoundReport, FoundReportCreate, FoundReportUpdate, Post } from "@/lib/api/types"
+import type { Category, Colour, DuplicateCandidate, FoundReport, FoundReportCreate, FoundReportUpdate, Post } from "@/lib/api/types"
 import { formatDateTime } from "@/lib/format"
 import { foundTimeProblem, isoToWib, nowTimeInWib, todayInWib, wibToIso } from "@/lib/time"
 import { cn } from "@/lib/utils"
@@ -261,6 +261,43 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
       setValue("intended_post_id", nearest)
     }
   }, [form, locationId, nearest, proxy, setValue])
+
+  const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([])
+  const [duplicatesDismissed, setDuplicatesDismissed] = useState(false)
+
+  useEffect(() => {
+    if (!onReview || mode === "edit") return
+    let active = true
+    const checkDuplicates = async () => {
+      const catId = values.category_id
+      const locId = values.location?.[0]?.location_id
+      const fDate = values.found_date
+      const fTime = values.found_time
+      const itemName = values.item_name
+      if (!catId || !locId || !fDate || !fTime || !itemName) return
+      try {
+        const res = await api.POST("/assist/duplicates", {
+          body: {
+            category_id: catId,
+            found_location_id: locId,
+            found_at: wibToIso(fDate, fTime),
+            item_name: itemName,
+            description: values.description,
+            media_ids: readyIds(photos),
+          },
+        })
+        if (active && res.data?.items) {
+          setDuplicates(res.data.items)
+        }
+      } catch {
+        // ignore duplicate check failure
+      }
+    }
+    void checkDuplicates()
+    return () => {
+      active = false
+    }
+  }, [onReview, mode, values.category_id, values.location, values.found_date, values.found_time, values.item_name, values.description, photos])
 
   async function next() {
     if (current === "photos") {
@@ -681,6 +718,61 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
             </h2>
             <p className="text-muted-foreground">{t("reviewLead")}</p>
           </div>
+
+          {!duplicatesDismissed && duplicates.length > 0 ? (
+            <div className="rounded-xl border border-amber-300 bg-amber-50/70 p-4 dark:border-amber-900/50 dark:bg-amber-950/20">
+              <div className="flex items-start gap-3">
+                <TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-500" />
+                <div className="flex flex-1 flex-col gap-3">
+                  <div>
+                    <h3 className="font-semibold text-amber-900 dark:text-amber-300">{t("found.duplicateWarningTitle")}</h3>
+                    <p className="mt-1 text-sm text-amber-800 dark:text-amber-400">{t("found.duplicateWarningBody")}</p>
+                  </div>
+
+                  <div className="grid gap-2">
+                    {duplicates.map((dup) => (
+                      <div key={dup.id} className="flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm">
+                        {dup.thumb_media_id ? (
+                          <img src={mediaUrl(dup.thumb_media_id, "thumb")} alt={dup.item_name} className="size-14 rounded-md border object-cover" />
+                        ) : (
+                          <div className="flex size-14 items-center justify-center rounded-md border bg-muted text-xs text-muted-foreground">
+                            {tr("photos")}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate font-medium">{dup.item_name}</span>
+                            <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                              {t("found.duplicateMatchPercent", { percent: Math.round(dup.duplicate_score * 100) })}
+                            </span>
+                          </div>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {dup.category_name} &bull; {dup.location_name}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{formatDateTime(dup.found_at)}</p>
+                        </div>
+                        <Button type="button" variant="outline" size="sm" onClick={() => window.open(`/laporan/temuan/${dup.code}`, "_blank")}>
+                          {t("found.duplicateSameItem")}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-end pt-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDuplicatesDismissed(true)}
+                      className="text-amber-900 hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-900/40"
+                    >
+                      {t("found.duplicateDismiss")}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
           <div className="rounded-xl border bg-card p-4">
             <DetailList>
               <Detail label={tr("photos")}>{readyIds(photos).length}</Detail>
