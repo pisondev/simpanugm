@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  Activity,
   Database,
   Ellipsis,
   FileSearch,
@@ -9,11 +10,14 @@ import {
   History,
   House,
   LayoutDashboard,
+  MapPin,
+  Network,
   PackageOpen,
   Search,
   ShieldQuestion,
   Sliders,
   Sparkles,
+  TrendingUp,
   UserRound,
   Users,
   Warehouse,
@@ -66,6 +70,10 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
           { href: "/admin/master", label: t("masterData"), icon: Database },
           { href: "/admin/pengaturan", label: t("settings"), icon: Sliders },
           { href: "/admin/audit", label: t("auditLogs"), icon: History },
+          { href: "/admin/peta-rawan", label: t("hotspots"), icon: MapPin },
+          { href: "/admin/tren", label: t("trends"), icon: TrendingUp },
+          { href: "/admin/ai/monitoring", label: t("aiMonitoring"), icon: Activity },
+          { href: "/admin/ai/klaster", label: t("clusters"), icon: Network },
         ]
       : []
   const account: NavItem[] = [

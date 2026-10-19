@@ -1039,6 +1039,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/model-versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listModelVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/model-versions/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["activateModelVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/ai/monitoring": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAiMonitoring"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/ai/clusters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAiClusters"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/ai/clusters/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createAiClusterRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/hotspots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getHotspots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAnalyticsSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/trends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAnalyticsTrends"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["exportAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/lost-reports/{id}/matches": {
         parameters: {
             query?: never;
@@ -3119,6 +3263,191 @@ export interface components {
             items: components["schemas"]["AuditLogItem"][];
             next_cursor?: string | null;
         };
+        ModelVersionItem: {
+            /** Format: uuid */
+            id: string;
+            component: string;
+            name: string;
+            identity?: {
+                [key: string]: unknown;
+            };
+            config?: {
+                [key: string]: unknown;
+            } | null;
+            eval_run_id?: string | null;
+            metrics?: {
+                [key: string]: unknown;
+            } | null;
+            /** @enum {string} */
+            status: "candidate" | "active" | "retired";
+            /** Format: date-time */
+            activated_at?: string | null;
+            /** Format: uuid */
+            activated_by?: string | null;
+            /** Format: date-time */
+            retired_at?: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        ModelVersionList: {
+            items: components["schemas"]["ModelVersionItem"][];
+        };
+        AiMonitoringAssistOutcome: {
+            field: string;
+            outcome: string;
+            count: number;
+        };
+        AiMonitoringDismissRate: {
+            tier: string;
+            total: number;
+            owner_dismissed: number;
+            officer_dismissed: number;
+            /** Format: float */
+            dismiss_rate: number;
+        };
+        AiMonitoringConfirmedRanks: {
+            confirmed_total: number;
+            rank_1_count: number;
+            rank_5_count: number;
+            rank_10_count: number;
+            /** Format: float */
+            recall_at_1: number;
+            /** Format: float */
+            recall_at_5: number;
+            /** Format: float */
+            recall_at_10: number;
+        };
+        AiMonitoringHistogramBucket: {
+            bucket: string;
+            count: number;
+            /** Format: float */
+            bucket_floor: number;
+            /** Format: float */
+            bucket_ceil: number;
+        };
+        AiMonitoringResponse: {
+            /** Format: date-time */
+            from?: string | null;
+            /** Format: date-time */
+            to?: string | null;
+            assist_outcomes: components["schemas"]["AiMonitoringAssistOutcome"][];
+            dismiss_rates: components["schemas"]["AiMonitoringDismissRate"][];
+            confirmed_ranks: components["schemas"]["AiMonitoringConfirmedRanks"];
+            top1_histogram: components["schemas"]["AiMonitoringHistogramBucket"][];
+            /** Format: float */
+            score_psi: number;
+            psi_warning: boolean;
+            active_versions: components["schemas"]["ModelVersionItem"][];
+        };
+        ClusterRunSummary: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "running" | "done" | "failed";
+            /** Format: date-time */
+            started_at: string;
+            /** Format: date-time */
+            finished_at?: string | null;
+            cluster_count: number;
+            item_count: number;
+        };
+        AiClusterMember: {
+            /** @enum {string} */
+            report_type: "lost" | "found";
+            /** Format: uuid */
+            report_id: string;
+            code: string;
+            item_name: string;
+            category_name: string;
+            location_name: string;
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: float */
+            probability: number;
+            /** Format: uuid */
+            thumb_media_id?: string | null;
+        };
+        AiClusterItem: {
+            cluster_id: number;
+            size: number;
+            dominant_category: string;
+            dominant_zone: string;
+            /** Format: date-time */
+            earliest_at?: string | null;
+            /** Format: date-time */
+            latest_at?: string | null;
+            thumbnails: string[];
+            members: components["schemas"]["AiClusterMember"][];
+        };
+        AiClustersResponse: {
+            run?: components["schemas"]["ClusterRunSummary"];
+            clusters: components["schemas"]["AiClusterItem"][];
+        };
+        HotspotLocation: {
+            /** Format: uuid */
+            location_id: string;
+            location_name: string;
+            /** Format: uuid */
+            zone_id: string;
+            zone_name: string;
+            /** Format: float */
+            lat: number;
+            /** Format: float */
+            lng: number;
+            lost_count: number;
+            found_count: number;
+            total_count: number;
+            display_lost: string;
+            display_found: string;
+            display_total: string;
+            /** Format: float */
+            return_rate: number;
+            /** Format: float */
+            median_return_hours?: number | null;
+        };
+        HotspotsResponse: {
+            locations: components["schemas"]["HotspotLocation"][];
+            insights: string[];
+        };
+        AnalyticsSummary: {
+            total_lost: number;
+            total_found: number;
+            total_returned: number;
+            /** Format: float */
+            return_rate: number;
+            active_claims: number;
+            period_lost: number;
+            period_found: number;
+            period_returned: number;
+        };
+        WeeklyTrend: {
+            week_start: string;
+            lost_count: number;
+            found_count: number;
+            returned_count: number;
+        };
+        CategoryBreakdown: {
+            /** Format: uuid */
+            category_id: string;
+            category_name: string;
+            lost_count: number;
+            found_count: number;
+        };
+        HourWeekdayCell: {
+            weekday: number;
+            hour: number;
+            count: number;
+            display_count: string;
+        };
+        AnalyticsTrendsResponse: {
+            weekly: components["schemas"]["WeeklyTrend"][];
+            categories: components["schemas"]["CategoryBreakdown"][];
+            hourly: components["schemas"]["HourWeekdayCell"][];
+            /** Format: float */
+            return_rate: number;
+            /** Format: float */
+            median_return_hours?: number | null;
+        };
     };
     responses: {
         /** @description RFC 9457 problem details */
@@ -4864,6 +5193,218 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditLogList"];
+                    "text/csv": string;
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listModelVersions: {
+        parameters: {
+            query?: {
+                component?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of model versions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelVersionList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    activateModelVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Activated model version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelVersionItem"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getAiMonitoring: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                model_version_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description AI and matching monitoring metrics */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiMonitoringResponse"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getAiClusters: {
+        parameters: {
+            query?: {
+                run_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Latest clustering run or specified run */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiClustersResponse"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createAiClusterRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Clustering run started or completed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClusterRunSummary"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getHotspots: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                type?: "lost" | "found" | "all";
+                category_id?: string;
+                zone_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Campus hotspot locations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HotspotsResponse"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getAnalyticsSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Operational summary metrics */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsSummary"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getAnalyticsTrends: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                category_id?: string;
+                zone_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Operational trends and patterns */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsTrendsResponse"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    exportAnalytics: {
+        parameters: {
+            query: {
+                month: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Monthly operational CSV */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "text/csv": string;
                 };
             };

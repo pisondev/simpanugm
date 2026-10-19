@@ -164,7 +164,11 @@
     "terms": "Ketentuan",
     "masterData": "Data Master",
     "settings": "Pengaturan Sistem",
-    "auditLogs": "Audit Log"
+    "auditLogs": "Audit Log",
+    "hotspots": "Peta Rawan",
+    "trends": "Tren Operasional",
+    "aiMonitoring": "Monitoring AI",
+    "clusters": "Klaster Kasus"
   },
   "notifications": {
     "title": "Notifikasi",
