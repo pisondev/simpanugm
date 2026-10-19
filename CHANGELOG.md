@@ -13,6 +13,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Changed
 
+- Expanded requirement traceability matrix in docs/requirements/traceability.md with a complete acceptance criteria verification matrix covering user stories US-01 through US-55 and explicit test evidence across unit, integration, and journey suites.
 - Updated requirement traceability matrix and Definition of Done verification audit for Sprint 4 stories (US-41 through US-55); recorded load test results with all three scenarios meeting p95 latency budgets.
 - The fake clock and e2e application environment move from `deploy/compose.dev.yaml` to `deploy/compose.e2e.yaml`, so local development with `make dev` runs on the real system clock while e2e workflows and `make e2e` apply the e2e compose override.
 - `simpan seed` no longer overwrites a master data row an administrator edited, and a compatibility pair an administrator switched off stays off. A leaf under a switched off parent can no longer be picked for a new report.

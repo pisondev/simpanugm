@@ -114,3 +114,64 @@ Test levels: **U** unit, **I** integration, **C** contract, **E** end to end jou
 | NFR-PORT | deployment from a clean server in the restore drill |
 | NFR-REPRO | determinism and leakage tests, run metadata checks |
 | NFR-LEGAL | release checklist |
+
+## 9. User story acceptance criteria verification matrix (US-01 to US-55)
+
+| Story | Title | Priority | Test Level | Automated Test Evidence | Status / Verification Note |
+|---|---|---|---|---|---|
+| US-01 | Register with a campus email | M | U, I | `auth_test.go`, `auth_integration_test.go` | Proven (AC 1-5 verified) |
+| US-02 | Sign in and out | M | U, I, E | `login-form.test.tsx`, `auth_integration_test.go`, `j1-registration.spec.ts` | Proven (AC 1-5 verified) |
+| US-03 | Reset a forgotten password | M | I | `auth_integration_test.go` | Proven (AC 1-3 verified) |
+| US-04 | Invite officers and administrators | M | I | `auth_integration_test.go`, `admin_integration_test.go` | Proven (AC 1-3 verified) |
+| US-05 | Manage my profile and sessions | M | I | `auth_integration_test.go` | Proven (AC 1-3 verified) |
+| US-06 | Seed and browse campus master data | M | U, I | `masterdata_test.go`, `masterdata_integration_test.go` | Proven (AC 1-3 verified) |
+| US-07 | Edit master data | M | I | `admin_integration_test.go` | Proven (AC 1-3 verified) |
+| US-08 | File a lost report | M | I, E | `reports_integration_test.go`, `j2-lost-report.spec.ts` | Proven (AC 1-6 verified) |
+| US-09 | Follow my lost report | M | I | `reports_integration_test.go` | Proven (AC 1-2 verified) |
+| US-10 | Edit or close my lost report | M | I | `reports_integration_test.go` | Proven (AC 1-3 verified) |
+| US-11 | Keep or close a stale report, reopen it | M | I | `maintenance_integration_test.go` | Proven (AC 1-3 verified) |
+| US-12 | File a lost report for a walk in visitor | M | I | `reports_integration_test.go` | Proven (AC 1 verified) |
+| US-13 | File a found report | M | I, E | `reports_integration_test.go`, `j3-found-report.spec.ts` | Proven (AC 1-4 verified) |
+| US-14 | See if an owner may exist | M | I | `matching_integration_test.go` | Proven (AC 1-2 verified) |
+| US-15 | Be warned about a duplicate report | S | U, I | `use-assist.test.tsx`, `assist_integration_test.go` | Proven (AC 1-2 verified) |
+| US-16 | Be reminded to hand in the item | M | I | `custody_integration_test.go` | Proven (AC 1-2 verified) |
+| US-17 | Browse the public found listing | M | I | `reports_integration_test.go` | Proven (AC 1-2 verified) |
+| US-18 | Embed and analyse every report | M | U, I, C | `ml/tests/test_embed.py`, `matching_integration_test.go` | Proven (AC 1-3 verified) |
+| US-19 | Rank candidates for every report | M | U, I | `fusion_test.go`, `matching_integration_test.go` | Proven (AC 1-4 verified; real dataset gate PENDING HUMAN) |
+| US-20 | Understand why a candidate is suggested | M | U | `score-bars.test.tsx`, `matching_test.go` | Proven (AC 1-4 verified) |
+| US-21 | Give feedback or dismiss a candidate | M | I | `matching_integration_test.go` | Proven (AC 1-2 verified) |
+| US-22 | Be told when a strong candidate appears later | M | I | `notify_integration_test.go`, `matching_integration_test.go` | Proven (AC 1-2 verified) |
+| US-23 | Get suggestions from a photo | M | U, I, C | `ml/tests/test_analyze.py`, `assist_integration_test.go` | Proven (AC 1-4 verified) |
+| US-24 | Get a drafted description | M | U | `assist_test.go` | Proven (AC 1-2 verified) |
+| US-25 | Claim a candidate | M | I, E | `claims_integration_test.go`, `j4-claim.spec.ts` | Proven (AC 1-4 verified) |
+| US-26 | Review a claim with the verification assistant | M | I | `claims_integration_test.go` | Proven (AC 1-3 verified) |
+| US-27 | Ask for more information, approve or reject | M | I | `claims_integration_test.go` | Proven (AC 1-4 verified) |
+| US-28 | Withdraw a claim | M | I | `claims_integration_test.go` | Proven (AC 1 verified) |
+| US-29 | Expire stalled claims | M | I | `claims_integration_test.go`, `maintenance_integration_test.go` | Proven (AC 1-3 verified) |
+| US-30 | Receive an item at a post | M | I, E | `custody_integration_test.go`, `j3-found-report.spec.ts` | Proven (AC 1-3 verified) |
+| US-31 | Hand over with a code | M | I, E | `custody_integration_test.go`, `j5-handover.spec.ts` | Proven (AC 1-3 verified) |
+| US-32 | Manage the post inventory | M | I | `custody_integration_test.go` | Proven (AC 1 verified) |
+| US-33 | Dispose of unclaimed items | M | I, E | `custody_integration_test.go`, `j6-retention.spec.ts` | Proven (AC 1-4 verified) |
+| US-34 | Transfer between posts | S | I | `custody_integration_test.go` | Proven (AC 1 verified) |
+| US-35 | Receive notifications in the app | M | I | `notify_integration_test.go` | Proven (AC 1-3 verified) |
+| US-36 | Receive email notifications | M | I | `notify_integration_test.go` | Proven (AC 1-3 verified) |
+| US-37 | Search all reports | M | I | `search_integration_test.go` | Proven (AC 1-2 verified) |
+| US-38 | Work from a priority queue | M | I | `officer_integration_test.go` | Proven (AC 1-2 verified) |
+| US-39 | Review matches side by side | M | U, I | `review-board.test.tsx`, `officer_integration_test.go` | Proven (AC 1-3 verified) |
+| US-40 | Merge duplicates | S | I | `officer_integration_test.go` | Proven (AC 1 verified) |
+| US-41 | Search by meaning | S | U, I | `search_test.go`, `search_integration_test.go` | Proven (AC 1 verified) |
+| US-42 | Moderate reports and users | M | I | `admin_integration_test.go` | Proven (AC 1-2 verified) |
+| US-43 | Change runtime settings | M | U, I | `settings_test.go`, `admin_integration_test.go`, `admin-settings.test.tsx` | Proven (AC 1 verified) |
+| US-44 | Browse the audit log | M | I | `admin_integration_test.go` | Proven (AC 1-2 verified) |
+| US-45 | Delete my account | M | I | `privacy_integration_test.go` | Proven (AC 1-2 verified) |
+| US-46 | See hotspots on a campus map | M | I | `analytics_integration_test.go` | Proven (AC 1-2 verified) |
+| US-47 | See operational trends | M | U, I | `admin-analytics.test.tsx`, `analytics_integration_test.go` | Proven (AC 1-2 verified) |
+| US-48 | Find clusters of related reports | S | U, I, C | `ml/tests/test_cluster.py`, `analytics_integration_test.go` | Proven (AC 1-2 verified) |
+| US-49 | Monitor the matching engine | M | I, E | `analytics_integration_test.go`, `j7-fusion.spec.ts` | Proven (AC 1-2 verified) |
+| US-50 | Scaffold the services and the local stack | M | I | `docker compose config`, `/healthz`, `/readyz` | Proven (AC 1-2 verified) |
+| US-51 | Continuous integration | M | CI | `.github/workflows/ci-*.yml` | Proven (AC 1 verified in CI workflows) |
+| US-52 | Observability | M | I, Ops | `/metrics`, request ID logging, `deploy/monitoring/` | Proven (AC 1-2 automated evidence verified) |
+| US-53 | Deploy to staging and production | M | Ops | `.github/workflows/release.yml`, `deploy/scripts/deploy.sh` | Automated artifacts verified; server execution PENDING (HUMAN) |
+| US-54 | Backups and a restore drill | M | Ops | `deploy/scripts/backup.sh`, `deploy/scripts/restore.sh`, `docs/operations/restore-drill.md` | Automated scripts verified; physical drill on server PENDING (HUMAN) |
+| US-55 | Security hardening | M | U, I, Scan | `ci-*.yml` audits, `httpx`, `security-privacy.md` | Automated checks verified; ZAP baseline scan against staging PENDING (HUMAN) |
+
