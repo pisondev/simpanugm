@@ -1,4 +1,7 @@
 import { useTranslations } from "next-intl"
+import { useId, type CSSProperties } from "react"
+
+import { AnimatedBar } from "@/components/motion/primitives"
 
 import type { ExplanationLine, MatchExplanation, MatchScores } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
@@ -17,6 +20,7 @@ function value(bar: Bar): number {
 // US-20: four bars with a label and a one line reason, the reason is text so no reader depends on the bar
 export function ScoreBars({ explanation, scores }: { explanation: MatchExplanation; scores?: MatchScores }) {
   const t = useTranslations("matching")
+  const prefix = useId()
   const bars: Bar[] = [
     { key: "visual", line: explanation.visual, score: scores?.visual },
     { key: "text", line: explanation.text, score: scores?.text },
@@ -24,13 +28,13 @@ export function ScoreBars({ explanation, scores }: { explanation: MatchExplanati
     { key: "time", line: explanation.time, score: scores?.time },
   ]
   return (
-    <ul className="flex flex-col gap-4">
-      {bars.map((bar) => {
+    <ul className="motion-stagger flex flex-col gap-5">
+      {bars.map((bar, index) => {
         const label = bar.key === "visual" && explanation.visual_mode === "cross_modal" ? t("bars.visualCrossModal") : t(`bars.${bar.key}`)
         const v = value(bar)
-        const id = `bar-${bar.key}`
+        const id = `${prefix}-bar-${bar.key}`
         return (
-          <li key={bar.key} className="flex flex-col gap-1.5">
+          <li key={bar.key} style={{ "--motion-index": index } as CSSProperties} className="flex flex-col gap-1.5">
             <div className="flex items-baseline justify-between gap-3 text-sm">
               <span id={id} className="font-medium">
                 {label}
@@ -46,12 +50,12 @@ export function ScoreBars({ explanation, scores }: { explanation: MatchExplanati
               aria-valuetext={bar.line.reason}
               className="h-2 w-full overflow-hidden rounded-full bg-muted"
             >
-              <div
+              <AnimatedBar
+                value={v}
                 className={cn(
                   "h-full rounded-full",
                   bar.line.level === "high" ? "bg-success" : bar.line.level === "medium" ? "bg-info" : "bg-muted-foreground/50",
                 )}
-                style={{ width: `${v}%` }}
               />
             </div>
             <p className={cn("text-sm", bar.line.missing ? "text-muted-foreground" : "text-foreground")}>{bar.line.reason}</p>

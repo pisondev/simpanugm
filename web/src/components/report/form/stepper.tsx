@@ -23,7 +23,8 @@ export function Stepper({ steps, current, onJump }: { steps: string[]; current: 
                 onClick={() => onJump(i)}
                 disabled={i > current}
                 aria-current={active ? "step" : undefined}
-                className="group flex min-h-11 flex-col gap-2 text-left disabled:cursor-default"
+                aria-label={title}
+                className="group flex min-h-11 flex-col gap-2 rounded-sm text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-default"
               >
                 <span className={cn("h-1.5 w-full rounded-full bg-muted", (done || active) && "bg-primary", onReview && "bg-primary")} />
                 <span className={cn("hidden items-center gap-1 truncate text-xs font-medium text-muted-foreground sm:flex", active && "text-primary")}>

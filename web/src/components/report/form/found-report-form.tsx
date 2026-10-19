@@ -417,7 +417,7 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
           () => setSubmitError(t("fixErrors")),
         )()
       }}
-      className="flex flex-col gap-6"
+      className="surface flex flex-col gap-6 p-4 sm:p-6"
     >
       <Stepper steps={titles} current={step} onJump={setStep} />
 
@@ -443,11 +443,24 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
       ) : null}
 
       {current === "photos" ? (
-        <Field id="photos" label={t("photos.label")} hint={t("photos.hint")} error={photoError}>
-          {(aria) => (
-            <PhotoPicker purpose="found_report" items={photos} setItems={setPhotos} describedBy={aria["aria-describedby"]} invalid={aria["aria-invalid"]} />
-          )}
-        </Field>
+        <div className="flex flex-col gap-5">
+          <div className="ai-panel flex flex-col gap-1 p-4">
+            <p className="text-sm font-semibold text-primary">{t("assist.photoTitle")}</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">{t("assist.photoHint")}</p>
+          </div>
+          <Field
+            id="photos"
+            label={t("photos.label")}
+            hint={t("photos.hint")}
+            error={photoError}
+            className="rounded-xl border border-dashed bg-surface-inset/40 p-5"
+          >
+            {(aria) => (
+              <PhotoPicker purpose="found_report" items={photos} setItems={setPhotos} describedBy={aria["aria-describedby"]} invalid={aria["aria-invalid"]} />
+            )}
+          </Field>
+          <AssistNote assist={assist} />
+        </div>
       ) : null}
 
       {current === "detail" ? (
@@ -459,6 +472,7 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
             render={({ field }) => (
               <Field
                 id="category"
+                suggested={assist.suggested("category", field.value)}
                 label={t("category.label")}
                 hint={assist.suggested("category", field.value) ? <SuggestedTag show /> : undefined}
                 error={errors.category_id?.message}
@@ -484,6 +498,8 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
           </Field>
           <Field
             id="description"
+            suggested={assist.suggested("description", values.description)}
+            motionIndex={3}
             label={t("description.label")}
             hint={
               <>
@@ -506,6 +522,8 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
             render={({ field }) => (
               <Field
                 id="colours"
+                suggested={assist.suggested("colours", field.value)}
+                motionIndex={1}
                 as="fieldset"
                 label={t("colours.label")}
                 hint={
@@ -521,6 +539,8 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
           />
           <Field
             id="brand"
+            suggested={assist.suggested("brand", values.brand)}
+            motionIndex={2}
             label={t("brand.label")}
             hint={assist.suggested("brand", values.brand) ? <SuggestedTag show /> : undefined}
             optionalLabel={tc("optional")}

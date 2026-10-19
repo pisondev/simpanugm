@@ -34,7 +34,7 @@ export function PhotoStrip({ photos, alt, only }: Props) {
             onClick={() => setOpen(first.media_id)}
             className={cn("col-span-4 overflow-hidden rounded-xl bg-muted sm:col-span-2 sm:row-span-2", rest.length === 0 && "sm:col-span-4")}
           >
-            <img src={mediaUrl(first.media_id, only ?? "display")} alt={alt} className="aspect-[4/3] w-full object-cover" />
+            <img src={mediaUrl(first.media_id, only ?? "display")} alt={alt} className="aspect-[4/3] w-full object-contain" />
           </button>
         ) : null}
         {rest.map((p, i) => (

@@ -197,10 +197,11 @@
       "match": "Kandidat kuat untuk laporan kehilangan, dan petunjuk pemilik untuk laporan temuan.",
       "found": "Barang yang kamu temukan sudah diterima pos atau sudah kembali ke pemiliknya.",
       "claim": "Pesan baru pada klaim. Perubahan status klaim selalu dikirim."
-    }
+    },
+    "tabUnread": "{count, plural, =0 {Notifikasi} other {Notifikasi {badge} belum dibaca}}"
   },
   "landing": {
-    "title": "Barang hilang di kampus? Laporkan, kami bantu temukan.",
+    "title": "Yang hilang,",
     "lead": "SimpanUGM mempertemukan laporan kehilangan dengan laporan temuan di lingkungan UGM. Barang disimpan di pos terdekat dan diserahkan setelah kepemilikannya diperiksa petugas.",
     "start": "Daftar dengan email UGM",
     "signIn": "Sudah punya akun? Masuk",
@@ -213,7 +214,12 @@
     "step3Body": "Pemilik mengajukan klaim. Petugas memeriksa ciri khusus dan kartu identitas sebelum barang diserahkan.",
     "privacyTitle": "Data dijaga",
     "privacyBody": "Ciri khusus barang hanya terlihat oleh pelapor dan petugas. Daftar barang temuan publik tidak memuat foto maupun deskripsi.",
-    "footer": "SimpanUGM adalah proyek mahasiswa Ilmu Komputer UGM dan bukan layanan resmi universitas."
+    "footer": "SimpanUGM adalah proyek mahasiswa Ilmu Komputer UGM dan bukan layanan resmi universitas.",
+    "titleAccent": "bisa kembali.",
+    "eyebrow": "Barang hilang dan temuan di UGM",
+    "foundAction": "Saya menemukan barang",
+    "community": "Satu kampus, saling menjaga.",
+    "howLead": "Dari laporan sampai kembali ke tanganmu."
   },
   "auth": {
     "email": "Email UGM",
@@ -497,7 +503,14 @@
       "unavailable": "Saran otomatis sedang tidak tersedia",
       "tag": "Saran otomatis",
       "alternatives": "Mungkin juga:",
-      "redraft": "Buat ulang dari foto"
+      "redraft": "Buat ulang dari foto",
+      "loadingHint": "Kamu tetap bisa mengisi detail sambil menunggu. Isianmu tidak akan ditimpa.",
+      "unavailableHint": "Lanjutkan dengan mengisi detail secara manual. Foto dan drafmu tetap tersimpan.",
+      "ready": "Saran dari fotomu sudah siap",
+      "readyHint": "Periksa bidang berlabel Saran otomatis. Kamu bisa mengubahnya kapan saja.",
+      "photoTitle": "Mulai dari satu foto",
+      "photoHint": "Saran kategori, warna, merek, dan draf deskripsi akan membantu kamu mengisi detail. Tetap periksa hasilnya.",
+      "retry": "Coba saran lagi"
     }
   },
   "report": {
@@ -647,7 +660,9 @@
         "time": "Waktu",
         "category": "Kategori"
       }
-    }
+    },
+    "scoreCaution": "Skor membantu memilih kandidat untuk diperiksa. Kepemilikan tetap diverifikasi petugas.",
+    "bandNote": "Bilah merangkum tingkat kecocokan tiap sinyal, bukan persentase kepastian kepemilikan."
   },
   "publicFound": {
     "title": "Barang Temuan",
@@ -804,8 +819,6 @@
     "semanticSearchDesc": "Mencari berdasarkan arti kata menggunakan representasi vektor semantik (AI-13).",
     "relevance": "Relevansi",
     "type": "Jenis",
-    "typeLost": "Kehilangan",
-    "typeFound": "Temuan",
     "from": "Dari tanggal",
     "to": "Sampai tanggal",
     "custody": "Penyimpanan",

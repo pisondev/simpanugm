@@ -12,17 +12,35 @@ export function AssistNote({ assist }: { assist: Assist }) {
   const t = useTranslations("form.assist")
   if (assist.status === "loading") {
     return (
-      <p role="status" className="flex items-center gap-2 rounded-lg border border-info/30 bg-primary-soft/50 p-3 text-sm">
-        <LoaderCircle className="size-4 animate-spin text-info" aria-hidden />
-        {t("loading")}
-      </p>
+      <div role="status" className="ai-panel flex items-start gap-3 p-4 text-sm">
+        <LoaderCircle className="mt-0.5 size-5 shrink-0 animate-spin text-primary" aria-hidden />
+        <div>
+          <p className="font-medium">{t("loading")}</p>
+          <p className="mt-1 text-muted-foreground">{t("loadingHint")}</p>
+        </div>
+      </div>
     )
   }
   if (assist.status === "unavailable") {
     return (
-      <p role="status" className="rounded-lg border bg-muted/50 p-3 text-sm text-muted-foreground">
-        {t("unavailable")}
-      </p>
+      <div role="status" className="surface p-4 text-sm">
+        <p className="font-medium">{t("unavailable")}</p>
+        <p className="mt-1 text-muted-foreground">{t("unavailableHint")}</p>
+        <Button type="button" variant="outline" className="mt-3" onClick={assist.retry}>
+          {t("retry")}
+        </Button>
+      </div>
+    )
+  }
+  if (assist.status === "ready") {
+    return (
+      <div role="status" className="ai-panel motion-fade flex items-start gap-3 p-4 text-sm">
+        <Sparkles className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
+        <div>
+          <p className="font-medium">{t("ready")}</p>
+          <p className="mt-1 text-muted-foreground">{t("readyHint")}</p>
+        </div>
+      </div>
     )
   }
   return null
@@ -33,7 +51,7 @@ export function SuggestedTag({ show }: { show: boolean }) {
   const t = useTranslations("form.assist")
   if (!show) return null
   return (
-    <span className="inline-flex w-fit items-center gap-1 rounded-full border border-info/30 bg-primary-soft px-2 py-0.5 text-xs font-medium text-info">
+    <span className="motion-fade inline-flex w-fit items-center gap-1 rounded-full border border-primary/20 bg-primary-soft px-2 py-0.5 text-xs font-medium text-primary">
       <Sparkles className="size-3" aria-hidden />
       {t("tag")}
     </span>

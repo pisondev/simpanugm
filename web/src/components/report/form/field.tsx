@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -11,12 +11,14 @@ type Props = {
   error?: string
   optionalLabel?: string
   className?: string
+  suggested?: boolean
+  motionIndex?: number
   as?: "div" | "fieldset"
   children: (aria: FieldAria) => ReactNode
 }
 
 // label, hint and error wired with aria-describedby, errors announced politely (ui-guidelines 7)
-export function Field({ id, label, hint, error, optionalLabel, className, as = "div", children }: Props) {
+export function Field({ id, label, hint, error, optionalLabel, className, suggested = false, motionIndex = 0, as = "div", children }: Props) {
   const hintId = hint ? `${id}-hint` : undefined
   const errorId = error ? `${id}-error` : undefined
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined
@@ -28,7 +30,11 @@ export function Field({ id, label, hint, error, optionalLabel, className, as = "
     </>
   )
   return (
-    <Wrapper className={cn("flex flex-col gap-2", className)} aria-describedby={as === "fieldset" ? describedBy : undefined}>
+    <Wrapper
+      className={cn("flex flex-col gap-2", suggested && "suggested-field isolate", className)}
+      style={{ "--motion-index": motionIndex } as CSSProperties}
+      aria-describedby={as === "fieldset" ? describedBy : undefined}
+    >
       {as === "fieldset" ? (
         <legend className="mb-2 text-sm font-medium">{heading}</legend>
       ) : (

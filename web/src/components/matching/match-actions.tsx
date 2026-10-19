@@ -24,7 +24,7 @@ export function MaybeMineButton({ matchId }: { matchId: string }) {
     onError: (err) => toast(messageFor(err, te)),
   })
   return (
-    <Button onClick={() => feedback.mutate()} disabled={sent || feedback.isPending} aria-pressed={sent}>
+    <Button variant="outline" onClick={() => feedback.mutate()} disabled={sent || feedback.isPending} aria-pressed={sent}>
       <ThumbsUp aria-hidden />
       {t("maybeMine")}
     </Button>

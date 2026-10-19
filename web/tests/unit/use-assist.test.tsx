@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { renderHook, waitFor } from "@testing-library/react"
+import { act, renderHook, waitFor } from "@testing-library/react"
 import { http, HttpResponse } from "msw"
 import type { ReactNode } from "react"
 import { describe, expect, it } from "vitest"
@@ -72,7 +72,7 @@ describe("useAssist", () => {
     )
     const { state, view } = setup(empty, true)
     await waitFor(() => expect(state.description).toBe("Tumbler berwarna biru, merek Corkcicle."))
-    expect(view.result.current.outcome({ ...state })).toMatchObject({ description: "accepted" })
+    await waitFor(() => expect(view.result.current.outcome({ ...state })).toMatchObject({ description: "accepted" }))
   })
 
   // FR-ASSIST-04
@@ -86,5 +86,17 @@ describe("useAssist", () => {
     await waitFor(() => expect(view.result.current.status).toBe("unavailable"))
     expect(state).toEqual(empty)
     expect(view.result.current.outcome(state)).toBeUndefined()
+  })
+
+  it("recovers from an unavailable model without overwriting manual entry", async () => {
+    server.use(http.post(`${apiBase}/assist/analyze-image`, () => HttpResponse.json({}, { status: 503 })))
+    const { state, view } = setup(empty)
+    await waitFor(() => expect(view.result.current.status).toBe("unavailable"))
+    state.brand = "Pilihan saya"
+    server.use(http.post(`${apiBase}/assist/analyze-image`, () => HttpResponse.json(suggestions)))
+    act(() => view.result.current.retry())
+    await waitFor(() => expect(state.category_id).toBe(tumbler.id))
+    expect(state.brand).toBe("Pilihan saya")
+    expect(state.colours).toEqual(["biru"])
   })
 })

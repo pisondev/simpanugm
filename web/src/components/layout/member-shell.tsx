@@ -72,11 +72,11 @@ function NotificationTab({ label }: { label: string }) {
     <Link
       href="/notifikasi"
       aria-current={active ? "page" : undefined}
-      aria-label={tn("bellUnread", { count })}
+      aria-label={tn("tabUnread", { count, badge: count > 99 ? "99+" : String(count) })}
       className={`relative flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium ${active ? "text-primary" : "text-muted-foreground"}`}
     >
       <Bell className="size-5" aria-hidden />
-      <span aria-hidden>{label}</span>
+      <span aria-hidden>{label}</span>{" "}
       {count > 0 ? (
         <span
           className="absolute top-1.5 left-1/2 ml-1 flex min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[0.7rem] leading-5 font-semibold text-white"

@@ -10,7 +10,7 @@ export function FinderHint({ items }: { items: MatchHintItem[] }) {
     return null
   }
   return (
-    <section aria-labelledby="petunjuk-pemilik" className="flex items-start gap-3 rounded-xl border border-info/30 bg-primary-soft/50 p-4">
+    <section aria-labelledby="petunjuk-pemilik" className="ai-panel motion-fade flex items-start gap-3 p-5">
       <Search className="mt-0.5 size-5 shrink-0 text-info" aria-hidden />
       <div className="flex flex-col gap-1">
         <h2 id="petunjuk-pemilik" className="font-semibold">

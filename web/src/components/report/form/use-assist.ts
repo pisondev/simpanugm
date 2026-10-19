@@ -7,7 +7,7 @@ import { api } from "@/lib/api/client"
 import { call } from "@/lib/api/problem"
 import type { AssistOutcome, AssistSuggestions, CategorySuggestion } from "@/lib/api/types"
 
-// NFR-PERF-04: a suggestion that takes longer than this is abandoned without a word
+// a bounded request leaves manual entry available when inference is slow
 const abandonAfterMs = 8_000
 
 export type AssistFields = { category_id: string; colours: string[]; brand: string; description: string }
@@ -32,6 +32,7 @@ export type Assist = {
   suggested: (field: keyof Applied, current: unknown) => boolean
   pick: (categoryId: string) => void
   redraft: () => Promise<void>
+  retry: () => void
   outcome: (values: AssistFields) => AssistOutcome | undefined
 }
 
@@ -63,6 +64,7 @@ export function useAssist({ enabled, reportType, mediaId, read, write, drafts = 
     try {
       const out = await call(
         api.POST("/assist/describe", {
+          signal: AbortSignal.timeout(abandonAfterMs),
           body: {
             category_id: values.category_id,
             colours: values.colours,
@@ -113,6 +115,9 @@ export function useAssist({ enabled, reportType, mediaId, read, write, drafts = 
   const chosen = read().category_id
   return {
     status,
+    retry: () => {
+      void query.refetch()
+    },
     alternatives: (query.data?.categories ?? [])
       .slice(0, 3)
       .filter((c) => c.category.id !== chosen)
