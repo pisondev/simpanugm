@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"time"
@@ -681,6 +682,24 @@ func (e MediaPurpose) Valid() bool {
 	}
 }
 
+// Defines values for MergeDuplicatesRequestReportType.
+const (
+	MergeDuplicatesRequestReportTypeFound MergeDuplicatesRequestReportType = "found"
+	MergeDuplicatesRequestReportTypeLost  MergeDuplicatesRequestReportType = "lost"
+)
+
+// Valid indicates whether the value is a known member of the MergeDuplicatesRequestReportType enum.
+func (e MergeDuplicatesRequestReportType) Valid() bool {
+	switch e {
+	case MergeDuplicatesRequestReportTypeFound:
+		return true
+	case MergeDuplicatesRequestReportTypeLost:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for NotificationPreferenceGroup.
 const (
 	NotificationPreferenceGroupClaim NotificationPreferenceGroup = "claim"
@@ -696,6 +715,45 @@ func (e NotificationPreferenceGroup) Valid() bool {
 	case NotificationPreferenceGroupFound:
 		return true
 	case NotificationPreferenceGroupMatch:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for OfficerDuplicateItemReportType.
+const (
+	OfficerDuplicateItemReportTypeFound OfficerDuplicateItemReportType = "found"
+	OfficerDuplicateItemReportTypeLost  OfficerDuplicateItemReportType = "lost"
+)
+
+// Valid indicates whether the value is a known member of the OfficerDuplicateItemReportType enum.
+func (e OfficerDuplicateItemReportType) Valid() bool {
+	switch e {
+	case OfficerDuplicateItemReportTypeFound:
+		return true
+	case OfficerDuplicateItemReportTypeLost:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for OfficerDuplicateItemStatus.
+const (
+	OfficerDuplicateItemStatusConfirmed OfficerDuplicateItemStatus = "confirmed"
+	OfficerDuplicateItemStatusRejected  OfficerDuplicateItemStatus = "rejected"
+	OfficerDuplicateItemStatusSuggested OfficerDuplicateItemStatus = "suggested"
+)
+
+// Valid indicates whether the value is a known member of the OfficerDuplicateItemStatus enum.
+func (e OfficerDuplicateItemStatus) Valid() bool {
+	switch e {
+	case OfficerDuplicateItemStatusConfirmed:
+		return true
+	case OfficerDuplicateItemStatusRejected:
+		return true
+	case OfficerDuplicateItemStatusSuggested:
 		return true
 	default:
 		return false
@@ -816,6 +874,45 @@ func (e Sensitivity) Valid() bool {
 	case Normal:
 		return true
 	case Valuable:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListOfficerDuplicatesParamsStatus.
+const (
+	ListOfficerDuplicatesParamsStatusConfirmed ListOfficerDuplicatesParamsStatus = "confirmed"
+	ListOfficerDuplicatesParamsStatusRejected  ListOfficerDuplicatesParamsStatus = "rejected"
+	ListOfficerDuplicatesParamsStatusSuggested ListOfficerDuplicatesParamsStatus = "suggested"
+)
+
+// Valid indicates whether the value is a known member of the ListOfficerDuplicatesParamsStatus enum.
+func (e ListOfficerDuplicatesParamsStatus) Valid() bool {
+	switch e {
+	case ListOfficerDuplicatesParamsStatusConfirmed:
+		return true
+	case ListOfficerDuplicatesParamsStatusRejected:
+		return true
+	case ListOfficerDuplicatesParamsStatusSuggested:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListOfficerDuplicatesParamsType.
+const (
+	ListOfficerDuplicatesParamsTypeFound ListOfficerDuplicatesParamsType = "found"
+	ListOfficerDuplicatesParamsTypeLost  ListOfficerDuplicatesParamsType = "lost"
+)
+
+// Valid indicates whether the value is a known member of the ListOfficerDuplicatesParamsType enum.
+func (e ListOfficerDuplicatesParamsType) Valid() bool {
+	switch e {
+	case ListOfficerDuplicatesParamsTypeFound:
+		return true
+	case ListOfficerDuplicatesParamsTypeLost:
 		return true
 	default:
 		return false
@@ -1023,6 +1120,21 @@ type AssistDescribeRequest struct {
 // AssistDescription defines model for AssistDescription.
 type AssistDescription struct {
 	Description string `json:"description"`
+}
+
+// AssistDuplicatesRequest defines model for AssistDuplicatesRequest.
+type AssistDuplicatesRequest struct {
+	CategoryId      openapi_types.UUID    `json:"category_id"`
+	Description     *string               `json:"description,omitempty"`
+	FoundAt         time.Time             `json:"found_at"`
+	FoundLocationId openapi_types.UUID    `json:"found_location_id"`
+	ItemName        string                `json:"item_name"`
+	MediaIds        *[]openapi_types.UUID `json:"media_ids,omitempty"`
+}
+
+// AssistDuplicatesResponse defines model for AssistDuplicatesResponse.
+type AssistDuplicatesResponse struct {
+	Items []DuplicateCandidate `json:"items"`
 }
 
 // AssistFieldOutcome defines model for AssistFieldOutcome.
@@ -1398,6 +1510,11 @@ type CompatibilityPut struct {
 	Factor    float32            `json:"factor"`
 }
 
+// ConfirmDuplicateRequest defines model for ConfirmDuplicateRequest.
+type ConfirmDuplicateRequest struct {
+	SurvivorId *openapi_types.UUID `json:"survivor_id,omitempty"`
+}
+
 // CustodyChoice defines model for CustodyChoice.
 type CustodyChoice struct {
 	IntendedPostId *openapi_types.UUID `json:"intended_post_id,omitempty"`
@@ -1424,6 +1541,30 @@ type DisposeFoundReportRequest struct {
 
 // DisposeFoundReportRequestKind defines model for DisposeFoundReportRequest.Kind.
 type DisposeFoundReportRequestKind string
+
+// DuplicateCandidate defines model for DuplicateCandidate.
+type DuplicateCandidate struct {
+	CategoryName   string              `json:"category_name"`
+	Code           string              `json:"code"`
+	DuplicateScore float32             `json:"duplicate_score"`
+	FoundAt        time.Time           `json:"found_at"`
+	Id             openapi_types.UUID  `json:"id"`
+	ItemName       string              `json:"item_name"`
+	LocationName   string              `json:"location_name"`
+	ThumbMediaId   *openapi_types.UUID `json:"thumb_media_id,omitempty"`
+}
+
+// DuplicateReportSummary defines model for DuplicateReportSummary.
+type DuplicateReportSummary struct {
+	CategoryName string              `json:"category_name"`
+	Code         string              `json:"code"`
+	Id           openapi_types.UUID  `json:"id"`
+	ItemName     string              `json:"item_name"`
+	LocationName string              `json:"location_name"`
+	OccurredAt   time.Time           `json:"occurred_at"`
+	Status       string              `json:"status"`
+	ThumbMediaId *openapi_types.UUID `json:"thumb_media_id,omitempty"`
+}
 
 // EmailChangeRequest defines model for EmailChangeRequest.
 type EmailChangeRequest struct {
@@ -1905,6 +2046,16 @@ type MediaState string
 // MediaPurpose defines model for MediaPurpose.
 type MediaPurpose string
 
+// MergeDuplicatesRequest defines model for MergeDuplicatesRequest.
+type MergeDuplicatesRequest struct {
+	DuplicateId openapi_types.UUID               `json:"duplicate_id"`
+	ReportType  MergeDuplicatesRequestReportType `json:"report_type"`
+	SurvivorId  openapi_types.UUID               `json:"survivor_id"`
+}
+
+// MergeDuplicatesRequestReportType defines model for MergeDuplicatesRequest.ReportType.
+type MergeDuplicatesRequestReportType string
+
 // NamedRef defines model for NamedRef.
 type NamedRef struct {
 	Id   openapi_types.UUID `json:"id"`
@@ -1943,6 +2094,31 @@ type NotificationPreferenceGroup string
 // NotificationPreferences defines model for NotificationPreferences.
 type NotificationPreferences struct {
 	Items []NotificationPreference `json:"items"`
+}
+
+// OfficerDuplicateItem defines model for OfficerDuplicateItem.
+type OfficerDuplicateItem struct {
+	CreatedAt  time.Time                      `json:"created_at"`
+	Id         openapi_types.UUID             `json:"id"`
+	ReportA    DuplicateReportSummary         `json:"report_a"`
+	ReportB    DuplicateReportSummary         `json:"report_b"`
+	ReportType OfficerDuplicateItemReportType `json:"report_type"`
+	ReviewedAt *time.Time                     `json:"reviewed_at,omitempty"`
+	ReviewedBy *openapi_types.UUID            `json:"reviewed_by,omitempty"`
+	Score      float32                        `json:"score"`
+	Status     OfficerDuplicateItemStatus     `json:"status"`
+}
+
+// OfficerDuplicateItemReportType defines model for OfficerDuplicateItem.ReportType.
+type OfficerDuplicateItemReportType string
+
+// OfficerDuplicateItemStatus defines model for OfficerDuplicateItem.Status.
+type OfficerDuplicateItemStatus string
+
+// OfficerDuplicateList defines model for OfficerDuplicateList.
+type OfficerDuplicateList struct {
+	Items []OfficerDuplicateItem `json:"items"`
+	Total int                    `json:"total"`
 }
 
 // OfficerQueueItem defines model for OfficerQueueItem.
@@ -2418,6 +2594,19 @@ type ListNotificationsParams struct {
 	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// ListOfficerDuplicatesParams defines parameters for ListOfficerDuplicates.
+type ListOfficerDuplicatesParams struct {
+	Status *ListOfficerDuplicatesParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+	Type   *ListOfficerDuplicatesParamsType   `form:"type,omitempty" json:"type,omitempty"`
+	Limit  *int                               `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ListOfficerDuplicatesParamsStatus defines parameters for ListOfficerDuplicates.
+type ListOfficerDuplicatesParamsStatus string
+
+// ListOfficerDuplicatesParamsType defines parameters for ListOfficerDuplicates.
+type ListOfficerDuplicatesParamsType string
+
 // GetOfficerQueueParams defines parameters for GetOfficerQueue.
 type GetOfficerQueueParams struct {
 	Scope  *GetOfficerQueueParamsScope `form:"scope,omitempty" json:"scope,omitempty"`
@@ -2507,6 +2696,9 @@ type AssistAnalyzeImageJSONRequestBody = AssistAnalyzeRequest
 
 // AssistDescribeJSONRequestBody defines body for AssistDescribe for application/json ContentType.
 type AssistDescribeJSONRequestBody = AssistDescribeRequest
+
+// AssistDuplicatesJSONRequestBody defines body for AssistDuplicates for application/json ContentType.
+type AssistDuplicatesJSONRequestBody = AssistDuplicatesRequest
 
 // ConfirmEmailChangeJSONRequestBody defines body for ConfirmEmailChange for application/json ContentType.
 type ConfirmEmailChangeJSONRequestBody = TokenRequest
@@ -2613,6 +2805,12 @@ type ChangePasswordJSONRequestBody = PasswordChangeRequest
 // UploadMediaMultipartRequestBody defines body for UploadMedia for multipart/form-data ContentType.
 type UploadMediaMultipartRequestBody UploadMediaMultipartBody
 
+// MergeOfficerDuplicatesJSONRequestBody defines body for MergeOfficerDuplicates for application/json ContentType.
+type MergeOfficerDuplicatesJSONRequestBody = MergeDuplicatesRequest
+
+// ConfirmOfficerDuplicateJSONRequestBody defines body for ConfirmOfficerDuplicate for application/json ContentType.
+type ConfirmOfficerDuplicateJSONRequestBody = ConfirmDuplicateRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -2672,6 +2870,9 @@ type ServerInterface interface {
 
 	// (POST /assist/describe)
 	AssistDescribe(w http.ResponseWriter, r *http.Request)
+
+	// (POST /assist/duplicates)
+	AssistDuplicates(w http.ResponseWriter, r *http.Request)
 
 	// (POST /auth/email/confirm)
 	ConfirmEmailChange(w http.ResponseWriter, r *http.Request)
@@ -2886,6 +3087,18 @@ type ServerInterface interface {
 	// (POST /notifications/{id}/read)
 	MarkNotificationRead(w http.ResponseWriter, r *http.Request, id UUIDPath)
 
+	// (GET /officer/duplicates)
+	ListOfficerDuplicates(w http.ResponseWriter, r *http.Request, params ListOfficerDuplicatesParams)
+
+	// (POST /officer/duplicates/merge)
+	MergeOfficerDuplicates(w http.ResponseWriter, r *http.Request)
+
+	// (POST /officer/duplicates/{id}/confirm)
+	ConfirmOfficerDuplicate(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+
+	// (POST /officer/duplicates/{id}/reject)
+	RejectOfficerDuplicate(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+
 	// (GET /officer/queue)
 	GetOfficerQueue(w http.ResponseWriter, r *http.Request, params GetOfficerQueueParams)
 
@@ -3004,6 +3217,11 @@ func (_ Unimplemented) AssistAnalyzeImage(w http.ResponseWriter, r *http.Request
 
 // (POST /assist/describe)
 func (_ Unimplemented) AssistDescribe(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /assist/duplicates)
+func (_ Unimplemented) AssistDuplicates(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -3359,6 +3577,26 @@ func (_ Unimplemented) CountUnreadNotifications(w http.ResponseWriter, r *http.R
 
 // (POST /notifications/{id}/read)
 func (_ Unimplemented) MarkNotificationRead(w http.ResponseWriter, r *http.Request, id UUIDPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /officer/duplicates)
+func (_ Unimplemented) ListOfficerDuplicates(w http.ResponseWriter, r *http.Request, params ListOfficerDuplicatesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /officer/duplicates/merge)
+func (_ Unimplemented) MergeOfficerDuplicates(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /officer/duplicates/{id}/confirm)
+func (_ Unimplemented) ConfirmOfficerDuplicate(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /officer/duplicates/{id}/reject)
+func (_ Unimplemented) RejectOfficerDuplicate(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -3813,6 +4051,20 @@ func (siw *ServerInterfaceWrapper) AssistDescribe(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AssistDescribe(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AssistDuplicates operation middleware
+func (siw *ServerInterfaceWrapper) AssistDuplicates(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AssistDuplicates(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -5897,6 +6149,131 @@ func (siw *ServerInterfaceWrapper) MarkNotificationRead(w http.ResponseWriter, r
 	handler.ServeHTTP(w, r)
 }
 
+// ListOfficerDuplicates operation middleware
+func (siw *ServerInterfaceWrapper) ListOfficerDuplicates(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListOfficerDuplicatesParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "type", r.URL.Query(), &params.Type, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "type"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "type", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListOfficerDuplicates(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MergeOfficerDuplicates operation middleware
+func (siw *ServerInterfaceWrapper) MergeOfficerDuplicates(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MergeOfficerDuplicates(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ConfirmOfficerDuplicate operation middleware
+func (siw *ServerInterfaceWrapper) ConfirmOfficerDuplicate(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ConfirmOfficerDuplicate(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RejectOfficerDuplicate operation middleware
+func (siw *ServerInterfaceWrapper) RejectOfficerDuplicate(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RejectOfficerDuplicate(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetOfficerQueue operation middleware
 func (siw *ServerInterfaceWrapper) GetOfficerQueue(w http.ResponseWriter, r *http.Request) {
 
@@ -6527,6 +6904,18 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/officer/queue", wrapper.GetOfficerQueue)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/officer/duplicates", wrapper.ListOfficerDuplicates)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/officer/duplicates/merge", wrapper.MergeOfficerDuplicates)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/officer/duplicates/{id}/confirm", wrapper.ConfirmOfficerDuplicate)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/officer/duplicates/{id}/reject", wrapper.RejectOfficerDuplicate)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/search", wrapper.SearchReports)
 	})
 	r.Group(func(r chi.Router) {
@@ -6639,6 +7028,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/assist/describe", wrapper.AssistDescribe)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/assist/duplicates", wrapper.AssistDuplicates)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/claims", wrapper.ListClaims)
@@ -7443,6 +7835,45 @@ type AssistDescribedefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response AssistDescribedefaultApplicationProblemPlusJSONResponse) VisitAssistDescribeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AssistDuplicatesRequestObject struct {
+	Body *AssistDuplicatesJSONRequestBody
+}
+
+type AssistDuplicatesResponseObject interface {
+	VisitAssistDuplicatesResponse(w http.ResponseWriter) error
+}
+
+type AssistDuplicates200JSONResponse AssistDuplicatesResponse
+
+func (response AssistDuplicates200JSONResponse) VisitAssistDuplicatesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AssistDuplicatesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AssistDuplicatesdefaultApplicationProblemPlusJSONResponse) VisitAssistDuplicatesResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -10201,6 +10632,163 @@ func (response MarkNotificationReaddefaultApplicationProblemPlusJSONResponse) Vi
 	return err
 }
 
+type ListOfficerDuplicatesRequestObject struct {
+	Params ListOfficerDuplicatesParams
+}
+
+type ListOfficerDuplicatesResponseObject interface {
+	VisitListOfficerDuplicatesResponse(w http.ResponseWriter) error
+}
+
+type ListOfficerDuplicates200JSONResponse OfficerDuplicateList
+
+func (response ListOfficerDuplicates200JSONResponse) VisitListOfficerDuplicatesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListOfficerDuplicatesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListOfficerDuplicatesdefaultApplicationProblemPlusJSONResponse) VisitListOfficerDuplicatesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MergeOfficerDuplicatesRequestObject struct {
+	Body *MergeOfficerDuplicatesJSONRequestBody
+}
+
+type MergeOfficerDuplicatesResponseObject interface {
+	VisitMergeOfficerDuplicatesResponse(w http.ResponseWriter) error
+}
+
+type MergeOfficerDuplicates200JSONResponse OfficerDuplicateItem
+
+func (response MergeOfficerDuplicates200JSONResponse) VisitMergeOfficerDuplicatesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MergeOfficerDuplicatesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response MergeOfficerDuplicatesdefaultApplicationProblemPlusJSONResponse) VisitMergeOfficerDuplicatesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ConfirmOfficerDuplicateRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *ConfirmOfficerDuplicateJSONRequestBody
+}
+
+type ConfirmOfficerDuplicateResponseObject interface {
+	VisitConfirmOfficerDuplicateResponse(w http.ResponseWriter) error
+}
+
+type ConfirmOfficerDuplicate200JSONResponse OfficerDuplicateItem
+
+func (response ConfirmOfficerDuplicate200JSONResponse) VisitConfirmOfficerDuplicateResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ConfirmOfficerDuplicatedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ConfirmOfficerDuplicatedefaultApplicationProblemPlusJSONResponse) VisitConfirmOfficerDuplicateResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RejectOfficerDuplicateRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type RejectOfficerDuplicateResponseObject interface {
+	VisitRejectOfficerDuplicateResponse(w http.ResponseWriter) error
+}
+
+type RejectOfficerDuplicate200JSONResponse OfficerDuplicateItem
+
+func (response RejectOfficerDuplicate200JSONResponse) VisitRejectOfficerDuplicateResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RejectOfficerDuplicatedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RejectOfficerDuplicatedefaultApplicationProblemPlusJSONResponse) VisitRejectOfficerDuplicateResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetOfficerQueueRequestObject struct {
 	Params GetOfficerQueueParams
 }
@@ -10535,6 +11123,9 @@ type StrictServerInterface interface {
 	// (POST /assist/describe)
 	AssistDescribe(ctx context.Context, request AssistDescribeRequestObject) (AssistDescribeResponseObject, error)
 
+	// (POST /assist/duplicates)
+	AssistDuplicates(ctx context.Context, request AssistDuplicatesRequestObject) (AssistDuplicatesResponseObject, error)
+
 	// (POST /auth/email/confirm)
 	ConfirmEmailChange(ctx context.Context, request ConfirmEmailChangeRequestObject) (ConfirmEmailChangeResponseObject, error)
 
@@ -10747,6 +11338,18 @@ type StrictServerInterface interface {
 
 	// (POST /notifications/{id}/read)
 	MarkNotificationRead(ctx context.Context, request MarkNotificationReadRequestObject) (MarkNotificationReadResponseObject, error)
+
+	// (GET /officer/duplicates)
+	ListOfficerDuplicates(ctx context.Context, request ListOfficerDuplicatesRequestObject) (ListOfficerDuplicatesResponseObject, error)
+
+	// (POST /officer/duplicates/merge)
+	MergeOfficerDuplicates(ctx context.Context, request MergeOfficerDuplicatesRequestObject) (MergeOfficerDuplicatesResponseObject, error)
+
+	// (POST /officer/duplicates/{id}/confirm)
+	ConfirmOfficerDuplicate(ctx context.Context, request ConfirmOfficerDuplicateRequestObject) (ConfirmOfficerDuplicateResponseObject, error)
+
+	// (POST /officer/duplicates/{id}/reject)
+	RejectOfficerDuplicate(ctx context.Context, request RejectOfficerDuplicateRequestObject) (RejectOfficerDuplicateResponseObject, error)
 
 	// (GET /officer/queue)
 	GetOfficerQueue(ctx context.Context, request GetOfficerQueueRequestObject) (GetOfficerQueueResponseObject, error)
@@ -11363,6 +11966,37 @@ func (sh *strictHandler) AssistDescribe(w http.ResponseWriter, r *http.Request) 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(AssistDescribeResponseObject); ok {
 		if err := validResponse.VisitAssistDescribeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AssistDuplicates operation middleware
+func (sh *strictHandler) AssistDuplicates(w http.ResponseWriter, r *http.Request) {
+	var request AssistDuplicatesRequestObject
+
+	var body AssistDuplicatesJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AssistDuplicates(ctx, request.(AssistDuplicatesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AssistDuplicates")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AssistDuplicatesResponseObject); ok {
+		if err := validResponse.VisitAssistDuplicatesResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -13419,6 +14053,125 @@ func (sh *strictHandler) MarkNotificationRead(w http.ResponseWriter, r *http.Req
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(MarkNotificationReadResponseObject); ok {
 		if err := validResponse.VisitMarkNotificationReadResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListOfficerDuplicates operation middleware
+func (sh *strictHandler) ListOfficerDuplicates(w http.ResponseWriter, r *http.Request, params ListOfficerDuplicatesParams) {
+	var request ListOfficerDuplicatesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListOfficerDuplicates(ctx, request.(ListOfficerDuplicatesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListOfficerDuplicates")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListOfficerDuplicatesResponseObject); ok {
+		if err := validResponse.VisitListOfficerDuplicatesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// MergeOfficerDuplicates operation middleware
+func (sh *strictHandler) MergeOfficerDuplicates(w http.ResponseWriter, r *http.Request) {
+	var request MergeOfficerDuplicatesRequestObject
+
+	var body MergeOfficerDuplicatesJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.MergeOfficerDuplicates(ctx, request.(MergeOfficerDuplicatesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MergeOfficerDuplicates")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(MergeOfficerDuplicatesResponseObject); ok {
+		if err := validResponse.VisitMergeOfficerDuplicatesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ConfirmOfficerDuplicate operation middleware
+func (sh *strictHandler) ConfirmOfficerDuplicate(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request ConfirmOfficerDuplicateRequestObject
+
+	request.Id = id
+
+	var body ConfirmOfficerDuplicateJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		if !errors.Is(err, io.EOF) {
+			sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+			return
+		}
+	} else {
+		request.Body = &body
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ConfirmOfficerDuplicate(ctx, request.(ConfirmOfficerDuplicateRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ConfirmOfficerDuplicate")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ConfirmOfficerDuplicateResponseObject); ok {
+		if err := validResponse.VisitConfirmOfficerDuplicateResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RejectOfficerDuplicate operation middleware
+func (sh *strictHandler) RejectOfficerDuplicate(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request RejectOfficerDuplicateRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RejectOfficerDuplicate(ctx, request.(RejectOfficerDuplicateRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RejectOfficerDuplicate")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RejectOfficerDuplicateResponseObject); ok {
+		if err := validResponse.VisitRejectOfficerDuplicateResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

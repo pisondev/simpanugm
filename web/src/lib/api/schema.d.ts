@@ -552,6 +552,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/officer/duplicates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listOfficerDuplicates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/officer/duplicates/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["mergeOfficerDuplicates"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/officer/duplicates/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["confirmOfficerDuplicate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/officer/duplicates/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["rejectOfficerDuplicate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/search": {
         parameters: {
             query?: never;
@@ -1108,6 +1172,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["assistDescribe"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assist/duplicates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["assistDuplicates"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2684,6 +2764,81 @@ export interface components {
             recipient_id_last4: string;
             name_confirmed: boolean;
         };
+        AssistDuplicatesRequest: {
+            /** Format: uuid */
+            category_id: string;
+            /** Format: uuid */
+            found_location_id: string;
+            /** Format: date-time */
+            found_at: string;
+            item_name: string;
+            description?: string;
+            media_ids?: string[];
+        };
+        DuplicateCandidate: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            item_name: string;
+            category_name: string;
+            location_name: string;
+            /** Format: date-time */
+            found_at: string;
+            /** Format: float */
+            duplicate_score: number;
+            /** Format: uuid */
+            thumb_media_id?: string | null;
+        };
+        AssistDuplicatesResponse: {
+            items: components["schemas"]["DuplicateCandidate"][];
+        };
+        DuplicateReportSummary: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            item_name: string;
+            status: string;
+            category_name: string;
+            location_name: string;
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: uuid */
+            thumb_media_id?: string | null;
+        };
+        OfficerDuplicateItem: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            report_type: "lost" | "found";
+            /** Format: float */
+            score: number;
+            /** @enum {string} */
+            status: "suggested" | "confirmed" | "rejected";
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            reviewed_at?: string | null;
+            /** Format: uuid */
+            reviewed_by?: string | null;
+            report_a: components["schemas"]["DuplicateReportSummary"];
+            report_b: components["schemas"]["DuplicateReportSummary"];
+        };
+        OfficerDuplicateList: {
+            items: components["schemas"]["OfficerDuplicateItem"][];
+            total: number;
+        };
+        ConfirmDuplicateRequest: {
+            /** Format: uuid */
+            survivor_id?: string;
+        };
+        MergeDuplicatesRequest: {
+            /** @enum {string} */
+            report_type: "lost" | "found";
+            /** Format: uuid */
+            survivor_id: string;
+            /** Format: uuid */
+            duplicate_id: string;
+        };
     };
     responses: {
         /** @description RFC 9457 problem details */
@@ -3663,6 +3818,106 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    listOfficerDuplicates: {
+        parameters: {
+            query?: {
+                status?: "suggested" | "confirmed" | "rejected";
+                type?: "lost" | "found";
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of duplicate report links */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfficerDuplicateList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    mergeOfficerDuplicates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeDuplicatesRequest"];
+            };
+        };
+        responses: {
+            /** @description Reports merged successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfficerDuplicateItem"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    confirmOfficerDuplicate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ConfirmDuplicateRequest"];
+            };
+        };
+        responses: {
+            /** @description Duplicate confirmed and merged */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfficerDuplicateItem"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    rejectOfficerDuplicate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Duplicate rejected */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfficerDuplicateItem"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     searchReports: {
         parameters: {
             query?: {
@@ -4609,6 +4864,31 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssistDescription"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    assistDuplicates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistDuplicatesRequest"];
+            };
+        };
+        responses: {
+            /** @description AI-06 duplicate candidates for draft found report */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistDuplicatesResponse"];
                 };
             };
             default: components["responses"]["Problem"];

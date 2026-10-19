@@ -670,6 +670,88 @@ paths:
               schema: { $ref: '#/components/schemas/OfficerQueueList' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /officer/duplicates:
+    get:
+      tags: [officer]
+      operationId: listOfficerDuplicates
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [suggested, confirmed, rejected]
+            default: suggested
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [lost, found]
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: List of duplicate report links
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfficerDuplicateList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /officer/duplicates/merge:
+    post:
+      tags: [officer]
+      operationId: mergeOfficerDuplicates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MergeDuplicatesRequest' }
+      responses:
+        '200':
+          description: Reports merged successfully
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfficerDuplicateItem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /officer/duplicates/{id}/confirm:
+    post:
+      tags: [officer]
+      operationId: confirmOfficerDuplicate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConfirmDuplicateRequest' }
+      responses:
+        '200':
+          description: Duplicate confirmed and merged
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfficerDuplicateItem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /officer/duplicates/{id}/reject:
+    post:
+      tags: [officer]
+      operationId: rejectOfficerDuplicate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Duplicate rejected
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfficerDuplicateItem' }
+        default: { $ref: '#/components/responses/Problem' }
+
   /search:
     get:
       tags: [search]
@@ -1301,6 +1383,23 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AssistDescription' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /assist/duplicates:
+    post:
+      tags: [assist]
+      operationId: assistDuplicates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssistDuplicatesRequest' }
+      responses:
+        '200':
+          description: AI-06 duplicate candidates for draft found report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssistDuplicatesResponse' }
         default: { $ref: '#/components/responses/Problem' }
 
   /claims:
@@ -3437,3 +3536,89 @@ components:
         recipient_id_type: { type: string, enum: [ktm, ktp, sim, passport, other] }
         recipient_id_last4: { type: string, minLength: 4, maxLength: 4 }
         name_confirmed: { type: boolean }
+
+    AssistDuplicatesRequest:
+      type: object
+      additionalProperties: false
+      required: [category_id, found_location_id, found_at, item_name]
+      properties:
+        category_id: { type: string, format: uuid }
+        found_location_id: { type: string, format: uuid }
+        found_at: { type: string, format: date-time }
+        item_name: { type: string, minLength: 1, maxLength: 80 }
+        description: { type: string, maxLength: 1000 }
+        media_ids:
+          type: array
+          items: { type: string, format: uuid }
+
+    DuplicateCandidate:
+      type: object
+      required: [id, code, item_name, category_name, location_name, found_at, duplicate_score]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        item_name: { type: string }
+        category_name: { type: string }
+        location_name: { type: string }
+        found_at: { type: string, format: date-time }
+        duplicate_score: { type: number, format: float }
+        thumb_media_id: { type: string, format: uuid, nullable: true }
+
+    AssistDuplicatesResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/DuplicateCandidate' }
+
+    DuplicateReportSummary:
+      type: object
+      required: [id, code, item_name, status, category_name, location_name, occurred_at]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        item_name: { type: string }
+        status: { type: string }
+        category_name: { type: string }
+        location_name: { type: string }
+        occurred_at: { type: string, format: date-time }
+        thumb_media_id: { type: string, format: uuid, nullable: true }
+
+    OfficerDuplicateItem:
+      type: object
+      required: [id, report_type, score, status, created_at, report_a, report_b]
+      properties:
+        id: { type: string, format: uuid }
+        report_type: { type: string, enum: [lost, found] }
+        score: { type: number, format: float }
+        status: { type: string, enum: [suggested, confirmed, rejected] }
+        created_at: { type: string, format: date-time }
+        reviewed_at: { type: string, format: date-time, nullable: true }
+        reviewed_by: { type: string, format: uuid, nullable: true }
+        report_a: { $ref: '#/components/schemas/DuplicateReportSummary' }
+        report_b: { $ref: '#/components/schemas/DuplicateReportSummary' }
+
+    OfficerDuplicateList:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/OfficerDuplicateItem' }
+        total: { type: integer }
+
+    ConfirmDuplicateRequest:
+      type: object
+      properties:
+        survivor_id: { type: string, format: uuid }
+
+    MergeDuplicatesRequest:
+      type: object
+      additionalProperties: false
+      required: [report_type, survivor_id, duplicate_id]
+      properties:
+        report_type: { type: string, enum: [lost, found] }
+        survivor_id: { type: string, format: uuid }
+        duplicate_id: { type: string, format: uuid }

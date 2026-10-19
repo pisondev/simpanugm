@@ -33,3 +33,11 @@ func (h *Handlers) AssistDescribe(ctx context.Context, req openapi.AssistDescrib
 	}
 	return openapi.AssistDescribe200JSONResponse(out), nil
 }
+
+func (h *Handlers) AssistDuplicates(ctx context.Context, req openapi.AssistDuplicatesRequestObject) (openapi.AssistDuplicatesResponseObject, error) {
+	out, err := h.svc.Duplicates(ctx, *req.Body)
+	if err != nil {
+		return nil, err
+	}
+	return openapi.AssistDuplicates200JSONResponse(out), nil
+}

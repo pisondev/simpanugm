@@ -3,6 +3,8 @@ package officer
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"github.com/pisondev/simpanugm/api/internal/access"
 	"github.com/pisondev/simpanugm/api/internal/openapi"
 )
@@ -35,4 +37,57 @@ func (h *Handlers) GetOfficerQueue(ctx context.Context, req openapi.GetOfficerQu
 		return nil, err
 	}
 	return openapi.GetOfficerQueue200JSONResponse(list), nil
+}
+
+func (h *Handlers) ListOfficerDuplicates(ctx context.Context, req openapi.ListOfficerDuplicatesRequestObject) (openapi.ListOfficerDuplicatesResponseObject, error) {
+	var status *string
+	if req.Params.Status != nil {
+		s := string(*req.Params.Status)
+		status = &s
+	}
+	var reportType *string
+	if req.Params.Type != nil {
+		rt := string(*req.Params.Type)
+		reportType = &rt
+	}
+	limit := 20
+	if req.Params.Limit != nil {
+		limit = *req.Params.Limit
+	}
+	list, err := h.svc.ListDuplicates(ctx, status, reportType, limit)
+	if err != nil {
+		return nil, err
+	}
+	return openapi.ListOfficerDuplicates200JSONResponse(list), nil
+}
+
+func (h *Handlers) MergeOfficerDuplicates(ctx context.Context, req openapi.MergeOfficerDuplicatesRequestObject) (openapi.MergeOfficerDuplicatesResponseObject, error) {
+	p := access.FromContext(ctx)
+	item, err := h.svc.MergeDuplicates(ctx, p, string(req.Body.ReportType), req.Body.SurvivorId, req.Body.DuplicateId)
+	if err != nil {
+		return nil, err
+	}
+	return openapi.MergeOfficerDuplicates200JSONResponse(item), nil
+}
+
+func (h *Handlers) ConfirmOfficerDuplicate(ctx context.Context, req openapi.ConfirmOfficerDuplicateRequestObject) (openapi.ConfirmOfficerDuplicateResponseObject, error) {
+	p := access.FromContext(ctx)
+	var survivorID *uuid.UUID
+	if req.Body != nil {
+		survivorID = req.Body.SurvivorId
+	}
+	item, err := h.svc.ConfirmDuplicate(ctx, p, req.Id, survivorID)
+	if err != nil {
+		return nil, err
+	}
+	return openapi.ConfirmOfficerDuplicate200JSONResponse(item), nil
+}
+
+func (h *Handlers) RejectOfficerDuplicate(ctx context.Context, req openapi.RejectOfficerDuplicateRequestObject) (openapi.RejectOfficerDuplicateResponseObject, error) {
+	p := access.FromContext(ctx)
+	item, err := h.svc.RejectDuplicate(ctx, p, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return openapi.RejectOfficerDuplicate200JSONResponse(item), nil
 }

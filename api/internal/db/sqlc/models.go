@@ -157,6 +157,18 @@ type Disposition struct {
 	CreatedAt     time.Time
 }
 
+type DuplicateLink struct {
+	ID         uuid.UUID
+	ReportType string
+	ReportA    uuid.UUID
+	ReportB    uuid.UUID
+	Score      float64
+	Status     string
+	ReviewedBy *uuid.UUID
+	ReviewedAt *time.Time
+	CreatedAt  time.Time
+}
+
 type FoundReport struct {
 	ID                       uuid.UUID
 	Code                     string

@@ -1369,6 +1369,38 @@ func (q *Queries) DeleteStaleClaimChecks(ctx context.Context, arg DeleteStaleCla
 	return err
 }
 
+const deleteUnmovedFoundMedia = `-- name: DeleteUnmovedFoundMedia :exec
+UPDATE media
+SET state = 'deleted', deleted_at = $1::timestamptz
+WHERE media.found_report_id = $2 AND media.state <> 'deleted'
+`
+
+type DeleteUnmovedFoundMediaParams struct {
+	Now         time.Time
+	DuplicateID *uuid.UUID
+}
+
+func (q *Queries) DeleteUnmovedFoundMedia(ctx context.Context, arg DeleteUnmovedFoundMediaParams) error {
+	_, err := q.db.Exec(ctx, deleteUnmovedFoundMedia, arg.Now, arg.DuplicateID)
+	return err
+}
+
+const deleteUnmovedLostMedia = `-- name: DeleteUnmovedLostMedia :exec
+UPDATE media
+SET state = 'deleted', deleted_at = $1::timestamptz
+WHERE media.lost_report_id = $2 AND media.state <> 'deleted'
+`
+
+type DeleteUnmovedLostMediaParams struct {
+	Now         time.Time
+	DuplicateID *uuid.UUID
+}
+
+func (q *Queries) DeleteUnmovedLostMedia(ctx context.Context, arg DeleteUnmovedLostMediaParams) error {
+	_, err := q.db.Exec(ctx, deleteUnmovedLostMedia, arg.Now, arg.DuplicateID)
+	return err
+}
+
 const deleteUnverifiedUsersBefore = `-- name: DeleteUnverifiedUsersBefore :execrows
 DELETE FROM users
 WHERE users.status = 'pending_verification'
@@ -2100,6 +2132,42 @@ func (q *Queries) GetClaim(ctx context.Context, arg GetClaimParams) (Claim, erro
 	return i, err
 }
 
+const getDuplicateLink = `-- name: GetDuplicateLink :one
+SELECT dl.id, dl.report_type, dl.report_a, dl.report_b, dl.score::float8 AS score,
+       dl.status, dl.reviewed_by, dl.reviewed_at, dl.created_at
+FROM duplicate_links dl
+WHERE dl.id = $1
+`
+
+type GetDuplicateLinkRow struct {
+	ID         uuid.UUID
+	ReportType string
+	ReportA    uuid.UUID
+	ReportB    uuid.UUID
+	Score      float64
+	Status     string
+	ReviewedBy *uuid.UUID
+	ReviewedAt *time.Time
+	CreatedAt  time.Time
+}
+
+func (q *Queries) GetDuplicateLink(ctx context.Context, id uuid.UUID) (GetDuplicateLinkRow, error) {
+	row := q.db.QueryRow(ctx, getDuplicateLink, id)
+	var i GetDuplicateLinkRow
+	err := row.Scan(
+		&i.ID,
+		&i.ReportType,
+		&i.ReportA,
+		&i.ReportB,
+		&i.Score,
+		&i.Status,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getFoundReport = `-- name: GetFoundReport :one
 SELECT fr.id, fr.code, fr.finder_id, fr.created_by, fr.proxy_finder_name, fr.category_id, fr.item_name, fr.description, fr.hidden_details, fr.colours, fr.brand, fr.found_at, fr.found_location_id, fr.location_note, fr.custody_status, fr.custody_keep, fr.intended_post_id, fr.holding_post_id, fr.storage_slot, fr.received_at, fr.received_by, fr.retention_due_at, fr.retention_extended_at, fr.retention_extension_reason, fr.overdue_flagged_at, fr.status, fr.close_reason, fr.close_note, fr.closed_at, fr.duplicate_of, fr.hidden_at, fr.hidden_reason, fr.assist_outcome, fr.anonymised_at, fr.version, fr.created_at, fr.updated_at,
        c.slug AS category_slug, c.name AS category_name, c.sensitivity AS category_sensitivity,
@@ -2194,6 +2262,46 @@ func (q *Queries) GetFoundReport(ctx context.Context, arg GetFoundReportParams) 
 		&i.FinderEmail,
 		&i.FinderPhone,
 		&i.FinderNimNip,
+	)
+	return i, err
+}
+
+const getFoundReportSummary = `-- name: GetFoundReportSummary :one
+SELECT fr.id, fr.code, fr.item_name, fr.status, fr.found_at,
+       cat.name AS category_name, loc.name AS location_name,
+       coalesce(thumb.id, '00000000-0000-0000-0000-000000000000'::uuid) AS thumb_media_id
+FROM found_reports fr
+JOIN categories cat ON cat.id = fr.category_id
+JOIN locations loc ON loc.id = fr.found_location_id
+LEFT JOIN LATERAL (
+    SELECT m.id FROM media m WHERE m.found_report_id = fr.id AND m.state = 'ready' ORDER BY m.position LIMIT 1
+) thumb ON true
+WHERE fr.id = $1
+`
+
+type GetFoundReportSummaryRow struct {
+	ID           uuid.UUID
+	Code         string
+	ItemName     string
+	Status       string
+	FoundAt      time.Time
+	CategoryName string
+	LocationName string
+	ThumbMediaID uuid.UUID
+}
+
+func (q *Queries) GetFoundReportSummary(ctx context.Context, id uuid.UUID) (GetFoundReportSummaryRow, error) {
+	row := q.db.QueryRow(ctx, getFoundReportSummary, id)
+	var i GetFoundReportSummaryRow
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.ItemName,
+		&i.Status,
+		&i.FoundAt,
+		&i.CategoryName,
+		&i.LocationName,
+		&i.ThumbMediaID,
 	)
 	return i, err
 }
@@ -2340,6 +2448,52 @@ func (q *Queries) GetLostReport(ctx context.Context, arg GetLostReportParams) (G
 		&i.ReporterPhone,
 		&i.ReporterNimNip,
 		&i.CandidateCount,
+	)
+	return i, err
+}
+
+const getLostReportSummary = `-- name: GetLostReportSummary :one
+SELECT lr.id, lr.code, lr.item_name, lr.status, lr.lost_from AS occurred_at,
+       cat.name AS category_name,
+       coalesce(loc.name, '')::text AS location_name,
+       coalesce(thumb.id, '00000000-0000-0000-0000-000000000000'::uuid) AS thumb_media_id
+FROM lost_reports lr
+JOIN categories cat ON cat.id = lr.category_id
+LEFT JOIN LATERAL (
+    SELECT l.name FROM lost_report_places lrp
+    JOIN locations l ON l.id = lrp.location_id
+    WHERE lrp.lost_report_id = lr.id
+    ORDER BY lrp.position LIMIT 1
+) loc ON true
+LEFT JOIN LATERAL (
+    SELECT m.id FROM media m WHERE m.lost_report_id = lr.id AND m.state = 'ready' ORDER BY m.position LIMIT 1
+) thumb ON true
+WHERE lr.id = $1
+`
+
+type GetLostReportSummaryRow struct {
+	ID           uuid.UUID
+	Code         string
+	ItemName     string
+	Status       string
+	OccurredAt   time.Time
+	CategoryName string
+	LocationName string
+	ThumbMediaID uuid.UUID
+}
+
+func (q *Queries) GetLostReportSummary(ctx context.Context, id uuid.UUID) (GetLostReportSummaryRow, error) {
+	row := q.db.QueryRow(ctx, getLostReportSummary, id)
+	var i GetLostReportSummaryRow
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.ItemName,
+		&i.Status,
+		&i.OccurredAt,
+		&i.CategoryName,
+		&i.LocationName,
+		&i.ThumbMediaID,
 	)
 	return i, err
 }
@@ -4160,6 +4314,129 @@ func (q *Queries) ListDigestRecipients(ctx context.Context, arg ListDigestRecipi
 	return items, nil
 }
 
+const listDuplicateFoundCandidates = `-- name: ListDuplicateFoundCandidates :many
+SELECT fr.id, fr.code, fr.item_name, fr.description, fr.found_at,
+       loc.lat, loc.lng, loc.name AS location_name, cat.name AS category_name,
+       coalesce(thumb.id, '00000000-0000-0000-0000-000000000000'::uuid) AS thumb_media_id
+FROM found_reports fr
+JOIN categories cat ON cat.id = fr.category_id
+JOIN locations loc ON loc.id = fr.found_location_id
+LEFT JOIN LATERAL (
+    SELECT m.id FROM media m WHERE m.found_report_id = fr.id AND m.state = 'ready' ORDER BY m.position LIMIT 1
+) thumb ON true
+WHERE fr.status IN ('reported', 'potential_match')
+  AND (cat.parent_id = $1 OR cat.id = $1)
+  AND abs(extract(epoch from (fr.found_at - $2::timestamptz))) <= 72 * 3600
+ORDER BY fr.found_at DESC
+`
+
+type ListDuplicateFoundCandidatesParams struct {
+	ParentCategoryID *uuid.UUID
+	FoundAt          time.Time
+}
+
+type ListDuplicateFoundCandidatesRow struct {
+	ID           uuid.UUID
+	Code         string
+	ItemName     string
+	Description  string
+	FoundAt      time.Time
+	Lat          float64
+	Lng          float64
+	LocationName string
+	CategoryName string
+	ThumbMediaID uuid.UUID
+}
+
+func (q *Queries) ListDuplicateFoundCandidates(ctx context.Context, arg ListDuplicateFoundCandidatesParams) ([]ListDuplicateFoundCandidatesRow, error) {
+	rows, err := q.db.Query(ctx, listDuplicateFoundCandidates, arg.ParentCategoryID, arg.FoundAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListDuplicateFoundCandidatesRow{}
+	for rows.Next() {
+		var i ListDuplicateFoundCandidatesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.ItemName,
+			&i.Description,
+			&i.FoundAt,
+			&i.Lat,
+			&i.Lng,
+			&i.LocationName,
+			&i.CategoryName,
+			&i.ThumbMediaID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listDuplicateLinks = `-- name: ListDuplicateLinks :many
+SELECT dl.id, dl.report_type, dl.report_a, dl.report_b, dl.score::float8 AS score,
+       dl.status, dl.reviewed_by, dl.reviewed_at, dl.created_at
+FROM duplicate_links dl
+WHERE ($1::text IS NULL OR dl.status = $1)
+  AND ($2::text IS NULL OR dl.report_type = $2)
+ORDER BY dl.status = 'suggested' DESC, dl.score DESC, dl.created_at DESC
+LIMIT $3::int
+`
+
+type ListDuplicateLinksParams struct {
+	Status     *string
+	ReportType *string
+	Lim        int32
+}
+
+type ListDuplicateLinksRow struct {
+	ID         uuid.UUID
+	ReportType string
+	ReportA    uuid.UUID
+	ReportB    uuid.UUID
+	Score      float64
+	Status     string
+	ReviewedBy *uuid.UUID
+	ReviewedAt *time.Time
+	CreatedAt  time.Time
+}
+
+func (q *Queries) ListDuplicateLinks(ctx context.Context, arg ListDuplicateLinksParams) ([]ListDuplicateLinksRow, error) {
+	rows, err := q.db.Query(ctx, listDuplicateLinks, arg.Status, arg.ReportType, arg.Lim)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListDuplicateLinksRow{}
+	for rows.Next() {
+		var i ListDuplicateLinksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ReportType,
+			&i.ReportA,
+			&i.ReportB,
+			&i.Score,
+			&i.Status,
+			&i.ReviewedBy,
+			&i.ReviewedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listExpiredLostReports = `-- name: ListExpiredLostReports :many
 SELECT lr.id, lr.code, lr.reporter_id, lr.version
 FROM lost_reports lr
@@ -4329,6 +4606,38 @@ func (q *Queries) ListFinderCustodyDue72h(ctx context.Context, before72h time.Ti
 			&i.IntendedPostID,
 			&i.Version,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFoundMediaPhashes = `-- name: ListFoundMediaPhashes :many
+SELECT m.found_report_id, m.phash
+FROM media m
+WHERE m.found_report_id = ANY($1::uuid[])
+  AND m.state = 'ready'
+`
+
+type ListFoundMediaPhashesRow struct {
+	FoundReportID *uuid.UUID
+	Phash         int64
+}
+
+func (q *Queries) ListFoundMediaPhashes(ctx context.Context, reportIds []uuid.UUID) ([]ListFoundMediaPhashesRow, error) {
+	rows, err := q.db.Query(ctx, listFoundMediaPhashes, reportIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFoundMediaPhashesRow{}
+	for rows.Next() {
+		var i ListFoundMediaPhashesRow
+		if err := rows.Scan(&i.FoundReportID, &i.Phash); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -5404,6 +5713,38 @@ func (q *Queries) ListStagedMediaBefore(ctx context.Context, createdAt time.Time
 	for rows.Next() {
 		var i ListStagedMediaBeforeRow
 		if err := rows.Scan(&i.ID, &i.StorageKeys); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStagedMediaPhashes = `-- name: ListStagedMediaPhashes :many
+SELECT m.id, m.phash
+FROM media m
+WHERE m.id = ANY($1::uuid[])
+  AND m.state IN ('staged', 'ready')
+`
+
+type ListStagedMediaPhashesRow struct {
+	ID    uuid.UUID
+	Phash int64
+}
+
+func (q *Queries) ListStagedMediaPhashes(ctx context.Context, mediaIds []uuid.UUID) ([]ListStagedMediaPhashesRow, error) {
+	rows, err := q.db.Query(ctx, listStagedMediaPhashes, mediaIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListStagedMediaPhashesRow{}
+	for rows.Next() {
+		var i ListStagedMediaPhashesRow
+		if err := rows.Scan(&i.ID, &i.Phash); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -6597,6 +6938,137 @@ func (q *Queries) MediaMissingEmbedding(ctx context.Context, arg MediaMissingEmb
 	return items, nil
 }
 
+const mergeCloseFoundReport = `-- name: MergeCloseFoundReport :exec
+UPDATE found_reports
+SET status = 'closed',
+    close_reason = 'duplicate',
+    close_note = 'Merged into duplicate survivor',
+    closed_at = $1::timestamptz,
+    duplicate_of = $2,
+    custody_status = 'cancelled',
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $3
+`
+
+type MergeCloseFoundReportParams struct {
+	ClosedAt    time.Time
+	SurvivorID  *uuid.UUID
+	DuplicateID uuid.UUID
+}
+
+func (q *Queries) MergeCloseFoundReport(ctx context.Context, arg MergeCloseFoundReportParams) error {
+	_, err := q.db.Exec(ctx, mergeCloseFoundReport, arg.ClosedAt, arg.SurvivorID, arg.DuplicateID)
+	return err
+}
+
+const mergeCloseLostReport = `-- name: MergeCloseLostReport :exec
+UPDATE lost_reports
+SET status = 'closed',
+    close_reason = 'duplicate',
+    closed_at = $1::timestamptz,
+    duplicate_of = $2,
+    version = version + 1,
+    updated_at = $1::timestamptz
+WHERE id = $3
+`
+
+type MergeCloseLostReportParams struct {
+	ClosedAt    time.Time
+	SurvivorID  *uuid.UUID
+	DuplicateID uuid.UUID
+}
+
+func (q *Queries) MergeCloseLostReport(ctx context.Context, arg MergeCloseLostReportParams) error {
+	_, err := q.db.Exec(ctx, mergeCloseLostReport, arg.ClosedAt, arg.SurvivorID, arg.DuplicateID)
+	return err
+}
+
+const moveFoundClaimsToSurvivor = `-- name: MoveFoundClaimsToSurvivor :exec
+UPDATE claims
+SET found_report_id = $1
+WHERE claims.found_report_id = $2
+  AND NOT EXISTS (
+      SELECT 1 FROM claims existing
+      WHERE existing.found_report_id = $1
+        AND existing.claimant_id IS NOT NULL
+        AND existing.claimant_id = claims.claimant_id
+        AND existing.status IN ('submitted', 'under_review', 'info_requested', 'approved', 'on_hold')
+  )
+`
+
+type MoveFoundClaimsToSurvivorParams struct {
+	SurvivorID  uuid.UUID
+	DuplicateID uuid.UUID
+}
+
+func (q *Queries) MoveFoundClaimsToSurvivor(ctx context.Context, arg MoveFoundClaimsToSurvivorParams) error {
+	_, err := q.db.Exec(ctx, moveFoundClaimsToSurvivor, arg.SurvivorID, arg.DuplicateID)
+	return err
+}
+
+const moveFoundMediaToSurvivor = `-- name: MoveFoundMediaToSurvivor :exec
+UPDATE media
+SET found_report_id = $1,
+    position = media.position + coalesce((SELECT max(m2.position) FROM media m2 WHERE m2.found_report_id = $1), 0)::smallint + 1
+WHERE media.found_report_id = $2
+  AND NOT EXISTS (
+      SELECT 1 FROM media existing
+      WHERE existing.found_report_id = $1
+        AND existing.sha256 = media.sha256
+        AND existing.state <> 'deleted'
+  )
+`
+
+type MoveFoundMediaToSurvivorParams struct {
+	SurvivorID  *uuid.UUID
+	DuplicateID *uuid.UUID
+}
+
+func (q *Queries) MoveFoundMediaToSurvivor(ctx context.Context, arg MoveFoundMediaToSurvivorParams) error {
+	_, err := q.db.Exec(ctx, moveFoundMediaToSurvivor, arg.SurvivorID, arg.DuplicateID)
+	return err
+}
+
+const moveLostClaimsToSurvivor = `-- name: MoveLostClaimsToSurvivor :exec
+UPDATE claims
+SET lost_report_id = $1
+WHERE lost_report_id = $2
+`
+
+type MoveLostClaimsToSurvivorParams struct {
+	SurvivorID  uuid.UUID
+	DuplicateID uuid.UUID
+}
+
+func (q *Queries) MoveLostClaimsToSurvivor(ctx context.Context, arg MoveLostClaimsToSurvivorParams) error {
+	_, err := q.db.Exec(ctx, moveLostClaimsToSurvivor, arg.SurvivorID, arg.DuplicateID)
+	return err
+}
+
+const moveLostMediaToSurvivor = `-- name: MoveLostMediaToSurvivor :exec
+UPDATE media
+SET lost_report_id = $1,
+    position = media.position + coalesce((SELECT max(m2.position) FROM media m2 WHERE m2.lost_report_id = $1), 0)::smallint + 1
+WHERE media.lost_report_id = $2
+  AND NOT EXISTS (
+      SELECT 1 FROM media existing
+      WHERE existing.lost_report_id = $1
+        AND existing.sha256 = media.sha256
+        AND existing.state <> 'deleted'
+  )
+`
+
+type MoveLostMediaToSurvivorParams struct {
+	SurvivorID  *uuid.UUID
+	DuplicateID *uuid.UUID
+}
+
+func (q *Queries) MoveLostMediaToSurvivor(ctx context.Context, arg MoveLostMediaToSurvivorParams) error {
+	_, err := q.db.Exec(ctx, moveLostMediaToSurvivor, arg.SurvivorID, arg.DuplicateID)
+	return err
+}
+
 const nextCodeSequence = `-- name: NextCodeSequence :one
 INSERT INTO code_sequences (prefix, yymm, last_value) VALUES ($1, $2, 1)
 ON CONFLICT (prefix, yymm) DO UPDATE SET last_value = code_sequences.last_value + 1
@@ -7038,6 +7510,26 @@ func (q *Queries) RejectClaim(ctx context.Context, arg RejectClaimParams) error 
 		arg.DecisionNote,
 		arg.DecidedBy,
 	)
+	return err
+}
+
+const rejectConflictingFoundClaims = `-- name: RejectConflictingFoundClaims :exec
+UPDATE claims
+SET status = 'rejected',
+    decision_reason = 'duplicate_claim',
+    decision_note = 'Laporan temuan digabungkan dengan laporan lain yang sudah Anda klaim',
+    decided_at = $1::timestamptz
+WHERE claims.found_report_id = $2
+  AND claims.status IN ('submitted', 'under_review', 'info_requested', 'on_hold')
+`
+
+type RejectConflictingFoundClaimsParams struct {
+	Now         time.Time
+	DuplicateID uuid.UUID
+}
+
+func (q *Queries) RejectConflictingFoundClaims(ctx context.Context, arg RejectConflictingFoundClaimsParams) error {
+	_, err := q.db.Exec(ctx, rejectConflictingFoundClaims, arg.Now, arg.DuplicateID)
 	return err
 }
 
@@ -7819,6 +8311,28 @@ func (q *Queries) SupersedeForLost(ctx context.Context, lostReportID uuid.UUID) 
 	return items, nil
 }
 
+const supersedeFoundMatches = `-- name: SupersedeFoundMatches :exec
+UPDATE matches
+SET status = 'superseded'
+WHERE found_report_id = $1
+`
+
+func (q *Queries) SupersedeFoundMatches(ctx context.Context, duplicateID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, supersedeFoundMatches, duplicateID)
+	return err
+}
+
+const supersedeLostMatches = `-- name: SupersedeLostMatches :exec
+UPDATE matches
+SET status = 'superseded'
+WHERE lost_report_id = $1
+`
+
+func (q *Queries) SupersedeLostMatches(ctx context.Context, duplicateID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, supersedeLostMatches, duplicateID)
+	return err
+}
+
 const textHashE5 = `-- name: TextHashE5 :one
 SELECT text_sha256 FROM text_embeddings_e5 WHERE report_type = $1 AND report_id = $2 AND model_version_id = $3
 `
@@ -7979,6 +8493,56 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) 
 		arg.ID,
 	)
 	return err
+}
+
+const updateDuplicateLinkStatus = `-- name: UpdateDuplicateLinkStatus :one
+UPDATE duplicate_links
+SET status = $1,
+    reviewed_by = $2,
+    reviewed_at = $3
+WHERE id = $4
+RETURNING id, report_type, report_a, report_b, score::float8 AS score, status, reviewed_by, reviewed_at, created_at
+`
+
+type UpdateDuplicateLinkStatusParams struct {
+	Status     string
+	ReviewedBy *uuid.UUID
+	ReviewedAt *time.Time
+	ID         uuid.UUID
+}
+
+type UpdateDuplicateLinkStatusRow struct {
+	ID         uuid.UUID
+	ReportType string
+	ReportA    uuid.UUID
+	ReportB    uuid.UUID
+	Score      float64
+	Status     string
+	ReviewedBy *uuid.UUID
+	ReviewedAt *time.Time
+	CreatedAt  time.Time
+}
+
+func (q *Queries) UpdateDuplicateLinkStatus(ctx context.Context, arg UpdateDuplicateLinkStatusParams) (UpdateDuplicateLinkStatusRow, error) {
+	row := q.db.QueryRow(ctx, updateDuplicateLinkStatus,
+		arg.Status,
+		arg.ReviewedBy,
+		arg.ReviewedAt,
+		arg.ID,
+	)
+	var i UpdateDuplicateLinkStatusRow
+	err := row.Scan(
+		&i.ID,
+		&i.ReportType,
+		&i.ReportA,
+		&i.ReportB,
+		&i.Score,
+		&i.Status,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const updateFoundReport = `-- name: UpdateFoundReport :one
@@ -8359,6 +8923,68 @@ type UpsertCompatibilityParams struct {
 func (q *Queries) UpsertCompatibility(ctx context.Context, arg UpsertCompatibilityParams) error {
 	_, err := q.db.Exec(ctx, upsertCompatibility, arg.CategoryA, arg.CategoryB, arg.Factor)
 	return err
+}
+
+const upsertDuplicateLink = `-- name: UpsertDuplicateLink :one
+INSERT INTO duplicate_links (id, report_type, report_a, report_b, score, status, reviewed_by, reviewed_at, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+ON CONFLICT (report_type, LEAST(report_a, report_b), GREATEST(report_a, report_b))
+DO UPDATE SET score = EXCLUDED.score,
+              status = CASE WHEN duplicate_links.status = 'confirmed' THEN duplicate_links.status ELSE EXCLUDED.status END,
+              reviewed_by = coalesce(EXCLUDED.reviewed_by, duplicate_links.reviewed_by),
+              reviewed_at = coalesce(EXCLUDED.reviewed_at, duplicate_links.reviewed_at)
+RETURNING id, report_type, report_a, report_b, score::float8 AS score, status, reviewed_by, reviewed_at, created_at
+`
+
+type UpsertDuplicateLinkParams struct {
+	ID         uuid.UUID
+	ReportType string
+	ReportA    uuid.UUID
+	ReportB    uuid.UUID
+	Score      float64
+	Status     string
+	ReviewedBy *uuid.UUID
+	ReviewedAt *time.Time
+	CreatedAt  time.Time
+}
+
+type UpsertDuplicateLinkRow struct {
+	ID         uuid.UUID
+	ReportType string
+	ReportA    uuid.UUID
+	ReportB    uuid.UUID
+	Score      float64
+	Status     string
+	ReviewedBy *uuid.UUID
+	ReviewedAt *time.Time
+	CreatedAt  time.Time
+}
+
+func (q *Queries) UpsertDuplicateLink(ctx context.Context, arg UpsertDuplicateLinkParams) (UpsertDuplicateLinkRow, error) {
+	row := q.db.QueryRow(ctx, upsertDuplicateLink,
+		arg.ID,
+		arg.ReportType,
+		arg.ReportA,
+		arg.ReportB,
+		arg.Score,
+		arg.Status,
+		arg.ReviewedBy,
+		arg.ReviewedAt,
+		arg.CreatedAt,
+	)
+	var i UpsertDuplicateLinkRow
+	err := row.Scan(
+		&i.ID,
+		&i.ReportType,
+		&i.ReportA,
+		&i.ReportB,
+		&i.Score,
+		&i.Status,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const upsertImageAttributes = `-- name: UpsertImageAttributes :exec

@@ -66,6 +66,7 @@ const (
 	CustodyTransfer      Permission = "custody.transfer"
 	CustodyExtend        Permission = "custody.extend"
 	CustodyDispose       Permission = "custody.dispose"
+	ReportMarkDuplicate  Permission = "report.mark_duplicate"
 )
 
 var memberPerms = []Permission{
@@ -82,6 +83,7 @@ var memberPerms = []Permission{
 var officerPerms = append(slices.Clone(memberPerms),
 	ReportProxyCreate, CustodyReceive, CustodyInventoryRead, SearchReports, OfficerQueueRead, MatchRematch,
 	ClaimReview, ClaimApprove, ClaimInternalNote, CustodyHandover, CustodyTransfer, CustodyExtend, CustodyDispose,
+	ReportMarkDuplicate,
 )
 
 var adminPerms = append(slices.Clone(officerPerms),
@@ -200,6 +202,10 @@ var Operations = map[string]Rule{
 	"listFoundReportMatches":     {Permission: OfficerQueueRead},
 	"getOfficerSummary":          {Permission: OfficerQueueRead},
 	"getOfficerQueue":            {Permission: OfficerQueueRead},
+	"listOfficerDuplicates":      {Permission: ReportMarkDuplicate},
+	"confirmOfficerDuplicate":    {Permission: ReportMarkDuplicate},
+	"rejectOfficerDuplicate":     {Permission: ReportMarkDuplicate},
+	"mergeOfficerDuplicates":     {Permission: ReportMarkDuplicate},
 	"getFoundReportMatchHint":    {Permission: ReportFoundRead},
 	"getMatch":                   {Permission: MatchRead},
 	"submitMatchFeedback":        {Permission: MatchFeedback},
@@ -207,6 +213,7 @@ var Operations = map[string]Rule{
 	"rematchReport":              {Permission: MatchRematch},
 	"assistAnalyzeImage":         {Permission: AssistAnalyze},
 	"assistDescribe":             {Permission: AssistAnalyze},
+	"assistDuplicates":           {Permission: AssistAnalyze},
 	"createClaim":                {Permission: ClaimCreate, Verified: true},
 	"listClaims":                 {Permission: ClaimRead},
 	"getClaim":                   {Permission: ClaimRead},
