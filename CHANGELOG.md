@@ -26,6 +26,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 
 - Requirement traceability matrix expanded with full acceptance criteria verification matrix covering user stories US-01 through US-55.
 - Operations runbook aligned with automated backup, restore, and deployment scripts; established restore drill protocol template in `docs/operations/restore-drill.md` without claiming unperformed staging drills.
+- Configured end to end test workflow to trigger on push to main in addition to pull requests, schedule, and workflow dispatch.
 - Local compose environments separated into `deploy/compose.dev.yaml` for real system clock development and `deploy/compose.e2e.yaml` for Playwright end to end testing with isolated time travel.
 - Campus master data seeded with 41 OpenStreetMap landmarks, 5 zones, and 6 pilot posts with bounding box validation.
 

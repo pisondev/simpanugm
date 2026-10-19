@@ -1,6 +1,14 @@
 name: End to end
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - "web/**"
+      - "deploy/**"
+      - "data/seed/**"
+      - ".github/workflows/e2e.yml"
   pull_request:
     paths:
       - "api/**"
