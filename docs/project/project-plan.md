@@ -171,6 +171,8 @@ US-48, learned fusion) are dropped first, in that order.
 
 ## 6. Scope control
 
+The remaining time follows the [demo first plan](demo-first-plan.md) of 19 October 2026. Hosting is on hold.
+
 | Lever | Order of use |
 |---|---|
 | Drop Should stories | US-41 semantic search, then US-48 clustering, then learned fusion, then US-40 merge duplicates, then US-15 duplicate hints, then US-34 transfers |

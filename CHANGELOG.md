@@ -28,6 +28,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 
 ### Changed
 
+- The remaining schedule follows `docs/project/demo-first-plan.md`: a scripted, good looking demo with visible AI for every actor comes first, hosting and the formal evaluation are parked.
 - Audited model cards and evaluation documentation against empirical lock files, latency benchmarks, and synthetic validation results, establishing docs/ai/evaluation-report.md with unverified real metrics strictly marked TERTUNDA.
 - Requirement traceability matrix expanded with full acceptance criteria verification matrix covering user stories US-01 through US-55.
 - Operations runbook aligned with automated backup, restore, and deployment scripts; established restore drill protocol template in `docs/operations/restore-drill.md` without claiming unperformed staging drills.

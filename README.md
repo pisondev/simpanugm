@@ -101,7 +101,7 @@ Start at [docs/README.md](docs/README.md). The short path for a new reader:
 6. [Traceability matrix](docs/requirements/traceability.md), user stories to verification.
 7. [Release checklist](docs/operations/release-checklist-v1.0.0.md), PRD section 9 audit.
 8. [Operations runbook](docs/operations/runbook.md), incident response procedures.
-9. [Project plan](docs/project/project-plan.md), who builds what and when.
+9. [Project plan](docs/project/project-plan.md), who builds what and when, and the [demo first plan](docs/project/demo-first-plan.md), what the remaining time goes to.
 
 ## Tech stack
 
