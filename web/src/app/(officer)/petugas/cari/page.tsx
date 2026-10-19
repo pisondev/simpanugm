@@ -46,8 +46,10 @@ export default async function SearchPage({ searchParams }: PageProps<"/petugas/c
   if (q && codePattern.test(q)) {
     redirect(reportPath(q, true))
   }
+  const semantic = pick(params.semantic) === "true"
   const filter = {
     q,
+    semantic: semantic ? "true" : undefined,
     type: pickOne(params.type, types),
     from: pick(params.from, datePattern),
     to: pick(params.to, datePattern),
@@ -58,20 +60,51 @@ export default async function SearchPage({ searchParams }: PageProps<"/petugas/c
   const [posts, t, tc, ts] = await Promise.all([staffPosts(me), getTranslations("officer"), getTranslations("common"), getTranslations("status")])
   const active = Object.values(filter).some(Boolean)
   const api = await serverApi()
-  const results = active ? await load(api.GET("/search", { params: { query: { ...filter, cursor, limit: 25 } } })) : null
+  const results = active
+    ? await load(
+        api.GET("/search", {
+          params: {
+            query: {
+              ...filter,
+              semantic: semantic ? true : undefined,
+              cursor,
+              limit: 25,
+            },
+          },
+        }),
+      )
+    : null
   return (
     <>
       <PageHeader title={t("searchTitle")} lead={t("searchLead")} />
       <form method="get" role="search" className="mb-6 flex flex-col gap-3 rounded-xl border bg-card p-4">
-        <div className="flex gap-2">
-          <label htmlFor="s-q" className="sr-only">
-            {t("searchTitle")}
-          </label>
-          <Input id="s-q" name="q" type="search" defaultValue={q} placeholder={t("searchPlaceholder")} autoComplete="off" autoFocus />
-          <Button type="submit">
-            <Search aria-hidden />
-            {tc("search")}
-          </Button>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <label htmlFor="s-q" className="sr-only">
+              {t("searchTitle")}
+            </label>
+            <Input id="s-q" name="q" type="search" defaultValue={q} placeholder={t("searchPlaceholder")} autoComplete="off" autoFocus />
+            <Button type="submit">
+              <Search aria-hidden />
+              {tc("search")}
+            </Button>
+          </div>
+          <div className="flex items-center gap-2 pt-0.5">
+            <input
+              type="checkbox"
+              id="s-semantic"
+              name="semantic"
+              value="true"
+              defaultChecked={semantic}
+              className="h-4 w-4 cursor-pointer rounded border-input text-primary focus:ring-primary"
+            />
+            <label htmlFor="s-semantic" className="cursor-pointer text-sm font-medium text-foreground select-none">
+              {t("semanticSearch")}
+            </label>
+            <span className="text-xs text-muted-foreground" title={t("semanticSearchDesc")}>
+              (AI-13)
+            </span>
+          </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <div className="flex flex-col gap-2">
@@ -151,6 +184,12 @@ export default async function SearchPage({ searchParams }: PageProps<"/petugas/c
                       {r.person_name ? ` | ${r.person_name}` : ""}
                     </span>
                   </span>
+                  {r.relevance != null ? (
+                    <span className="flex items-center gap-1 text-xs font-semibold text-primary sm:flex-col sm:items-end">
+                      <span className="text-[10px] font-normal tracking-wider text-muted-foreground uppercase">{t("relevance")}</span>
+                      <span>{Math.round(r.relevance * 100)}%</span>
+                    </span>
+                  ) : null}
                   <span className="text-sm text-muted-foreground">{formatDateTime(r.occurred_at)}</span>
                 </Link>
               </li>
