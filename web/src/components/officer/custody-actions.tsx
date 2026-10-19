@@ -85,12 +85,7 @@ export function CustodyDispositionDialog({ report }: Props) {
             <label htmlFor="disp-kind" className="text-sm font-medium">
               {t("kindLabel")}
             </label>
-            <NativeSelect
-              id="disp-kind"
-              value={kind}
-              disabled={isIdentity}
-              onChange={(e) => setKind(e.target.value)}
-            >
+            <NativeSelect id="disp-kind" value={kind} disabled={isIdentity} onChange={(e) => setKind(e.target.value)}>
               {isIdentity ? (
                 <option value="transferred_to_unit">{t("kinds.transferred_to_unit")}</option>
               ) : (
