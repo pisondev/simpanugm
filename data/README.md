@@ -3,8 +3,8 @@
 Master data seeds, fixtures shared by `api` and `ml`, the evaluation dataset pipeline, and
 reference analytics queries.
 
-Owner: Axelle Chandra. Status: foundation in progress. Seeds and the dataset are built in
-Sprints 0 to 2.
+Owner: Axelle Chandra. Status: MVP public-source baseline. Seeds and the private dataset are
+built in Sprints 0 to 2.
 
 | Folder | Holds | In git |
 |---|---|---|
@@ -18,29 +18,44 @@ How the evaluation dataset is collected: [docs/ai/dataset-collection.md](../docs
 
 ## Current stage
 
-The deterministic seed foundation is available in [`seed/`](seed/) and is checked by
-[`scripts/check.py`](scripts/check.py). The foundation check covers the category tree,
-verification questions, colour palette, compatibility factors, brand aliases, synonyms,
-and runtime defaults. The campus location/post list and model-version seed remain pending
-the OpenStreetMap review, security-unit input, and the inference-service lock file.
+The deterministic seed foundation and a small public-source MVP baseline are available in
+[`seed/`](seed/) and are checked by [`scripts/check.py`](scripts/check.py). The baseline is
+for the assignment/demo only; it is not an official production campus master-data approval.
+It contains five project zones, 25 named locations selected from 392 OpenStreetMap
+candidates, one officially published K5L emergency contact, and public model revisions or
+package versions matching the AI documentation. Private trial photos, consent records, and
+participant metadata remain outside Git.
+
+The MVP location bbox is `-7.77525,110.36967,-7.76617,110.38783` (south, west, north,
+east). It is a reproducible conversion of the UTM grid corners shown on the [official UGM
+campus map](https://www.ugm.ac.id/downloads/PETA%20REVISI%204-1.pdf), not a claim that this
+is the final production boundary. Zone centroids are arithmetic means of the selected
+location rows. Location aliases are intentionally empty until a local review supplies them.
+The sole post is the central K5L office; its emergency number comes from [UGM's official
+contact page](https://ugm.ac.id/id/kontak/) and its hours are empty because no official
+hours are published.
+
+The location candidates came from the [OpenStreetMap Overpass API](https://overpass-api.de/).
+The model seed records exact public revisions for [CLIP](https://huggingface.co/sentence-transformers/clip-ViT-B-32/commit/327ab6726d33c0e22f920c83f2ff9e4bd38ca37f),
+[multilingual CLIP](https://huggingface.co/sentence-transformers/clip-ViT-B-32-multilingual-v1/commit/58edf8cada9e398793dca955574a48cbb7f18be2),
+and [multilingual E5](https://huggingface.co/intfloat/multilingual-e5-small/commit/614241f622f53c4eeff9890bdc4f31cfecc418b3),
+plus the documented [EasyOCR](https://pypi.org/project/easyocr/1.7.2/) and
+[RapidFuzz](https://pypi.org/project/RapidFuzz/) package versions. This is an MVP baseline;
+it does not replace a production `ml/models.lock.json`.
 
 ```text
-python3 data/scripts/check.py
+python3 data/scripts/check.py --require-complete \
+  --bbox=-7.77525,110.36967,-7.76617,110.38783
 ```
 
-The complete-mode check is intentionally expected to fail until those reviewed files are
-added:
+The foundation-only command is still useful for a checkout that has none of the four
+complete seed files, but it intentionally rejects this branch because the MVP files are
+present. Use the complete-mode check above for the current branch.
 
-```text
-python3 data/scripts/check.py \
-  --require-complete \
-  --bbox=SOUTH,WEST,NORTH,EAST
-```
-
-The foundation check also fails if any deferred seed file appears by itself. This prevents
-CI from accepting a partial location, post, or model-version seed without the complete-mode
-review and campus bbox. It also rejects symlinked seed roots and files so validation cannot
-silently read data from outside the checkout, and reports malformed YAML as a seed
+The foundation check also fails if any complete seed file appears by itself. This prevents
+CI from accepting a partial location, post, or model-version seed without complete-mode
+validation and a campus bbox. It also rejects symlinked seed roots and files so validation
+cannot silently read data from outside the checkout, and reports malformed YAML as a seed
 validation error.
 
 Category validation requires non-empty parent and leaf names, positive parent ordering,
@@ -237,12 +252,11 @@ needed by `check_dataset.py`. Verify it with
 These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts
 by natural key and never deletes.
 
-Run `python3 data/scripts/check.py --require-complete --bbox=SOUTH,WEST,NORTH,EAST`
-after all four deferred seed files are reviewed. In complete mode the checker validates
-CSV/YAML shape, zone and location references, location coordinates inside the supplied
-campus bbox, post opening-hour intervals, and the eight model components with exactly one
-active version each. Until the reviewed files exist, the command reports the four
-expected missing-file errors without needing a bbox.
+Run `python3 data/scripts/check.py --require-complete --bbox=-7.77525,110.36967,-7.76617,110.38783`
+for the current MVP seed. In complete mode the checker validates CSV/YAML shape, zone and
+location references, location coordinates inside the supplied campus bbox, post
+opening-hour intervals, and the eight model components with exactly one active version
+each.
 
 | File | Format | Columns or keys |
 |---|---|---|
@@ -259,33 +273,35 @@ expected missing-file errors without needing a bbox.
 
 ### Zones
 
-The campus clusters as the university names them, plus central facilities:
+The MVP groups campus locations into five project zones. Their stored centroids are the
+arithmetic means of the five selected OSM locations in each zone:
 
 | `slug` | `name` |
 |---|---|
-| `saintek` | Klaster Sains dan Teknologi |
-| `soshum` | Klaster Sosial Humaniora |
-| `agro` | Klaster Agro |
-| `medika` | Klaster Kesehatan |
-| `pusat` | Fasilitas Pusat |
+| `saintek` | Saintek |
+| `soshum` | Soshum |
+| `agro` | Agro |
+| `medika` | Medika |
+| `pusat` | Pusat |
 
-Faculty to cluster assignment follows the university's official list and is checked
-before the seed is merged.
+These names and centroids are project-level MVP groupings, not an official UGM zoning
+decision.
 
 ### Locations
 
-Built with `scripts/osm_locations.py`, which pulls named buildings inside the campus
-boundary from OpenStreetMap, then reviewed by hand: official name, the names students
-actually use as aliases, zone, kind, and the coordinate of the main entrance. Every
-location must be marked `approved` and fall inside the campus bbox passed to
-`scripts/promote_locations.py`. The promotion step checks zone and kind values and
-writes only the seven columns accepted by the seed contract. Candidates still marked
-`needs_review` cannot be promoted.
+Built with `scripts/osm_locations.py`, which pulled 392 named buildings and facilities
+inside the MVP bbox from OpenStreetMap. Twenty-five rows were selected for the assignment
+demo and promoted with their OSM names, coordinates, kinds, and provenance; aliases remain
+blank because no student naming review was available. Every promoted row falls inside the
+same bbox and is subject to the complete seed check. This small selection is not a claim
+that it is the full campus inventory.
 
 ### Posts for the pilot
 
-One post per zone plus one at the central library, each tied to a location. The list is
-replaced by the security unit's actual posts when the system is adopted.
+The MVP contains only the central K5L office and its official emergency phone. It is tied
+to the OSM security-office location. Published opening hours were not found, so every day
+is represented by an empty interval list; the post list must be replaced by the security
+unit's reviewed inventory before adoption.
 
 ### Categories
 

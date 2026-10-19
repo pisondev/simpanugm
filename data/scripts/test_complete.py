@@ -117,6 +117,8 @@ class CompleteSeedTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             seed = Path(directory) / "seed"
             shutil.copytree(SEED_DIR, seed)
+            for filename in ("zones.csv", "locations.csv", "posts.yaml", "model_versions.yaml"):
+                (seed / filename).unlink()
             (seed / "zones.csv").write_text("partial\n", encoding="utf-8")
 
             errors = validate_seed_dir(seed)

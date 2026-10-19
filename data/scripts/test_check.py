@@ -32,11 +32,21 @@ from osm_locations import (
 
 ROOT = Path(__file__).resolve().parents[2]
 SEED_DIR = ROOT / "data" / "seed"
+COMPLETE_FILES = ("zones.csv", "locations.csv", "posts.yaml", "model_versions.yaml")
+
+
+def copy_foundation_seed(destination: Path) -> Path:
+    seed = destination / "seed"
+    shutil.copytree(SEED_DIR, seed)
+    for filename in COMPLETE_FILES:
+        (seed / filename).unlink(missing_ok=True)
+    return seed
 
 
 class SeedCheckTests(unittest.TestCase):
     def test_foundation_seed_passes(self) -> None:
-        self.assertEqual(validate_seed_dir(SEED_DIR), [])
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertEqual(validate_seed_dir(copy_foundation_seed(Path(directory))), [])
 
     def test_seed_check_rejects_symlinked_seed_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -69,7 +79,10 @@ class SeedCheckTests(unittest.TestCase):
             self.assertEqual(errors, [f"seed directory must not be a symlink: {alias}"])
 
     def test_complete_mode_keeps_deferred_files_explicit(self) -> None:
-        errors = validate_seed_dir(SEED_DIR, require_complete=True)
+        with tempfile.TemporaryDirectory() as directory:
+            errors = validate_seed_dir(
+                copy_foundation_seed(Path(directory)), require_complete=True
+            )
         self.assertEqual(
             errors,
             [

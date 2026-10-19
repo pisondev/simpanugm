@@ -12,13 +12,29 @@ campus review and dataset collection.
 - Indonesian campus-report synonyms;
 - runtime setting defaults from the business rules.
 
-## Deferred until review
+## MVP baseline and production review
 
-`zones.csv`, `locations.csv`, `posts.yaml`, and `model_versions.yaml` are intentionally
-not created in this stage. Run `data/scripts/osm_locations.py` in download mode to save
-the raw response and review CSV atomically; the extractor requests named campus-relevant
-features only. A human must assign zones, aliases, and an approved status before the
-rows can become `locations.csv`:
+The four formerly deferred files now contain a small public-source baseline for the
+assignment demo. It is not an official production approval:
+
+- `zones.csv` contains five project-level groups and centroids calculated from the selected
+  location rows.
+- `locations.csv` contains 25 promoted rows selected from 392 candidates returned by the
+  [OpenStreetMap Overpass API](https://overpass-api.de/) inside
+  `-7.77525,110.36967,-7.76617,110.38783`. Aliases are blank pending a local naming review.
+- `posts.yaml` contains only the central K5L office and the emergency number published on
+  [UGM's contact page](https://ugm.ac.id/id/kontak/). Its weekday lists are empty because no
+  official opening intervals were published.
+- `model_versions.yaml` records the public model revisions and package versions used by the
+  current AI documentation. It is an MVP baseline, not a replacement for
+  `ml/models.lock.json`.
+
+The bbox is a reproducible conversion of the UTM grid corners shown on the [official UGM
+campus map](https://www.ugm.ac.id/downloads/PETA%20REVISI%204-1.pdf). The selected rows and
+the generated review evidence were kept outside Git; only the derived seed is committed.
+For production, replace or re-review all four files together using the raw Overpass response,
+official zone and post inputs, and the inference-service lock file. The existing review and
+promotion flow remains available:
 
 ```text
 python3 data/scripts/promote_locations.py \
@@ -37,9 +53,9 @@ before starting the manual review. It rejects changed source fields, malformed C
 and any premature zone, alias, or approval values.
 
 The promotion command requires the saved raw Overpass response and rechecks every source
-field before applying human-reviewed status, aliases, and zones. It skips explicitly
-rejected rows and refuses any row still marked `needs_review`, outside the bbox, or
-assigned to an unknown zone. The promoter also
+field before applying reviewed status, aliases, and zones. It skips explicitly rejected
+rows and refuses any row still marked `needs_review`, outside the bbox, or assigned to an
+unknown zone. The promoter also
 requires valid positive OSM provenance and at least one approved row, so a fully
 rejected review cannot produce an empty location seed. Posts need the
 security-unit pilot list, and model versions must match the inference service lock file.
@@ -58,13 +74,15 @@ reviewed complete-seed file is available, run the complete check with all four f
 the agreed campus bbox; do not rely on foundation mode for an incomplete handoff. Seed
 roots and files must be regular paths, not symlinks.
 
-Run the foundation check from the repository root:
+Run the complete MVP seed check from the repository root:
 
 ```text
-python3 data/scripts/check.py
+python3 data/scripts/check.py \
+  --require-complete \
+  --bbox=-7.77525,110.36967,-7.76617,110.38783
 ```
 
-Run the future full-seed check with the agreed campus bbox from the location review:
+For a future production review, run the same complete check with the agreed campus bbox:
 
 ```text
 python3 data/scripts/check.py \

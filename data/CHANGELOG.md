@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Added a public-source MVP seed baseline with five project zones, 25 OSM-derived campus
+  locations, the officially published K5L emergency contact, and exact public model/package
+  revisions. The baseline is documented as assignment/demo data and is not production
+  approval; private trial photos, consent records, and participant metadata remain outside
+  Git.
+- Switched the data CI seed step to complete-mode validation with the reproducible MVP
+  campus bbox.
 - Added the first deterministic master-data seed foundation for categories, colours,
   compatibility, brands, synonyms, and runtime setting defaults.
 - Added a dependency-light command entry point for validating the seed foundation and
