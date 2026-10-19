@@ -13,8 +13,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
   const headers = new Headers(request.headers)
+  const requestId = request.headers.get("x-request-id") || crypto.randomUUID()
+  headers.set("x-request-id", requestId)
   headers.set("x-simpan-path", path + request.nextUrl.search)
-  return NextResponse.next({ request: { headers } })
+  const response = NextResponse.next({ request: { headers } })
+  response.headers.set("x-request-id", requestId)
+  return response
 }
 
 export const config = {

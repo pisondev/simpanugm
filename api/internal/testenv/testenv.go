@@ -61,6 +61,7 @@ func RepoRoot() string {
 type Database struct {
 	AppURL   string
 	OwnerURL string
+	AdminURL string
 	stop     func()
 }
 
@@ -108,6 +109,7 @@ func start() (*Database, error) {
 	d := &Database{
 		AppURL:   fmt.Sprintf("postgres://simpan_app:%s@%s:%s/simpan?sslmode=disable", appPassword, host, port.Port()),
 		OwnerURL: fmt.Sprintf("postgres://simpan_owner:%s@%s:%s/simpan?sslmode=disable", ownerPass, host, port.Port()),
+		AdminURL: fmt.Sprintf("postgres://postgres:postgres@%s:%s/postgres?sslmode=disable", host, port.Port()),
 		stop:     func() { _ = c.Terminate(context.Background()) },
 	}
 	if err := MigrateUp(ctx, d.OwnerURL); err != nil {

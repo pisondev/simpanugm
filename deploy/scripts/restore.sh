@@ -36,7 +36,7 @@ echo "Verifying database integrity after restore..."
 VERIFY_SQL="SELECT
   (SELECT coalesce(max(version_id), 0) FROM goose_db_version WHERE is_applied) AS schema_version,
   (SELECT count(*) FROM users) AS user_count,
-  (SELECT count(*) FROM reports) AS report_count,
+  (SELECT (SELECT count(*) FROM lost_reports) + (SELECT count(*) FROM found_reports)) AS report_count,
   (SELECT count(*) FROM settings) AS settings_count;"
 
 if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1 && docker compose ps postgres >/dev/null 2>&1; then

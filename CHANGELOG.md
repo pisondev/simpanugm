@@ -23,6 +23,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Fixed
 
+- In `deploy/scripts/restore.sh`, corrected the post-restore report verification query to count from `lost_reports` and `found_reports` instead of the non-existent `reports` table; configured `web/src/app/readyz/route.ts` to support `API_INTERNAL_URL`.
 - The fake clock of the end to end stack keeps running from where it was set instead of freezing, so a long suite no longer falls behind the browser and gets "found in the future" refusals. The generated sqlc models match the migrations again, and the photo step of the end to end journeys retries until the page has hydrated.
 - The end to end suite no longer trips the registration limit of five accounts per hour and address: `AUTH_REGISTER_PER_HOUR` sets it, the dev Compose override raises it, and the axe helper waits for a fading toast before it scans.
 - Resending a verification link or starting an email change no longer fails for an account without earlier tokens of that kind: the issue statistics default to the epoch instead of minus infinity, which Go cannot represent.
@@ -32,6 +33,8 @@ All notable changes to this project are recorded here. The format follows
 - Masking now hides every 16 digit run, so NIK numbers are covered although they fail the Luhn check, and treats digits grouped by single spaces or hyphens as one run, as BR-PRV-03 requires.
 
 ### Added
+
+- Automated release workflow and CI security checks (PRD section 9, testing-strategy section 6): created `.github/workflows/release.yml` for automated building and publishing of OCI images for API, Web, and ML to GHCR on tags `v*`; added `pnpm audit --prod` to `ci-web.yml` and `uv run pip-audit` to `ci-ml.yml`; added automated integration test `TestMigrationsUpDownUp` in `api/internal/server/migrations_integration_test.go` verifying that all 13 database migrations run forward, backward to 0, and forward again on a clean database; propagated `x-request-id` headers across Web middleware, API context handler, and ML FastAPI middleware with structured JSON request logging; expanded `docs/operations/release-checklist-v1.0.0.md` with complete line-by-line audit of PRD section 9.
 
 - Fusion version activation, rollback, and sweep rescoring (Journey J7, US-49, FR-ADMIN-06, testing-strategy section 3): added audit log recording and River background sweep rescoring to `ActivateModelVersion`; registered candidate fusion version `fusion-learned-2026.11.0` alongside active linear baseline; added integration test `FusionActivationAndRollback` verifying candidate activation, audit logging, monitoring reflection, and rollback; added Playwright Journey J7 end-to-end test scenario `web/tests/e2e/j7-fusion.spec.ts` with axe accessibility verification; improved model version selector accessibility.
 

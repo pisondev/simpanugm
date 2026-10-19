@@ -63,3 +63,6 @@ jobs:
         run: pnpm build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Dependency audit
+        run: pnpm audit --prod

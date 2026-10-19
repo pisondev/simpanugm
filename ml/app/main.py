@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -42,14 +43,26 @@ def create_app(settings: Settings | None = None, backend: Backend | None = None)
     @app.middleware("http")
     async def track_request_duration(request: Request, call_next):  # type: ignore[no-untyped-def]
         start = time.perf_counter()
+        request_id = request.headers.get("x-request-id") or uuid.uuid4().hex
         status_code = 500
         try:
             response = await call_next(request)
             status_code = response.status_code
+            response.headers["x-request-id"] = request_id
             return response
         finally:
             dur = time.perf_counter() - start
             REQUEST_DURATION_SECONDS.labels(handler=request.url.path, status=str(status_code)).observe(dur)
+            log.info(
+                "request",
+                extra={
+                    "request_id": request_id,
+                    "method": request.method,
+                    "route": request.url.path,
+                    "status": status_code,
+                    "duration_ms": int(dur * 1000),
+                },
+            )
 
     app.include_router(health.router)
     guard = [Depends(require_token(settings.ml_internal_token))]

@@ -17,7 +17,6 @@ import (
 
 	"github.com/pisondev/simpanugm/api/internal/audit"
 	"github.com/pisondev/simpanugm/api/internal/db/sqlc"
-	"github.com/pisondev/simpanugm/api/internal/matching/jobargs"
 	"github.com/pisondev/simpanugm/api/internal/mlclient"
 	"github.com/pisondev/simpanugm/api/internal/openapi"
 	"github.com/pisondev/simpanugm/api/internal/platform/apperr"
@@ -177,12 +176,6 @@ func (s *Service) ActivateModelVersion(ctx context.Context, id uuid.UUID, actorI
 		},
 	}); err != nil {
 		return nil, fmt.Errorf("audit activate model version: %w", err)
-	}
-
-	if s.jobs != nil {
-		if _, err := s.jobs.InsertTx(ctx, tx, jobargs.MatchSweep{}, nil); err != nil {
-			return nil, fmt.Errorf("enqueue match sweep: %w", err)
-		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {

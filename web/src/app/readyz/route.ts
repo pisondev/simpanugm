@@ -1,6 +1,6 @@
 // readiness for traffic routing, checks that api /healthz is reachable
 export async function GET() {
-  const apiBase = process.env.API_BASE_URL || "http://api:8090"
+  const apiBase = process.env.API_INTERNAL_URL || process.env.API_BASE_URL || "http://api:8090"
   try {
     const res = await fetch(`${apiBase}/healthz`, {
       cache: "no-store",
