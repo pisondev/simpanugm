@@ -111,7 +111,12 @@ export default async function AnalyticsTrendsPage({ searchParams }: { searchPara
           <CardDescription>Jumlah laporan kehilangan, temuan, dan barang yang berhasil dikembalikan per minggu.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div
+            role="region"
+            aria-label="Tren laporan mingguan"
+            tabIndex={0}
+            className="overflow-x-auto rounded-md border focus-visible:outline-2 focus-visible:outline-ring"
+          >
             <Table>
               <TableHeader>
                 <TableRow>
@@ -152,7 +157,12 @@ export default async function AnalyticsTrendsPage({ searchParams }: { searchPara
             <CardDescription>Distribusi barang hilang dan barang temuan berdasarkan kategori.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border">
+            <div
+              role="region"
+              aria-label="Rincian tren kategori"
+              tabIndex={0}
+              className="overflow-x-auto rounded-md border focus-visible:outline-2 focus-visible:outline-ring"
+            >
               <Table>
                 <TableHeader>
                   <TableRow>

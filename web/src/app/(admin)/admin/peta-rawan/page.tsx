@@ -140,7 +140,12 @@ export default async function CampusHotspotsPage({ searchParams }: { searchParam
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div
+            role="region"
+            aria-label="Peringkat titik lokasi kampus"
+            tabIndex={0}
+            className="overflow-x-auto rounded-md border focus-visible:outline-2 focus-visible:outline-ring"
+          >
             <Table>
               <TableHeader>
                 <TableRow>

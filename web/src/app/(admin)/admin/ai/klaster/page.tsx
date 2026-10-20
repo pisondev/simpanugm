@@ -104,7 +104,12 @@ export default async function AiClustersPage({ searchParams }: { searchParams: P
                   </div>
                 ) : null}
 
-                <div className="rounded-md border">
+                <div
+                  role="region"
+                  aria-label="Daftar laporan dalam klaster"
+                  tabIndex={0}
+                  className="overflow-x-auto rounded-md border focus-visible:outline-2 focus-visible:outline-ring"
+                >
                   <Table>
                     <TableHeader>
                       <TableRow>

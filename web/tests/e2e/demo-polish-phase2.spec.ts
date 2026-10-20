@@ -1159,3 +1159,58 @@ test.describe("B12 admin monitoring and fusion controls", () => {
     expect(errors).toEqual([])
   })
 })
+
+async function captureB13(page: Page, route: string, width: string) {
+  await expect(page.getByRole("main")).toBeVisible()
+  await expectAccessible(page)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth))
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({ path: `test-results/screenshots/phase2-B13-${route}-${width}.png`, fullPage: true, animations: "disabled" })
+}
+
+test.describe("B13 admin clusters maps and trends", () => {
+  test("map markers, ranked data and analytics exports stay usable on desktop and phone", async ({ page }) => {
+    test.setTimeout(120_000)
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+    await page.goto("/masuk")
+    await page.getByRole("button", { name: /Administrator/ }).click()
+    await expect(page).toHaveURL(/\/admin$/)
+    for (const viewport of [
+      { width: 1366, height: 900, label: "1366x900" },
+      { width: 360, height: 800, label: "360x800" },
+    ]) {
+      await page.setViewportSize(viewport)
+      await page.goto("/admin/ai/klaster")
+      await expect(page.getByRole("heading", { name: "Pengelompokan Kasus & Deteksi Duplikat" })).toBeVisible()
+      await expect(page.getByRole("button", { name: "Jalankan Pengelompokan Baru" })).toBeVisible()
+      await captureB13(page, "klaster", viewport.label)
+
+      await page.goto("/admin/peta-rawan")
+      await expect(page.getByRole("group", { name: "Peta interaktif kampus UGM" })).toBeVisible()
+      await expect(page.getByRole("region", { name: "Peringkat titik lokasi kampus" })).toBeVisible()
+      const marker = page.locator('svg[aria-label="Peta interaktif kampus UGM"] g[role="button"]').first()
+      if (await marker.count()) {
+        await marker.focus()
+        await expect(marker).toBeFocused()
+        await marker.press("Enter")
+      }
+      await page.getByRole("link", { name: "90 Hari" }).click()
+      await expect(page).toHaveURL(/days=90/)
+      await captureB13(page, "peta-rawan", viewport.label)
+
+      await page.goto("/admin/tren")
+      await expect(page.getByRole("heading", { name: "Tren Operasional & Analitik" })).toBeVisible()
+      await expect(page.getByLabel("Pilih bulan untuk ekspor CSV")).toBeVisible()
+      await expect(page.getByRole("region", { name: "Tren laporan mingguan" })).toBeVisible()
+      await captureB13(page, "tren", viewport.label)
+    }
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})

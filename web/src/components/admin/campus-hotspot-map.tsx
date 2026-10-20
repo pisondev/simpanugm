@@ -63,7 +63,7 @@ export function CampusHotspotMap({ locations, selectedType, onSelectLocation }: 
       </div>
 
       <div className="relative aspect-[5/3] min-h-[360px] w-full overflow-hidden bg-slate-50 dark:bg-slate-950">
-        <svg viewBox="0 0 1000 600" className="size-full select-none" role="img" aria-label="Peta interaktif kampus UGM">
+        <svg viewBox="0 0 1000 600" className="size-full select-none" role="group" aria-label="Peta interaktif kampus UGM">
           {/* Background Campus Zones Outline */}
           <rect x="150" y="80" width="300" height="200" rx="16" fill="currentColor" className="text-slate-200/50 dark:text-slate-900/50" />
           <text x="170" y="110" className="fill-slate-400 text-xs font-semibold dark:fill-slate-600">
@@ -110,10 +110,20 @@ export function CampusHotspotMap({ locations, selectedType, onSelectLocation }: 
             return (
               <g
                 key={loc.location_id}
+                role="button"
+                tabIndex={0}
+                aria-label={`${loc.location_name}, ${loc.display_total} laporan`}
                 className="cursor-pointer transition-transform hover:scale-110 focus:outline-none"
                 onClick={() => {
                   setActiveLoc(loc)
                   onSelectLocation?.(loc.location_id)
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault()
+                    setActiveLoc(loc)
+                    onSelectLocation?.(loc.location_id)
+                  }
                 }}
                 onMouseEnter={() => setActiveLoc(loc)}
               >
