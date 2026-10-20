@@ -28,7 +28,7 @@ func manifestCandidates() []string {
 
 func discoverLocalBackgroundFoundReports(categories []string) ([]DemoFoundReport, error) {
 	for _, manifestPath := range manifestCandidates() {
-		manifest, err := os.Open(manifestPath)
+		manifest, err := os.Open(filepath.Clean(manifestPath))
 		if err != nil {
 			continue
 		}
@@ -43,7 +43,6 @@ type demoPhotoSource struct {
 	filename string
 	source   string
 	category string
-	notes    string
 }
 
 type demoPhotoUploader struct {
@@ -149,7 +148,7 @@ func discoverBackgroundFoundReports(manifest io.Reader, imageDir string, categor
 		if report.PhotoFilename == "" {
 			continue
 		}
-		content, err := os.ReadFile(filepath.Join(imageDir, filepath.Base(report.PhotoFilename)))
+		content, err := os.ReadFile(filepath.Clean(filepath.Join(imageDir, filepath.Base(report.PhotoFilename))))
 		if err == nil {
 			seenContent[sha256.Sum256(content)] = true
 		}
@@ -172,7 +171,7 @@ func discoverBackgroundFoundReports(manifest io.Reader, imageDir string, categor
 			}
 			return nil, err
 		}
-		content, err := os.ReadFile(photoPath)
+		content, err := os.ReadFile(filepath.Clean(photoPath))
 		if err != nil {
 			return nil, err
 		}
