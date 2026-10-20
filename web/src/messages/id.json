@@ -779,6 +779,7 @@
     "receiveLead": "Ketik atau tempel kode laporan temuan dari penemu.",
     "codeLabel": "Kode laporan temuan",
     "codePlaceholder": "FND-2610-0001",
+    "lookupHint": "Pindai kode batang atau ketik/tempel kode laporan untuk mencari barang.",
     "lookup": "Periksa",
     "notFound": "Laporan temuan dengan kode ini tidak ditemukan.",
     "alreadyReceived": "Barang ini sudah tercatat {status}.",
@@ -809,6 +810,8 @@
     "colSensitivity": "Sensitivitas",
     "colClaim": "Klaim",
     "colStatus": "Status",
+    "colActions": "Tindakan",
+    "inventoryTableLabel": "Daftar barang di inventaris pos",
     "ageDays": "{count, plural, =0 {hari ini} other {# hari}}",
     "dueIn": "{count, plural, =0 {hari ini} one {besok} other {# hari lagi}}",
     "overdue": "lewat {count} hari",
@@ -852,6 +855,30 @@
       "notePlaceholder": "Tuliskan alasan atau rincian keputusan tindak lanjut (minimal 5 karakter).",
       "submit": "Simpan Tindak Lanjut",
       "done": "Tindak lanjut barang berhasil disimpan."
+    },
+    "custodyActions": {
+      "available": "Tindakan pengelolaan barang",
+      "transfer": {
+        "trigger": "Pindah pos",
+        "title": "Pindahkan barang ke pos lain",
+        "lead": "Pindahkan laporan {code} ke pos tujuan. Pos penyimpanan akan berubah setelah tindakan dikonfirmasi.",
+        "postLabel": "Pos tujuan",
+        "postPlaceholder": "Pilih pos tujuan",
+        "choosePostError": "Pilih pos tujuan sebelum melanjutkan.",
+        "noteLabel": "Catatan pemindahan (opsional)",
+        "submit": "Pindahkan ke {post}",
+        "done": "Barang berhasil dipindahkan."
+      },
+      "retention": {
+        "trigger": "Perpanjang simpan",
+        "title": "Perpanjang masa simpan",
+        "lead": "Perpanjangan untuk laporan {code} hanya dapat diberikan satu kali dan harus memiliki alasan.",
+        "daysLabel": "Tambahan hari (1 sampai 30)",
+        "reasonLabel": "Alasan perpanjangan",
+        "validation": "Masukkan 1 sampai 30 hari dan alasan minimal 5 karakter.",
+        "submit": "Perpanjang masa simpan",
+        "done": "Masa simpan berhasil diperpanjang."
+      }
     },
     "boardTitle": "Papan Tinjauan",
     "boardLead": "Bandingkan laporan dan kandidat kecocokan berdampingan untuk verifikasi cepat.",

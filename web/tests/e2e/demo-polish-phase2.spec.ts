@@ -929,3 +929,88 @@ test.describe("B08 officer review and search workspaces", () => {
     expect(errors).toEqual([])
   })
 })
+
+async function captureB09(page: Page, route: string, width: string) {
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await expect(page.getByRole("main")).toBeVisible()
+  await expectAccessible(page)
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({ path: `test-results/screenshots/phase2-B09-${route}-${width}.png`, fullPage: true, animations: "disabled" })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth))
+}
+
+test.describe("B09 officer custody workspaces", () => {
+  test("manual custody lookup, inventory filters and guarded custody actions work at both widths", async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(10_000)
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+
+    await signIn(page, "petugas.pos1@demo.simpanugm.my.id", "kata sandi panjang 2026")
+    await expect(page).toHaveURL(/\/petugas$/)
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await page.goto("/petugas/terima")
+    await expect(page.getByRole("heading", { name: "Terima Barang" })).toBeVisible()
+    const code = page.getByLabel("Kode laporan temuan")
+    await code.fill("FND-2610-9999")
+    await page.getByRole("button", { name: "Periksa" }).click()
+    await expect(page.getByText("Laporan temuan dengan kode ini tidak ditemukan.")).toBeVisible()
+    await captureB09(page, "terima", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB09(page, "terima", "360x800")
+
+    const foundResponse = await page.request.get(new URL("/api/v1/found-reports?limit=100", page.url()).toString())
+    expect(foundResponse.ok()).toBe(true)
+    const foundItems = (await foundResponse.json()).items as { code: string; item_name: string; custody_status: string }[]
+    const awaitingReceipt = foundItems.find((item) => item.custody_status === "with_finder")
+    if (awaitingReceipt) {
+      await page.goto(`/petugas/terima?code=${encodeURIComponent(awaitingReceipt.code)}`)
+      await expect(page.getByRole("heading", { name: awaitingReceipt.item_name })).toBeVisible()
+      const slot = page.getByLabel("Rak atau slot")
+      await page.getByRole("button", { name: "Terima barang" }).click()
+      await expect(slot).toHaveAttribute("aria-invalid", "true")
+      await slot.fill("Rak B09")
+      await page.getByRole("button", { name: "Terima barang" }).click()
+      await page.getByRole("alertdialog").getByRole("button", { name: "Ya, terima barang" }).click()
+      await expect(page.getByRole("status").filter({ hasText: "Barang diterima di" })).toBeVisible()
+    }
+
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await page.goto("/petugas/inventaris")
+    await expect(page.getByRole("heading", { name: "Inventaris" })).toBeVisible()
+    await expect(page.getByRole("region", { name: "Daftar barang di inventaris pos" })).toBeVisible()
+    if (awaitingReceipt) await expect(page.getByRole("link", { name: new RegExp(awaitingReceipt.code) })).toBeVisible()
+    const sort = page.getByLabel("Urutkan")
+    await sort.selectOption("-received_at")
+    await page.getByRole("button", { name: "Terapkan" }).click()
+    await expect(page).toHaveURL(/sort=-received_at/)
+    await expect(page.getByRole("button", { name: "Perpanjang simpan" }).first()).toBeVisible()
+    const extend = page.getByRole("button", { name: "Perpanjang simpan" }).first()
+    await extend.click()
+    await expect(page.getByRole("heading", { name: "Perpanjang masa simpan" })).toBeVisible()
+    await expect(page.getByLabel("Tambahan hari (1 sampai 30)")).toHaveValue("7")
+    await expect(page.getByRole("button", { name: "Perpanjang masa simpan" })).toBeDisabled()
+    await page.getByRole("button", { name: "Batal" }).click()
+    const transfer = page.getByRole("button", { name: "Pindah pos" }).first()
+    await expect(transfer).toBeVisible()
+    await expect(transfer).toBeEnabled()
+    await transfer.click()
+    await expect(page.getByRole("heading", { name: "Pindahkan barang ke pos lain" })).toBeVisible()
+    const destination = page.getByLabel("Pos tujuan")
+    await expect(destination.locator("option")).toHaveCount(6)
+    await destination.selectOption({ index: 1 })
+    await expect(page.getByRole("button", { name: /Pindahkan ke/ })).toBeEnabled()
+    await page.getByRole("button", { name: "Batal" }).click()
+    await captureB09(page, "inventaris", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB09(page, "inventaris", "360x800")
+
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})

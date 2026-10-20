@@ -116,7 +116,7 @@ export function ReceivePanel({ posts, initialCode }: { posts: Post[]; initialCod
   return (
     <div className="flex flex-col gap-6">
       <form
-        className="flex flex-col gap-2 rounded-xl border bg-card p-4"
+        className="flex flex-col gap-3 rounded-xl border bg-card p-4"
         onSubmit={(e) => {
           e.preventDefault()
           if (code.trim()) {
@@ -132,12 +132,14 @@ export function ReceivePanel({ posts, initialCode }: { posts: Post[]; initialCod
           <Input
             ref={codeInput}
             id="receive-code"
+            aria-describedby="receive-code-hint"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder={t("codePlaceholder")}
             autoComplete="off"
             autoCapitalize="characters"
             spellCheck={false}
+            inputMode="text"
             className="font-mono uppercase"
             autoFocus
           />
@@ -146,7 +148,10 @@ export function ReceivePanel({ posts, initialCode }: { posts: Post[]; initialCod
             {t("lookup")}
           </Button>
         </div>
-        <p aria-live="polite" className="text-sm text-destructive">
+        <p id="receive-code-hint" className="text-sm text-muted-foreground">
+          {t("lookupHint")}
+        </p>
+        <p aria-live="polite" className="min-h-5 text-sm text-destructive">
           {lookup.error ? (notFound ? t("notFound") : messageFor(lookup.error, te)) : ""}
         </p>
       </form>

@@ -115,15 +115,29 @@ four screens have desktop and 360 px captures, axe and overflow checks, with no 
 requests or page errors. The B08 case passes 1/1; web Prettier, typecheck, lint, 74 unit
 tests and production build pass. Captures use the `phase2-B08-` prefix.
 
+B09 makes the intake lookup scanner-friendly while retaining manual typing/paste and
+visible error feedback. Inventory keeps its post and sort filters, uses a focused
+horizontal table on desktop and scanable item cards with custody actions on phones.
+Transfer to another active post and one-time retention extension now call the existing
+API with required confirmation context and validation; eligible unclaimed items retain
+the disposition dialog. The B09 browser case passes 1/1 with axe and overflow checks at
+both widths, exercises invalid manual lookup, inventory sorting and guarded action
+dialogs, and uses no external requests or page errors. This reset demo has no report
+awaiting physical receipt, so the happy-path intake was verified in the real Sprint 1
+browser journey (7/7). B09 Prettier, typecheck, lint, 74 unit tests and production build
+pass. Captures use the `phase2-B09-` prefix.
+
 The real-model reference gate initially exceeded the eight-second assist bound. ML metrics
 isolated EasyOCR as the main cost: 1,549 seconds across 258 analyses (6.0 seconds each),
 versus 1.65 seconds total for category classification. Capping OCR input at 768px reduced
 the OCR detector area by 44% while retaining the real model and its output. A real-weight
 OCR check still reads the synthetic card title and masks its full number at that size. In
 the rebuilt service, 134 analyses averaged 3.17 seconds in OCR and 3.46 seconds end to end.
-The phase 1 reference and reduced-motion tests pass 3/3, B01-B08 pass 13/13, demo-ai passes
-4/4, and demo-record passes 4/4. No model output, UI timeout or production rate limit was
-changed.
+The phase 1 reference and reduced-motion tests pass 3/3, B01-B09 pass 14/14, demo-ai passes
+4/4, and demo-record passes 4/4. A combined run hit the in-memory login limiter (HTTP
+429 confirmed in API logs); all four affected tests passed after restarting the local API
+and rerunning the affected suites separately. No model output, UI timeout or production
+rate limit was changed.
 
 The post-B04 reference, AI and recording checks passed 19/19 across two runs. The local
 API's in-memory sign-in limiter required an API restart before the four recording scenes;
