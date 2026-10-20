@@ -103,23 +103,23 @@ export default async function OfficerHomePage({ searchParams }: PageProps) {
         }
       />
 
-      <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <nav aria-label={t("homeTitle")} className="mb-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
         {counters.map((c) => (
           <Link
             key={c.label}
             href={c.href}
-            className="flex items-center gap-3 rounded-xl border bg-card p-4 shadow-xs transition-colors hover:border-primary/40"
+            className="group flex min-w-0 items-center gap-3 rounded-lg border bg-card/80 p-3 transition-colors hover:border-primary/40 hover:bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           >
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
-              <c.icon className="size-5" aria-hidden />
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted/70 text-muted-foreground transition-colors group-hover:bg-primary-soft group-hover:text-primary">
+              <c.icon className="size-4" aria-hidden />
             </span>
             <span className="min-w-0">
-              <span className="block text-2xl leading-tight font-semibold">{c.value}</span>
+              <span className="block text-xl leading-tight font-semibold tabular-nums">{c.value}</span>
               <span className="block truncate text-xs text-muted-foreground">{c.label}</span>
             </span>
           </Link>
         ))}
-      </div>
+      </nav>
 
       <section id="antrean" aria-labelledby="antrean-judul" className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-2">

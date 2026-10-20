@@ -823,3 +823,109 @@ test.describe("B07 member profile settings", () => {
     expect(errors).toEqual([])
   })
 })
+
+async function captureB08(page: Page, route: string, width: string) {
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await expect(page.getByRole("main")).toBeVisible()
+  await expectAccessible(page)
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({ path: `test-results/screenshots/phase2-B08-${route}-${width}.png`, fullPage: true, animations: "disabled" })
+  const overflow = await page.evaluate(() =>
+    Array.from(document.body.querySelectorAll("*"))
+      .filter((element) => {
+        const rect = element.getBoundingClientRect()
+        return rect.width > 0 && (rect.right > window.innerWidth + 1 || element.scrollWidth > element.clientWidth + 1)
+      })
+      .slice(0, 12)
+      .map((element) => ({
+        tag: element.tagName,
+        className: (element as HTMLElement).className,
+        right: Math.round(element.getBoundingClientRect().right),
+        width: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+      })),
+  )
+  expect(await page.evaluate(() => document.documentElement.scrollWidth), JSON.stringify(overflow)).toBeLessThanOrEqual(
+    await page.evaluate(() => window.innerWidth),
+  )
+}
+
+test.describe("B08 officer review and search workspaces", () => {
+  test("priority queue, report-code review, semantic search and duplicate controls work at both widths", async ({ page }) => {
+    test.setTimeout(180_000)
+    page.setDefaultTimeout(10_000)
+    await page.setViewportSize({ width: 1366, height: 900 })
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+
+    await signIn(page, "petugas.pos1@demo.simpanugm.my.id", "kata sandi panjang 2026")
+    await expect(page).toHaveURL(/\/petugas$/)
+    await expect(page.getByRole("heading", { name: "Antrean Prioritas Kerja" })).toBeVisible()
+    await captureB08(page, "antrean", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB08(page, "antrean", "360x800")
+
+    const queueResponse = await page.request.get(new URL("/api/v1/officer/queue?scope=posts&limit=30", page.url()).toString())
+    expect(queueResponse.ok()).toBe(true)
+    const queue = (await queueResponse.json()).items as { type: string; found_id: string; found_code: string }[]
+    const highMatch = queue.find((item) => item.type === "high_match_no_claim")
+    if (!highMatch) throw new Error("the seeded officer queue needs a high-match found report")
+
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await page.goto(`/petugas/papan?report_type=found&report_id=${encodeURIComponent(highMatch.found_code)}`)
+    await expect(page.getByRole("heading", { name: "Papan Tinjauan" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /\d+ kandidat pencocokan/ })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Cocokkan ulang" })).toBeVisible()
+    const meters = page.getByRole("meter")
+    expect(await meters.count()).toBeGreaterThan(0)
+    expect((await meters.count()) % 4).toBe(0)
+    await expect(page.getByRole("button", { name: /Undang klaim|Pemilik sudah diundang/ }).first()).toBeVisible()
+    const pinButton = page.getByRole("button", { name: /Tandai kuat|Lepas tanda/ }).first()
+    await expect(pinButton).toBeVisible()
+    const pinLabel = await pinButton.innerText()
+    await pinButton.click()
+    const toggledLabel = pinLabel === "Tandai kuat" ? "Lepas tanda" : "Tandai kuat"
+    await expect(page.getByRole("button", { name: toggledLabel }).first()).toBeVisible()
+    await page.getByRole("button", { name: toggledLabel }).first().click()
+    await expect(page.getByRole("button", { name: pinLabel }).first()).toBeVisible()
+    await captureB08(page, "papan", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB08(page, "papan", "360x800")
+
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await page.goto("/petugas/cari")
+    const search = page.getByRole("searchbox")
+    await search.fill("dompet kulit")
+    const semantic = page.getByRole("checkbox", { name: "Cari berdasarkan makna" })
+    await semantic.check()
+    await search.press("Enter")
+    await expect(page).toHaveURL(/semantic=true/)
+    await expect(page.getByRole("status").filter({ hasText: /\d+ hasil/ })).toBeVisible()
+    await captureB08(page, "cari", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB08(page, "cari", "360x800")
+
+    await page.goto("/petugas/duplikat")
+    await expect(page.getByRole("heading", { name: "Duplikat Laporan" })).toBeVisible()
+    await expect(page.getByRole("link", { name: "Disarankan" })).toBeVisible()
+    const manualMerge = page.getByRole("button", { name: "Gabung Laporan Manual" })
+    await expect(manualMerge).toBeVisible()
+    await expect(page.getByRole("button", { name: "Bukan Duplikat" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Gabungkan" })).toBeVisible()
+    await captureB08(page, "duplikat", "360x800")
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await manualMerge.click()
+    await expect(page.getByLabel("Kode Laporan Bertahan (UUID)")).toBeVisible()
+    await expect(page.getByLabel("Kode Laporan Duplikat (UUID)")).toBeVisible()
+    await captureB08(page, "duplikat", "1366x900")
+
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})

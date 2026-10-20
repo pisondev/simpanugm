@@ -104,13 +104,24 @@ the profile save and preference save controls above the fixed navigation. The te
 only to the demo owner and restores the preference value. Captures use the `phase2-B07-`
 prefix.
 
+B08 refines the officer priority queue, review board, semantic search and duplicate
+workspace. Queue summary counters are quieter, report codes in the board's search field
+resolve to the selected record, and side-by-side evidence uses the shared comparison
+panel. Search guidance is visible to assistive technology; duplicate rows wrap without
+horizontal overflow at 360 px. The E2E case opens a real seeded candidate pair, checks
+the four evidence meters and invite action, pins and unpins it, runs keyboard semantic
+search, and verifies duplicate rejection, merge controls and manual merge fields. All
+four screens have desktop and 360 px captures, axe and overflow checks, with no external
+requests or page errors. The B08 case passes 1/1; web Prettier, typecheck, lint, 74 unit
+tests and production build pass. Captures use the `phase2-B08-` prefix.
+
 The real-model reference gate initially exceeded the eight-second assist bound. ML metrics
 isolated EasyOCR as the main cost: 1,549 seconds across 258 analyses (6.0 seconds each),
 versus 1.65 seconds total for category classification. Capping OCR input at 768px reduced
 the OCR detector area by 44% while retaining the real model and its output. A real-weight
 OCR check still reads the synthetic card title and masks its full number at that size. In
 the rebuilt service, 134 analyses averaged 3.17 seconds in OCR and 3.46 seconds end to end.
-The phase 1 reference and reduced-motion tests pass 3/3, B01-B07 pass 12/12, demo-ai passes
+The phase 1 reference and reduced-motion tests pass 3/3, B01-B08 pass 13/13, demo-ai passes
 4/4, and demo-record passes 4/4. No model output, UI timeout or production rate limit was
 changed.
 

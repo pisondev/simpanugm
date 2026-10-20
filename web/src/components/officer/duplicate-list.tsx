@@ -196,13 +196,17 @@ export function DuplicateList({ initialItems, currentStatus }: Props) {
       {items.length === 0 ? (
         <EmptyState icon={CopyCheck}>{t("emptyDuplicates")}</EmptyState>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid min-w-0 gap-4">
           {items.map((item) => {
             const selectedSurvivor = survivorSelection[item.id] ?? item.report_a.id
             const isBusy = busyId === item.id
 
             return (
-              <div key={item.id} className="flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-xs">
+              <article
+                key={item.id}
+                aria-label={`${t("reportA")}: ${item.report_a.item_name}; ${t("reportB")}: ${item.report_b.item_name}`}
+                className="flex min-w-0 flex-col gap-4 rounded-xl border bg-card p-5 shadow-xs"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="font-mono text-xs">
@@ -212,24 +216,28 @@ export function DuplicateList({ initialItems, currentStatus }: Props) {
                       {t("scorePercent", { score: Math.round(item.score * 100) })}
                     </Badge>
                   </div>
-                  <span className="text-xs text-muted-foreground">{formatDateTime(item.created_at)}</span>
+                  <span className="min-w-0 text-xs text-muted-foreground sm:text-right">{formatDateTime(item.created_at)}</span>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid min-w-0 gap-4 md:grid-cols-2">
                   {/* Report A */}
                   <div
-                    className={`rounded-lg border p-4 transition-colors ${
+                    className={`min-w-0 rounded-lg border p-4 transition-colors ${
                       selectedSurvivor === item.report_a.id ? "border-primary/50 bg-primary-soft/20" : "bg-muted/10"
                     }`}
                   >
-                    <div className="mb-2 flex items-center justify-between">
+                    <div className="mb-2 flex min-w-0 flex-wrap items-center justify-between gap-1">
                       <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">{t("reportA")}</span>
-                      <Link href={`/petugas/laporan/${item.report_a.code}`} target="_blank" className="font-mono text-xs text-primary underline">
+                      <Link
+                        href={`/petugas/laporan/${item.report_a.code}`}
+                        target="_blank"
+                        className="max-w-full font-mono text-xs break-all text-primary underline"
+                      >
                         {item.report_a.code}
                       </Link>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex min-w-0 gap-3">
                       {item.report_a.thumb_media_id ? (
                         <img
                           src={mediaUrl(item.report_a.thumb_media_id, "thumb")}
@@ -242,7 +250,7 @@ export function DuplicateList({ initialItems, currentStatus }: Props) {
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium">{item.report_a.item_name}</p>
                         <p className="mt-0.5 text-xs text-muted-foreground">{item.report_a.category_name}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
+                        <p className="mt-0.5 text-xs break-words text-muted-foreground">
                           {item.report_a.location_name} &bull; {formatDateTime(item.report_a.occurred_at)}
                         </p>
                       </div>
@@ -251,18 +259,22 @@ export function DuplicateList({ initialItems, currentStatus }: Props) {
 
                   {/* Report B */}
                   <div
-                    className={`rounded-lg border p-4 transition-colors ${
+                    className={`min-w-0 rounded-lg border p-4 transition-colors ${
                       selectedSurvivor === item.report_b.id ? "border-primary/50 bg-primary-soft/20" : "bg-muted/10"
                     }`}
                   >
-                    <div className="mb-2 flex items-center justify-between">
+                    <div className="mb-2 flex min-w-0 flex-wrap items-center justify-between gap-1">
                       <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">{t("reportB")}</span>
-                      <Link href={`/petugas/laporan/${item.report_b.code}`} target="_blank" className="font-mono text-xs text-primary underline">
+                      <Link
+                        href={`/petugas/laporan/${item.report_b.code}`}
+                        target="_blank"
+                        className="max-w-full font-mono text-xs break-all text-primary underline"
+                      >
                         {item.report_b.code}
                       </Link>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex min-w-0 gap-3">
                       {item.report_b.thumb_media_id ? (
                         <img
                           src={mediaUrl(item.report_b.thumb_media_id, "thumb")}
@@ -275,7 +287,7 @@ export function DuplicateList({ initialItems, currentStatus }: Props) {
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium">{item.report_b.item_name}</p>
                         <p className="mt-0.5 text-xs text-muted-foreground">{item.report_b.category_name}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
+                        <p className="mt-0.5 text-xs break-words text-muted-foreground">
                           {item.report_b.location_name} &bull; {formatDateTime(item.report_b.occurred_at)}
                         </p>
                       </div>
@@ -339,7 +351,7 @@ export function DuplicateList({ initialItems, currentStatus }: Props) {
                     {item.reviewed_at ? <span>{formatDateTime(item.reviewed_at)}</span> : null}
                   </div>
                 )}
-              </div>
+              </article>
             )
           })}
         </div>

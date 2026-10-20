@@ -19,6 +19,7 @@ All notable changes to this project are recorded here. The format follows
 - Polish member report details and editing with clearer private evidence, calmer timelines, reliable photo zoom and retained drafts on edit conflicts.
 - Polish member claim details, secure handover codes, claim conversations and notification recovery while retaining notification read behavior.
 - Polish member profile, active-session and notification settings with clear destructive-action confirmations.
+- Polish officer priority review, report-code lookup, semantic search and duplicate controls for desktop and phone screens.
 - Add semantic surfaces, local Inter, accessible motion primitives, finite skeleton shimmer and a reusable evidence comparison panel.
 - Document visual and motion research for the three phase 1 reference screens, including offline, performance and accessibility budgets.
 

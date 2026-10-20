@@ -8,6 +8,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { DismissDialog } from "@/components/matching/dismiss-dialog"
+import { ComparisonPanel } from "@/components/matching/comparison-panel"
 import { RematchButton } from "@/components/matching/match-actions"
 import { ScoreBars } from "@/components/matching/score-bars"
 import { percent, TierBadge } from "@/components/matching/tier-badge"
@@ -411,45 +412,35 @@ function CandidateCard({ candidate, reportType }: { candidate: MatchCandidate; r
 
 export function ReviewBoardView({ board, currentType, currentId }: { board: OfficerBoard; currentType: "lost" | "found"; currentId: string }) {
   const t = useTranslations("officer")
+  const reportTitle = board.report_type === "lost" ? t("boardTypeLost") : t("boardTypeFound")
+  const selectedReport =
+    (board.report_type === "lost" && board.lost_report && <SelectedLostReportCard report={board.lost_report} />) ||
+    (board.report_type === "found" && board.found_report && <SelectedFoundReportCard report={board.found_report} />)
+  const candidateList =
+    board.candidates.length === 0 ? (
+      <Card className="border-dashed">
+        <CardContent className="space-y-2 py-12 text-center text-muted-foreground">
+          <Sparkles className="mx-auto size-8 text-muted-foreground/60" aria-hidden />
+          <p className="font-medium">{t("boardNoCandidates")}</p>
+        </CardContent>
+      </Card>
+    ) : (
+      <div className="space-y-4">
+        {board.candidates.map((candidate) => (
+          <CandidateCard key={candidate.id} candidate={candidate} reportType={board.report_type} />
+        ))}
+      </div>
+    )
 
   return (
     <div className="space-y-6">
       <ReviewBoardSearch initialType={currentType} initialId={currentId} />
-
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-        <div className="space-y-4 lg:col-span-5">
-          <h2 className="text-base font-semibold tracking-wider text-muted-foreground uppercase">
-            {board.report_type === "lost" ? t("boardTypeLost") : t("boardTypeFound")}
-          </h2>
-
-          {board.report_type === "lost" && board.lost_report ? <SelectedLostReportCard report={board.lost_report} /> : null}
-
-          {board.report_type === "found" && board.found_report ? <SelectedFoundReportCard report={board.found_report} /> : null}
-        </div>
-
-        <div className="space-y-4 lg:col-span-7">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold tracking-wider text-muted-foreground uppercase">
-              {t("boardCandidatesCount", { count: board.candidates.length })}
-            </h2>
-          </div>
-
-          {board.candidates.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="space-y-2 py-12 text-center text-muted-foreground">
-                <Sparkles className="mx-auto size-8 text-muted-foreground/60" aria-hidden />
-                <p className="font-medium">{t("boardNoCandidates")}</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {board.candidates.map((candidate) => (
-                <CandidateCard key={candidate.id} candidate={candidate} reportType={board.report_type} />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <ComparisonPanel
+        leftTitle={reportTitle}
+        rightTitle={t("boardCandidatesCount", { count: board.candidates.length })}
+        left={selectedReport}
+        right={candidateList}
+      />
     </div>
   )
 }

@@ -77,7 +77,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/petugas/c
   return (
     <>
       <PageHeader title={t("searchTitle")} lead={t("searchLead")} />
-      <form method="get" role="search" className="mb-6 flex flex-col gap-3 rounded-xl border bg-card p-4">
+      <form method="get" role="search" className="mb-6 flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-xs">
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
             <label htmlFor="s-q" className="sr-only">
@@ -89,20 +89,21 @@ export default async function SearchPage({ searchParams }: PageProps<"/petugas/c
               {tc("search")}
             </Button>
           </div>
-          <div className="flex items-center gap-2 pt-0.5">
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
             <input
               type="checkbox"
               id="s-semantic"
               name="semantic"
               value="true"
               defaultChecked={semantic}
+              aria-describedby="s-semantic-hint"
               className="h-4 w-4 cursor-pointer rounded border-input text-primary focus:ring-primary"
             />
             <label htmlFor="s-semantic" className="cursor-pointer text-sm font-medium text-foreground select-none">
               {t("semanticSearch")}
             </label>
-            <span className="text-xs text-muted-foreground" title={t("semanticSearchDesc")}>
-              (AI-13)
+            <span id="s-semantic-hint" className="text-xs text-muted-foreground">
+              {t("semanticSearchDesc")}
             </span>
           </div>
         </div>
