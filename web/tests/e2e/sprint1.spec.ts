@@ -68,7 +68,7 @@ test("a member files a lost report without a photo", async ({ browser }) => {
   await page.getByRole("button", { name: "Lanjut" }).click()
   await pickPlace(page, "Tempat terakhir terlihat", "perpus", /Perpustakaan Pusat UGM/)
   await page.getByRole("button", { name: "Lanjut" }).click()
-  await page.getByLabel("Ciri khusus").fill("Goresan kecil di bawah tutup")
+  await page.getByRole("textbox", { name: "Ciri khusus" }).fill("Goresan kecil di bawah tutup")
   await page.getByRole("button", { name: "Lanjut" }).click()
   await expectAccessible(page)
   await page.getByRole("button", { name: "Kirim laporan" }).click()

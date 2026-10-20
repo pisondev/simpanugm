@@ -56,6 +56,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 
 ### Fixed
 
+- The lost report journey picks the special features field by its textbox role, because the stepper now labels its steps and the plain label matched two elements.
 - Demo mode of the web app (banner and one click demo sign in) is now opt in at build time with `NEXT_PUBLIC_DEMO_MODE=true`, set only by the dev and demo Compose override, so a production image never shows it. End to end runs use one worker so the time travel journey cannot expire invitations of other tests, and the demo journeys run only on request with `make demo-test` and `make demo-record`.
 - Fixed operator precedence in GetMediaForAccess query by explicitly grouping candidate match criteria, preventing confirmed matches from leaking media access, and added media access matrix integration tests.
 - Fixed restore script database verification to query system_settings instead of settings, removed invalid role parameter on pg_restore, and validated deployment artifacts with actionlint, shellcheck, and local database restore simulation.
