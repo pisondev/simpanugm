@@ -94,3 +94,4 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Verify and capture officer proxy lost/found reporting and staff record screens at desktop and phone widths.
 - Make top-1 monitoring histogram values available as accessible meters and verify fusion controls without activating a model.
 - Make hotspot markers keyboard operable with privacy-safe labels and add accessible horizontal scrolling to dense analytics tables.
+- Improve keyboard access and narrow-screen scrolling for admin user and audit tables.

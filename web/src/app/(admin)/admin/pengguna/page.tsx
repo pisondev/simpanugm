@@ -67,7 +67,12 @@ export default async function UsersPage({ searchParams }: PageProps<"/admin/peng
       {users.items.length === 0 ? (
         <EmptyState icon={Users}>{t("empty")}</EmptyState>
       ) : (
-        <div className="rounded-xl border bg-card">
+        <div
+          role="region"
+          aria-label="Daftar pengguna"
+          tabIndex={0}
+          className="overflow-x-auto rounded-xl border bg-card focus-visible:outline-2 focus-visible:outline-ring"
+        >
           <Table>
             <TableHeader>
               <TableRow>
