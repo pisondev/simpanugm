@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Add an explicit phase 2 screen and data playbook, and align the live demo script with actual routes, editable model suggestions and recording commands.
 - Cover desktop and 360 px reference screenshots with axe checks, real model suggestions, retry and reduced-motion failure handling.
 - Polish the public landing, owner candidates and photo-assisted found report flow with honest AI status, editable suggestions and animated evidence.
 - Add semantic surfaces, local Inter, accessible motion primitives, finite skeleton shimmer and a reusable evidence comparison panel.
