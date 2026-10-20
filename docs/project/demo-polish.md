@@ -80,6 +80,9 @@ sizes, a two-tab edit conflict that retains the unsaved review values, and closi
 explicit selected reason. Both B05 scenarios pass axe, horizontal overflow and offline
 request checks; screenshots use the `phase2-B05-` prefix. The local API limiter required
 restarting the API between the registration/edit and seeded-account scenarios.
+The searching state now changes to the calm no-candidate message after two minutes without
+a page refresh; a fake-timer unit test covers the transition and both B05 E2E cases pass
+again against the rebuilt web container.
 
 B06 groups claim status, evidence, secure handover code, and the officer conversation into
 clear surfaces, and adds visible retry feedback when notifications fail to load. The
@@ -127,54 +130,7 @@ awaiting physical receipt, so the happy-path intake was verified in the real Spr
 browser journey (7/7). B09 Prettier, typecheck, lint, 74 unit tests and production build
 pass. Captures use the `phase2-B09-` prefix.
 
-The real-model reference gate initially exceeded the eight-second assist bound. ML metrics
-isolated EasyOCR as the main cost: 1,549 seconds across 258 analyses (6.0 seconds each),
-versus 1.65 seconds total for category classification. Capping OCR input at 768px reduced
-the OCR detector area by 44% while retaining the real model and its output. A real-weight
-OCR check still reads the synthetic card title and masks its full number at that size. In
-the rebuilt service, 134 analyses averaged 3.17 seconds in OCR and 3.46 seconds end to end.
-The phase 1 reference and reduced-motion tests pass 3/3, B01-B09 pass 14/14, demo-ai passes
-4/4, and demo-record passes 4/4. A combined run hit the in-memory login limiter (HTTP
-429 confirmed in API logs); all four affected tests passed after restarting the local API
-and rerunning the affected suites separately. No model output, UI timeout or production
-rate limit was changed.
-
-The post-B04 reference, AI and recording checks passed 19/19 across two runs. The local
-API's in-memory sign-in limiter required an API restart before the four recording scenes;
-the cold model's first desktop suggestion also exceeded its existing eight-second bound,
-then passed when rerun with the model warm. No production rate limit or AI timeout was
-changed.
-
-## Phase 2 data work completed
-
-D01 expanded the manifest from 52 to 159 local images: 140 Wikimedia Commons originals,
-12 derived hero pairs and 7 team fixtures. The verified pack is 15.01 MB. The seeder
-adds 90 distinct eligible background photos after excluding the reserved holdout and
-duplicate image bytes, producing 111 found reports and 19 lost reports. The successful
-demo reset computed 72 matches, 5 claims, 1 duplicate and 18 clusters. One additional
-demo-only officer account distributes proxy uploads within the existing per-account
-limit; API rate limits were not changed.
-
-The reserved holdout `bg-flashdisk-011.jpg` stays out of the seeded reports. Through the
-normal lost-report form, the live assistant suggested Earphone at 0.8996 and Flashdisk
-at 0.0327. The report was corrected to Flashdisk and the visible blue and white colors.
-The real matching worker returned no candidate for the holdout. This is one demo sample,
-not an accuracy evaluation. On the report detail, the searching message remains until a
-page refresh even after the two-minute window; handle this with the member detail batch.
-
-The verified D01 assets and attribution are in [demo-credits.md](demo-credits.md), and
-live image model outputs are recorded in [demo-photo-check.md](../ai/demo-photo-check.md).
-The holdout browser run passed axe and used no external requests. Its desktop capture is
-`web/test-results/screenshots/d01-holdout-desktop.png`.
-
-## Guardrails
-
-Do not replace real model output, expose private fields, weaken the blurred identity
-photo rule, fake data totals, add a runtime CDN, or delay editable values for animation.
-Keep untranslated user copy out of components. Keep all existing actions and route
-permissions. Hosting remains on hold.
-
-B10 separates verification evidence, officer actions and internal notes on the existing claim detail. The queue/detail case covers an actual under-review claim at desktop and phone sizes; the lifecycle suite verifies required checklist guidance, numeric six-digit code validation, five-attempt locking, officer code regeneration, completed handover and owner receipt. No full identity number is exposed. B10 screenshots include queue and detail at both widths, plus the locked handover state. The targeted lifecycle run passed 6/6 (the fake-clock retention case is separate and was not included in this run).
+B10 separates verification evidence, officer actions and internal notes on the existing claim detail. The queue/detail case covers an actual under-review claim at desktop and phone sizes; the lifecycle suite verifies required checklist guidance, numeric six-digit code validation, five-attempt locking, officer code regeneration, completed handover and owner receipt. No full identity number is exposed. B10 screenshots include queue and detail at both widths, plus the locked handover state. The targeted lifecycle run passed 6/6 (the fake-clock retention case is separate and was not included in this run). The reset demo does not seed an approved claim, so the queue screenshot uses a genuine under-review claim and the lifecycle test proves approval and handover transitions.
 
 B11 confirms the existing proxy lost and found report routes preserve the visitor identity consent, proxy badge, finder and staff-only evidence, post and storage fields. Desktop and 360 px screens are covered by the B11 axe/overflow case. The seeded officer report workflow in the Sprint 1 suite continues to submit a real proxy found report and reach its officer record detail.
 
@@ -191,4 +147,48 @@ B16 adds named keyboard-scroll regions to zone and post tables. The browser case
 B17 names keyset pagination as a navigation landmark and verifies the member shell's offline status, return to online, capped notification label and global 404 recovery at desktop and phone sizes. The offline and not-found captures pass axe and horizontal overflow checks; the saved draft guidance remains visible during offline state.
 
 
-B17 names keyset pagination as a navigation landmark and verifies the member shell's offline status, return to online, capped notification label and global 404 recovery at desktop and phone sizes. The offline and not-found captures pass axe and horizontal overflow checks; the saved draft guidance remains visible during offline state.
+
+The real-model reference gate initially exceeded the eight-second assist bound. ML metrics
+isolated EasyOCR as the main cost: 1,549 seconds across 258 analyses (6.0 seconds each),
+versus 1.65 seconds total for category classification. Capping OCR input at 768px reduced
+the OCR detector area by 44% while retaining the real model and its output. A real-weight
+OCR check still reads the synthetic card title and masks its full number at that size. In
+the rebuilt service, 134 analyses averaged 3.17 seconds in OCR and 3.46 seconds end to end.
+The phase 1 reference tests pass 3/3; B01-B17 pass 22/22 across batch runs; demo-ai passes 4/4, demo-record passes 4/4, and the claim lifecycle run excluding fake-clock J6 passes 6/6. The first combined 25-test reference/AI/record run had 18 pass, 4 fail and 3 not run; API logs proved all four failures were login HTTP 429 from the local in-memory limiter. After a local API restart, the affected suites passed when rerun individually. No production rate limit or model timeout was changed.
+
+The post-B04 reference, AI and recording checks passed 19/19 across two runs. The local
+API's in-memory sign-in limiter required an API restart before the four recording scenes;
+the cold model's first desktop suggestion also exceeded its existing eight-second bound,
+then passed when rerun with the model warm. No production rate limit or AI timeout was
+changed.
+
+## Phase 2 data work completed
+
+D01 expanded the manifest from 52 to 159 local images: 140 Wikimedia Commons originals,
+12 derived hero pairs and 7 team fixtures. The verified pack is 15.01 MB. The seeder
+adds 90 distinct eligible background photos after excluding the reserved holdout and
+duplicate image bytes, producing 111 found reports and 19 lost reports. The final
+successful demo reset computed 73 matches, 5 claims, 1 duplicate and 17 clusters. One additional
+demo-only officer account distributes proxy uploads within the existing per-account
+limit; API rate limits were not changed.
+
+The curated hero-category Top 1 check moved from 4/14 correct (28.6%) before the prompt and hero refresh to 11/14 (78.6%) afterward, a 50 percentage-point gain on this small fixed sample, not an official accuracy result. Manifest license totals are CC BY 41, CC BY-SA 92, CC0 17 and public domain 9; all 159 rows pass the validator.
+
+The reserved holdout `bg-flashdisk-011.jpg` stays out of the seeded reports. Through the
+normal lost-report form, the live assistant suggested Earphone at 0.8996 and Flashdisk
+at 0.0327. The report was corrected to Flashdisk and the visible blue and white colors.
+The real matching worker returned no candidate for the holdout. This is one demo sample,
+not an accuracy evaluation. The member lost-report detail now changes its searching state
+automatically after two minutes without requiring a page refresh.
+
+The verified D01 assets and attribution are in [demo-credits.md](demo-credits.md), and
+live image model outputs are recorded in [demo-photo-check.md](../ai/demo-photo-check.md).
+The holdout browser run passed axe and used no external requests. Its desktop capture is
+`web/test-results/screenshots/d01-holdout-desktop.png`.
+
+## Guardrails
+
+Do not replace real model output, expose private fields, weaken the blurred identity
+photo rule, fake data totals, add a runtime CDN, or delay editable values for animation.
+Keep untranslated user copy out of components. Keep all existing actions and route
+permissions. Hosting remains on hold.

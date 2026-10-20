@@ -1,4 +1,4 @@
-import { LoaderCircle, Lock, Sparkles, UserRound } from "lucide-react"
+import { Lock, UserRound } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 
@@ -6,13 +6,11 @@ import type { HistoryEntry, LostReport } from "@/lib/api/types"
 import { formatDateTime, formatRange } from "@/lib/format"
 
 import { CodeChip } from "./code-chip"
+import { CandidateStatus } from "./candidate-status"
 import { Detail, DetailList } from "./detail-list"
 import { PhotoStrip } from "./photo-strip"
 import { StatusBadge } from "./status-badge"
 import { Timeline } from "./timeline"
-
-// matching normally answers within seconds, after two minutes the calm empty text replaces the spinner
-const searchingWindowMs = 2 * 60_000
 
 type Props = { report: LostReport; history: HistoryEntry[]; actions?: ReactNode; staff?: boolean; now: number; candidates?: ReactNode }
 
@@ -23,7 +21,6 @@ export function LostReportView({ report, history, actions, staff = false, now, c
   const ts = useTranslations("status")
   const tp = useTranslations("profile")
   const open = report.status !== "closed" && report.status !== "returned"
-  const searching = report.candidate_count === 0 && open && now - new Date(report.created_at).getTime() < searchingWindowMs
   const places = report.places.map((p) => p.location?.name ?? p.zone?.name).filter(Boolean)
   return (
     <article className="flex flex-col gap-6">
@@ -46,12 +43,7 @@ export function LostReportView({ report, history, actions, staff = false, now, c
 
       {open ? (
         <section className="flex items-start gap-3 rounded-xl border border-info/30 bg-primary-soft/50 p-4" aria-live="polite">
-          {searching ? (
-            <LoaderCircle className="mt-0.5 size-5 shrink-0 animate-spin text-info" aria-hidden />
-          ) : (
-            <Sparkles className="mt-0.5 size-5 shrink-0 text-info" aria-hidden />
-          )}
-          <p>{report.candidate_count > 0 ? t("candidateCount", { count: report.candidate_count }) : searching ? t("searching") : t("noCandidates")}</p>
+          <CandidateStatus candidateCount={report.candidate_count} createdAt={report.created_at} now={now} />
         </section>
       ) : null}
 
