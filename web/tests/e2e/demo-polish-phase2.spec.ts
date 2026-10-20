@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises"
 
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
-import { expectAccessible, latestLink, pathOf, registerMember, signIn, uniqueEmail } from "./helpers"
+import { allFoundReports, expectAccessible, latestLink, pathOf, registerMember, signIn, uniqueEmail } from "./helpers"
 
 const routes = [
   { path: "/bantuan", slug: "bantuan", title: "Bantuan" },
@@ -964,9 +964,7 @@ test.describe("B09 officer custody workspaces", () => {
     await page.setViewportSize({ width: 360, height: 800 })
     await captureB09(page, "terima", "360x800")
 
-    const foundResponse = await page.request.get(new URL("/api/v1/found-reports?limit=100", page.url()).toString())
-    expect(foundResponse.ok()).toBe(true)
-    const foundItems = (await foundResponse.json()).items as { code: string; item_name: string; custody_status: string }[]
+    const foundItems = await allFoundReports(page)
     const awaitingReceipt = foundItems.find((item) => item.custody_status === "with_finder")
     if (awaitingReceipt) {
       await page.goto(`/petugas/terima?code=${encodeURIComponent(awaitingReceipt.code)}`)

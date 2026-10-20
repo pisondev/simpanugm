@@ -159,7 +159,7 @@ var HeroLostReports = []DemoLostReport{
 	},
 	{
 		Key:            "lost-umbrella",
-		OwnerEmail:     "anggota@demo.simpanugm.my.id",
+		OwnerEmail:     "anggota.pemilik@demo.simpanugm.my.id",
 		ItemName:       "Payung Lipat Otomatis Hitam Polos",
 		CategorySlug:   "payung",
 		Colours:        []string{"hitam"},
@@ -246,9 +246,9 @@ var HeroFoundReports = []DemoFoundReport{
 		Description:   "Kunci kontak motor Honda dengan gantungan kulit warna cokelat ditemukan di meja kantin BioGeo",
 		HiddenDetails: "Ada remote alarm hitam dan gantungan miniatur helm kecil",
 		LocationSlug:  "kantin-biogeo",
-		PostSlug:      "pos-saintek",
-		CustodyMode:   "in_custody",
-		StorageSlot:   "Papan Kunci 04",
+		PostSlug:      "pos-perpustakaan",
+		CustodyMode:   "with_finder",
+		StorageSlot:   "",
 		DaysAgo:       3,
 		AssistOutcome: map[string]string{"category": "accepted", "colour": "accepted", "brand": "accepted"},
 		PhotoFilename: "hero-keys-found.jpg",
@@ -730,7 +730,7 @@ var DemoClaims = []DemoClaimSeed{
 		Answers: map[string]string{
 			"motorcycle_brand": "Honda Vario hitam dengan gantungan kulit cokelat dan miniatur helm kecil",
 		},
-		TargetStatus: "submitted",
+		TargetStatus: "under_review",
 	},
 	{
 		LostKey:       "lost-calculator",
@@ -746,7 +746,7 @@ var DemoClaims = []DemoClaimSeed{
 	{
 		LostKey:       "lost-umbrella",
 		FoundKey:      "found-umbrella",
-		ClaimantEmail: "anggota@demo.simpanugm.my.id",
+		ClaimantEmail: "anggota.pemilik@demo.simpanugm.my.id",
 		Statement:     "Payung lipat hitam otomatis ini milik saya yang tertinggal di lobby Perpustakaan Pusat saat hujan lebat.",
 		Answers: map[string]string{
 			"umbrella_colour_shape": "Payung lipat otomatis tombol tekan warna hitam polos",
@@ -764,7 +764,7 @@ var DemoClaims = []DemoClaimSeed{
 			"tumbler_mark": "Corkcicle putih kapasitas 500ml, alas ada sedikit penyok bekas jatuh",
 		},
 		TargetStatus:   "rejected",
-		DecisionReason: "detail_mismatch",
+		DecisionReason: "details_mismatch",
 		DecisionNote:   "Ciri khusus dan penyok yang disebutkan tidak cocok dengan fisik barang temuan di pos.",
 	},
 	{

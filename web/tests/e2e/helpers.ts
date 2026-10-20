@@ -80,6 +80,19 @@ export async function signIn(page: Page, email: string, password: string) {
   await page.getByRole("main").getByRole("button", { name: "Masuk", exact: true }).click()
 }
 
+export async function allFoundReports(page: Page) {
+  const items: { code: string; item_name: string; custody_status: string }[] = []
+  let cursor = ""
+  do {
+    const response = await page.request.get(`/api/v1/found-reports?limit=100${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`)
+    expect(response.ok()).toBe(true)
+    const body = (await response.json()) as { items: (typeof items)[number][]; next_cursor?: string }
+    items.push(...body.items)
+    cursor = body.next_cursor ?? ""
+  } while (cursor)
+  return items
+}
+
 export async function setPassword(page: Page, link: string, password: string, submit: string) {
   await page.goto(pathOf(link))
   await page.getByLabel("Kata sandi baru", { exact: true }).fill(password)

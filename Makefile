@@ -51,8 +51,9 @@ seed-demo:
 
 demo: env
 	$(COMPOSE) up -d --wait postgres ml mailpit
+	$(COMPOSE) stop api worker
 	$(COMPOSE) run --rm api demo
-	$(COMPOSE) restart api worker
+	$(COMPOSE) up -d --wait api worker web caddy
 
 demo-check:
 	python deploy/scripts/demo_check.py

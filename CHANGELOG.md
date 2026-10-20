@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Seed ready-to-use library handover, physical receipt and owner information-response stories; verify replay safety and complete all three through the real API in integration tests.
 - Expand demo master-data vocabulary with common campus synonyms and Indonesian brand aliases.
 - Add an explicit phase 2 screen and data playbook, and align the live demo script with actual routes, editable model suggestions and recording commands.
 - Cover desktop and 360 px reference screenshots with axe checks, real model suggestions, retry and reduced-motion failure handling.

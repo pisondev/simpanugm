@@ -1,8 +1,11 @@
 import { defineConfig, devices } from "@playwright/test"
 
+const demo = process.env.DEMO_E2E === "1"
+
 // journeys of testing-strategy section 4 against a running stack, make dev locally and the compose stack in CI
 export default defineConfig({
   testDir: "./tests/e2e",
+  testMatch: demo ? /demo-.*\.spec\.ts$/ : undefined,
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
@@ -18,8 +21,8 @@ export default defineConfig({
   },
   projects: [
     // the long journeys run once, on desktop, the member pages are covered on a phone by J1
-    { name: "phone", use: { ...devices["Pixel 7"] }, testIgnore: /sprint1|claims|demo-ai|demo-record|demo-polish|demo-photo/ },
+    { name: "phone", use: { ...devices["Pixel 7"] }, testIgnore: /sprint1|claims|demo-/ },
     // the demo journeys need the story of make demo, so they run only on request
-    { name: "desktop", use: { ...devices["Desktop Chrome"] }, testIgnore: process.env.DEMO_E2E ? undefined : /demo-ai|demo-record|demo-polish|demo-photo/ },
+    { name: "desktop", use: { ...devices["Desktop Chrome"] }, testIgnore: demo ? undefined : /demo-/ },
   ],
 })
