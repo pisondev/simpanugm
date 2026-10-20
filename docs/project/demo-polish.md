@@ -183,3 +183,5 @@ B12 keeps monitoring values sourced from the live API and gives each top-1 histo
 B13 makes map points keyboard-operable with privacy-suppressed names and counts, and wraps dense cluster, hotspot and trend tables in labelled keyboard-scroll regions. Desktop and phone captures exercise the cluster workspace, 90-day map filter and monthly CSV control; all three routes pass axe and overflow checks. The cluster run remains available as an explicit action and is not triggered during presentation checks.
 
 B14 adds named, keyboard-scrollable regions for the dense user and audit tables. The user search, date filters, CSV link and runtime settings form are checked at desktop and phone widths without submitting administrative mutations. The case passes axe and page-overflow checks; the web build and typecheck pass.
+
+B15 groups category and compatibility tables and location results in labelled keyboard-scroll regions. The browser case checks the four-tab master navigation, opens and cancels the subcategory form without saving, filters locations to the real empty state, and captures both routes at desktop and phone widths with axe and overflow checks.

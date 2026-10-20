@@ -37,7 +37,12 @@ export default async function CategoriesPage() {
         }
       />
       <MasterNav current="categories" />
-      <div className="rounded-xl border bg-card">
+      <div
+        role="region"
+        aria-label="Daftar kategori"
+        tabIndex={0}
+        className="overflow-x-auto rounded-xl border bg-card focus-visible:outline-2 focus-visible:outline-ring"
+      >
         <Table>
           <TableHeader>
             <TableRow>
@@ -101,7 +106,12 @@ export default async function CategoriesPage() {
         {pairs.items.length === 0 ? (
           <p className="text-muted-foreground">{t("categories.compatEmpty")}</p>
         ) : (
-          <div className="rounded-xl border bg-card">
+          <div
+            role="region"
+            aria-label="Aturan kompatibilitas kategori"
+            tabIndex={0}
+            className="overflow-x-auto rounded-xl border bg-card focus-visible:outline-2 focus-visible:outline-ring"
+          >
             <Table>
               <TableHeader>
                 <TableRow>

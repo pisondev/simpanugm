@@ -1266,3 +1266,54 @@ test.describe("B14 admin users audit and settings", () => {
     expect(errors).toEqual([])
   })
 })
+
+async function captureB15(page: Page, route: string, width: string) {
+  await expect(page.getByRole("main")).toBeVisible()
+  await expectAccessible(page)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth))
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({ path: `test-results/screenshots/phase2-B15-${route}-${width}.png`, fullPage: true, animations: "disabled" })
+}
+
+test.describe("B15 category and location administration", () => {
+  test("master data search, hierarchy and compatibility controls stay reachable at both widths", async ({ page }) => {
+    test.setTimeout(120_000)
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+    await page.goto("/masuk")
+    await page.getByRole("button", { name: /Administrator/ }).click()
+    await expect(page).toHaveURL(/\/admin$/)
+    for (const viewport of [
+      { width: 1366, height: 900, label: "1366x900" },
+      { width: 360, height: 800, label: "360x800" },
+    ]) {
+      await page.setViewportSize(viewport)
+      await page.goto("/admin/master/kategori")
+      await expect(page.getByRole("navigation", { name: "Kategori" })).toBeVisible()
+      await expect(page.getByRole("region", { name: "Daftar kategori" })).toBeVisible()
+      await expect(page.getByRole("region", { name: "Aturan kompatibilitas kategori" })).toBeVisible()
+      await page.getByRole("button", { name: "Tambah subkategori" }).click()
+      await expect(page.getByRole("heading", { name: "Tambah subkategori" })).toBeVisible()
+      await expect(page.getByRole("group", { name: "Pertanyaan verifikasi" })).toBeVisible()
+      await page.getByRole("button", { name: "Batal" }).click()
+      await captureB15(page, "kategori", viewport.label)
+
+      await page.goto("/admin/master/lokasi")
+      await expect(page.getByRole("search")).toBeVisible()
+      await expect(page.getByRole("region", { name: "Daftar lokasi" })).toBeVisible()
+      await page.getByLabel("Cari").fill("lokasi-tidak-ada-b15")
+      await page.getByRole("button", { name: "Terapkan" }).click()
+      await expect(page).toHaveURL(/q=lokasi-tidak-ada-b15/)
+      await expect(page.getByText("Belum ada data.", { exact: true })).toBeVisible()
+      await page.goto("/admin/master/lokasi")
+      await captureB15(page, "lokasi", viewport.label)
+    }
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})

@@ -95,3 +95,4 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Make top-1 monitoring histogram values available as accessible meters and verify fusion controls without activating a model.
 - Make hotspot markers keyboard operable with privacy-safe labels and add accessible horizontal scrolling to dense analytics tables.
 - Improve keyboard access and narrow-screen scrolling for admin user and audit tables.
+- Add keyboard-scrollable data regions to category, compatibility and location master tables.

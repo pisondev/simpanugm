@@ -61,7 +61,12 @@ export default async function LocationsPage({ searchParams }: PageProps<"/admin/
       {locations.items.length === 0 ? (
         <EmptyState icon={MapPin}>{t("empty")}</EmptyState>
       ) : (
-        <div className="rounded-xl border bg-card">
+        <div
+          role="region"
+          aria-label="Daftar lokasi"
+          tabIndex={0}
+          className="overflow-x-auto rounded-xl border bg-card focus-visible:outline-2 focus-visible:outline-ring"
+        >
           <Table>
             <TableHeader>
               <TableRow>
