@@ -347,3 +347,78 @@ Scores are the live ML endpoint response for the category prompts listed in `dat
 ## Live lost-report holdout
 
 The reserved g-flashdisk-011.jpg image was uploaded through the member lost-report form. The live web assistant returned Earphone at 0.8996, Flashdisk at 0.0327, and Kunci Lain at 0.0139. The report was manually corrected to Flashdisk. The separate CLI image-model result above is not interchangeable with the web assistant result because the endpoints use different inference paths. This single holdout is a workflow check, not an accuracy estimate.
+
+## T1 before alternative hero selection
+
+Measured on 21 October 2026 using `inspect_model_photos.py` against the resident real
+models. Before replacement, 11/14 heroes have the expected Top 1 category and 14/14
+include it in Top 3. The fixed demo sample is not an independent accuracy evaluation.
+
+Scores are the live ML endpoint response for the category prompts listed in `data/seed/categories.yaml`.
+
+| Image | Type | Expected | Top 1 | Top 1 score | Top 2 | Top 2 score | Top 3 | Top 3 score |
+|---|---|---|---|---:|---|---:|---|---:|
+| hero-earbuds-found.jpg | hero_found | earphone | earphone | 0.9966 | flashdisk | 0.0011 | charger | 0.0010 |
+| hero-wallet-found.jpg | hero_found | dompet | tempat-kartu | 0.9497 | dompet | 0.0396 | pouch | 0.0065 |
+| hero-keys-found.jpg | hero_found | kunci-motor | kunci-motor | 0.9321 | kunci-lain | 0.0288 | ransel | 0.0102 |
+| hero-calculator-found.jpg | hero_found | kalkulator | kalkulator | 0.9843 | tablet | 0.0066 | laptop | 0.0025 |
+| hero-umbrella-found.jpg | hero_found | payung | payung | 0.9916 | lainnya | 0.0020 | ponsel | 0.0013 |
+| hero-tumbler-found.jpg | hero_found | tumbler | tumbler | 0.7502 | botol-minum | 0.2485 | lainnya | 0.0006 |
+| hero-jacket-found.jpg | hero_found | jaket | jaket | 0.6630 | jas-almamater | 0.3047 | pakaian-lain | 0.0216 |
+| dup-glasses-1.jpg | hero_found | kacamata | kacamata | 0.9989 | lainnya | 0.0002 | jas-almamater | 0.0002 |
+| dup-glasses-2.jpg | hero_found | kacamata | kacamata | 0.9999 | perhiasan | 0.0000 | lainnya | 0.0000 |
+| hero-flashdisk-found.jpg | hero_found | flashdisk | flashdisk | 0.9574 | power-bank | 0.0280 | charger | 0.0115 |
+| hero-powerbank-found.jpg | hero_found | power-bank | laptop | 0.5510 | power-bank | 0.3140 | tablet | 0.0561 |
+| hero-book-found.jpg | hero_found | buku | buku | 0.9103 | alat-tulis | 0.0364 | jas-almamater | 0.0202 |
+| hero-backpack-found.jpg | hero_found | ransel | tas-laptop | 0.8832 | ransel | 0.0812 | laptop | 0.0159 |
+| hero-helmet-found.jpg | hero_found | helm | helm | 0.7217 | perhiasan | 0.0428 | lainnya | 0.0403 |
+
+## T1 alternative photos with unchanged prompts
+
+Three visually reviewed Commons photographs per category were tested with the same
+prompt hash. Candidate assets remain attributed in `SOURCES.csv` as `hero_candidate`
+and are excluded from report seeding. Photos with people, illustrations or visible
+personal cards were rejected before model analysis and are not stored in the pack.
+
+Scores are the live ML endpoint response for the category prompts listed in `data/seed/categories.yaml`.
+
+| Image | Type | Expected | Top 1 | Top 1 score | Top 2 | Top 2 score | Top 3 | Top 3 score |
+|---|---|---|---|---:|---|---:|---|---:|
+| t1-dompet-1.jpg | hero_candidate | dompet | dompet | 0.7216 | tempat-kartu | 0.2643 | pouch | 0.0124 |
+| t1-power-bank-1.jpg | hero_candidate | power-bank | tempat-kartu | 0.4828 | kartu-atm | 0.2780 | dompet | 0.1310 |
+| t1-power-bank-2.jpg | hero_candidate | power-bank | power-bank | 0.5279 | flashdisk | 0.2122 | tempat-kartu | 0.0778 |
+| t1-power-bank-3.jpg | hero_candidate | power-bank | power-bank | 0.8124 | charger | 0.0834 | laptop | 0.0579 |
+| t1-ransel-2.jpg | hero_candidate | ransel | tas-laptop | 0.6089 | ransel | 0.3628 | tote-bag | 0.0194 |
+| t1-ransel-4.jpg | hero_candidate | ransel | ransel | 0.8095 | tas-laptop | 0.1575 | jas-almamater | 0.0101 |
+| t1-ransel-5.jpg | hero_candidate | ransel | ransel | 0.5808 | tas-laptop | 0.2323 | jas-almamater | 0.1014 |
+| t1-dompet-4.jpg | hero_candidate | dompet | dompet | 0.5774 | tempat-kartu | 0.3496 | pouch | 0.0559 |
+| t1-dompet-5.jpg | hero_candidate | dompet | dompet | 0.7547 | tempat-kartu | 0.2389 | pouch | 0.0033 |
+
+## T1 final heroes, unchanged category prompts
+
+Selected `t1-dompet-1.jpg`, `t1-power-bank-3.jpg` and `t1-ransel-5.jpg`: a closed
+leather billfold, a portable battery with USB ports visible, and a school backpack
+against a plain wall. All are plausible campus lost items. The backpack was chosen
+for its unobstructed school-bag view rather than the highest candidate score.
+Their lost-photo pairs use the documented crop and lighting transform. Category
+prompts were unchanged. Top 1 improves to 14/14 (100%); Top 3 remains 14/14 (100%).
+These are image-endpoint rankings, not a guarantee of the web assistant's output.
+
+Scores are the live ML endpoint response for the category prompts listed in `data/seed/categories.yaml`.
+
+| Image | Type | Expected | Top 1 | Top 1 score | Top 2 | Top 2 score | Top 3 | Top 3 score |
+|---|---|---|---|---:|---|---:|---|---:|
+| hero-earbuds-found.jpg | hero_found | earphone | earphone | 0.9966 | flashdisk | 0.0011 | charger | 0.0010 |
+| hero-wallet-found.jpg | hero_found | dompet | dompet | 0.7216 | tempat-kartu | 0.2643 | pouch | 0.0124 |
+| hero-keys-found.jpg | hero_found | kunci-motor | kunci-motor | 0.9321 | kunci-lain | 0.0288 | ransel | 0.0102 |
+| hero-calculator-found.jpg | hero_found | kalkulator | kalkulator | 0.9843 | tablet | 0.0066 | laptop | 0.0025 |
+| hero-umbrella-found.jpg | hero_found | payung | payung | 0.9916 | lainnya | 0.0020 | ponsel | 0.0013 |
+| hero-tumbler-found.jpg | hero_found | tumbler | tumbler | 0.7502 | botol-minum | 0.2485 | lainnya | 0.0006 |
+| hero-jacket-found.jpg | hero_found | jaket | jaket | 0.6630 | jas-almamater | 0.3047 | pakaian-lain | 0.0216 |
+| dup-glasses-1.jpg | hero_found | kacamata | kacamata | 0.9989 | lainnya | 0.0002 | jas-almamater | 0.0002 |
+| dup-glasses-2.jpg | hero_found | kacamata | kacamata | 0.9999 | perhiasan | 0.0000 | lainnya | 0.0000 |
+| hero-flashdisk-found.jpg | hero_found | flashdisk | flashdisk | 0.9574 | power-bank | 0.0280 | charger | 0.0115 |
+| hero-powerbank-found.jpg | hero_found | power-bank | power-bank | 0.8124 | charger | 0.0834 | laptop | 0.0579 |
+| hero-book-found.jpg | hero_found | buku | buku | 0.9103 | alat-tulis | 0.0364 | jas-almamater | 0.0202 |
+| hero-backpack-found.jpg | hero_found | ransel | ransel | 0.5808 | tas-laptop | 0.2323 | jas-almamater | 0.1014 |
+| hero-helmet-found.jpg | hero_found | helm | helm | 0.7217 | perhiasan | 0.0428 | lainnya | 0.0403 |

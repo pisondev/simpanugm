@@ -10,7 +10,7 @@ This document lists attribution, sources, and open licenses for all photographs 
 - Privacy: No photographs contain identifiable faces, persons, or real identity documents.
 - Storage: All images downscaled to max 1024px longest edge to keep repo footprint minimal.
 
-Total images registered: 159
+Total images registered: 168
 
 ## Image inventory
 
@@ -149,9 +149,18 @@ Total images registered: 159
 | `bg-wallet-02.jpg` | dompet | background | Downtowngal | CC BY-SA 3.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Beaded_purse,_Winslow,_Arizona.jpg) |
 | `bg-watch-01.jpg` | jam-tangan | background | J. Lunau | CC BY-SA 3.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Junghans_Mega.jpg) |
 | `bg-watch-02.jpg` | jam-tangan | background | Solomon203 | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:2015_QNAP_weiya_souvenir_sports_watch.jpg) |
+| `t1-dompet-1.jpg` | dompet | hero_candidate | Nafis Fuad Ayon | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Aarong_leather_wallet.jpg) |
+| `t1-dompet-4.jpg` | dompet | hero_candidate | Pixloom | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:A_men%27s_wallet.jpg) |
+| `t1-dompet-5.jpg` | dompet | hero_candidate | Pauloleong2002 | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:An_old_wallet_with_brown_color.jpg) |
+| `t1-power-bank-1.jpg` | power-bank | hero_candidate | Чибас 333 | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Canyon_Power_Bank_4400_mAh.jpg) |
+| `t1-power-bank-2.jpg` | power-bank | hero_candidate | Dinkun Chen | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:SAMSUNG_BATTERY_PACK_(POWER_BANK)_EB-P4520.jpg) |
+| `t1-power-bank-3.jpg` | power-bank | hero_candidate | Jacek Halicki | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:2023_Powerbank_Green_Cell_PowerPlay_20_(2).jpg) |
+| `t1-ransel-2.jpg` | ransel | hero_candidate | Sir Tragedy | CC0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Wenger_backpack.jpg) |
+| `t1-ransel-4.jpg` | ransel | hero_candidate | Syced | CC0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Ubuntu_backpack.jpg) |
+| `t1-ransel-5.jpg` | ransel | hero_candidate | I AM GOING TO DRINK OCEAN WATER | CC0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Red_and_blue_champion_backpack.jpg) |
 | `dup-glasses-1.jpg` | kacamata | hero_found | Yapparina | CC0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Black_Titanium_Frame_Eyeglasses,_JINS_MTF-16S-151B,_1.jpg) |
 | `dup-glasses-2.jpg` | kacamata | hero_found | Unknown | CC BY 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Spectacles_(AM_607555-3).jpg) |
-| `hero-backpack-found.jpg` | ransel | hero_found | Manhyia | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:A_school_Bag.jpg) |
+| `hero-backpack-found.jpg` | ransel | hero_found | I AM GOING TO DRINK OCEAN WATER | CC0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Red_and_blue_champion_backpack.jpg) |
 | `hero-book-found.jpg` | buku | hero_found | Herbert Goldstein | Public domain | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Goldstein-Classmech-2nd-ed-cover.jpg) |
 | `hero-calculator-found.jpg` | kalkulator | hero_found | R. Henrik Nilsson | CC BY 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:1980_to_1988_scientific_calculator_Casio_fx_180P_made_in_Japan.jpg) |
 | `hero-earbuds-found.jpg` | earphone | hero_found | Wkoubnv | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:MS-TW21NV%E3%81%AE%E7%94%BB%E5%83%8F_2.jpg) |
@@ -159,11 +168,11 @@ Total images registered: 159
 | `hero-helmet-found.jpg` | helm | hero_found | A7N8X | CC BY-SA 3.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Helmet_motorsport.jpg) |
 | `hero-jacket-found.jpg` | jaket | hero_found | Santtu37 | CC BY-SA 3.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Halti_shell_suit.JPG) |
 | `hero-keys-found.jpg` | kunci-motor | hero_found | DARMAS SB 9 | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Kunci_Kontak_Sepeda_Motor.jpg) |
-| `hero-powerbank-found.jpg` | power-bank | hero_found | Verified legend | CC0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Itel_power_bank_Nigeria.jpg) |
+| `hero-powerbank-found.jpg` | power-bank | hero_found | Jacek Halicki | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:2023_Powerbank_Green_Cell_PowerPlay_20_(2).jpg) |
 | `hero-tumbler-found.jpg` | tumbler | hero_found | Williamsplex | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Reduce_Drinkware_Cold1_Tumbler.png) |
 | `hero-umbrella-found.jpg` | payung | hero_found | jam_232 | CC BY 2.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Functional_%26_practical_(8451672559).jpg) |
-| `hero-wallet-found.jpg` | dompet | hero_found | Eugenepik | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Leather_bi-fold_wallet_by_Eugene_Pik_(2021)_04.jpg) |
-| `hero-backpack-lost.jpg` | ransel | hero_lost | derived_from:hero-backpack-found.jpg | CC BY-SA 4.0 | [derived](https://commons.wikimedia.org/wiki/File:A_school_Bag.jpg) |
+| `hero-wallet-found.jpg` | dompet | hero_found | Nafis Fuad Ayon | CC BY-SA 4.0 | [wikimedia_commons](https://commons.wikimedia.org/wiki/File:Aarong_leather_wallet.jpg) |
+| `hero-backpack-lost.jpg` | ransel | hero_lost | derived_from:hero-backpack-found.jpg | CC0 | [derived](https://commons.wikimedia.org/wiki/File:Red_and_blue_champion_backpack.jpg) |
 | `hero-book-lost.jpg` | buku | hero_lost | derived_from:hero-book-found.jpg | Public domain | [derived](https://commons.wikimedia.org/wiki/File:Goldstein-Classmech-2nd-ed-cover.jpg) |
 | `hero-calculator-lost.jpg` | kalkulator | hero_lost | derived_from:hero-calculator-found.jpg | CC BY 4.0 | [derived](https://commons.wikimedia.org/wiki/File:1980_to_1988_scientific_calculator_Casio_fx_180P_made_in_Japan.jpg) |
 | `hero-earbuds-lost.jpg` | earphone | hero_lost | derived_from:hero-earbuds-found.jpg | CC BY-SA 4.0 | [derived](https://commons.wikimedia.org/wiki/File:MS-TW21NV%E3%81%AE%E7%94%BB%E5%83%8F_2.jpg) |
@@ -171,7 +180,7 @@ Total images registered: 159
 | `hero-helmet-lost.jpg` | helm | hero_lost | derived_from:hero-helmet-found.jpg | CC BY-SA 3.0 | [derived](https://commons.wikimedia.org/wiki/File:Helmet_motorsport.jpg) |
 | `hero-jacket-lost.jpg` | jaket | hero_lost | derived_from:hero-jacket-found.jpg | CC BY-SA 3.0 | [derived](https://commons.wikimedia.org/wiki/File:Halti_shell_suit.JPG) |
 | `hero-keys-lost.jpg` | kunci-motor | hero_lost | derived_from:hero-keys-found.jpg | CC BY-SA 4.0 | [derived](https://commons.wikimedia.org/wiki/File:Kunci_Kontak_Sepeda_Motor.jpg) |
-| `hero-powerbank-lost.jpg` | power-bank | hero_lost | derived_from:hero-powerbank-found.jpg | CC0 | [derived](https://commons.wikimedia.org/wiki/File:Itel_power_bank_Nigeria.jpg) |
+| `hero-powerbank-lost.jpg` | power-bank | hero_lost | derived_from:hero-powerbank-found.jpg | CC BY-SA 4.0 | [derived](https://commons.wikimedia.org/wiki/File:2023_Powerbank_Green_Cell_PowerPlay_20_(2).jpg) |
 | `hero-tumbler-lost.jpg` | tumbler | hero_lost | derived_from:hero-tumbler-found.jpg | CC BY-SA 4.0 | [derived](https://commons.wikimedia.org/wiki/File:Reduce_Drinkware_Cold1_Tumbler.png) |
 | `hero-umbrella-lost.jpg` | payung | hero_lost | derived_from:hero-umbrella-found.jpg | CC BY 2.0 | [derived](https://commons.wikimedia.org/wiki/File:Functional_%26_practical_(8451672559).jpg) |
-| `hero-wallet-lost.jpg` | dompet | hero_lost | derived_from:hero-wallet-found.jpg | CC BY-SA 4.0 | [derived](https://commons.wikimedia.org/wiki/File:Leather_bi-fold_wallet_by_Eugene_Pik_(2021)_04.jpg) |
+| `hero-wallet-lost.jpg` | dompet | hero_lost | derived_from:hero-wallet-found.jpg | CC BY-SA 4.0 | [derived](https://commons.wikimedia.org/wiki/File:Aarong_leather_wallet.jpg) |
