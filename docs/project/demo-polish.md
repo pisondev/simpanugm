@@ -47,6 +47,13 @@ remain available. Desktop and 360 px Playwright captures passed axe with no exte
 requests or page errors. Captures are in the ignored `web/test-results/screenshots/`
 directory with the `phase2-B01-` prefix.
 
+B02 applies the local auth texture behind the white auth card and preserves editable form
+validation, password visibility, demo role entry and token recovery. Desktop and 360 px
+captures cover sign-in, registration, missing and expired verification links, and missing
+and expired email confirmation links. The batch axe and external-request checks pass, and
+the existing `j1-register` suite passes all four tests. Captures use the `phase2-B02-`
+prefix in the ignored screenshot directory.
+
 ## Phase 2 data work completed
 
 D01 expanded the manifest from 52 to 159 local images: 140 Wikimedia Commons originals,

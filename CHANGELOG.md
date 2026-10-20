@@ -13,6 +13,7 @@ All notable changes to this project are recorded here. The format follows
 - Polish the public landing, owner candidates and photo-assisted found report flow with honest AI status, editable suggestions and animated evidence.
 - Expand the attributed demo photo pool to 159 assets, seed 90 deduplicated background finds, and verify a real misclassified holdout through the member lost-report flow.
 - Polish public help, privacy and terms pages with readable post hours and responsive legal content while retaining public account links.
+- Add the local auth texture and responsive card treatment while preserving validation, demo role entry and expired-link recovery.
 - Add semantic surfaces, local Inter, accessible motion primitives, finite skeleton shimmer and a reusable evidence comparison panel.
 - Document visual and motion research for the three phase 1 reference screens, including offline, performance and accessibility budgets.
 

@@ -24,6 +24,19 @@ async function capture(page: Page, route: (typeof routes)[number], width: string
   })
 }
 
+async function captureAuth(page: Page, title: string, name: string, width: string) {
+  await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible()
+  await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => undefined))))
+  await expectAccessible(page)
+  await expect(page.locator("html")).toHaveJSProperty("scrollWidth", await page.evaluate(() => window.innerWidth))
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({
+    path: `test-results/screenshots/phase2-B02-${name}-${width}.png`,
+    fullPage: true,
+    animations: "disabled",
+  })
+}
+
 test.describe("B01 public help and legal views", () => {
   for (const viewport of [
     { width: 1366, height: 900, label: "1366x900" },
@@ -75,6 +88,68 @@ test.describe("B01 public help and legal views", () => {
           await expect(page.getByRole("heading", { name: "Serah terima" })).toBeVisible()
         }
       }
+
+      expect(external).toEqual([])
+      expect(errors).toEqual([])
+    })
+  }
+})
+
+test.describe("B02 sign-in and verification views", () => {
+  for (const viewport of [
+    { width: 1366, height: 900, label: "1366x900" },
+    { width: 360, height: 800, label: "360x800" },
+  ]) {
+    test(`auth entry and recovery remain usable at ${viewport.label}`, async ({ page }) => {
+      test.setTimeout(120_000)
+      await page.setViewportSize({ width: viewport.width, height: viewport.height })
+      const external: string[] = []
+      const errors: string[] = []
+      page.on("request", (request) => {
+        const url = new URL(request.url())
+        if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) {
+          external.push(request.url())
+        }
+      })
+      page.on("pageerror", (error) => errors.push(error.message))
+
+      await page.goto("/masuk")
+      await captureAuth(page, "Masuk", "masuk", viewport.label)
+      await expect(page.getByText("Masuk Cepat Mode Demo", { exact: true })).toBeVisible()
+      await expect(page.getByRole("button", { name: "Penemu (Mahasiswa)" })).toBeVisible()
+      if (viewport.width === 1366) {
+        await page.getByRole("button", { name: "Penemu (Mahasiswa)" }).click()
+        await expect(page).toHaveURL(/\/beranda$/)
+        await expect(page.getByRole("heading", { name: /Halo, Budi/ })).toBeVisible()
+        await page.context().clearCookies()
+      }
+
+      await page.goto("/daftar")
+      await captureAuth(page, "Daftar", "daftar", viewport.label)
+      await expect(page.getByRole("link", { name: "pemberitahuan privasi" })).toBeVisible()
+      await page.getByRole("button", { name: "Tampilkan kata sandi" }).click()
+      await expect(page.getByLabel("Kata sandi", { exact: true })).toHaveAttribute("type", "text")
+      await page.getByRole("button", { name: "Sembunyikan kata sandi" }).click()
+      await expect(page.getByLabel("Kata sandi", { exact: true })).toHaveAttribute("type", "password")
+      await page.getByRole("button", { name: "Buat akun" }).click()
+      await expect(page.getByLabel("Nama lengkap")).toHaveAttribute("aria-invalid", "true")
+      await expectAccessible(page)
+
+      await page.goto("/verifikasi")
+      await expect(page.getByText("Tautan verifikasi tidak lengkap.")).toBeVisible()
+      await captureAuth(page, "Verifikasi email", "verifikasi-missing", viewport.label)
+      await page.goto("/verifikasi?token=expired-invalid")
+      await expect(page.getByRole("heading", { name: "Tautan kedaluwarsa" })).toBeVisible()
+      await expect(page.getByRole("main").getByRole("link", { name: "Masuk", exact: true })).toBeVisible()
+      await captureAuth(page, "Verifikasi email", "verifikasi-expired", viewport.label)
+
+      await page.goto("/konfirmasi-email")
+      await expect(page.getByText("Tautan konfirmasi tidak lengkap.")).toBeVisible()
+      await captureAuth(page, "Konfirmasi email baru", "konfirmasi-missing", viewport.label)
+      await page.goto("/konfirmasi-email?token=expired-invalid")
+      await expect(page.getByText(/Tautan tidak berlaku/)).toBeVisible()
+      await expect(page.getByRole("link", { name: "Ke Profil" })).toBeVisible()
+      await captureAuth(page, "Konfirmasi email baru", "konfirmasi-expired", viewport.label)
 
       expect(external).toEqual([])
       expect(errors).toEqual([])

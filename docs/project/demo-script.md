@@ -33,6 +33,8 @@ The local pack has 159 attributed images. The seed-only account `Petugas Foto De
 supports background report distribution and is not a primary presentation actor.
 Before a demo, `/bantuan` lists current post locations and opening hours; `/privasi` and
 `/ketentuan` keep the full student-project disclosures available from the public footer.
+At `/masuk`, use a demo role button for a seeded actor. Registration and expired-link
+recovery remain available for the full account lifecycle demonstration.
 
 ### Accounts
 
