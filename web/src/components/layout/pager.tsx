@@ -10,7 +10,7 @@ export function Pager({ path, filter, cursor, next }: { path: string; filter: Re
     return null
   }
   return (
-    <div className="mt-6 flex flex-wrap justify-center gap-3">
+    <nav aria-label={t("pageNavigation")} className="mt-6 flex flex-wrap justify-center gap-3">
       {cursor ? (
         <ButtonLink href={`${path}${queryString(filter)}`} variant="ghost">
           {t("firstPage")}
@@ -21,6 +21,6 @@ export function Pager({ path, filter, cursor, next }: { path: string; filter: Re
           {t("nextPage")}
         </ButtonLink>
       ) : null}
-    </div>
+    </nav>
   )
 }

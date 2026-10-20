@@ -1369,3 +1369,46 @@ test.describe("B16 zone and post administration", () => {
     expect(errors).toEqual([])
   })
 })
+
+async function captureB17(page: Page, route: string, width: string) {
+  await expect(page.getByRole("main")).toBeVisible()
+  await expectAccessible(page)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth))
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({ path: `test-results/screenshots/phase2-B17-${route}-${width}.png`, fullPage: true, animations: "disabled" })
+}
+
+test.describe("B17 global feedback and navigation", () => {
+  test("offline recovery, not-found route and member navigation are clear at both widths", async ({ page }) => {
+    test.setTimeout(120_000)
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+    await signInDemo(page, "Pemilik (Mahasiswa)")
+    for (const viewport of [
+      { width: 1366, height: 900, label: "1366x900" },
+      { width: 360, height: 800, label: "360x800" },
+    ]) {
+      await page.setViewportSize(viewport)
+      await page.goto("/beranda")
+      await expect(page.getByRole("navigation", { name: "Navigasi utama" })).toBeVisible()
+      if (viewport.width === 360) await expect(page.getByRole("link", { name: /Notifikasi/ })).toHaveAttribute("aria-label", /Notifikasi/)
+      await page.context().setOffline(true)
+      await expect(page.getByRole("status")).toContainText("Kamu sedang offline")
+      await captureB17(page, "offline", viewport.label)
+      await page.context().setOffline(false)
+      await expect(page.getByText("Kamu sedang offline")).toHaveCount(0)
+
+      await page.goto("/rute-tidak-tersedia")
+      await expect(page.getByRole("heading", { name: "Halaman tidak ditemukan" })).toBeVisible()
+      await expect(page.getByRole("link", { name: "Ke halaman utama" })).toBeVisible()
+      await captureB17(page, "not-found", viewport.label)
+    }
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})

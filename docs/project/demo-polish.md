@@ -189,3 +189,6 @@ B15 groups category and compatibility tables and location results in labelled ke
 B16 adds named keyboard-scroll regions to zone and post tables. The browser case opens the zone coordinate form and checks its coordinate fields, then enters an invalid Monday opening-hours range in the post form and verifies inline rejection without sending a mutation. Both screens pass axe and overflow checks at desktop and phone widths.
 
 B17 names keyset pagination as a navigation landmark and verifies the member shell's offline status, return to online, capped notification label and global 404 recovery at desktop and phone sizes. The offline and not-found captures pass axe and horizontal overflow checks; the saved draft guidance remains visible during offline state.
+
+
+B17 names keyset pagination as a navigation landmark and verifies the member shell's offline status, return to online, capped notification label and global 404 recovery at desktop and phone sizes. The offline and not-found captures pass axe and horizontal overflow checks; the saved draft guidance remains visible during offline state.

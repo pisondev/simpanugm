@@ -97,3 +97,4 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Improve keyboard access and narrow-screen scrolling for admin user and audit tables.
 - Add keyboard-scrollable data regions to category, compatibility and location master tables.
 - Improve narrow-screen administration of zones and posts, and verify opening-hour validation without saving invalid data.
+- Label keyset pagination navigation and verify offline recovery, 404 guidance and role navigation on desktop and phone.
