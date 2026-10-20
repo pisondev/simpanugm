@@ -1,4 +1,4 @@
-# Demo polish status
+﻿# Demo polish status
 
 Phase 1 reference implementation, 20 October 2026.
 
@@ -37,7 +37,28 @@ delta is 5,925 gzip bytes across the whole build, not a per-route first-load est
 
 The actual photo model misclassified the earbuds reference as Charger. Correction is
 manual and stays editable. Broader model accuracy work is outside this visual phase.
-The photo pool remains at 52 files and requires the guarded D01 work in the playbook.
+
+## Phase 2 data work completed
+
+D01 expanded the manifest from 52 to 159 local images: 140 Wikimedia Commons originals,
+12 derived hero pairs and 7 team fixtures. The verified pack is 15.01 MB. The seeder
+adds 90 distinct eligible background photos after excluding the reserved holdout and
+duplicate image bytes, producing 111 found reports and 19 lost reports. The successful
+demo reset computed 72 matches, 5 claims, 1 duplicate and 18 clusters. One additional
+demo-only officer account distributes proxy uploads within the existing per-account
+limit; API rate limits were not changed.
+
+The reserved holdout `bg-flashdisk-011.jpg` stays out of the seeded reports. Through the
+normal lost-report form, the live assistant suggested Earphone at 0.8996 and Flashdisk
+at 0.0327. The report was corrected to Flashdisk and the visible blue and white colors.
+The real matching worker returned no candidate for the holdout. This is one demo sample,
+not an accuracy evaluation. On the report detail, the searching message remains until a
+page refresh even after the two-minute window; handle this with the member detail batch.
+
+The verified D01 assets and attribution are in [demo-credits.md](demo-credits.md), and
+live image model outputs are recorded in [demo-photo-check.md](../ai/demo-photo-check.md).
+The holdout browser run passed axe and used no external requests. Its desktop capture is
+`web/test-results/screenshots/d01-holdout-desktop.png`.
 
 ## Guardrails
 

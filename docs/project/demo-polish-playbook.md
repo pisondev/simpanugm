@@ -255,8 +255,9 @@ browser/model verification on a memory-constrained laptop.
 
 ## 6. D01, expand the demo photo pool safely
 
-Target about 150 total images, including existing hero/derived assets. Current manifest:
-52 images across 19 categories. No image download was performed in phase 1.
+Target about 150 total images, including existing hero/derived assets. At the start of
+phase 2 the manifest had 52 images across 19 categories; D01 later expanded it to 159.
+No image download was performed in phase 1.
 
 ### Repair collection before using it
 
@@ -288,7 +289,7 @@ playbook or substitute other sources.
 
 ### Fill sparse categories first
 
-| Existing count | Categories | Priority |
+| Phase 1 starting count | Categories | Priority |
 |---|---|---|
 | 1 each | mouse, kabel-charger, kotak-pensil, sepatu, topi | First bring each to at least 6 distinct usable object photos |
 | 2 | jam-tangan | Next bring to at least 6 |

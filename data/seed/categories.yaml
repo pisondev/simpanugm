@@ -175,9 +175,9 @@ parents:
         name: Earphone
         sensitivity: valuable
         clip_prompts:
-          - a photo of wireless earbuds
-          - a pair of earphones in a charging case
-          - small personal audio earbuds
+          - a photo of a small pair of wireless in-ear Bluetooth earbuds with a matching pocket charging case
+          - a pair of tiny personal audio earbuds stored in a compact case
+          - wireless earphones worn in the ears, with separate left and right earbuds
         verification_questions:
           - key: earphone_case_mark
             question: Sebutkan merek, warna, dan ciri casing atau earphone.
@@ -244,9 +244,9 @@ parents:
         name: Kunci Motor
         sensitivity: valuable
         clip_prompts:
-          - a photo of a motorcycle key
-          - a motorbike key with a keychain
-          - a metal vehicle key
+          - a photo of a motorcycle ignition key with a motorcycle key fob or keychain
+          - a motorbike key used to start a motorcycle, with a small key ring
+          - a metal vehicle ignition key and motorcycle remote fob
         verification_questions:
           - key: motorcycle_brand
             question: Sebutkan merek motor dan bentuk atau isi gantungan kunci.
@@ -326,9 +326,9 @@ parents:
         name: Tumbler
         sensitivity: normal
         clip_prompts:
-          - a photo of a travel tumbler
-          - an insulated coffee tumbler
-          - a reusable metal tumbler
+          - a photo of a reusable insulated drinking tumbler with a lid
+          - a personal travel cup or water bottle made of metal or plastic
+          - a cylindrical beverage tumbler with a fitted drinking lid
         verification_questions:
           - key: tumbler_mark
             question: Sebutkan bahan, kapasitas, warna, dan ciri tutup tumbler.
@@ -343,9 +343,9 @@ parents:
         name: Payung
         sensitivity: normal
         clip_prompts:
-          - a photo of an umbrella
-          - a folded umbrella
-          - a compact umbrella
+          - a photo of a folded portable umbrella with its canopy and handle visible
+          - an opened rain umbrella with fabric panels and a central shaft
+          - a compact personal umbrella used for rain protection
         verification_questions:
           - key: umbrella_colour_shape
             question: Sebutkan warna, motif, dan bentuk gagang payung.
@@ -364,9 +364,9 @@ parents:
         name: Jaket
         sensitivity: normal
         clip_prompts:
-          - a photo of a jacket
-          - a casual jacket
-          - a zippered outerwear jacket
+          - a photo of a wearable jacket garment with sleeves and a front zipper
+          - a casual outerwear coat or jacket worn on the upper body
+          - a folded personal jacket made of fabric
         verification_questions:
           - key: jacket_mark
             question: Sebutkan merek, ukuran, warna, dan ciri pada jaket.
@@ -475,9 +475,9 @@ parents:
         name: Buku
         sensitivity: normal
         clip_prompts:
-          - a photo of a personal book
-          - a notebook or textbook
-          - a book with handwritten notes
+          - a photo of a closed book with a visible cover and bound pages
+          - a personal textbook or novel lying on a table
+          - a paper notebook or bound study book with pages
         verification_questions:
           - key: book_notes
             question: Sebutkan judul, tanda pada sampul, atau isi catatan pribadi.

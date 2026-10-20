@@ -29,6 +29,8 @@ photo step once to warm inference, then clear the rehearsal draft through the UI
 Demo data and scores are labelled as such. The landing footer explains this is a
 student project, not an official UGM service. Do not present demo outputs as an official
 accuracy evaluation. No hosting or external network is required for the reference flows.
+The local pack has 159 attributed images. The seed-only account `Petugas Foto Demo`
+supports background report distribution and is not a primary presentation actor.
 
 ### Accounts
 
@@ -71,9 +73,11 @@ three-step explanation and privacy note. Registration and sign-in stay available
    Continue to Detail while analysis is pending. Inputs remain editable.
 3. When "Saran dari fotomu sudah siap" appears, inspect the fields labelled
    "Saran otomatis", the two alternative category chips and drafted description.
-   Do not promise a particular category, brand or color. In the phase 1 run, the
-   earbuds photo was classified as Charger, so demonstrate manual correction to
-   Earphone and describe this as a model limitation.
+   Do not promise a particular category, brand or color. The earbuds photo was
+   classified as Charger in phase 1, so demonstrate manual correction to Earphone.
+   In the D01 holdout run, the flash drive photo ranked Earphone at 0.8996 and
+   Flashdisk at 0.0327. The report was corrected manually, and the real worker found
+   no candidate. Both are single demo examples, not model accuracy results.
 4. If analysis times out, show the inline unavailable explanation, try "Coba saran
    lagi" once, then continue manually if needed. Do not replace real output with a mock.
 5. Enter the item name and correct public description, select the found location and

@@ -67,7 +67,7 @@ def run_derive(demo_dir: Path) -> int:
         for r in reader:
             rows.append(r)
 
-    derived_rows: list[dict[str, str]] = []
+    derived_rows: dict[str, dict[str, str]] = {}
     count = 0
 
     for r in rows:
@@ -79,7 +79,7 @@ def run_derive(demo_dir: Path) -> int:
 
             if src_file.exists():
                 derive_image(src_file, dest_file)
-                derived_rows.append({
+                derived_rows[lost_fn] = {
                     "filename": lost_fn,
                     "source": "derived",
                     "author": f"derived_from:{fn}",
@@ -88,14 +88,12 @@ def run_derive(demo_dir: Path) -> int:
                     "category": r["category"],
                     "item_type": "hero_lost",
                     "notes": "Derived crop, lighting and perspective shift of hero object",
-                })
+                }
                 count += 1
 
-    # Merge rows avoiding duplicates
-    existing_filenames = {r["filename"] for r in rows}
-    for dr in derived_rows:
-        if dr["filename"] not in existing_filenames:
-            rows.append(dr)
+    replacements = set(derived_rows)
+    rows = [row for row in rows if row["filename"] not in replacements]
+    rows.extend(derived_rows.values())
 
     with open(manifest_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(

@@ -207,6 +207,16 @@ func Run(ctx context.Context, deps Deps) (*Result, error) {
 	}
 	catRows.Close()
 
+	categorySlugs := make([]string, 0, len(categoriesBySlug))
+	for slug := range categoriesBySlug {
+		categorySlugs = append(categorySlugs, slug)
+	}
+	discoveredFoundReports, err := discoverLocalBackgroundFoundReports(categorySlugs)
+	if err != nil {
+		return nil, fmt.Errorf("discover demo photo reports: %w", err)
+	}
+	slog.Info("discovered licensed demo photo reports", "count", len(discoveredFoundReports))
+
 	st := settings.New(deps.Pool, sqlc.New(deps.Pool), deps.Clock.Now)
 	mailer := notify.NewMailer(deps.Jobs, strings.TrimRight(deps.Config.PublicBaseURL, "/"))
 	authSvc := auth.NewService(deps.Pool, deps.Clock, mailer, st)
@@ -250,9 +260,14 @@ func Run(ctx context.Context, deps Deps) (*Result, error) {
 	allLost = append(allLost, HeroLostReports...)
 	allLost = append(allLost, BackgroundLostReports...)
 
-	allFound := make([]DemoFoundReport, 0, len(HeroFoundReports)+len(BackgroundFoundReports))
+	allFound := make([]DemoFoundReport, 0, len(HeroFoundReports)+len(BackgroundFoundReports)+len(discoveredFoundReports))
 	allFound = append(allFound, HeroFoundReports...)
 	allFound = append(allFound, BackgroundFoundReports...)
+	discoveredFoundReports, err = balanceDemoPhotoUploaders(discoveredFoundReports, allLost)
+	if err != nil {
+		return nil, fmt.Errorf("balance demo photo uploads: %w", err)
+	}
+	allFound = append(allFound, discoveredFoundReports...)
 
 	lostMap := make(map[string]openapi.LostReport)
 	foundMap := make(map[string]openapi.FoundReport)
@@ -355,6 +370,11 @@ func Run(ctx context.Context, deps Deps) (*Result, error) {
 		var proxyInput *reports.ProxyFound
 		if strings.HasPrefix(r.Key, "bg-found-") {
 			officerUser := userMap["petugas@demo.simpanugm.my.id"]
+			if strings.HasPrefix(r.Key, "bg-found-photo-") {
+				if assigned, ok := userMap[r.FinderEmail]; ok {
+					officerUser = assigned
+				}
+			}
 			p = principalFor(officerUser, allPostIDs)
 			finderName := fmt.Sprintf("Penemu Kampus %02d", idx+1)
 			slot := r.StorageSlot
