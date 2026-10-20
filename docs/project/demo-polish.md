@@ -175,3 +175,5 @@ Keep untranslated user copy out of components. Keep all existing actions and rou
 permissions. Hosting remains on hold.
 
 B10 separates verification evidence, officer actions and internal notes on the existing claim detail. The queue/detail case covers an actual under-review claim at desktop and phone sizes; the lifecycle suite verifies required checklist guidance, numeric six-digit code validation, five-attempt locking, officer code regeneration, completed handover and owner receipt. No full identity number is exposed. B10 screenshots include queue and detail at both widths, plus the locked handover state. The targeted lifecycle run passed 6/6 (the fake-clock retention case is separate and was not included in this run).
+
+B11 confirms the existing proxy lost and found report routes preserve the visitor identity consent, proxy badge, finder and staff-only evidence, post and storage fields. Desktop and 360 px screens are covered by the B11 axe/overflow case. The seeded officer report workflow in the Sprint 1 suite continues to submit a real proxy found report and reach its officer record detail.

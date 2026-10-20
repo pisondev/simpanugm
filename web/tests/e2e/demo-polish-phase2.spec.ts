@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises"
 
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
-import { expectAccessible, latestLink, pathOf, registerMember, signIn, uniqueEmail } from "./helpers"
+import { attachPhoto, expectAccessible, latestLink, pathOf, registerMember, signIn, uniqueEmail } from "./helpers"
 
 const routes = [
   { path: "/bantuan", slug: "bantuan", title: "Bantuan" },
@@ -1065,6 +1065,50 @@ test.describe("B10 officer claim verification and handover", () => {
     await page.setViewportSize({ width: 360, height: 800 })
     await captureB10(page, "detail", "360x800")
 
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})
+
+async function captureB11(page: Page, route: string, width: string) {
+  await expect(page.getByRole("main")).toBeVisible()
+  await expectAccessible(page)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth))
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({ path: `test-results/screenshots/phase2-B11-${route}-${width}.png`, fullPage: true, animations: "disabled" })
+}
+
+test.describe("B11 officer proxy reports and records", () => {
+  test("proxy report forms preserve identity, custody and staff-only evidence at both widths", async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(10_000)
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+    await page.goto("/masuk")
+    await page.getByRole("button", { name: /Petugas \(Pos Perpus\)/ }).click()
+    await expect(page).toHaveURL(/\/petugas$/)
+
+    for (const viewport of [
+      { width: 1366, height: 900, label: "1366x900" },
+      { width: 360, height: 800, label: "360x800" },
+    ]) {
+      await page.setViewportSize(viewport)
+      await page.goto("/petugas/lapor-hilang")
+      await expect(page.getByRole("heading", { name: "Lapor kehilangan atas nama" })).toBeVisible()
+      await expect(page.getByLabel("Nama pengunjung")).toBeVisible()
+      await expect(page.getByRole("checkbox").first()).toBeVisible()
+      await captureB11(page, "lapor-hilang", viewport.label)
+
+      await page.goto("/petugas/lapor-temuan")
+      await expect(page.getByRole("heading", { name: "Lapor temuan atas nama" })).toBeVisible()
+      await expect(page.getByRole("button", { name: "Lanjut" })).toBeEnabled()
+      await captureB11(page, "lapor-temuan", viewport.label)
+    }
     expect(external).toEqual([])
     expect(errors).toEqual([])
   })

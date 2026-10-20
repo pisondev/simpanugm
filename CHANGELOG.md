@@ -91,3 +91,4 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Strict-Transport-Security (HSTS), Content-Security-Policy, and CORS headers enforced in reverse proxy and HTTP middleware.
 - Role based access control (RBAC) enforced on all endpoints with `HttpOnly`, `SameSite=Lax` cookie sessions and CSRF protection.
 - Polish officer claim review with required-check guidance, numeric handover validation, and clear lock and code-regeneration recovery.
+- Verify and capture officer proxy lost/found reporting and staff record screens at desktop and phone widths.
