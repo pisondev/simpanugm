@@ -10,6 +10,8 @@ services:
   api:
     environment:
       AUTH_REGISTER_PER_HOUR: "500"
+      AUTH_LOGIN_IP_PER_15_MINUTES: "500"
+      AUTH_LOGIN_PAIR_PER_15_MINUTES: "500"
     ports:
       - "8090:8090"
       - "9091:9091"

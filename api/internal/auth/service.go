@@ -79,6 +79,14 @@ func (s *Service) LimitRegistrations(perHour int) {
 	s.register = ratelimit.New(perHour, time.Hour, s.clock.Now)
 }
 
+func (s *Service) LimitLoginsPerIP(per15Minutes int) {
+	s.loginIP = ratelimit.New(per15Minutes, 15*time.Minute, s.clock.Now)
+}
+
+func (s *Service) LimitLoginPairs(per15Minutes int) {
+	s.loginPair = ratelimit.New(per15Minutes, 15*time.Minute, s.clock.Now)
+}
+
 type Session struct {
 	Token     string
 	ExpiresAt time.Time

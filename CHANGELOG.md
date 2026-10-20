@@ -28,6 +28,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Changed
 
+- Make IP and email/IP-pair login budgets configurable, retaining production defaults of 20 and 5 per 15 minutes and raising both to 500 only in development; retain failed-password lockout.
 - Replace the wallet, power bank and backpack heroes after testing three Commons alternatives each; the fixed 14-image hero sample improves from 11 to 14 correct Top 1 categories without changing prompts.
 - Reduce CPU OCR input to 768 px after ML telemetry identified OCR as the image-assistant latency bottleneck; real-weight text and number-masking checks and desktop/phone reference journeys pass.
 

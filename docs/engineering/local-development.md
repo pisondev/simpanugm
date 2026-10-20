@@ -3,6 +3,13 @@
 The whole system runs locally with Docker Compose. Services that you are actively
 changing can run on the host with live reload while the rest stay in containers.
 
+`AUTH_LOGIN_IP_PER_15_MINUTES` controls the API's per-IP login budget. Its default is
+20 attempts per 15 minutes; `compose.dev.yaml` raises it to 500 for repeated local
+journeys. `AUTH_LOGIN_PAIR_PER_15_MINUTES` defaults to five attempts per email/IP
+pair and is also 500 only in development, because the combined demo suite repeatedly
+signs in as the same seeded actors. Production keeps both defaults. The separate
+failed-password lockout remains five failures in every environment.
+
 > Available since v0.1.0. Targets that belong to later sprints are marked with their sprint.
 
 ## 1. Prerequisites

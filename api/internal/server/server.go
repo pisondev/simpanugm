@@ -86,6 +86,12 @@ func NewServices(d Deps) *Services {
 	if d.Config.RegisterPerHour > 0 {
 		authSvc.LimitRegistrations(d.Config.RegisterPerHour)
 	}
+	if d.Config.LoginIPPer15Minutes > 0 {
+		authSvc.LimitLoginsPerIP(d.Config.LoginIPPer15Minutes)
+	}
+	if d.Config.LoginPairPer15Minutes > 0 {
+		authSvc.LimitLoginPairs(d.Config.LoginPairPer15Minutes)
+	}
 	md := masterdata.NewService(d.Pool, d.Clock, st)
 	med := media.NewService(d.Pool, d.Store, d.Clock)
 	cs := custody.NewService(d.Pool, d.Clock, st, notifier)
