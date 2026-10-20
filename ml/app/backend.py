@@ -17,7 +17,9 @@ log = logging.getLogger("simpanugm.ml")
 
 Vectors = NDArray[np.float32]
 
-OCR_SIDE = 1024
+# EasyOCR's CPU detector dominates photo-assist latency. 768px retains legible
+# item labels while cutting detector input area by 44% from the old 1024px cap.
+OCR_SIDE = 768
 OCR_MIN_CONFIDENCE = 0.3
 
 
