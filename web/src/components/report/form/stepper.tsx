@@ -10,7 +10,7 @@ export function Stepper({ steps, current, onJump }: { steps: string[]; current: 
   const total = steps.length
   const onReview = current >= total
   return (
-    <nav aria-label={t("stepOf", { current: Math.min(current + 1, total), total })} className="mb-6">
+    <nav aria-label={t("stepOf", { current: Math.min(current + 1, total), total })}>
       <p className="mb-3 text-sm text-muted-foreground">{onReview ? t("review") : t("stepOf", { current: current + 1, total })}</p>
       <ol className="flex gap-2">
         {steps.map((title, i) => {
@@ -27,7 +27,7 @@ export function Stepper({ steps, current, onJump }: { steps: string[]; current: 
                 className="group flex min-h-11 flex-col gap-2 rounded-sm text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-default"
               >
                 <span className={cn("h-1.5 w-full rounded-full bg-muted", (done || active) && "bg-primary", onReview && "bg-primary")} />
-                <span className={cn("hidden items-center gap-1 truncate text-xs font-medium text-muted-foreground sm:flex", active && "text-primary")}>
+                <span className={cn("flex items-start gap-1 text-xs font-medium text-muted-foreground", active && "text-primary")}>
                   {done ? <Check className="size-3.5 text-success" aria-hidden /> : null}
                   {title}
                 </span>

@@ -38,7 +38,7 @@ test.describe("Demo Fallback Video and Screenshot Recording (W5)", () => {
     await page.getByRole("button", { name: "Lanjut" }).click()
 
     await expect(page.getByText(/Saran otomatis|tidak tersedia/).first()).toBeVisible({ timeout: 30_000 })
-    await pickCategory(page, "earphone", "Earphone / Headphone")
+    await pickCategory(page, "earphone", "Earphone")
     await page.getByLabel("Nama barang").fill("TWS Earbuds Hitam Demo")
     await page.getByLabel("Deskripsi").fill("Earbuds warna hitam di meja belajar")
     await page.getByRole("button", { name: "Lanjut" }).click()
@@ -87,17 +87,17 @@ test.describe("Demo Fallback Video and Screenshot Recording (W5)", () => {
     await signIn(page, officerEmail, password)
     await expect(page).toHaveURL(/\/petugas$/)
 
-    await expect(page.getByRole("heading", { name: "Antrean Prioritas Tindakan" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Antrean Prioritas Kerja" })).toBeVisible()
     await page.screenshot({ path: "test-results/demo-record/scene3-officer-queue.png", fullPage: true })
     await expectAccessible(page)
 
     await page.goto("/petugas/papan")
-    await expect(page.getByRole("heading", { name: "Papan Tinjauan Pasangan" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Papan Tinjauan" })).toBeVisible()
     await page.screenshot({ path: "test-results/demo-record/scene3-officer-board.png", fullPage: true })
     await expectAccessible(page)
 
     await page.goto("/petugas/duplikat")
-    await expect(page.getByRole("heading", { name: "Pendeteksian Duplikat" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Duplikat Laporan" })).toBeVisible()
     await page.screenshot({ path: "test-results/demo-record/scene3-officer-duplicates.png", fullPage: true })
     await expectAccessible(page)
   })
@@ -112,7 +112,7 @@ test.describe("Demo Fallback Video and Screenshot Recording (W5)", () => {
     await expectAccessible(page)
 
     await page.goto("/admin/ai/klaster")
-    await expect(page.getByRole("heading", { name: /Klaster Laporan Terkait/ })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Pengelompokan Kasus & Deteksi Duplikat/ })).toBeVisible()
     await page.screenshot({ path: "test-results/demo-record/scene4-admin-clusters.png", fullPage: true })
     await expectAccessible(page)
 

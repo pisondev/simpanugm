@@ -40,7 +40,7 @@ test.describe("AI Moments: Live Demonstration Story (W4)", () => {
 
     // AI Assistant: suggestion tag or graceful fallback note
     await expect(page.getByText(/Saran otomatis|tidak tersedia/).first()).toBeVisible({ timeout: 30_000 })
-    await pickCategory(page, "earphone", "Earphone / Headphone")
+    await pickCategory(page, "earphone", "Earphone")
     await page.getByLabel("Nama barang").fill("TWS Earbuds Hitam Demo")
     await page.getByLabel("Deskripsi").fill("Earbuds warna hitam di meja belajar")
     await page.getByRole("button", { name: "Lanjut" }).click()
@@ -82,8 +82,8 @@ test.describe("AI Moments: Live Demonstration Story (W4)", () => {
           // Verify score meters and reasons
           await expect(page.getByRole("meter")).toHaveCount(4)
           await expect(page.getByRole("heading", { name: "Kenapa kandidat ini muncul" })).toBeVisible()
-          await expect(page.getByRole("button", { name: "Mungkin milik saya" })).toBeVisible()
-          await expect(page.getByRole("link", { name: "Ajukan Klaim" })).toBeVisible()
+          await expect(page.getByRole("button", { name: "Sepertinya milik saya" })).toBeVisible()
+          await expect(page.getByRole("link", { name: "Ini milik saya", exact: true })).toBeVisible()
           await page.screenshot({ path: "test-results/screenshots/demo-2-owner.png", fullPage: true })
           await expectAccessible(page)
         }
@@ -97,22 +97,22 @@ test.describe("AI Moments: Live Demonstration Story (W4)", () => {
     await expect(page).toHaveURL(/\/petugas$/)
 
     // Priority Queue
-    await expect(page.getByRole("heading", { name: "Antrean Prioritas Tindakan" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Antrean Prioritas Kerja" })).toBeVisible()
     await expectAccessible(page)
 
     // Review Board
     await page.goto("/petugas/papan")
-    await expect(page.getByRole("heading", { name: "Papan Tinjauan Pasangan" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Papan Tinjauan" })).toBeVisible()
     await expectAccessible(page)
 
     // Duplicate detection workspace
     await page.goto("/petugas/duplikat")
-    await expect(page.getByRole("heading", { name: "Pendeteksian Duplikat" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Duplikat Laporan" })).toBeVisible()
     await expectAccessible(page)
 
     // Semantic search
     await page.goto("/petugas/cari?q=dompet+kulit&semantic=true")
-    await expect(page.getByRole("heading", { name: "Pencarian Laporan" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Cari laporan" })).toBeVisible()
     await page.screenshot({ path: "test-results/screenshots/demo-3-officer.png", fullPage: true })
     await expectAccessible(page)
   })
@@ -130,7 +130,7 @@ test.describe("AI Moments: Live Demonstration Story (W4)", () => {
 
     // AI Clusters
     await page.goto("/admin/ai/klaster")
-    await expect(page.getByRole("heading", { name: /Klaster Laporan Terkait/ })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Pengelompokan Kasus & Deteksi Duplikat/ })).toBeVisible()
     await expectAccessible(page)
 
     // Hotspot Map
