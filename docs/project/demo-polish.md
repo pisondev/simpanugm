@@ -173,3 +173,5 @@ Do not replace real model output, expose private fields, weaken the blurred iden
 photo rule, fake data totals, add a runtime CDN, or delay editable values for animation.
 Keep untranslated user copy out of components. Keep all existing actions and route
 permissions. Hosting remains on hold.
+
+B10 separates verification evidence, officer actions and internal notes on the existing claim detail. The queue/detail case covers an actual under-review claim at desktop and phone sizes; the lifecycle suite verifies required checklist guidance, numeric six-digit code validation, five-attempt locking, officer code regeneration, completed handover and owner receipt. No full identity number is exposed. B10 screenshots include queue and detail at both widths, plus the locked handover state. The targeted lifecycle run passed 6/6 (the fake-clock retention case is separate and was not included in this run).

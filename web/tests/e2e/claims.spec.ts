@@ -1,3 +1,5 @@
+import { mkdir } from "node:fs/promises"
+
 import { expect, test, type Browser, type Page } from "@playwright/test"
 
 import { bootstrapAdmin, expectAccessible, attachPhoto, latestLink, registerMember, setPassword, signIn, uniqueEmail } from "./helpers"
@@ -181,6 +183,20 @@ test("J4 officer requests info, owner replies, officer approves claim", async ({
   await officer.getByRole("button", { name: "Setujui Klaim" }).click()
   await expect(officer.getByText("Klaim berhasil disetujui. Kode serah terima diterbitkan.")).toBeVisible()
   await expect(officer.getByText("Disetujui", { exact: true })).toBeVisible()
+  await expect(officer.getByRole("heading", { name: "Formulir Serah Terima Barang" })).toBeVisible()
+  await mkdir("test-results/screenshots", { recursive: true })
+  for (const viewport of [
+    { width: 1366, height: 900, label: "1366x900" },
+    { width: 360, height: 800, label: "360x800" },
+  ]) {
+    await officer.setViewportSize({ width: viewport.width, height: viewport.height })
+    await expectAccessible(officer)
+    await officer.screenshot({
+      path: `test-results/screenshots/phase2-B10-handover-${viewport.label}.png`,
+      fullPage: true,
+      animations: "disabled",
+    })
+  }
 })
 
 test("J5 claimant sees code, officer tries wrong code then correct one, owner confirms receipt", async ({ browser }) => {
@@ -203,16 +219,39 @@ test("J5 claimant sees code, officer tries wrong code then correct one, owner co
 
   const handoverSection = officer.locator("section", { hasText: "Formulir Serah Terima Barang" })
 
-  // Officer enters a wrong code first
-  await handoverSection.locator("#h-code").fill("000000")
+  // Five incorrect codes lock handover until an officer verifies the claimant and regenerates it.
+  const wrongCode = handoverCode === "000000" ? "000001" : "000000"
   await handoverSection.locator("#h-last4").fill("5678")
   await handoverSection.getByRole("checkbox").click()
-  await handoverSection.getByRole("button", { name: "Konfirmasi Serah Terima" }).click()
-  await expect(handoverSection.getByText("Kode serah terima tidak cocok.")).toBeVisible()
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await handoverSection.locator("#h-code").fill(wrongCode)
+    await handoverSection.getByRole("button", { name: "Konfirmasi Serah Terima" }).click()
+    if (attempt < 4) {
+      await expect(handoverSection.getByText("Kode serah terima tidak cocok.")).toBeVisible()
+    } else {
+      await expect(handoverSection.getByText(/Terlalu banyak kode salah/)).toBeVisible()
+    }
+  }
+  await expect(officer.getByText("Kode serah terima terkunci karena percobaan gagal berulang.")).toBeVisible()
+  await expect(officer.getByRole("button", { name: "Buat Ulang Kode" })).toBeVisible()
+  await expectAccessible(officer)
+  await mkdir("test-results/screenshots", { recursive: true })
+  await officer.screenshot({ path: "test-results/screenshots/phase2-B10-handover-locked-1366x900.png", fullPage: true, animations: "disabled" })
 
-  // Officer enters correct code
-  await handoverSection.locator("#h-code").fill(handoverCode)
-  await handoverSection.getByRole("button", { name: "Konfirmasi Serah Terima" }).click()
+  await officer.getByRole("button", { name: "Buat Ulang Kode" }).click()
+  await expect(officer.getByText("Kode serah terima baru telah diterbitkan.")).toBeVisible()
+  await member.reload()
+  const renewedCode = (await member.locator("p.tracking-\\[0\\.3em\\]").textContent())?.trim() ?? ""
+  expect(renewedCode).toHaveLength(6)
+  expect(renewedCode).not.toBe(handoverCode)
+
+  // Officer enters the regenerated code after rechecking the claimant.
+  await officer.reload()
+  const renewedHandover = officer.locator("section", { hasText: "Formulir Serah Terima Barang" })
+  await renewedHandover.locator("#h-code").fill(renewedCode)
+  await renewedHandover.locator("#h-last4").fill("5678")
+  await renewedHandover.getByRole("checkbox").check()
+  await renewedHandover.getByRole("button", { name: "Konfirmasi Serah Terima" }).click()
 
   await expect(officer.getByText("Barang berhasil diserahterimakan.")).toBeVisible()
   await expect(officer.getByText("Diserahkan", { exact: true }).first()).toBeVisible()

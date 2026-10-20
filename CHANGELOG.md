@@ -90,3 +90,4 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Toolchain pinned to Go 1.26.9, closing HTTP/2 race GO-2026-6617, and `golang.org/x/image` lifted to v0.47.0.
 - Strict-Transport-Security (HSTS), Content-Security-Policy, and CORS headers enforced in reverse proxy and HTTP middleware.
 - Role based access control (RBAC) enforced on all endpoints with `HttpOnly`, `SameSite=Lax` cookie sessions and CSRF protection.
+- Polish officer claim review with required-check guidance, numeric handover validation, and clear lock and code-regeneration recovery.

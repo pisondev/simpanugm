@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/api/client"
-import { call, messageFor } from "@/lib/api/problem"
+import { call, isApiError, messageFor } from "@/lib/api/problem"
 import type { Claim, ClaimCheck, RejectionReason } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
 
@@ -99,10 +99,13 @@ export function OfficerClaimActions({ claim }: { claim: Claim }) {
           />
         ) : null}
         {can("approve") ? (
-          <Button onClick={() => simple.mutate("approve")} disabled={simple.isPending || !checks.data?.complete}>
-            <ShieldCheck aria-hidden />
-            {t("approve")}
-          </Button>
+          <div className="flex flex-col items-start gap-1">
+            <Button onClick={() => simple.mutate("approve")} disabled={simple.isPending || !checks.data?.complete}>
+              <ShieldCheck aria-hidden />
+              {t("approve")}
+            </Button>
+            {!checks.data?.complete ? <p className="text-xs text-muted-foreground">{t("approveNeedsChecks")}</p> : null}
+          </div>
         ) : null}
         {can("reject") ? (
           <ActionDialog
@@ -255,6 +258,7 @@ export function ClaimChecklist({ claim }: { claim: Claim }) {
 // FR-CUST-04, BR-HND-02 to BR-HND-04: the code from the claimant, the ID type and last four, and the name check
 export function HandoverForm({ claim }: { claim: Claim }) {
   const t = useTranslations("claims.handover")
+  const tc = useTranslations("common")
   const te = useTranslations("errors")
   const router = useRouter()
   const walkIn = !claim.claimant
@@ -275,7 +279,10 @@ export function HandoverForm({ claim }: { claim: Claim }) {
       toast.success(t("done"))
       router.refresh()
     },
-    onError: (err) => setError(messageFor(err, te)),
+    onError: (err) => {
+      setError(messageFor(err, te))
+      if (isApiError(err, 422, "handover_locked")) router.refresh()
+    },
   })
   return (
     <section aria-labelledby="c-serah" className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary-soft/50 p-4">
@@ -305,8 +312,10 @@ export function HandoverForm({ claim }: { claim: Claim }) {
               autoComplete="off"
               pattern="[0-9]{6}"
               maxLength={6}
+              required
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+              className="font-mono tracking-[0.2em]"
             />
           </div>
         )}
@@ -326,7 +335,17 @@ export function HandoverForm({ claim }: { claim: Claim }) {
           <label htmlFor="h-last4" className="text-sm font-medium">
             {t("last4")}
           </label>
-          <Input id="h-last4" maxLength={4} autoComplete="off" value={last4} onChange={(e) => setLast4(e.target.value)} />
+          <Input
+            id="h-last4"
+            inputMode="numeric"
+            autoComplete="off"
+            pattern="[0-9]{4}"
+            maxLength={4}
+            required
+            value={last4}
+            onChange={(e) => setLast4(e.target.value.replace(/\D/g, ""))}
+            className="font-mono tracking-[0.2em]"
+          />
         </div>
         <label className="flex items-start gap-3 sm:col-span-2">
           <Checkbox checked={named} onCheckedChange={(v) => setNamed(v === true)} className="mt-0.5" />
@@ -336,8 +355,8 @@ export function HandoverForm({ claim }: { claim: Claim }) {
           {error ?? ""}
         </p>
         <div className="sm:col-span-2">
-          <Button type="submit" disabled={handover.isPending || !named || last4.trim().length !== 4 || (!walkIn && code.length !== 6)}>
-            {t("confirm")}
+          <Button type="submit" disabled={handover.isPending || !named || last4.length !== 4 || (!walkIn && code.length !== 6)}>
+            {handover.isPending ? tc("saving") : t("confirm")}
           </Button>
         </div>
       </form>

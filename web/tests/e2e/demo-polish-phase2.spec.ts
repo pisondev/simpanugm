@@ -1014,3 +1014,58 @@ test.describe("B09 officer custody workspaces", () => {
     expect(errors).toEqual([])
   })
 })
+
+async function captureB10(page: Page, route: string, width: string) {
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await expect(page.getByRole("main")).toBeVisible()
+  await expectAccessible(page)
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({ path: `test-results/screenshots/phase2-B10-${route}-${width}.png`, fullPage: true, animations: "disabled" })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth))
+}
+
+test.describe("B10 officer claim verification and handover", () => {
+  test("under-review claim evidence, actions and thread stay clear at both widths", async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(10_000)
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+
+    await signIn(page, "petugas.pos1@demo.simpanugm.my.id", "kata sandi panjang 2026")
+    await expect(page).toHaveURL(/\/petugas$/)
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await page.goto("/petugas/klaim")
+    await expect(page.getByRole("heading", { name: "Antrean Klaim" })).toBeVisible()
+    const reviewResponse = await page.request.get(new URL("/api/v1/claims?status=under_review&limit=20", page.url()).toString())
+    expect(reviewResponse.ok()).toBe(true)
+    const reviewClaims = (await reviewResponse.json()).items as { code: string }[]
+    const reviewClaim = reviewClaims[0]
+    if (!reviewClaim) throw new Error("the demo needs a claim under officer review")
+    await page.getByLabel("Status klaim").selectOption("under_review")
+    await page.getByRole("button", { name: "Terapkan" }).click()
+    await expect(page).toHaveURL(/status=under_review/)
+    await expect(page.getByRole("link", { name: new RegExp(reviewClaim.code) })).toBeVisible()
+    await captureB10(page, "antrean", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB10(page, "antrean", "360x800")
+
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await page.goto(`/petugas/klaim/${reviewClaim.code}`)
+    await expect(page.getByRole("heading", { name: reviewClaim.code })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Daftar Periksa Verifikasi" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Tindakan Petugas" })).toBeVisible()
+    await expect(page.getByRole("region", { name: "Catatan Internal Petugas" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Pesan dengan Petugas" })).toBeVisible()
+    await captureB10(page, "detail", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB10(page, "detail", "360x800")
+
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})

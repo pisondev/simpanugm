@@ -1252,6 +1252,7 @@
       "requestInfoLabel": "Pesan untuk pemohon",
       "requestInfoConfirm": "Kirim Permintaan",
       "approve": "Setujui Klaim",
+      "approveNeedsChecks": "Lengkapi semua butir wajib sebelum menyetujui.",
       "reject": "Tolak Klaim",
       "rejectTitle": "Tolak Pengajuan Klaim",
       "rejectBody": "Pilih alasan penolakan. Pemohon akan menerima pemberitahuan beserta alasannya.",
