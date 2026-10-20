@@ -3,8 +3,8 @@
 Master data seeds, fixtures shared by `api` and `ml`, the evaluation dataset pipeline, and
 reference analytics queries.
 
-Owner: Axelle Chandra. Status: foundation in progress. Seeds and the dataset are built in
-Sprints 0 to 2.
+Owner: Axelle Chandra. Status: MVP public-source baseline. Seeds and the private dataset are
+built in Sprints 0 to 2.
 
 | Folder | Holds | In git |
 |---|---|---|
@@ -18,29 +18,44 @@ How the evaluation dataset is collected: [docs/ai/dataset-collection.md](../docs
 
 ## Current stage
 
-The deterministic seed foundation is available in [`seed/`](seed/) and is checked by
-[`scripts/check.py`](scripts/check.py). The foundation check covers the category tree,
-verification questions, colour palette, compatibility factors, brand aliases, synonyms,
-and runtime defaults. The campus location/post list and model-version seed remain pending
-the OpenStreetMap review, security-unit input, and the inference-service lock file.
+The deterministic seed foundation and a small public-source MVP baseline are available in
+[`seed/`](seed/) and are checked by [`scripts/check.py`](scripts/check.py). The baseline is
+for the assignment/demo only; it is not an official production campus master-data approval.
+It contains five project zones, 66 named locations made from the 25 public-source baseline
+rows and the 41 OSM landmarks used by the demo overlay, one officially published K5L
+emergency contact, six demo pilot posts, and public model revisions or package versions
+matching the AI documentation. The overlay-aligned rows are reviewed for demo, production
+review pending. Private trial photos, consent records, and participant metadata remain
+outside Git.
+
+The demo seed bbox is `-7.776005,110.3716393,-7.764283,110.3863` (south, west, north,
+east), derived from the combined public-source and overlay OSM rows. It is reviewed for
+demo, production review pending, and is not a claim that this is the final production
+boundary. Zone centroids remain project-level groupings. The central K5L post keeps the
+emergency number from [UGM's official contact page](https://ugm.ac.id/id/kontak/). The six
+demo pilot posts keep the overlay's empty phone values until official contacts are reviewed.
+
+The location candidates came from the [OpenStreetMap Overpass API](https://overpass-api.de/).
+The model seed records exact public revisions for [CLIP](https://huggingface.co/sentence-transformers/clip-ViT-B-32/commit/327ab6726d33c0e22f920c83f2ff9e4bd38ca37f),
+[multilingual CLIP](https://huggingface.co/sentence-transformers/clip-ViT-B-32-multilingual-v1/commit/58edf8cada9e398793dca955574a48cbb7f18be2),
+and [multilingual E5](https://huggingface.co/intfloat/multilingual-e5-small/commit/614241f622f53c4eeff9890bdc4f31cfecc418b3),
+plus the documented [EasyOCR](https://pypi.org/project/easyocr/1.7.2/) and
+[RapidFuzz](https://pypi.org/project/RapidFuzz/) package versions. This is an MVP baseline;
+it does not replace a production `ml/models.lock.json`.
 
 ```text
-python3 data/scripts/check.py
+python3 data/scripts/check.py --require-complete \
+  --bbox=-7.776005,110.3716393,-7.764283,110.3863
 ```
 
-The complete-mode check is intentionally expected to fail until those reviewed files are
-added:
+The foundation-only command is still useful for a checkout that has none of the four
+complete seed files, but it intentionally rejects this branch because the MVP files are
+present. Use the complete-mode check above for the current branch.
 
-```text
-python3 data/scripts/check.py \
-  --require-complete \
-  --bbox=SOUTH,WEST,NORTH,EAST
-```
-
-The foundation check also fails if any deferred seed file appears by itself. This prevents
-CI from accepting a partial location, post, or model-version seed without the complete-mode
-review and campus bbox. It also rejects symlinked seed roots and files so validation cannot
-silently read data from outside the checkout, and reports malformed YAML as a seed
+The foundation check also fails if any complete seed file appears by itself. This prevents
+CI from accepting a partial location, post, or model-version seed without complete-mode
+validation and a campus bbox. It also rejects symlinked seed roots and files so validation
+cannot silently read data from outside the checkout, and reports malformed YAML as a seed
 validation error.
 
 The demo vocabulary currently contains 140 Indonesian and English synonym terms and 70
@@ -56,9 +71,10 @@ Brand names and aliases are checked case-insensitively with normalized whitespac
 synonym terms use the same normalized uniqueness rule to prevent ambiguous lookup keys.
 Allowed email domains must be valid, non-empty, and unique; reviewed location aliases
 also reject blank entries and normalized duplicates.
-Complete post seeds require string location references, non-empty phone strings, and
-non-overlapping ordered opening intervals, while model-version components and statuses
-must use their declared strings.
+Complete post seeds require string location references and string phone values. Demo-only
+posts may keep an empty phone value until a contact is reviewed. Opening intervals must be
+ordered and non-overlapping, while model-version components and statuses must use their
+declared strings.
 
 The data-specific history is kept in [`data/CHANGELOG.md`](CHANGELOG.md).
 
@@ -242,12 +258,11 @@ needed by `check_dataset.py`. Verify it with
 These formats are a contract with `api` (CONTRIBUTING section 2). The seed command upserts
 by natural key and never deletes.
 
-Run `python3 data/scripts/check.py --require-complete --bbox=SOUTH,WEST,NORTH,EAST`
-after all four deferred seed files are reviewed. In complete mode the checker validates
-CSV/YAML shape, zone and location references, location coordinates inside the supplied
-campus bbox, post opening-hour intervals, and the eight model components with exactly one
-active version each. Until the reviewed files exist, the command reports the four
-expected missing-file errors without needing a bbox.
+Run `python3 data/scripts/check.py --require-complete --bbox=-7.776005,110.3716393,-7.764283,110.3863`
+for the current MVP seed. In complete mode the checker validates CSV/YAML shape, zone and
+location references, location coordinates inside the supplied campus bbox, post
+opening-hour intervals, and the eight model components with exactly one active version
+each.
 
 | File | Format | Columns or keys |
 |---|---|---|
@@ -264,33 +279,36 @@ expected missing-file errors without needing a bbox.
 
 ### Zones
 
-The campus clusters as the university names them, plus central facilities:
+The MVP groups campus locations into five project zones. Their stored centroids are the
+arithmetic means of the five selected OSM locations in each zone:
 
 | `slug` | `name` |
 |---|---|
-| `saintek` | Klaster Sains dan Teknologi |
-| `soshum` | Klaster Sosial Humaniora |
-| `agro` | Klaster Agro |
-| `medika` | Klaster Kesehatan |
-| `pusat` | Fasilitas Pusat |
+| `saintek` | Saintek |
+| `soshum` | Soshum |
+| `agro` | Agro |
+| `medika` | Medika |
+| `pusat` | Pusat |
 
-Faculty to cluster assignment follows the university's official list and is checked
-before the seed is merged.
+These names and centroids are project-level MVP groupings, not an official UGM zoning
+decision.
 
 ### Locations
 
-Built with `scripts/osm_locations.py`, which pulls named buildings inside the campus
-boundary from OpenStreetMap, then reviewed by hand: official name, the names students
-actually use as aliases, zone, kind, and the coordinate of the main entrance. Every
-location must be marked `approved` and fall inside the campus bbox passed to
-`scripts/promote_locations.py`. The promotion step checks zone and kind values and
-writes only the seven columns accepted by the seed contract. Candidates still marked
-`needs_review` cannot be promoted.
+Built from 392 named OpenStreetMap candidates plus the 41 landmark rows already used by
+the demo overlay. The 25 baseline rows keep their existing slugs; the overlay rows are
+added with the slugs, names, aliases, kinds, and coordinates used by the demo. These rows
+are reviewed for demo, production review pending, and the combined list is not a claim
+that it is the full campus inventory.
 
 ### Posts for the pilot
 
-One post per zone plus one at the central library, each tied to a location. The list is
-replaced by the security unit's actual posts when the system is adopted.
+The seed keeps the central K5L office and its official emergency phone, plus the six demo
+pilot posts from the overlay with the same post and location slugs. The six demo posts
+have empty phone values because no official post contacts are recorded. Their hours and
+locations are reviewed for demo, production review pending. The [official K5L site](https://k5l.ugm.ac.id/)
+and [UGM's central contact page](https://ugm.ac.id/id/kontak/) publish different contact
+scopes, so the seed does not silently choose a new production contact.
 
 ### Categories
 

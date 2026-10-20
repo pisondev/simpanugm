@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- Documented the public demo photo pack, its provenance/credits validators, and the boundary
+  between open-license demo material and the private participant evaluation dataset.
+- Aligned the master-data seed with the 41 landmark and six pilot-post slugs from the demo
+  overlay, widened the demo bbox to cover those public OSM rows, and kept production review
+  pending for contacts and official campus ownership.
+- Recorded the official K5L contact-source discrepancy and the additional K5L map labels as
+  production-review inputs without changing the single-post MVP seed.
+- Added a regression test linking every committed demo image to its generated credits entry
+  and checking the provenance of derived hero pairs.
+- Fixed the trial template CLI default so `--profile trial` creates the documented 20
+  items unless an explicit item count is supplied.
+- Added a public-source MVP seed baseline with five project zones, 25 OSM-derived campus
+  locations, the officially published K5L emergency contact, and exact public model/package
+  revisions. The baseline is documented as assignment/demo data and is not production
+  approval; private trial photos, consent records, and participant metadata remain outside
+  Git.
+- Switched the data CI seed step to complete-mode validation with the reproducible MVP
+  campus bbox.
 - Added the first deterministic master-data seed foundation for categories, colours,
   compatibility, brands, synonyms, and runtime setting defaults.
 - Expanded demo lookup vocabulary to 140 synonym terms and 70 brand names or aliases
