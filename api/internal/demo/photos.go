@@ -12,13 +12,22 @@ import (
 	"strings"
 )
 
+// the manifest is found from the working directory upwards, so the binary, the image and tests in any package agree
+func manifestCandidates() []string {
+	out := []string{}
+	if dir := os.Getenv("SIMPAN_DEMO_DIR"); dir != "" {
+		out = append(out, filepath.Join(dir, "SOURCES.csv"))
+	}
+	rel := "."
+	for range 6 {
+		out = append(out, filepath.Join(rel, "data", "demo", "SOURCES.csv"))
+		rel = filepath.Join(rel, "..")
+	}
+	return append(out, filepath.Join("/app", "data", "demo", "SOURCES.csv"))
+}
+
 func discoverLocalBackgroundFoundReports(categories []string) ([]DemoFoundReport, error) {
-	for _, manifestPath := range []string{
-		filepath.Join("data", "demo", "SOURCES.csv"),
-		filepath.Join("..", "data", "demo", "SOURCES.csv"),
-		filepath.Join("..", "..", "data", "demo", "SOURCES.csv"),
-		filepath.Join("/app", "data", "demo", "SOURCES.csv"),
-	} {
+	for _, manifestPath := range manifestCandidates() {
 		manifest, err := os.Open(manifestPath)
 		if err != nil {
 			continue
