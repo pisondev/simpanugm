@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import { useState } from "react"
 
 import { EmptyState } from "@/components/layout/empty-state"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/api/client"
@@ -19,6 +20,7 @@ import { notificationKeys } from "./use-notification-stream"
 export function NotificationList() {
   const t = useTranslations("notifications")
   const tc = useTranslations("common")
+  const te = useTranslations("errors")
   const [unreadOnly, setUnreadOnly] = useState(false)
   const query = useInfiniteQuery({
     queryKey: notificationKeys.list(unreadOnly),
@@ -31,7 +33,7 @@ export function NotificationList() {
   const items = query.data?.pages.flatMap((p) => p.items) ?? []
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="surface flex flex-wrap items-center justify-between gap-3 p-3">
         <div className="inline-flex rounded-lg bg-muted p-1" role="group" aria-label={t("title")}>
           {[false, true].map((u) => (
             <button
@@ -57,10 +59,20 @@ export function NotificationList() {
           <Skeleton className="h-20 w-full rounded-xl" />
           <Skeleton className="h-20 w-full rounded-xl" />
         </div>
+      ) : query.isError ? (
+        <Alert variant="destructive">
+          <AlertTitle>{te("pageTitle")}</AlertTitle>
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+            <span>{te("generic")}</span>
+            <Button variant="outline" onClick={() => void query.refetch()}>
+              {tc("retry")}
+            </Button>
+          </AlertDescription>
+        </Alert>
       ) : items.length === 0 ? (
         <EmptyState icon={BellOff}>{unreadOnly ? t("emptyUnread") : t("empty")}</EmptyState>
       ) : (
-        <ul className="flex flex-col gap-1 rounded-xl border bg-card p-1">
+        <ul className="surface flex flex-col gap-1 p-1">
           {items.map((n) => (
             <li key={n.id}>
               <NotificationItem n={n} onOpen={(x) => !x.read_at && markRead.mutate(x.id)} />

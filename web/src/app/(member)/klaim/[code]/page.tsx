@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server"
 import { ClaimBody } from "@/components/claims/claim-body"
 import { ClaimThread } from "@/components/claims/claim-thread"
 import { MemberClaimActions } from "@/components/claims/member-actions"
+import { PageTransition } from "@/components/motion/primitives"
 import { StatusBadge } from "@/components/report/status-badge"
 import { ButtonLink } from "@/components/ui/button-link"
 import { load, serverApi } from "@/lib/api/server"
@@ -24,7 +25,7 @@ export default async function MemberClaimDetailPage({ params }: PageProps<"/klai
   const claim = await load(api.GET("/claims/{id}", { params: { path: { id: code } } }))
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageTransition className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <ButtonLink href="/klaim" variant="ghost" className="w-fit">
           <ArrowLeft aria-hidden />
@@ -33,7 +34,7 @@ export default async function MemberClaimDetailPage({ params }: PageProps<"/klai
         <span className="text-sm text-muted-foreground">{t("submittedAt", { at: formatDateTime(claim.created_at) })}</span>
       </div>
 
-      <header className="flex flex-wrap items-center gap-3">
+      <header className="surface flex flex-wrap items-center gap-3 p-4">
         <h1 className="font-mono text-2xl font-bold tracking-tight">{claim.code}</h1>
         <StatusBadge kind="claim" status={claim.status} />
       </header>
@@ -44,11 +45,11 @@ export default async function MemberClaimDetailPage({ params }: PageProps<"/klai
           <ClaimBody claim={claim} staff={false} />
         </div>
         <div className="flex flex-col gap-6">
-          <div className="rounded-xl border bg-card p-4">
+          <div className="surface p-4">
             <ClaimThread code={claim.code} canPost={claimOpen.includes(claim.status)} />
           </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   )
 }

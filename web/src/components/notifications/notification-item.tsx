@@ -13,7 +13,7 @@ export function NotificationItem({ n, onOpen, compact = false }: { n: Notificati
       href={n.link}
       onClick={() => onOpen(n)}
       className={cn(
-        "flex gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50",
+        "motion-press flex gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50",
         unread && "bg-primary-soft/40",
       )}
     >

@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises"
 
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import { expectAccessible, latestLink, pathOf, registerMember, signIn, uniqueEmail } from "./helpers"
 
@@ -547,6 +547,140 @@ test.describe("B05 member report details and editing", () => {
     expect(await denied.text()).not.toContain("Tanda pemilik B05")
     await otherContext.close()
 
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})
+
+async function captureB06(page: Page, route: string, width: string, target?: Locator) {
+  await page.evaluate(() => window.scrollTo(0, 0))
+  if (target) {
+    await target.evaluate((element) => element.scrollIntoView({ block: "center" }))
+    await page.evaluate(() => window.scrollBy(0, -25))
+    const nav = page.locator("nav.fixed").last()
+    const [targetBox, navBox] = await Promise.all([
+      target.evaluate((element) => {
+        const { bottom, top } = element.getBoundingClientRect()
+        return { bottom, top }
+      }),
+      nav.evaluate((element) => {
+        const { bottom, top } = element.getBoundingClientRect()
+        return { bottom, top }
+      }),
+    ])
+    expect(targetBox.bottom).toBeLessThanOrEqual(navBox.top)
+  }
+  await expect(page.getByRole("main")).toBeVisible()
+  await page.evaluate(async () => {
+    await document.fonts.ready
+    const finiteAnimations = document.getAnimations().filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+    await Promise.all(finiteAnimations.map((animation) => animation.finished.catch(() => undefined)))
+  })
+  await expectAccessible(page)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => window.innerWidth))
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({ path: `test-results/screenshots/phase2-B06-${route}-${width}.png`, animations: "disabled" })
+}
+
+test.describe("B06 member claims and notifications", () => {
+  test("claims retain secure state and notification links mark items read", async ({ page }) => {
+    test.setTimeout(180_000)
+    page.setDefaultTimeout(10_000)
+    await page.setViewportSize({ width: 1366, height: 900 })
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+
+    await signInDemo(page, "Pemilik (Mahasiswa)")
+    const claimsResponse = await page.request.get(new URL("/api/v1/claims?limit=20", page.url()).toString())
+    expect(claimsResponse.ok()).toBe(true)
+    const claimSummaries = (await claimsResponse.json()).items as { code: string; status: string }[]
+    expect(claimSummaries.length).toBeGreaterThan(0)
+    const selected = claimSummaries.find((claim) => claim.status === "approved") ?? claimSummaries[0]
+    if (!selected) throw new Error("the demo owner needs a seeded claim")
+    const claimResponse = await page.request.get(new URL(`/api/v1/claims/${selected.code}`, page.url()).toString())
+    expect(claimResponse.ok()).toBe(true)
+    const claim = (await claimResponse.json()) as {
+      code: string
+      status: string
+      found_report: { id: string; item_name: string; category: { id: string } }
+      lost_report: { code: string }
+      handover_code?: string | null
+    }
+
+    await page.goto("/klaim")
+    await expect(page.getByRole("heading", { name: "Klaim Saya" })).toBeVisible()
+    await expect(page.getByRole("link", { name: new RegExp(claim.code) })).toBeVisible()
+    await captureB06(page, "klaim", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB06(page, "klaim", "360x800")
+    await page.keyboard.press("Tab")
+    await expect(page.locator(":focus")).toBeVisible()
+    await page.getByRole("link", { name: new RegExp(claim.code) }).click()
+    await expect(page).toHaveURL(new RegExp(`/klaim/${claim.code}$`))
+    await expect(page.getByRole("heading", { name: claim.code })).toBeVisible()
+    if (claim.status === "approved") {
+      await expect(page.locator("#kode-serah")).toBeVisible()
+      expect(claim.handover_code).toMatch(/^\d{6}$/)
+    } else {
+      await expect(page.locator("#kode-serah")).toHaveCount(0)
+    }
+    await expect(page.getByText("Ciri khusus pemilik", { exact: true })).toHaveCount(0)
+    await captureB06(page, "detail-klaim", "360x800", page.locator("#claim-thread-body"))
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await captureB06(page, "detail-klaim", "1366x900")
+
+    const params = new URLSearchParams({
+      temuan: claim.found_report.id,
+      nama: claim.found_report.item_name,
+      kategori: claim.found_report.category.id,
+      hilang: claim.lost_report.code,
+    })
+    await page.goto(`/klaim/baru?${params.toString()}`)
+    await expect(page.getByRole("heading", { name: "Ajukan Klaim" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Kirim Pengajuan Klaim" })).toBeVisible()
+    await captureB06(page, "form-klaim", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB06(page, "form-klaim", "360x800", page.getByRole("button", { name: "Tambah foto" }))
+
+    const unreadResponse = await page.request.get(new URL("/api/v1/notifications?unread=true&limit=20", page.url()).toString())
+    expect(unreadResponse.ok()).toBe(true)
+    const unread = (await unreadResponse.json()).items as { id: string; link: string; read_at: string | null }[]
+    expect(unread.length).toBeGreaterThan(0)
+    const firstUnread = unread[0]
+    if (!firstUnread) throw new Error("the demo owner needs an unread notification")
+    await page.goto("/notifikasi")
+    await expect(page.getByRole("heading", { name: "Notifikasi", level: 1 })).toBeVisible()
+    await captureB06(page, "notifikasi", "360x800")
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await captureB06(page, "notifikasi", "1366x900")
+    const unreadFilter = page.getByRole("group", { name: "Notifikasi" }).getByRole("button", { name: "Belum dibaca" })
+    await unreadFilter.click()
+    const firstNotification = page.getByRole("main").getByRole("link").first()
+    await expect(firstNotification).toBeVisible()
+    const target = await firstNotification.getAttribute("href")
+    expect(target).toMatch(/^\//)
+    const markedRead = page.waitForResponse(
+      (response) => response.request().method() === "POST" && response.url().endsWith(`/notifications/${firstUnread.id}/read`),
+    )
+    await firstNotification.click()
+    expect((await markedRead).ok()).toBe(true)
+    await expect(page).toHaveURL(new RegExp(`${target?.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`))
+    const afterReadResponse = await page.request.get(new URL("/api/v1/notifications?limit=20", page.url()).toString())
+    expect(afterReadResponse.ok()).toBe(true)
+    const afterRead = (await afterReadResponse.json()).items as { id: string; read_at: string | null }[]
+    expect(afterRead.find((item) => item.id === firstUnread.id)?.read_at).toBeTruthy()
+
+    await page.goto("/notifikasi")
+    const markedAllRead = page.waitForResponse((response) => response.request().method() === "POST" && response.url().endsWith("/notifications/read-all"))
+    await page.getByRole("button", { name: "Tandai semua dibaca" }).click()
+    expect((await markedAllRead).ok()).toBe(true)
+    await page.getByRole("group", { name: "Notifikasi" }).getByRole("button", { name: "Belum dibaca" }).click()
+    await expect(page.getByText("Semua notifikasi sudah dibaca.")).toBeVisible()
     expect(external).toEqual([])
     expect(errors).toEqual([])
   })

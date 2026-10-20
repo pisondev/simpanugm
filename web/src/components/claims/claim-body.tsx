@@ -22,7 +22,7 @@ export async function ClaimBody({ claim, staff }: { claim: Claim; staff: boolean
           alt={tc("photoAlt", { kind: tc("photoKindFound"), name: f.item_name })}
           only={blurred && !staff ? "thumb_blur" : undefined}
         />
-        <div className="rounded-xl border bg-card p-4">
+        <div className="surface p-4">
           <DetailList>
             <Detail label={t("code")}>{f.code}</Detail>
             <Detail label={tr("itemName")}>{f.item_name}</Detail>
@@ -42,7 +42,7 @@ export async function ClaimBody({ claim, staff }: { claim: Claim; staff: boolean
         <h2 id="c-hilang" className="font-semibold">
           {t("lostTitle")}
         </h2>
-        <div className="rounded-xl border bg-card p-4">
+        <div className="surface p-4">
           <DetailList>
             <Detail label={t("code")}>{l.code}</Detail>
             <Detail label={tr("itemName")}>{l.item_name}</Detail>
@@ -58,7 +58,7 @@ export async function ClaimBody({ claim, staff }: { claim: Claim; staff: boolean
         <h2 id="c-klaim" className="font-semibold">
           {t("claimTitle")}
         </h2>
-        <div className="rounded-xl border bg-card p-4">
+        <div className="surface p-4">
           <DetailList>
             {staff && claim.claimant ? (
               <Detail label={t("claimant")}>{[claim.claimant.full_name, claim.claimant.email, claim.claimant.phone].filter(Boolean).join(" | ")}</Detail>
@@ -82,7 +82,7 @@ export async function ClaimBody({ claim, staff }: { claim: Claim; staff: boolean
       </section>
 
       {claim.decision_reason || claim.decision_note ? (
-        <section aria-labelledby="c-keputusan" className="rounded-xl border bg-card p-4">
+        <section aria-labelledby="c-keputusan" className="surface p-4">
           <h2 id="c-keputusan" className="mb-2 font-semibold">
             {t("decisionTitle")}
           </h2>

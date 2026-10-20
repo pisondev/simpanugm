@@ -55,7 +55,7 @@ function HandoverCodePanel({ claim }: { claim: Claim }) {
   const t = useTranslations("claims.member")
   const post = claim.found_report.holding_post?.name ?? ""
   return (
-    <section aria-labelledby="kode-serah" className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary-soft/50 p-4">
+    <section aria-labelledby="kode-serah" className="ai-panel flex flex-col gap-3 p-4">
       <div className="flex items-center gap-2">
         <KeyRound className="size-5 text-primary" aria-hidden />
         <h2 id="kode-serah" className="font-semibold">
@@ -95,7 +95,7 @@ function RespondForm({ code }: { code: string }) {
   })
   return (
     <form
-      className="flex flex-col gap-2 rounded-xl border border-warning/40 bg-warning/10 p-4"
+      className="surface flex flex-col gap-2 border-warning/40 bg-warning/10 p-4"
       onSubmit={(e) => {
         e.preventDefault()
         if (message.trim()) {

@@ -23,10 +23,7 @@ export function ClaimCard({ claim, href, staff = false }: { claim: ClaimSummary;
   const tc = useTranslations("common")
   return (
     <li>
-      <Link
-        href={href}
-        className="flex gap-3 rounded-xl border bg-card p-3 shadow-sm transition-colors hover:border-primary/40 focus-visible:ring-3 focus-visible:ring-ring/50"
-      >
+      <Link href={href} className="surface motion-press motion-lift flex gap-3 p-3 focus-visible:ring-3 focus-visible:ring-ring/50">
         <Thumb id={claim.thumb_media_id} alt={tc("photoAlt", { kind: tc("photoKindFound"), name: claim.found_item_name })} />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">

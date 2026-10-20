@@ -81,6 +81,18 @@ explicit selected reason. Both B05 scenarios pass axe, horizontal overflow and o
 request checks; screenshots use the `phase2-B05-` prefix. The local API limiter required
 restarting the API between the registration/edit and seeded-account scenarios.
 
+B06 groups claim status, evidence, secure handover code, and the officer conversation into
+clear surfaces, and adds visible retry feedback when notifications fail to load. The
+desktop and 360 by 800 Playwright journey covers claim details and permitted code access,
+the new-claim form, notification links, mark-read, and mark-all-read. All four routes pass
+axe, viewport overflow, and no-external-request checks. Mobile screenshots use the actual
+360 by 800 viewport; the detail conversation and photo-evidence control are scrolled above
+the fixed bottom navigation before capture. The full claim lifecycle suite passes 7/7 in
+the E2E stack, including reply, withdraw, receipt, and retention disposition. Its fake
+clock test requires `deploy/compose.e2e.yaml`; the ordinary demo stack correctly returns
+404 for that test-only endpoint. The demo was reset afterward and `make demo-check` passed
+17/17. Captures use the `phase2-B06-` prefix.
+
 The post-B04 reference, AI and recording checks passed 19/19 across two runs. The local
 API's in-memory sign-in limiter required an API restart before the four recording scenes;
 the cold model's first desktop suggestion also exceeded its existing eight-second bound,

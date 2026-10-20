@@ -235,7 +235,7 @@ export function ClaimForm({ foundId, foundName, questions, lostOptions, presetLo
       ) : null}
 
       {isNewLost ? (
-        <section aria-labelledby="inline-lost-heading" className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+        <section aria-labelledby="inline-lost-heading" className="surface flex flex-col gap-4 p-4">
           <div>
             <h2 id="inline-lost-heading" className="font-semibold">
               {t("inlineSectionTitle")}
@@ -304,7 +304,7 @@ export function ClaimForm({ foundId, foundName, questions, lostOptions, presetLo
       </Field>
 
       {activeQuestions.length > 0 ? (
-        <section aria-labelledby="claim-questions" className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+        <section aria-labelledby="claim-questions" className="surface flex flex-col gap-4 p-4">
           <div>
             <h2 id="claim-questions" className="font-semibold">
               {t("questionsTitle")}

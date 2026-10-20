@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 
 import { ClaimForm, type LostOption, type Question } from "@/components/claims/claim-form"
 import { PageHeader } from "@/components/layout/page-header"
+import { PageTransition } from "@/components/motion/primitives"
 import { load, serverApi } from "@/lib/api/server"
 import { pick } from "@/lib/query"
 import { requireMe } from "@/lib/session"
@@ -83,19 +84,21 @@ export default async function NewClaimPage({ searchParams }: PageProps<"/klaim/b
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <PageTransition className="mx-auto max-w-2xl">
       <PageHeader title={t("newTitle")} />
-      <ClaimForm
-        foundId={foundId}
-        foundName={foundName}
-        questions={questions}
-        lostOptions={lostOptions}
-        presetLostId={presetLostId}
-        matchId={matchId}
-        categories={catsRes.items}
-        colours={coloursRes.items}
-        defaultCategoryId={categoryId}
-      />
-    </div>
+      <section className="surface p-4 sm:p-5">
+        <ClaimForm
+          foundId={foundId}
+          foundName={foundName}
+          questions={questions}
+          lostOptions={lostOptions}
+          presetLostId={presetLostId}
+          matchId={matchId}
+          categories={catsRes.items}
+          colours={coloursRes.items}
+          defaultCategoryId={categoryId}
+        />
+      </section>
+    </PageTransition>
   )
 }

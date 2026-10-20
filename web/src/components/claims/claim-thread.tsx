@@ -48,7 +48,7 @@ export function ClaimThread({ code, canPost }: { code: string; canPost: boolean 
           {items.map((m) => (
             <li
               key={m.id}
-              className={cn("flex max-w-[85%] flex-col gap-1 rounded-xl border px-3 py-2", m.mine ? "self-end bg-primary-soft" : "self-start bg-card")}
+              className={cn("surface flex max-w-[85%] flex-col gap-1 p-3", m.mine ? "self-end border-primary/30 bg-primary-soft/50" : "self-start")}
             >
               <p className="text-xs text-muted-foreground">
                 {m.mine ? t("you") : m.author_name} | {t(`role.${m.author_role}`)} | {formatDateTime(m.created_at)}

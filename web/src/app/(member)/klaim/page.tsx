@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server"
 import { ClaimCard } from "@/components/claims/claim-card"
 import { EmptyState } from "@/components/layout/empty-state"
 import { PageHeader } from "@/components/layout/page-header"
+import { PageTransition } from "@/components/motion/primitives"
 import { Pager } from "@/components/layout/pager"
 import { ButtonLink } from "@/components/ui/button-link"
 import { load, serverApi } from "@/lib/api/server"
@@ -25,7 +26,7 @@ export default async function MemberClaimsPage({ searchParams }: PageProps<"/kla
   const list = await load(api.GET("/claims", { params: { query } }))
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <PageTransition className="mx-auto max-w-5xl">
       <PageHeader title={t("myTitle")} lead={t("myLead")} />
       {list.items.length === 0 ? (
         <EmptyState
@@ -47,6 +48,6 @@ export default async function MemberClaimsPage({ searchParams }: PageProps<"/kla
         </ul>
       )}
       <Pager path="/klaim" filter={{}} cursor={cursor} next={list.next_cursor} />
-    </div>
+    </PageTransition>
   )
 }
