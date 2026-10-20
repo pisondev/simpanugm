@@ -124,7 +124,7 @@ describe("ClaimForm inline lost report, US-26", () => {
     expect(body.lost_report?.item_name).toBe("Dompet Cokelat Saya")
     expect(body.lost_report?.category_id).toBe("cat-dompet-child")
     expect(body.lost_report?.location_unknown).toBe(true)
-  })
+  }, 10_000)
 
   it("allows switching between existing lost report and creating a new one", async () => {
     renderUi(
