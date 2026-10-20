@@ -61,6 +61,23 @@ the API accepted it; mismatch and invalid-token feedback remained inline. The ex
 officer-invitation journey passed, as did all three B03 axe and offline-request cases.
 Captures use the `phase2-B03-` prefix in the ignored screenshot directory.
 
+B04 gives the member home a clear lost-report action, improves report-card scanning and
+surfaces the lost form and public found filters on semantic cards. Category filtering,
+cursor pagination and reset navigation work against the seeded API. The public endpoint
+and rendered cards contain no photos, descriptions, private details or finder identity.
+The lost-report flow still accepts no photo; a real report was submitted and its draft
+fields survived reload. Desktop and 360 px captures passed axe, keyboard visibility,
+overflow and no-external-request checks. The test also found and fixed mobile grid overflow
+and action-bar overlap on the review step. Captures use the `phase2-B04-` prefix in the
+ignored screenshot directory. The B04 case uses a newly verified test member so repeated
+demo runs do not consume the seeded owner's open-report limit.
+
+The post-B04 reference, AI and recording checks passed 19/19 across two runs. The local
+API's in-memory sign-in limiter required an API restart before the four recording scenes;
+the cold model's first desktop suggestion also exceeded its existing eight-second bound,
+then passed when rerun with the model warm. No production rate limit or AI timeout was
+changed.
+
 ## Phase 2 data work completed
 
 D01 expanded the manifest from 52 to 159 local images: 140 Wikimedia Commons originals,

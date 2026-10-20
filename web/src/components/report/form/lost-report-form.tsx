@@ -345,7 +345,7 @@ export function LostReportForm({ mode, categories, colours, initial }: Props) {
           () => setSubmitError(t("fixErrors")),
         )()
       }}
-      className="flex flex-col gap-6"
+      className="surface flex flex-col gap-6 p-4 sm:p-6"
     >
       <Stepper steps={titles} current={step} onJump={setStep} />
 
@@ -536,7 +536,7 @@ export function LostReportForm({ mode, categories, colours, initial }: Props) {
             </h2>
             <p className="text-muted-foreground">{t("reviewLead")}</p>
           </div>
-          <div className="rounded-xl border bg-card p-4">
+          <div className="surface p-4">
             <DetailList>
               {proxy ? (
                 <Detail label={tr("reporter")}>
@@ -575,18 +575,24 @@ export function LostReportForm({ mode, categories, colours, initial }: Props) {
         </Alert>
       ) : null}
 
-      <div className="sticky bottom-16 z-10 -mx-4 flex gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:px-0 md:py-0 lg:bottom-0">
+      <div
+        className={
+          onReview
+            ? "flex flex-wrap gap-3 pt-2"
+            : "sticky bottom-16 z-10 -mx-4 flex flex-col gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur sm:flex-row sm:gap-3 md:static md:mx-0 md:border-0 md:bg-transparent md:px-0 md:py-0 lg:bottom-0"
+        }
+      >
         {step > 0 ? (
           <Button type="button" variant="outline" onClick={() => setStep((s) => s - 1)}>
             {tc("back")}
           </Button>
         ) : null}
         {current === "photos" && photos.length === 0 && mode !== "edit" ? (
-          <Button type="button" variant="ghost" onClick={() => void next()}>
+          <Button type="button" variant="ghost" className="w-full sm:w-auto" onClick={() => void next()}>
             {t("photos.skip")}
           </Button>
         ) : null}
-        <Button type="submit" className="ml-auto min-w-32" disabled={submit.isPending || submit.isSuccess}>
+        <Button type="submit" className="ml-auto w-full min-w-32 sm:w-auto" disabled={submit.isPending || submit.isSuccess}>
           {onReview ? (submit.isPending ? tc("submitting") : mode === "edit" ? t("lost.saveEdit") : t("lost.submit")) : tc("next")}
         </Button>
       </div>

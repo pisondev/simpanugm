@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server"
 
 import { EmptyState } from "@/components/layout/empty-state"
 import { PageHeader } from "@/components/layout/page-header"
+import { PageTransition } from "@/components/motion/primitives"
 import { FoundCard, LostCard } from "@/components/report/report-card"
 import { ButtonLink } from "@/components/ui/button-link"
 import { load, serverApi } from "@/lib/api/server"
@@ -24,9 +25,9 @@ export default async function HomePage() {
   ])
   const first = me.full_name.split(/\s+/)[0] ?? me.full_name
   return (
-    <>
+    <PageTransition className="flex flex-col gap-6">
       <PageHeader title={t("homeTitle", { name: first })} lead={t("homeLead")} />
-      <div className="mb-8 grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         <ButtonLink href="/lapor/hilang" size="lg" className="justify-start">
           <FileSearch aria-hidden />
           {t("reportLost")}
@@ -40,8 +41,8 @@ export default async function HomePage() {
           {t("browseFound")}
         </ButtonLink>
       </div>
-      <div className="grid gap-8 lg:grid-cols-2">
-        <section aria-labelledby="aktif-hilang" className="flex flex-col gap-3">
+      <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2">
+        <section aria-labelledby="aktif-hilang" className="flex min-w-0 flex-col gap-3">
           <div className="flex items-center justify-between">
             <h2 id="aktif-hilang" className="text-lg font-semibold">
               {t("activeLost")}
@@ -53,14 +54,14 @@ export default async function HomePage() {
           {lost.items.length === 0 ? (
             <EmptyState icon={FileSearch}>{t("emptyLost")}</EmptyState>
           ) : (
-            <ul className="flex flex-col gap-3">
+            <ul className="motion-stagger flex flex-col gap-3">
               {lost.items.map((r) => (
                 <LostCard key={r.id} report={r} href={`/laporan/hilang/${r.code}`} />
               ))}
             </ul>
           )}
         </section>
-        <section aria-labelledby="aktif-temuan" className="flex flex-col gap-3">
+        <section aria-labelledby="aktif-temuan" className="flex min-w-0 flex-col gap-3">
           <div className="flex items-center justify-between">
             <h2 id="aktif-temuan" className="text-lg font-semibold">
               {t("activeFound")}
@@ -72,7 +73,7 @@ export default async function HomePage() {
           {found.items.length === 0 ? (
             <EmptyState icon={HandHeart}>{t("emptyFound")}</EmptyState>
           ) : (
-            <ul className="flex flex-col gap-3">
+            <ul className="motion-stagger flex flex-col gap-3">
               {found.items.map((r) => (
                 <FoundCard key={r.id} report={r} href={`/laporan/temuan/${r.code}`} />
               ))}
@@ -80,6 +81,6 @@ export default async function HomePage() {
           )}
         </section>
       </div>
-    </>
+    </PageTransition>
   )
 }

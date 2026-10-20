@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server"
 import { EmptyState } from "@/components/layout/empty-state"
 import { PageHeader } from "@/components/layout/page-header"
 import { Pager } from "@/components/layout/pager"
+import { PageTransition } from "@/components/motion/primitives"
 import { FoundCard, LostCard } from "@/components/report/report-card"
 import { ButtonLink } from "@/components/ui/button-link"
 import { load, serverApi } from "@/lib/api/server"
@@ -34,9 +35,9 @@ export default async function MyReportsPage({ searchParams }: PageProps<"/lapora
     { id: "klaim", label: t("tabClaims"), href: "/klaim" },
   ]
   return (
-    <>
+    <PageTransition className="flex flex-col gap-5">
       <PageHeader title={t("reportsTitle")} lead={me.role === "member" ? undefined : t("staffNote", { role: ts(me.role) })} />
-      <nav aria-label={t("reportsTitle")} className="mb-5 inline-flex rounded-lg bg-muted p-1">
+      <nav aria-label={t("reportsTitle")} className="inline-flex max-w-full flex-wrap rounded-lg bg-muted p-1">
         {tabs.map((x) => (
           <Link
             key={x.id}
@@ -61,13 +62,13 @@ export default async function MyReportsPage({ searchParams }: PageProps<"/lapora
           {list.kind === "lost" ? t("emptyReportsLost") : t("emptyReportsFound")}
         </EmptyState>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="motion-stagger flex flex-col gap-3">
           {list.kind === "lost"
             ? list.data.items.map((r) => <LostCard key={r.id} report={r} href={`/laporan/hilang/${r.code}`} />)
             : list.data.items.map((r) => <FoundCard key={r.id} report={r} href={`/laporan/temuan/${r.code}`} />)}
         </ul>
       )}
       <Pager path="/laporan" filter={{ tab: tab === "temuan" ? "temuan" : undefined }} cursor={cursor} next={list.data.next_cursor} />
-    </>
+    </PageTransition>
   )
 }

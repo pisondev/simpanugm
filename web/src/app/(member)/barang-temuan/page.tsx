@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server"
 import { EmptyState } from "@/components/layout/empty-state"
 import { PageHeader } from "@/components/layout/page-header"
 import { Pager } from "@/components/layout/pager"
+import { PageTransition } from "@/components/motion/primitives"
 import { StatusBadge } from "@/components/report/status-badge"
 import { Button } from "@/components/ui/button"
 import { ButtonLink } from "@/components/ui/button-link"
@@ -33,9 +34,9 @@ export default async function PublicFoundPage({ searchParams }: PageProps<"/bara
   const [api, master, t, tc] = await Promise.all([serverApi(), zonesAndCategories(), getTranslations("publicFound"), getTranslations("common")])
   const list = await load(api.GET("/found-reports/public", { params: { query: { ...filter, cursor, limit: 30 } } }))
   return (
-    <>
+    <PageTransition className="flex flex-col gap-5">
       <PageHeader title={t("title")} lead={t("lead")} />
-      <form method="get" className="mb-6 grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
+      <form method="get" className="surface grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
         <div className="flex flex-col gap-2">
           <label htmlFor="f-category" className="text-sm font-medium">
             {t("category")}
@@ -100,9 +101,9 @@ export default async function PublicFoundPage({ searchParams }: PageProps<"/bara
           {t("empty")}
         </EmptyState>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="motion-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.items.map((item) => (
-            <li key={item.id} className="flex flex-col gap-2 rounded-xl border bg-card p-4 shadow-sm">
+            <li key={item.id} className="surface flex flex-col gap-2 p-4">
               <div className="flex items-start justify-between gap-2">
                 <p className="font-medium">{item.item_name}</p>
                 <StatusBadge kind="custody" status={item.custody_status} />
@@ -130,6 +131,6 @@ export default async function PublicFoundPage({ searchParams }: PageProps<"/bara
         </ul>
       )}
       <Pager path="/barang-temuan" filter={filter} cursor={cursor} next={list.next_cursor} />
-    </>
+    </PageTransition>
   )
 }

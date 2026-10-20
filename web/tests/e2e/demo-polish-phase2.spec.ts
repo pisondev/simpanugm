@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises"
 
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectAccessible, latestLink, pathOf, registerMember, uniqueEmail } from "./helpers"
+import { expectAccessible, latestLink, pathOf, registerMember, signIn, uniqueEmail } from "./helpers"
 
 const routes = [
   { path: "/bantuan", slug: "bantuan", title: "Bantuan" },
@@ -232,5 +232,126 @@ test.describe("B03 account recovery views", () => {
     await expect(page.getByText("Kata sandi sudah diganti. Masuk dengan kata sandi baru.")).toBeVisible()
     await expect(page.getByRole("main").getByRole("link", { name: "Masuk", exact: true })).toBeVisible()
     await expectAccessible(page)
+  })
+})
+
+async function captureB04(page: Page, route: string, width: string) {
+  await expect(page.getByRole("main")).toBeVisible()
+  await page.evaluate(async () => {
+    await document.fonts.ready
+    await Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => undefined)))
+  })
+  await expectAccessible(page)
+  const overflow = await page.evaluate(() => ({ viewport: window.innerWidth, document: document.documentElement.scrollWidth }))
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({
+    path: `test-results/screenshots/phase2-B04-${route}-${width}.png`,
+    fullPage: true,
+    animations: "disabled",
+  })
+  expect(overflow.document).toBe(overflow.viewport)
+}
+
+test.describe("B04 member discovery and lost reporting", () => {
+  test("home, reports, public finder filters and a photo-free lost report work across screen sizes", async ({ page }) => {
+    test.setTimeout(180_000)
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) {
+        external.push(request.url())
+      }
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+
+    await page.setViewportSize({ width: 1366, height: 900 })
+    const email = uniqueEmail("phase2-b04")
+    const password = "kata sandi panjang fase 2"
+    await registerMember(page, "Anggota Uji B04", email, password)
+    await signIn(page, email, password)
+    await expect(page).toHaveURL(/\/beranda$/)
+    await expect(page.getByRole("link", { name: "Lapor kehilangan" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Laporan kehilangan aktif" })).toBeVisible()
+    await captureB04(page, "beranda", "1366x900")
+
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB04(page, "beranda", "360x800")
+    await page.goto("/laporan")
+    await expect(page.getByRole("link", { name: "Kehilangan", exact: true })).toHaveAttribute("aria-current", "page")
+    await captureB04(page, "laporan-hilang", "360x800")
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await captureB04(page, "laporan-hilang", "1366x900")
+    await page.goto("/laporan?tab=temuan")
+    await expect(page.getByRole("link", { name: "Temuan", exact: true })).toHaveAttribute("aria-current", "page")
+    await captureB04(page, "laporan-temuan", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB04(page, "laporan-temuan", "360x800")
+
+    await page.goto("/barang-temuan")
+    await expect(page.getByRole("heading", { name: "Barang Temuan" })).toBeVisible()
+    await captureB04(page, "barang-temuan", "360x800")
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await captureB04(page, "barang-temuan", "1366x900")
+    const publicResponse = await page.request.get(new URL("/api/v1/found-reports/public?limit=30", page.url()).toString())
+    expect(publicResponse.ok()).toBe(true)
+    const publicItems = (await publicResponse.json()).items as Record<string, unknown>[]
+    expect(publicItems.length).toBeGreaterThan(0)
+    for (const item of publicItems) {
+      expect(item).not.toHaveProperty("description")
+      expect(item).not.toHaveProperty("private_details")
+      expect(item).not.toHaveProperty("photos")
+      expect(item).not.toHaveProperty("finder")
+    }
+    const publicList = page.getByRole("main").locator("ul").last()
+    await expect(publicList.locator("img")).toHaveCount(0)
+    await page.keyboard.press("Tab")
+    await expect(page.locator(":focus")).toBeVisible()
+    await page.getByRole("link", { name: "Halaman berikutnya" }).click()
+    await expect(page).toHaveURL(/cursor=/)
+    await expect(page.getByRole("link", { name: "Kembali ke halaman awal" })).toBeVisible()
+    await page.getByRole("link", { name: "Kembali ke halaman awal" }).click()
+    await expect(page).not.toHaveURL(/cursor=/)
+    const selectedCategory = String(publicItems[0]?.category && (publicItems[0].category as Record<string, unknown>).id)
+    await page.locator("#f-category").selectOption(selectedCategory)
+    await page.getByRole("button", { name: "Terapkan filter" }).click()
+    await expect(page).toHaveURL(new RegExp(`category_id=${selectedCategory}`))
+    await expect(page.locator("#f-category")).toHaveValue(selectedCategory)
+
+    await page.setViewportSize({ width: 360, height: 800 })
+    await page.goto("/lapor/hilang")
+    await expect(page.getByRole("heading", { name: "Lapor kehilangan" })).toBeVisible()
+    await captureB04(page, "lapor-hilang", "360x800")
+    await page.getByRole("button", { name: "Lewati, saya tidak punya foto" }).click()
+    await page.getByRole("combobox").click()
+    await page.getByPlaceholder("Cari kategori, misalnya dompet").fill("tumbler")
+    await page.getByRole("option", { name: "Tumbler" }).click()
+    const reportName = `Tumbler biru draf ${Date.now()}`
+    await page.getByLabel("Nama barang").fill(reportName)
+    await page.getByLabel("Deskripsi").fill("Tumbler biru 500 ml dengan tutup hitam dan stiker kecil di sisi.")
+    await page.reload()
+    await expect(page.getByText("Draf sebelumnya dipulihkan.")).toBeVisible()
+    await page.getByRole("button", { name: "Lewati, saya tidak punya foto" }).click()
+    await expect(page.getByLabel("Nama barang")).toHaveValue(reportName)
+    await expect(page.getByLabel("Deskripsi")).toHaveValue("Tumbler biru 500 ml dengan tutup hitam dan stiker kecil di sisi.")
+    await captureB04(page, "lapor-hilang", "360x800")
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await captureB04(page, "lapor-hilang", "1366x900")
+    await page.getByRole("button", { name: "Lanjut" }).click()
+    await page.getByRole("checkbox", { name: "Saya tidak tahu lokasinya" }).check()
+    await page.getByRole("button", { name: "Lanjut" }).click()
+    await page.getByRole("button", { name: "Lanjut" }).click()
+    await expect(page.getByRole("heading", { name: "Tinjau" })).toBeVisible()
+    await expect(page.getByText("Tidak ada foto", { exact: true })).toBeVisible()
+    await captureB04(page, "lapor-hilang-tinjau", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB04(page, "lapor-hilang-tinjau", "360x800")
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await page.getByRole("button", { name: "Kirim laporan" }).click()
+    await expect(page).toHaveURL(/\/laporan\/hilang\/LST-\d{4}-\d{4}$/)
+    await expect(page.getByRole("heading", { name: reportName })).toBeVisible()
+
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
   })
 })
