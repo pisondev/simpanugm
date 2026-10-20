@@ -4,6 +4,8 @@
 
 - Added the first deterministic master-data seed foundation for categories, colours,
   compatibility, brands, synonyms, and runtime setting defaults.
+- Expanded demo lookup vocabulary to 140 synonym terms and 70 brand names or aliases
+  covering common campus item descriptions.
 - Added a dependency-light command entry point for validating the seed foundation and
   reporting the still-deferred location, post, and model-version files.
 - Added an OpenStreetMap/Overpass extractor that writes named location candidates to an

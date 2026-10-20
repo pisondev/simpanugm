@@ -43,6 +43,11 @@ review and campus bbox. It also rejects symlinked seed roots and files so valida
 silently read data from outside the checkout, and reports malformed YAML as a seed
 validation error.
 
+The demo vocabulary currently contains 140 Indonesian and English synonym terms and 70
+brand names or aliases. The terms cover common campus descriptions for phones, chargers,
+drinkware, cards, bags, audio devices, keys, clothing, study tools, and electronics.
+These are public lookup seeds for the demo and do not represent private participant data.
+
 Category validation requires non-empty parent and leaf names, positive parent ordering,
 non-empty text prompts and question fields, boolean question requirements, and positive
 optional retention overrides. Seed, trial, and auxiliary CSV readers also reject rows
