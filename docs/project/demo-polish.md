@@ -54,6 +54,13 @@ and expired email confirmation links. The batch axe and external-request checks 
 the existing `j1-register` suite passes all four tests. Captures use the `phase2-B02-`
 prefix in the ignored screenshot directory.
 
+B03 reuses that auth surface for password recovery and invitation acceptance. Desktop and
+360 px captures cover missing and usable reset links, missing invitations and the password
+setup form. A real Mailpit reset link changed a newly registered test account only after
+the API accepted it; mismatch and invalid-token feedback remained inline. The existing
+officer-invitation journey passed, as did all three B03 axe and offline-request cases.
+Captures use the `phase2-B03-` prefix in the ignored screenshot directory.
+
 ## Phase 2 data work completed
 
 D01 expanded the manifest from 52 to 159 local images: 140 Wikimedia Commons originals,

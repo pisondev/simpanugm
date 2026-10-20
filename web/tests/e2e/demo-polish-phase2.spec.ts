@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises"
 
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectAccessible } from "./helpers"
+import { expectAccessible, latestLink, pathOf, registerMember, uniqueEmail } from "./helpers"
 
 const routes = [
   { path: "/bantuan", slug: "bantuan", title: "Bantuan" },
@@ -24,14 +24,14 @@ async function capture(page: Page, route: (typeof routes)[number], width: string
   })
 }
 
-async function captureAuth(page: Page, title: string, name: string, width: string) {
+async function captureAuth(page: Page, title: string, name: string, width: string, batch = "B02") {
   await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible()
   await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => undefined))))
   await expectAccessible(page)
   await expect(page.locator("html")).toHaveJSProperty("scrollWidth", await page.evaluate(() => window.innerWidth))
   await mkdir("test-results/screenshots", { recursive: true })
   await page.screenshot({
-    path: `test-results/screenshots/phase2-B02-${name}-${width}.png`,
+    path: `test-results/screenshots/phase2-${batch}-${name}-${width}.png`,
     fullPage: true,
     animations: "disabled",
   })
@@ -155,4 +155,82 @@ test.describe("B02 sign-in and verification views", () => {
       expect(errors).toEqual([])
     })
   }
+})
+
+test.describe("B03 account recovery views", () => {
+  for (const viewport of [
+    { width: 1366, height: 900, label: "1366x900" },
+    { width: 360, height: 800, label: "360x800" },
+  ]) {
+    test(`recovery forms and expired-link guidance at ${viewport.label}`, async ({ page }) => {
+      test.setTimeout(120_000)
+      await page.setViewportSize({ width: viewport.width, height: viewport.height })
+      const external: string[] = []
+      const errors: string[] = []
+      page.on("request", (request) => {
+        const url = new URL(request.url())
+        if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) {
+          external.push(request.url())
+        }
+      })
+      page.on("pageerror", (error) => errors.push(error.message))
+
+      await page.goto("/lupa-sandi")
+      await captureAuth(page, "Lupa kata sandi", "lupa-sandi", viewport.label, "B03")
+      await page.getByRole("button", { name: "Kirim tautan" }).click()
+      await expect(page.getByLabel("Email UGM")).toHaveAttribute("aria-invalid", "true")
+      await expectAccessible(page)
+
+      await page.goto("/atur-sandi")
+      await expect(page.getByText(/Tautan atur ulang tidak lengkap/)).toBeVisible()
+      await expect(page.getByRole("link", { name: "Minta tautan baru" })).toBeVisible()
+      await captureAuth(page, "Atur kata sandi baru", "atur-sandi-missing", viewport.label, "B03")
+
+      await page.goto("/atur-sandi?token=expired-invalid")
+      await captureAuth(page, "Atur kata sandi baru", "atur-sandi-expired", viewport.label, "B03")
+      await page.getByRole("button", { name: "Tampilkan kata sandi" }).first().click()
+      await expect(page.getByLabel("Kata sandi baru", { exact: true })).toHaveAttribute("type", "text")
+      await page.getByRole("button", { name: "Sembunyikan kata sandi" }).first().click()
+      await expect(page.getByLabel("Kata sandi baru", { exact: true })).toHaveAttribute("type", "password")
+      await page.getByLabel("Kata sandi baru", { exact: true }).fill("sandi baru aman phase2")
+      await page.getByLabel("Ulangi kata sandi baru", { exact: true }).fill("berbeda")
+      await page.getByRole("button", { name: "Simpan kata sandi" }).click()
+      await expect(page.getByText("Kata sandi tidak sama")).toBeVisible()
+      await page.getByLabel("Ulangi kata sandi baru", { exact: true }).fill("sandi baru aman phase2")
+      await page.getByRole("button", { name: "Simpan kata sandi" }).click()
+      await expect(page.getByRole("link", { name: "Minta tautan baru" })).toBeVisible()
+      await expectAccessible(page)
+
+      await page.goto("/undangan")
+      await expect(page.getByText(/Tautan undangan tidak lengkap/)).toBeVisible()
+      await captureAuth(page, "Terima undangan", "undangan-missing", viewport.label, "B03")
+      await page.goto("/undangan?token=invitation-preview-token")
+      await captureAuth(page, "Terima undangan", "undangan-form", viewport.label, "B03")
+      await expect(page.getByLabel("Kata sandi baru", { exact: true })).toBeVisible()
+      await expect(page.getByLabel("Ulangi kata sandi baru", { exact: true })).toBeVisible()
+
+      expect(external).toEqual([])
+      expect(errors).toEqual([])
+    })
+  }
+
+  test("a real reset email changes the password only after the API accepts its token", async ({ page }) => {
+    test.setTimeout(120_000)
+    const email = uniqueEmail("phase2-reset")
+    const oldPassword = "kata sandi lama phase2 2026"
+    const newPassword = "kata sandi baru phase2 2026"
+    await registerMember(page, "Pemulihan Uji", email, oldPassword)
+    await page.goto("/lupa-sandi")
+    await page.getByLabel("Email UGM").fill(email)
+    await page.getByRole("button", { name: "Kirim tautan" }).click()
+    await expect(page.getByText(/Jika email terdaftar, tautan sudah dikirim/)).toBeVisible()
+    const resetLink = await latestLink(email, "/atur-sandi")
+    await page.goto(pathOf(resetLink))
+    await page.getByLabel("Kata sandi baru", { exact: true }).fill(newPassword)
+    await page.getByLabel("Ulangi kata sandi baru", { exact: true }).fill(newPassword)
+    await page.getByRole("button", { name: "Simpan kata sandi" }).click()
+    await expect(page.getByText("Kata sandi sudah diganti. Masuk dengan kata sandi baru.")).toBeVisible()
+    await expect(page.getByRole("main").getByRole("link", { name: "Masuk", exact: true })).toBeVisible()
+    await expectAccessible(page)
+  })
 })

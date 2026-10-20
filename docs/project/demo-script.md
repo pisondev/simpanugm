@@ -35,6 +35,8 @@ Before a demo, `/bantuan` lists current post locations and opening hours; `/priv
 `/ketentuan` keep the full student-project disclosures available from the public footer.
 At `/masuk`, use a demo role button for a seeded actor. Registration and expired-link
 recovery remain available for the full account lifecycle demonstration.
+For password recovery, use a fresh test account so the seeded demo credentials remain
+unchanged. Invitation acceptance is covered through the real Mailpit link flow.
 
 ### Accounts
 
