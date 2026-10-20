@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import { CandidateList } from "@/components/matching/candidate-card"
+import { PageTransition } from "@/components/motion/primitives"
 import { CloseReportDialog } from "@/components/report/close-report-dialog"
 import { ConfirmReceiptDialog } from "@/components/report/confirm-receipt-dialog"
 import { LostReportView } from "@/components/report/lost-report-view"
@@ -38,5 +39,9 @@ export default async function LostDetailPage({ params }: PageProps<"/laporan/hil
   )
   const candidates =
     open || matches.items.length > 0 ? <CandidateList items={matches.items} hrefFor={(c) => `/laporan/hilang/${report.code}/kandidat/${c.id}`} /> : null
-  return <LostReportView report={report} history={history.items} actions={actions} now={now.getTime()} candidates={candidates} />
+  return (
+    <PageTransition>
+      <LostReportView report={report} history={history.items} actions={actions} now={now.getTime()} candidates={candidates} />
+    </PageTransition>
+  )
 }

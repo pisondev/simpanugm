@@ -19,7 +19,7 @@ function PostCard({ post }: { post: Post }) {
   const t = useTranslations("report")
   const th = useTranslations("help")
   return (
-    <div className="mt-3 flex flex-col gap-2 rounded-lg border bg-card p-3">
+    <div className="mt-3 flex flex-col gap-2 rounded-lg border bg-surface-raised p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-medium">{post.name}</span>
         <OpenNow hours={post.opening_hours} />
@@ -116,7 +116,7 @@ export function FoundReportView({ report, history, post, actions, staff = false,
       <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
         <div className="flex flex-col gap-6">
           <PhotoStrip photos={report.photos} alt={tc("photoAlt", { kind: tc("photoKindFound"), name: report.item_name })} />
-          <section className="rounded-xl border bg-card p-4">
+          <section className="surface p-4">
             <DetailList>
               <Detail label={t("description")}>{report.description}</Detail>
               <Detail label={t("colours")}>{report.colours.length > 0 ? report.colours.join(", ") : tc("emptyValue")}</Detail>
@@ -141,7 +141,7 @@ export function FoundReportView({ report, history, post, actions, staff = false,
             </DetailList>
           </section>
           {report.hidden_details ? (
-            <section aria-labelledby="tersembunyi" className="rounded-xl border border-warning/30 bg-warning/5 p-4">
+            <section aria-labelledby="tersembunyi" className="surface border-warning/30 bg-warning/5 p-4">
               <h2 id="tersembunyi" className="flex items-center gap-2 font-semibold">
                 <Lock className="size-4 text-warning" aria-hidden />
                 {t("hiddenDetails")}
@@ -151,7 +151,7 @@ export function FoundReportView({ report, history, post, actions, staff = false,
             </section>
           ) : null}
           {staff && (report.finder || report.proxy_finder_name) ? (
-            <section aria-labelledby="penemu" className="rounded-xl border bg-card p-4">
+            <section aria-labelledby="penemu" className="surface p-4">
               <h2 id="penemu" className="mb-3 flex items-center gap-2 font-semibold">
                 <UserRound className="size-4" aria-hidden />
                 {t("finder")}
@@ -165,7 +165,7 @@ export function FoundReportView({ report, history, post, actions, staff = false,
             </section>
           ) : null}
         </div>
-        <section aria-labelledby="riwayat" className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+        <section aria-labelledby="riwayat" className="surface flex flex-col gap-4 p-4">
           <h2 id="riwayat" className="font-semibold">
             {t("timeline")}
           </h2>

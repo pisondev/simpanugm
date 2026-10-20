@@ -19,11 +19,11 @@ export function Timeline({ items }: { items: HistoryEntry[] }) {
     return <p className="text-muted-foreground">{t("timelineEmpty")}</p>
   }
   return (
-    <ol className="relative flex flex-col gap-5 border-l pl-6">
+    <ol className="relative flex flex-col gap-4 border-l border-border pl-5">
       {items.map((entry, i) => (
         <li key={`${entry.created_at}-${i}`} className="relative">
-          <span className="absolute top-1.5 -left-[1.95rem] size-3 rounded-full border-2 border-card bg-primary ring-2 ring-primary/20" aria-hidden />
-          <p className="font-medium">
+          <span className="absolute top-1.5 -left-[1.45rem] size-2.5 rounded-full border-2 border-card bg-primary" aria-hidden />
+          <p className="text-sm font-medium">
             {entry.from_status
               ? t("transitionLabel", { from: statusLabel(ts, entry, entry.from_status), to: statusLabel(ts, entry, entry.to_status) })
               : entry.entity === "custody"

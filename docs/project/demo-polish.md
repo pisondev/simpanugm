@@ -72,6 +72,15 @@ and action-bar overlap on the review step. Captures use the `phase2-B04-` prefix
 ignored screenshot directory. The B04 case uses a newly verified test member so repeated
 demo runs do not consume the seeded owner's open-report limit.
 
+B05 groups report details and history into quieter surfaces, keeps owner-only evidence
+visually distinct, and adds page transitions to lost/found detail and edit routes. The
+existing candidate detail is untouched. Playwright verifies seeded lost and found records,
+owner-only private fields, denied cross-member API reads, photo zoom at desktop and phone
+sizes, a two-tab edit conflict that retains the unsaved review values, and closing with an
+explicit selected reason. Both B05 scenarios pass axe, horizontal overflow and offline
+request checks; screenshots use the `phase2-B05-` prefix. The local API limiter required
+restarting the API between the registration/edit and seeded-account scenarios.
+
 The post-B04 reference, AI and recording checks passed 19/19 across two runs. The local
 API's in-memory sign-in limiter required an API restart before the four recording scenes;
 the cold model's first desktop suggestion also exceeded its existing eight-second bound,

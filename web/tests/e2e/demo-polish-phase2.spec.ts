@@ -239,7 +239,8 @@ async function captureB04(page: Page, route: string, width: string) {
   await expect(page.getByRole("main")).toBeVisible()
   await page.evaluate(async () => {
     await document.fonts.ready
-    await Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => undefined)))
+    const finiteAnimations = document.getAnimations().filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+    await Promise.all(finiteAnimations.map((animation) => animation.finished.catch(() => undefined)))
   })
   await expectAccessible(page)
   const overflow = await page.evaluate(() => ({ viewport: window.innerWidth, document: document.documentElement.scrollWidth }))
@@ -350,6 +351,201 @@ test.describe("B04 member discovery and lost reporting", () => {
     await page.getByRole("button", { name: "Kirim laporan" }).click()
     await expect(page).toHaveURL(/\/laporan\/hilang\/LST-\d{4}-\d{4}$/)
     await expect(page.getByRole("heading", { name: reportName })).toBeVisible()
+
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})
+
+async function captureB05(page: Page, route: string, width: string) {
+  await expect(page.getByRole("main")).toBeVisible()
+  await page.evaluate(async () => {
+    await document.fonts.ready
+    const finiteAnimations = document.getAnimations().filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+    await Promise.all(finiteAnimations.map((animation) => animation.finished.catch(() => undefined)))
+  })
+  await expectAccessible(page)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => window.innerWidth))
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({
+    path: `test-results/screenshots/phase2-B05-${route}-${width}.png`,
+    fullPage: true,
+    animations: "disabled",
+  })
+}
+
+async function signInDemo(page: Page, role: "Pemilik (Mahasiswa)" | "Penemu (Mahasiswa)") {
+  await page.goto("/masuk")
+  await page.getByRole("button", { name: role === "Pemilik (Mahasiswa)" ? /Pemilik \(Mahasiswa\)/ : /Penemu \(Mahasiswa\)/ }).click()
+  await expect(page).toHaveURL(/\/beranda$/)
+}
+
+test.describe("B05 member report details and editing", () => {
+  test("owner and finder details retain private evidence and protected photo zoom", async ({ page }) => {
+    test.setTimeout(150_000)
+    await page.setViewportSize({ width: 1366, height: 900 })
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) {
+        external.push(request.url())
+      }
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+
+    await signInDemo(page, "Pemilik (Mahasiswa)")
+    await page.goto("/laporan")
+    const lostLink = page.getByRole("link", { name: /TWS Earbuds Jabra Elite 4 Active/ })
+    await expect(lostLink).toBeVisible()
+    await lostLink.click()
+    const lostCode = await page.locator("code").first().innerText()
+    expect(lostCode).toMatch(/^LST-\d{4}-\d{4}$/)
+    expect(lostCode).toBeTruthy()
+    await expect(page.getByRole("heading", { name: "TWS Earbuds Jabra Elite 4 Active" })).toBeVisible()
+    await expect(page.locator('section[aria-labelledby="ciri"]')).toContainText("SN-JBR4-9821")
+    await expect(page.getByRole("heading", { name: "Kandidat barang temuan" })).toBeVisible()
+    await captureB05(page, "detail-hilang", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB05(page, "detail-hilang", "360x800")
+    const lostPhoto = page.locator('button:has(img[alt^="Foto barang hilang"])').first()
+    await expect(lostPhoto).toBeVisible()
+    await lostPhoto.click()
+    await expect(page.getByRole("dialog")).toBeVisible()
+    await expect(page.getByRole("dialog").locator("img")).toBeVisible()
+    await captureB05(page, "zoom-hilang", "360x800")
+    await page.keyboard.press("Escape")
+    await expect(page.getByRole("dialog")).toHaveCount(0)
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await lostPhoto.click()
+    await expect(page.getByRole("dialog").locator("img")).toBeVisible()
+    await captureB05(page, "zoom-hilang", "1366x900")
+    await page.keyboard.press("Escape")
+
+    await page.context().clearCookies()
+    await signInDemo(page, "Penemu (Mahasiswa)")
+    await page.goto("/laporan?tab=temuan")
+    const foundLink = page.getByRole("link", { name: /Payung Lipat Hitam Otomatis/ })
+    await expect(foundLink).toBeVisible()
+    await foundLink.click()
+    await expect(page.getByRole("heading", { name: "Payung Lipat Hitam Otomatis" })).toBeVisible()
+    await expect(page.locator('section[aria-labelledby="tersembunyi"]')).toContainText("jahitan manual benang biru")
+    const privateResponse = await page.request.get(new URL(`/api/v1/lost-reports/${lostCode}`, page.url()).toString())
+    expect([401, 403, 404]).toContain(privateResponse.status())
+    expect(await privateResponse.text()).not.toContain("SN-JBR4-9821")
+    await captureB05(page, "detail-temuan", "360x800")
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await captureB05(page, "detail-temuan", "1366x900")
+    const foundPhoto = page.locator('button:has(img[alt^="Foto barang temuan"])').first()
+    await expect(foundPhoto).toBeVisible()
+    await foundPhoto.click()
+    await expect(page.getByRole("dialog").locator("img")).toBeVisible()
+    await captureB05(page, "zoom-temuan", "1366x900")
+    await page.keyboard.press("Escape")
+    await expect(page.getByRole("dialog")).toHaveCount(0)
+    await page.setViewportSize({ width: 360, height: 800 })
+    await foundPhoto.click()
+    await expect(page.getByRole("dialog").locator("img")).toBeVisible()
+    await captureB05(page, "zoom-temuan", "360x800")
+    await page.keyboard.press("Escape")
+
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+
+  test("a concurrent edit preserves the owner's values and close still requires a reason", async ({ page, browser }) => {
+    test.setTimeout(180_000)
+    page.setDefaultTimeout(10_000)
+    await page.setViewportSize({ width: 360, height: 800 })
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) {
+        external.push(request.url())
+      }
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+    const email = uniqueEmail("phase2-b05")
+    const password = "kata sandi panjang fase 2"
+    await registerMember(page, "Anggota Uji B05", email, password)
+    await signIn(page, email, password)
+    await expect(page).toHaveURL(/\/beranda$/)
+    await page.goto("/lapor/hilang")
+    const skipPhoto = page.getByRole("button", { name: "Lewati, saya tidak punya foto" })
+    await expect(skipPhoto).toBeVisible()
+    await skipPhoto.click()
+    await page.getByRole("combobox").click()
+    await page.getByPlaceholder("Cari kategori, misalnya dompet").fill("tumbler")
+    await page.getByRole("option", { name: "Tumbler" }).click()
+    const reportName = `Tumbler B05 ${Date.now()}`
+    await page.getByLabel("Nama barang").fill(reportName)
+    await page.getByLabel("Deskripsi").fill("Tumbler biru 500 ml dengan tutup hitam dan stiker kecil.")
+    await page.getByRole("button", { name: "Lanjut" }).click()
+    await page.getByRole("checkbox", { name: "Saya tidak tahu lokasinya" }).check()
+    await page.getByRole("button", { name: "Lanjut" }).click()
+    await page.getByRole("textbox", { name: /^Ciri khusus/ }).fill("Tanda pemilik B05: tutup bagian dalam berwarna hijau.")
+    await page.getByRole("button", { name: "Lanjut" }).click()
+    await page.getByRole("button", { name: "Kirim laporan" }).click()
+    await expect(page).toHaveURL(/\/laporan\/hilang\/LST-\d{4}-\d{4}$/)
+    const detailUrl = page.url()
+    const code = /LST-\d{4}-\d{4}$/.exec(detailUrl)?.[0]
+    expect(code).toBeTruthy()
+    await expect(page.locator('section[aria-labelledby="ciri"]')).toContainText("Tanda pemilik B05")
+    await captureB05(page, "detail-baru", "360x800")
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await captureB05(page, "detail-baru", "1366x900")
+
+    const editUrl = `${detailUrl}/ubah`
+    await page.goto(editUrl)
+    await expect(page.getByRole("heading", { name: "Ubah laporan kehilangan" })).toBeVisible()
+    await captureB05(page, "ubah-hilang", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB05(page, "ubah-hilang", "360x800")
+    await page.setViewportSize({ width: 1366, height: 900 })
+
+    async function prepareEdit(target: Page, description: string) {
+      await target.getByRole("button", { name: "Lanjut" }).click()
+      await target.getByLabel("Deskripsi").fill(description)
+      await target.getByRole("button", { name: "Lanjut" }).click()
+      await target.getByRole("button", { name: "Lanjut" }).click()
+      await target.getByRole("textbox", { name: /^Ciri khusus/ }).fill("Tanda pemilik B05: tutup bagian dalam berwarna hijau.")
+      await target.getByRole("button", { name: "Lanjut" }).click()
+      await expect(target.getByRole("heading", { name: "Tinjau" })).toBeVisible()
+    }
+
+    const ownerVersion = await page.context().newPage()
+    await ownerVersion.goto(editUrl)
+    await prepareEdit(page, "Versi lama yang tetap terlihat setelah konflik penyuntingan.")
+    await prepareEdit(ownerVersion, "Versi baru yang disimpan oleh tab lain sebelum konflik.")
+    await ownerVersion.getByRole("button", { name: "Simpan perubahan" }).click()
+    await expect(ownerVersion).toHaveURL(new RegExp(`/laporan/hilang/${code}$`))
+    await page.getByRole("button", { name: "Simpan perubahan" }).click()
+    await expect(page.getByText("Data sudah diubah oleh orang lain.", { exact: false })).toBeVisible()
+    await expect(
+      page.getByRole("region", { name: "Tinjau" }).getByText("Versi lama yang tetap terlihat setelah konflik penyuntingan.", { exact: true }),
+    ).toBeVisible()
+    await expectAccessible(page)
+
+    await ownerVersion.close()
+    await page.goto(detailUrl)
+    await page.getByRole("button", { name: "Tutup laporan", exact: true }).click()
+    const closeDialog = page.getByRole("alertdialog")
+    await expect(closeDialog).toBeVisible()
+    await expectAccessible(page)
+    await expect(closeDialog.getByRole("radio", { name: "Sudah ditemukan sendiri" })).toBeChecked()
+    await closeDialog.getByRole("button", { name: "Ya, tutup laporan", exact: true }).click()
+    await expect(page.getByText("Ditutup", { exact: true })).toBeVisible()
+
+    const otherContext = await browser.newContext()
+    const otherPage = await otherContext.newPage()
+    await otherPage.goto("http://localhost:8000/masuk")
+    await otherPage.getByRole("button", { name: "Penemu (Mahasiswa)" }).click()
+    await expect(otherPage).toHaveURL(/\/beranda$/)
+    const denied = await otherPage.request.get(new URL(`/api/v1/lost-reports/${code}`, otherPage.url()).toString())
+    expect([401, 403, 404]).toContain(denied.status())
+    expect(await denied.text()).not.toContain("Tanda pemilik B05")
+    await otherContext.close()
 
     expect(external).toEqual([])
     expect(errors).toEqual([])

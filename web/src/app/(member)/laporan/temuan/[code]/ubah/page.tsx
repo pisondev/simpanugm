@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
 import { PageHeader } from "@/components/layout/page-header"
+import { PageTransition } from "@/components/motion/primitives"
 import { FoundReportForm } from "@/components/report/form/found-report-form"
 import { load, serverApi } from "@/lib/api/server"
 import { formData } from "@/lib/masterdata"
@@ -20,9 +21,9 @@ export default async function EditFoundPage({ params }: PageProps<"/laporan/temu
     redirect(`/laporan/temuan/${report.code}`)
   }
   return (
-    <div className="mx-auto max-w-2xl">
+    <PageTransition className="mx-auto flex w-full max-w-2xl flex-col gap-5">
       <PageHeader title={t("titleEdit")} lead={report.code} />
       <FoundReportForm mode="edit" categories={data.categories} colours={data.colours} initial={report} />
-    </div>
+    </PageTransition>
   )
 }

@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import { FinderHint } from "@/components/matching/finder-hint"
+import { PageTransition } from "@/components/motion/primitives"
 import { CloseReportDialog } from "@/components/report/close-report-dialog"
 import { FoundReportView } from "@/components/report/found-report-view"
 import { ButtonLink } from "@/components/ui/button-link"
@@ -33,5 +34,9 @@ export default async function FoundDetailPage({ params }: PageProps<"/laporan/te
       <CloseReportDialog kind="found" id={report.id} />
     </>
   ) : null
-  return <FoundReportView report={report} history={history.items} post={post} actions={actions} matching={<FinderHint items={hint.items} />} />
+  return (
+    <PageTransition>
+      <FoundReportView report={report} history={history.items} post={post} actions={actions} matching={<FinderHint items={hint.items} />} />
+    </PageTransition>
+  )
 }

@@ -58,7 +58,7 @@ export function LostReportView({ report, history, actions, staff = false, now, c
       {candidates}
 
       {report.status === "closed" && report.close_reason ? (
-        <p className="rounded-xl border bg-card p-4">
+        <p className="surface p-4">
           {t("closeReason")}:{" "}
           {ts.has(`closeReason.${report.close_reason}` as "closeReason.expired")
             ? ts(`closeReason.${report.close_reason}` as "closeReason.expired")
@@ -75,7 +75,7 @@ export function LostReportView({ report, history, actions, staff = false, now, c
             </h2>
             <PhotoStrip photos={report.photos} alt={tc("photoAlt", { kind: tc("photoKindLost"), name: report.item_name })} />
           </section>
-          <section className="rounded-xl border bg-card p-4">
+          <section className="surface p-4">
             <DetailList>
               <Detail label={t("description")}>{report.description}</Detail>
               <Detail label={t("colours")}>{report.colours.length > 0 ? report.colours.join(", ") : tc("emptyValue")}</Detail>
@@ -87,7 +87,7 @@ export function LostReportView({ report, history, actions, staff = false, now, c
             </DetailList>
           </section>
           {report.private_details ? (
-            <section aria-labelledby="ciri" className="rounded-xl border border-warning/30 bg-warning/5 p-4">
+            <section aria-labelledby="ciri" className="surface border-warning/30 bg-warning/5 p-4">
               <h2 id="ciri" className="flex items-center gap-2 font-semibold">
                 <Lock className="size-4 text-warning" aria-hidden />
                 {t("privateDetails")}
@@ -97,7 +97,7 @@ export function LostReportView({ report, history, actions, staff = false, now, c
             </section>
           ) : null}
           {staff && report.reporter ? (
-            <section aria-labelledby="pelapor" className="rounded-xl border bg-card p-4">
+            <section aria-labelledby="pelapor" className="surface p-4">
               <h2 id="pelapor" className="mb-3 flex items-center gap-2 font-semibold">
                 <UserRound className="size-4" aria-hidden />
                 {t("reporter")}
@@ -111,7 +111,7 @@ export function LostReportView({ report, history, actions, staff = false, now, c
             </section>
           ) : null}
         </div>
-        <section aria-labelledby="riwayat" className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+        <section aria-labelledby="riwayat" className="surface flex flex-col gap-4 p-4">
           <h2 id="riwayat" className="font-semibold">
             {t("timeline")}
           </h2>
