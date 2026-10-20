@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server"
 import { PageHeader } from "@/components/layout/page-header"
 import { EmailChangeDialog } from "@/components/profile/email-change-dialog"
 import { ProfileForm } from "@/components/profile/profile-form"
+import { PageTransition } from "@/components/motion/primitives"
 import { ButtonLink } from "@/components/ui/button-link"
 import { requireMe } from "@/lib/session"
 
@@ -22,9 +23,9 @@ export default async function ProfilePage() {
     { href: "/profil/notifikasi", label: t("linksNotifications"), icon: Bell },
   ]
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <PageTransition className="mx-auto flex max-w-2xl flex-col gap-6">
       <PageHeader title={t("title")} lead={t("lead")} />
-      <section className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+      <section className="surface flex flex-col gap-4 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm text-muted-foreground">{t("email")}</p>
@@ -39,12 +40,12 @@ export default async function ProfilePage() {
           {t("role")}: {ts(`role.${me.role}`)}
         </p>
       </section>
-      <section className="rounded-xl border bg-card p-4">
+      <section className="surface p-4">
         <ProfileForm me={me} />
       </section>
-      <nav aria-label={t("title")} className="flex flex-col divide-y rounded-xl border bg-card">
+      <nav aria-label={t("title")} className="surface flex flex-col divide-y overflow-hidden">
         {links.map((l) => (
-          <Link key={l.href} href={l.href} className="flex min-h-14 items-center gap-3 px-4 hover:bg-muted">
+          <Link key={l.href} href={l.href} className="motion-press motion-lift flex min-h-14 items-center gap-3 px-4 hover:bg-muted">
             <l.icon className="size-5 text-primary" aria-hidden />
             <span className="flex-1 font-medium">{l.label}</span>
             <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
@@ -54,6 +55,6 @@ export default async function ProfilePage() {
       <ButtonLink href="/laporan" variant="outline" className="w-fit">
         {me.role === "member" ? tn("myReports") : t("myReports")}
       </ButtonLink>
-    </div>
+    </PageTransition>
   )
 }

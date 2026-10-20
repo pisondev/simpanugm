@@ -93,6 +93,27 @@ clock test requires `deploy/compose.e2e.yaml`; the ordinary demo stack correctly
 404 for that test-only endpoint. The demo was reset afterward and `make demo-check` passed
 17/17. Captures use the `phase2-B06-` prefix.
 
+B07 groups profile contact details, password and active sessions, and notification choices
+into consistent surfaces. Its desktop and phone journey saves profile fields, rejects an
+invalid email change without replacing the current address, checks short and mismatched
+password errors, revokes a second session, and changes then restores a real notification
+preference. Sign-out-all and account deletion dialogs both show their confirmation copy and
+are canceled; the deletion action is never submitted. All three routes pass axe, overflow
+and no-external-request checks. Phone screenshots use the 360 by 800 viewport and place
+the profile save and preference save controls above the fixed navigation. The test writes
+only to the demo owner and restores the preference value. Captures use the `phase2-B07-`
+prefix.
+
+The real-model reference gate initially exceeded the eight-second assist bound. ML metrics
+isolated EasyOCR as the main cost: 1,549 seconds across 258 analyses (6.0 seconds each),
+versus 1.65 seconds total for category classification. Capping OCR input at 768px reduced
+the OCR detector area by 44% while retaining the real model and its output. A real-weight
+OCR check still reads the synthetic card title and masks its full number at that size. In
+the rebuilt service, 134 analyses averaged 3.17 seconds in OCR and 3.46 seconds end to end.
+The phase 1 reference and reduced-motion tests pass 3/3, B01-B07 pass 12/12, demo-ai passes
+4/4, and demo-record passes 4/4. No model output, UI timeout or production rate limit was
+changed.
+
 The post-B04 reference, AI and recording checks passed 19/19 across two runs. The local
 API's in-memory sign-in limiter required an API restart before the four recording scenes;
 the cold model's first desktop suggestion also exceeded its existing eight-second bound,

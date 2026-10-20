@@ -685,3 +685,141 @@ test.describe("B06 member claims and notifications", () => {
     expect(errors).toEqual([])
   })
 })
+
+async function captureB07(page: Page, route: string, width: string, target?: Locator) {
+  await page.evaluate(() => window.scrollTo(0, 0))
+  if (target) {
+    await target.evaluate((element) => element.scrollIntoView({ block: "center" }))
+    await page.evaluate(() => window.scrollBy(0, -25))
+    const nav = page.locator("nav.fixed").last()
+    const [targetBox, navBox] = await Promise.all([
+      target.evaluate((element) => {
+        const { bottom } = element.getBoundingClientRect()
+        return { bottom }
+      }),
+      nav.evaluate((element) => {
+        const { top } = element.getBoundingClientRect()
+        return { top }
+      }),
+    ])
+    expect(targetBox.bottom).toBeLessThanOrEqual(navBox.top)
+  }
+  await expect(page.getByRole("main")).toBeVisible()
+  await expectAccessible(page)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => window.innerWidth))
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({ path: `test-results/screenshots/phase2-B07-${route}-${width}.png`, animations: "disabled" })
+}
+
+test.describe("B07 member profile settings", () => {
+  test("profile, security and notification preferences retain their real actions and confirmations", async ({ page, browser }) => {
+    test.setTimeout(180_000)
+    page.setDefaultTimeout(10_000)
+    await page.setViewportSize({ width: 1366, height: 900 })
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+
+    await signInDemo(page, "Pemilik (Mahasiswa)")
+    await page.goto("/profil")
+    await expect(page.getByRole("heading", { name: "Profil", level: 1 })).toBeVisible()
+    await captureB07(page, "profil", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB07(page, "profil", "360x800", page.getByRole("button", { name: "Simpan profil" }))
+    await page.setViewportSize({ width: 1366, height: 900 })
+
+    const profileSave = page.waitForResponse((response) => response.request().method() === "PATCH" && response.url().endsWith("/me"))
+    await page.getByLabel("Nama").fill(`Siti Rahma B07 ${Date.now()}`)
+    await page.getByLabel("Telepon").fill("081234567800")
+    await page.getByLabel("NIM atau NIP").fill("24/543770/PA/23107")
+    await page.getByRole("button", { name: "Simpan profil" }).click()
+    expect((await profileSave).ok()).toBe(true)
+    await expect(page.getByText("Profil disimpan.")).toBeVisible()
+
+    await page.getByRole("button", { name: "Ganti email" }).click()
+    const emailDialog = page.getByRole("dialog")
+    await expect(emailDialog.getByRole("heading", { name: "Ganti email akun" })).toBeVisible()
+    const sendEmail = emailDialog.getByRole("button", { name: "Kirim tautan konfirmasi" })
+    await expect(sendEmail).toBeDisabled()
+    await emailDialog.getByLabel("Email baru").fill("bukan-email")
+    await emailDialog.getByLabel("Kata sandi sekarang").fill("sandi-uji-yang-salah")
+    await sendEmail.click()
+    await expect(emailDialog).toBeVisible()
+    await expect(emailDialog.getByText("Jika alamat itu bisa dipakai, tautan konfirmasi sudah dikirim ke sana. Berlaku 24 jam.")).toHaveCount(0)
+    await emailDialog.getByRole("button", { name: "Batal" }).click()
+
+    await page.goto("/profil/keamanan")
+    await expect(page.getByRole("heading", { name: "Keamanan", level: 1 })).toBeVisible()
+    await expect(page.getByText("Perangkat ini", { exact: true })).toBeVisible()
+    await captureB07(page, "keamanan", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB07(page, "keamanan", "360x800")
+    await page.setViewportSize({ width: 1366, height: 900 })
+
+    await page.getByLabel("Kata sandi sekarang").fill("sandi-uji-yang-salah")
+    await page.getByLabel("Kata sandi baru", { exact: true }).fill("singkat")
+    await page.getByLabel("Ulangi kata sandi baru", { exact: true }).fill("tidak-sama")
+    await page.getByRole("button", { name: "Simpan kata sandi" }).click()
+    await expect(page.getByText(/Minimal 10 karakter, saat ini/)).toBeVisible()
+    await expect(page.getByText("Kata sandi tidak sama")).toBeVisible()
+
+    const extraSession = await browser.newPage()
+    await signInDemo(extraSession, "Pemilik (Mahasiswa)")
+    await extraSession.goto("/profil/keamanan")
+    await page.goto("/profil/keamanan")
+    const revokeButtons = page.getByRole("button", { name: "Keluarkan" })
+    await expect(revokeButtons.first()).toBeVisible()
+    await revokeButtons.first().click()
+    await expect(page.getByText("Perangkat dikeluarkan.")).toBeVisible()
+    await extraSession.close()
+
+    await page.getByRole("button", { name: "Keluar dari semua perangkat" }).click()
+    const signOutDialog = page.getByRole("alertdialog")
+    await expect(signOutDialog.getByRole("heading", { name: "Keluar dari semua perangkat?" })).toBeVisible()
+    await signOutDialog.getByRole("button", { name: "Batal" }).click()
+    await expect(page).toHaveURL(/\/profil\/keamanan$/)
+
+    await page.getByRole("button", { name: "Hapus Akunku" }).click()
+    const deleteDialog = page.getByRole("dialog")
+    await expect(deleteDialog.getByRole("heading", { name: "Yakin ingin menghapus akun?" })).toBeVisible()
+    await expect(deleteDialog.getByText("Tindakan ini permanen dan tidak dapat dibatalkan.")).toBeVisible()
+    await deleteDialog.getByRole("button", { name: "Batal" }).click()
+    await expect(page).toHaveURL(/\/profil\/keamanan$/)
+
+    await page.goto("/profil/notifikasi")
+    await expect(page.getByRole("heading", { name: "Pengaturan notifikasi", level: 1 })).toBeVisible()
+    await captureB07(page, "notifikasi", "1366x900")
+    await page.setViewportSize({ width: 360, height: 800 })
+    await captureB07(page, "notifikasi", "360x800", page.getByRole("button", { name: "Simpan" }))
+    await page.setViewportSize({ width: 1366, height: 900 })
+
+    const beforeResponse = await page.request.get(new URL("/api/v1/me/notification-preferences", page.url()).toString())
+    expect(beforeResponse.ok()).toBe(true)
+    const beforeItems = (await beforeResponse.json()).items as { group: string; app: boolean; email: boolean }[]
+    const firstPreference = beforeItems[0]
+    if (!firstPreference) throw new Error("the demo account needs notification preferences")
+    const firstCheckbox = page.getByRole("checkbox").first()
+    const originalValue = await firstCheckbox.isChecked()
+    await firstCheckbox.click()
+    const firstSave = page.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/me/notification-preferences"))
+    await page.getByRole("button", { name: "Simpan" }).click()
+    expect((await firstSave).ok()).toBe(true)
+    const changedResponse = await page.request.get(new URL("/api/v1/me/notification-preferences", page.url()).toString())
+    const changedItems = (await changedResponse.json()).items as { group: string; app: boolean; email: boolean }[]
+    expect(changedItems.find((item) => item.group === firstPreference.group)?.app).toBe(!originalValue)
+    await firstCheckbox.click()
+    const restoreSave = page.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/me/notification-preferences"))
+    await page.getByRole("button", { name: "Simpan" }).click()
+    expect((await restoreSave).ok()).toBe(true)
+    const restoredResponse = await page.request.get(new URL("/api/v1/me/notification-preferences", page.url()).toString())
+    const restoredItems = (await restoredResponse.json()).items as { group: string; app: boolean; email: boolean }[]
+    expect(restoredItems.find((item) => item.group === firstPreference.group)?.app).toBe(originalValue)
+
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})
