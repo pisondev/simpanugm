@@ -185,8 +185,15 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
                     <span>{b.bucket}</span>
                     <span className="text-muted-foreground">{b.count} laporan</span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                  <div
+                    role="meter"
+                    aria-label={`Skor teratas ${b.bucket}`}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={pct}
+                    className="h-2 w-full overflow-hidden rounded-full bg-muted"
+                  >
+                    <div aria-hidden="true" className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               )

@@ -92,3 +92,4 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Role based access control (RBAC) enforced on all endpoints with `HttpOnly`, `SameSite=Lax` cookie sessions and CSRF protection.
 - Polish officer claim review with required-check guidance, numeric handover validation, and clear lock and code-regeneration recovery.
 - Verify and capture officer proxy lost/found reporting and staff record screens at desktop and phone widths.
+- Make top-1 monitoring histogram values available as accessible meters and verify fusion controls without activating a model.

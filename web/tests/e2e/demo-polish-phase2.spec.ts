@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises"
 
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
-import { attachPhoto, expectAccessible, latestLink, pathOf, registerMember, signIn, uniqueEmail } from "./helpers"
+import { expectAccessible, latestLink, pathOf, registerMember, signIn, uniqueEmail } from "./helpers"
 
 const routes = [
   { path: "/bantuan", slug: "bantuan", title: "Bantuan" },
@@ -1108,6 +1108,52 @@ test.describe("B11 officer proxy reports and records", () => {
       await expect(page.getByRole("heading", { name: "Lapor temuan atas nama" })).toBeVisible()
       await expect(page.getByRole("button", { name: "Lanjut" })).toBeEnabled()
       await captureB11(page, "lapor-temuan", viewport.label)
+    }
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})
+
+async function captureB12(page: Page, route: string, width: string) {
+  await expect(page.getByRole("main")).toBeVisible()
+  await expectAccessible(page)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth))
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({ path: `test-results/screenshots/phase2-B12-${route}-${width}.png`, fullPage: true, animations: "disabled" })
+}
+
+test.describe("B12 admin monitoring and fusion controls", () => {
+  test("real monitoring metrics and deliberate model controls remain clear at both widths", async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(10_000)
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+    await page.goto("/masuk")
+    await page.getByRole("button", { name: /Administrator/ }).click()
+    await expect(page).toHaveURL(/\/admin$/)
+    for (const viewport of [
+      { width: 1366, height: 900, label: "1366x900" },
+      { width: 360, height: 800, label: "360x800" },
+    ]) {
+      await page.setViewportSize(viewport)
+      await page.goto("/admin")
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
+      await captureB12(page, "ringkasan", viewport.label)
+      await page.goto("/admin/ai/monitoring")
+      await expect(page.getByRole("heading", { name: "Monitoring AI & Mesin Pencocokan" })).toBeVisible()
+      await expect(page.getByText("Recall@1 Terkonfirmasi")).toBeVisible()
+      await expect(page.getByText("Distribusi Skor Kecocokan Top 1", { exact: true })).toBeVisible()
+      await expect(page.getByRole("meter").first()).toBeVisible()
+      await page.getByRole("button", { name: "Kelola & Rollback Model" }).click()
+      await expect(page.getByRole("heading", { name: "Ganti atau Rollback Versi Model" })).toBeVisible()
+      await expect(page.getByRole("button", { name: "Aktifkan Versi Ini" })).toBeDisabled()
+      await page.getByRole("button", { name: "Batal" }).click()
+      await captureB12(page, "monitoring", viewport.label)
     }
     expect(external).toEqual([])
     expect(errors).toEqual([])
