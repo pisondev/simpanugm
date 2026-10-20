@@ -1317,3 +1317,55 @@ test.describe("B15 category and location administration", () => {
     expect(errors).toEqual([])
   })
 })
+
+async function captureB16(page: Page, route: string, width: string) {
+  await expect(page.getByRole("main")).toBeVisible()
+  await expectAccessible(page)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth))
+  await mkdir("test-results/screenshots", { recursive: true })
+  await page.screenshot({ path: `test-results/screenshots/phase2-B16-${route}-${width}.png`, fullPage: true, animations: "disabled" })
+}
+
+test.describe("B16 zone and post administration", () => {
+  test("zone coordinates and post opening hours keep their validation and mapping", async ({ page }) => {
+    test.setTimeout(120_000)
+    const external: string[] = []
+    const errors: string[] = []
+    page.on("request", (request) => {
+      const url = new URL(request.url())
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+    })
+    page.on("pageerror", (error) => errors.push(error.message))
+    await page.goto("/masuk")
+    await page.getByRole("button", { name: /Administrator/ }).click()
+    await expect(page).toHaveURL(/\/admin$/)
+    for (const viewport of [
+      { width: 1366, height: 900, label: "1366x900" },
+      { width: 360, height: 800, label: "360x800" },
+    ]) {
+      await page.setViewportSize(viewport)
+      await page.goto("/admin/master/zona")
+      await expect(page.getByRole("region", { name: "Daftar zona" })).toBeVisible()
+      await page.getByRole("button", { name: "Tambah" }).click()
+      await expect(page.getByRole("heading", { name: "Zona" })).toBeVisible()
+      await expect(page.getByLabel("Lintang")).toBeVisible()
+      await expect(page.getByLabel("Bujur")).toBeVisible()
+      await page.getByRole("button", { name: "Batal" }).click()
+      await captureB16(page, "zona", viewport.label)
+
+      await page.goto("/admin/master/pos")
+      await expect(page.getByRole("region", { name: "Daftar pos" })).toBeVisible()
+      await page.getByRole("button", { name: "Tambah" }).click()
+      await expect(page.getByRole("heading", { name: "Pos" })).toBeVisible()
+      await page.getByLabel("Nama").fill("Pos E2E B16")
+      await page.getByLabel("Slug").fill("pos-e2e-b16")
+      await page.getByLabel("Senin").fill("jam tidak valid")
+      await page.getByRole("button", { name: "Simpan" }).click()
+      await expect(page.getByRole("alert")).toContainText("Format jam tidak dikenali pada Senin")
+      await page.getByRole("button", { name: "Batal" }).click()
+      await captureB16(page, "pos", viewport.label)
+    }
+    expect(external).toEqual([])
+    expect(errors).toEqual([])
+  })
+})

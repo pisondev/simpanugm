@@ -96,3 +96,4 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 - Make hotspot markers keyboard operable with privacy-safe labels and add accessible horizontal scrolling to dense analytics tables.
 - Improve keyboard access and narrow-screen scrolling for admin user and audit tables.
 - Add keyboard-scrollable data regions to category, compatibility and location master tables.
+- Improve narrow-screen administration of zones and posts, and verify opening-hour validation without saving invalid data.

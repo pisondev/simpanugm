@@ -27,7 +27,12 @@ export default async function PostsPage() {
     <>
       <PageHeader title={t("title")} lead={t("lead")} actions={<PostDialog locations={locations.items} />} />
       <MasterNav current="posts" />
-      <div className="rounded-xl border bg-card">
+      <div
+        role="region"
+        aria-label="Daftar pos"
+        tabIndex={0}
+        className="overflow-x-auto rounded-xl border bg-card focus-visible:outline-2 focus-visible:outline-ring"
+      >
         <Table>
           <TableHeader>
             <TableRow>

@@ -20,7 +20,12 @@ export default async function ZonesPage() {
     <>
       <PageHeader title={t("title")} lead={t("lead")} actions={<ZoneDialog />} />
       <MasterNav current="zones" />
-      <div className="rounded-xl border bg-card">
+      <div
+        role="region"
+        aria-label="Daftar zona"
+        tabIndex={0}
+        className="overflow-x-auto rounded-xl border bg-card focus-visible:outline-2 focus-visible:outline-ring"
+      >
         <Table>
           <TableHeader>
             <TableRow>

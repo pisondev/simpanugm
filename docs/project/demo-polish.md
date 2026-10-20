@@ -1,4 +1,4 @@
-﻿# Demo polish status
+# Demo polish status
 
 Phase 1 reference implementation, 20 October 2026.
 
@@ -185,3 +185,7 @@ B13 makes map points keyboard-operable with privacy-suppressed names and counts,
 B14 adds named, keyboard-scrollable regions for the dense user and audit tables. The user search, date filters, CSV link and runtime settings form are checked at desktop and phone widths without submitting administrative mutations. The case passes axe and page-overflow checks; the web build and typecheck pass.
 
 B15 groups category and compatibility tables and location results in labelled keyboard-scroll regions. The browser case checks the four-tab master navigation, opens and cancels the subcategory form without saving, filters locations to the real empty state, and captures both routes at desktop and phone widths with axe and overflow checks.
+
+B16 adds named keyboard-scroll regions to zone and post tables. The browser case opens the zone coordinate form and checks its coordinate fields, then enters an invalid Monday opening-hours range in the post form and verifies inline rejection without sending a mutation. Both screens pass axe and overflow checks at desktop and phone widths.
+
+B17 names keyset pagination as a navigation landmark and verifies the member shell's offline status, return to online, capped notification label and global 404 recovery at desktop and phone sizes. The offline and not-found captures pass axe and horizontal overflow checks; the saved draft guidance remains visible during offline state.
