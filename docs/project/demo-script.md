@@ -31,6 +31,8 @@ student project, not an official UGM service. Do not present demo outputs as an 
 accuracy evaluation. No hosting or external network is required for the reference flows.
 The local pack has 159 attributed images. The seed-only account `Petugas Foto Demo`
 supports background report distribution and is not a primary presentation actor.
+Before a demo, `/bantuan` lists current post locations and opening hours; `/privasi` and
+`/ketentuan` keep the full student-project disclosures available from the public footer.
 
 ### Accounts
 

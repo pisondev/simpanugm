@@ -1012,6 +1012,7 @@
     "lead": "Pos barang temuan di kampus beserta jam bukanya. Semua waktu dalam WIB.",
     "postsTitle": "Pos barang temuan",
     "noPosts": "Daftar pos belum tersedia.",
+    "openingHours": "Jam buka {post}",
     "phone": "Telepon {phone}",
     "closed": "Tutup",
     "faqTitle": "Pertanyaan umum",

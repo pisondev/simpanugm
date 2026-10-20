@@ -38,6 +38,15 @@ delta is 5,925 gzip bytes across the whole build, not a per-route first-load est
 The actual photo model misclassified the earbuds reference as Charger. Correction is
 manual and stays editable. Broader model accuracy work is outside this visual phase.
 
+## Phase 2 screen work
+
+B01 polishes `/bantuan`, `/privasi` and `/ketentuan` with the existing legal content,
+the subdued public shell, grouped post hours and responsive information cards. Sign-in,
+registration, phone links when a post supplies a number, and the unofficial project notice
+remain available. Desktop and 360 px Playwright captures passed axe with no external
+requests or page errors. Captures are in the ignored `web/test-results/screenshots/`
+directory with the `phase2-B01-` prefix.
+
 ## Phase 2 data work completed
 
 D01 expanded the manifest from 52 to 159 local images: 140 Wikimedia Commons originals,
