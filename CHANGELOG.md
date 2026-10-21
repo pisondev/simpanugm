@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Add an Hestia production profile with opt-in local ML, memory caps and separate live environment files for 4 GiB VPS deployments.
 - Seed ready-to-use library handover, physical receipt and owner information-response stories; verify replay safety and complete all three through the real API in integration tests.
 - Expand demo master-data vocabulary with common campus synonyms and Indonesian brand aliases.
 - Add an explicit phase 2 screen and data playbook, and align the live demo script with actual routes, editable model suggestions and recording commands.
@@ -30,6 +31,7 @@ All notable changes to this project are recorded here. The format follows
 
 - Separate complete normal and demo browser suites, wait for finite entrance animations before axe scans, and give the multi-page master-data audit its own test budget.
 - Fix the narrow officer claim detail layout, select a seeded owner report that actually has candidates in reference journeys, and validate the complete normal and demo suites together.
+- Prepare Hestia and Cloudflare configuration for `simpanugm.pisondev.com`, align production image paths with the release workflow and fix the migration service invocation.
 - Make IP and email/IP-pair login budgets configurable, retaining production defaults of 20 and 5 per 15 minutes and raising both to 500 only in development; retain failed-password lockout.
 - Replace the wallet, power bank and backpack heroes after testing three Commons alternatives each; the fixed 14-image hero sample improves from 11 to 14 correct Top 1 categories without changing prompts.
 - Reduce CPU OCR input to 768 px after ML telemetry identified OCR as the image-assistant latency bottleneck; real-weight text and number-masking checks and desktop/phone reference journeys pass.

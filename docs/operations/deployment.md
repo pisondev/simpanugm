@@ -12,11 +12,13 @@
 | local | <http://localhost:8000> | working tree | seeds and demo data | development |
 | e2e | ephemeral in CI | pull request | demo seed, fake clock | end to end tests |
 | staging | `https://staging.simpanugm.my.id` | every merge to `main` | demo seed, reset weekly | integration, usability tests, load tests |
-| production | `https://simpanugm.my.id` | tags `v*`, manual approval | real data | pilot and final demonstration |
+| production | `https://simpanugm.pisondev.com` | tags `v*`, manual approval | real data | pilot and final demonstration |
 
 Staging and production run on separate VPS instances of the same size, so a load test on
-staging says something about production. The domain is registered in Sprint 4 at the
-latest. DNS has `A` and `AAAA` records for both names and a CAA record for Let's Encrypt.
+staging says something about production. The production hostname was selected by the
+owner and is not live yet. Follow the [Hestia live deployment guide](hestia-live-deployment.md)
+for the current DNS, VPS capacity, root access and SMTP prerequisites. Its DNS record is
+created only after the VPS can serve the app.
 
 ## 2. Server
 
