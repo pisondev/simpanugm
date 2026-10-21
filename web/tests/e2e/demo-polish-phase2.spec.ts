@@ -1003,9 +1003,9 @@ test.describe("B09 officer custody workspaces", () => {
     await transfer.click()
     await expect(page.getByRole("heading", { name: "Pindahkan barang ke pos lain" })).toBeVisible()
     const destination = page.getByLabel("Pos tujuan")
-    const destinationOptions = await destination.locator("option").evaluateAll((options) =>
-      options.map((option) => ({ value: option.getAttribute("value") ?? "", label: option.textContent?.trim() ?? "" })),
-    )
+    const destinationOptions = await destination
+      .locator("option")
+      .evaluateAll((options) => options.map((option) => ({ value: option.getAttribute("value") ?? "", label: option.textContent?.trim() ?? "" })))
     expect(destinationOptions.length).toBeGreaterThan(1)
     expect(destinationOptions.slice(1).every((option) => option.value.length > 0 && option.label.length > 0)).toBe(true)
     await destination.selectOption({ index: 1 })
@@ -1199,11 +1199,7 @@ test.describe("B13 admin clusters maps and trends", () => {
     const allowedMapboxHosts = new Set(["api.mapbox.com", "events.mapbox.com"])
     page.on("request", (request) => {
       const url = new URL(request.url())
-      if (
-        /^https?:$/.test(url.protocol) &&
-        !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname) &&
-        !allowedMapboxHosts.has(url.hostname)
-      ) {
+      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname) && !allowedMapboxHosts.has(url.hostname)) {
         external.push(request.url())
       }
     })
