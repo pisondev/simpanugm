@@ -54,9 +54,21 @@ test.describe("phase 1 reference screens", () => {
       await signIn(page, "anggota.pemilik@demo.simpanugm.my.id", password)
       await expect(page).toHaveURL(/\/beranda$/)
       await page.goto("/laporan")
-      const reports = page.locator('main a[href^="/laporan/hilang/LST-"]')
-      await expect(reports).not.toHaveCount(0)
-      await reports.first().click()
+      const reportsResponse = await page.request.get(new URL("/api/v1/lost-reports?mine=true&limit=20", page.url()).toString())
+      expect(reportsResponse.ok()).toBe(true)
+      const reports = (await reportsResponse.json()).items as { code: string }[]
+      let candidateCode: string | undefined
+      for (const report of reports) {
+        const matchesResponse = await page.request.get(new URL(`/api/v1/lost-reports/${report.code}/matches`, page.url()).toString())
+        expect(matchesResponse.ok()).toBe(true)
+        if (((await matchesResponse.json()).items as unknown[]).length > 0) {
+          candidateCode = report.code
+          break
+        }
+      }
+      if (!candidateCode) throw new Error("the demo owner needs a report with at least one current candidate")
+      await page.goto("/laporan")
+      await page.locator(`main a[href="/laporan/hilang/${candidateCode}"]`).click()
       const candidates = page.locator('#kandidat a[href*="/kandidat/"]')
       await expect(candidates).not.toHaveCount(0)
       await capture(page, `candidate-list-${viewport.label}`)

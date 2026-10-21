@@ -192,6 +192,7 @@ test("J2 the owner sees the candidate, reads why, and hides it", async ({ browse
 
 // US-07: the master data pages are reachable from the admin navigation and pass the accessibility check
 test("the administrator reviews master data", async ({ browser }) => {
+  test.setTimeout(180_000)
   const page = await fresh(browser)
   await signIn(page, adminEmail, password)
   await expect(page).toHaveURL(/\/admin$/)

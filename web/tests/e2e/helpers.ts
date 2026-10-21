@@ -13,8 +13,13 @@ export async function expectAccessible(page: Page) {
     .first()
     .waitFor({ state: "detached", timeout: 10_000 })
     .catch(() => undefined)
+  await page.evaluate(async () => {
+    await document.fonts.ready
+    const finite = document.getAnimations().filter((animation) => Number.isFinite(animation.effect?.getComputedTiming().endTime))
+    await Promise.all(finite.map((animation) => animation.finished.catch(() => undefined)))
+  })
   const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()
-  expect(result.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([])
+  expect(result.violations.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => ({ target: n.target, summary: n.failureSummary })) }))).toEqual([])
 }
 
 type Summary = { ID: string }

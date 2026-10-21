@@ -1019,6 +1019,24 @@ async function captureB10(page: Page, route: string, width: string) {
   await expectAccessible(page)
   await mkdir("test-results/screenshots", { recursive: true })
   await page.screenshot({ path: `test-results/screenshots/phase2-B10-${route}-${width}.png`, fullPage: true, animations: "disabled" })
+  const overflowing = await page.evaluate(() => {
+    const viewport = window.innerWidth
+    return Array.from(document.querySelectorAll("body *"))
+      .map((element) => {
+        const rect = element.getBoundingClientRect()
+        return {
+          tag: element.tagName,
+          className: (element as HTMLElement).className,
+          text: element.textContent?.trim().slice(0, 100),
+          left: rect.left,
+          right: rect.right,
+        }
+      })
+      .filter((element) => element.right > viewport || element.left < 0)
+      .slice(0, 12)
+  })
+  if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth))
+    console.log(`B10 overflow ${route} ${width}: ${JSON.stringify(overflowing)}`)
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth))
 }
 

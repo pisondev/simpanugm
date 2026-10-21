@@ -79,7 +79,7 @@ gen-web:
 check: check-api check-web check-ml check-data
 
 check-api:
-	cd api && test -z "$$(gofmt -l .)" && go vet -tags nodynamic ./... && golangci-lint run ./... && go test -tags nodynamic ./...
+	cd api && test -z "$$(gofmt -l .)" && go vet -tags nodynamic ./... && golangci-lint run --build-tags nodynamic,integration ./... && go test -tags nodynamic ./...
 
 check-web:
 	cd web && pnpm exec prettier --check . && pnpm lint && pnpm typecheck && pnpm test

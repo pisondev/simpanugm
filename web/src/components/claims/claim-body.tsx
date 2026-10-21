@@ -12,7 +12,7 @@ export async function ClaimBody({ claim, staff }: { claim: Claim; staff: boolean
   const l = claim.lost_report
   const blurred = f.photos.some((p) => p.variant === "thumb_blur")
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <section aria-labelledby="c-barang" className="flex flex-col gap-3">
         <h2 id="c-barang" className="font-semibold">
           {t("foundTitle")}
