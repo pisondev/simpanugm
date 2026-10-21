@@ -1,18 +1,28 @@
 # SimpanUGM live demo script
 
-Twelve-minute presentation kit, updated 20 October 2026. Operational instructions are
+Twelve-minute presentation kit, updated 22 October 2026. Operational instructions are
 in English; quoted speaker notes are Indonesian. The demonstration runs the real API,
 worker and local models. Anyone can explore the application outside the script.
 
+For the complete Indonesian walkthrough, exact field values, photo filenames and
+current screenshots, use [Panduan demo](panduan-demo.md) or its printable
+[20-page PDF](SimpanUGM-Panduan-Demo.pdf). AI feature names are bold and highlighted
+in the PDF. The instructions below are the short presenter script.
+
 ## Preparation
 
-From the repository root, build the current source and reset the demo story:
+From the repository root on `feat/web-login-demo-guide`, build the current source
+and check the existing story:
 
 ```powershell
 make dev
-make demo
 make demo-check
 ```
+
+Only run `make demo` if the story needs restoring and rehearsal data may be lost.
+Then repeat `make demo-check`. Do not reset during a presentation. The current
+preflight has 20 passing checks, including the approved umbrella, keys still with
+the finder and calculator awaiting an owner response. Rehearsal can change them.
 
 On PowerShell, if make cannot find `sh`, first add Git Bash to this process's PATH:
 
@@ -20,7 +30,19 @@ On PowerShell, if make cannot find `sh`, first add Git Bash to this process's PA
 $env:PATH = 'C:\Program Files\Git\bin;C:\Program Files\Git\usr\bin;' + $env:PATH
 ```
 
-Open `http://localhost:8000`. Mailpit is at `http://localhost:8025`. The web container
+The latest UI preview is at `http://localhost:3001/masuk`. To start that preview,
+keep the Docker API, database, worker and models running, then run in PowerShell:
+
+```powershell
+$env:API_INTERNAL_URL = 'http://127.0.0.1:8090'
+$env:NEXT_PUBLIC_DEMO_MODE = 'true'
+cd web
+pnpm dev --port 3001
+```
+
+Docker serves `http://localhost:8000` after its web image is rebuilt from the same
+UI branch. An older running image will show older screens. Mailpit is at
+`http://localhost:8025`. The web container
 must be built with `NEXT_PUBLIC_DEMO_MODE=true`; do not change its default in source.
 Finish builds before interacting with the models. Verify model readiness, accounts,
 local photos and the actual process memory through `make demo-check`. Rehearse the
@@ -28,7 +50,11 @@ photo step once to warm inference, then clear the rehearsal draft through the UI
 
 Demo data and scores are labelled as such. The landing footer explains this is a
 student project, not an official UGM service. Do not present demo outputs as an official
-accuracy evaluation. No hosting or external network is required for the reference flows.
+accuracy evaluation. The report, matching and claim flows run locally. The Mapbox
+basemap is optional and requires internet plus `MAPBOX_ACCESS_TOKEN`, which is not
+configured in the checked local environment. The hotspot table remains available.
+For the port 3001 preview put the token in `web/.env.local`; for Docker use
+`deploy/env/web.env`, then restart the web process. Never commit the token.
 The local pack has 168 attributed images. The seed-only account `Petugas Foto Demo`
 supports background report distribution and is not a primary presentation actor.
 Before a demo, `/bantuan` lists current post locations and opening hours; `/privasi` and
@@ -43,24 +69,24 @@ unchanged. Invitation acceptance is covered through the real Mailpit link flow.
 Demo-only password: `kata sandi panjang 2026`. One-click demo actor buttons are also
 available on `/masuk`. These accounts are refused by production seeding.
 
-| Actor | Name | Email | Focus |
-|---|---|---|---|
-| Finder | Budi Santoso | anggota.penemu@demo.simpanugm.my.id | Photo assistance, draft and finder hint |
-| Owner | Siti Rahma | anggota.pemilik@demo.simpanugm.my.id | Candidates, explanations and claim |
-| Library officer | Agus Prasetyo | petugas.pos1@demo.simpanugm.my.id | Queue, board, verification and handover |
-| Science officer | Dewi Lestari | petugas.pos2@demo.simpanugm.my.id | Secondary post and custody |
-| Admin | Admin SimpanUGM | admin@demo.simpanugm.my.id | Monitoring, clusters, maps, trends and fusion |
+| Actor           | Name            | Email                                | Focus                                         |
+| --------------- | --------------- | ------------------------------------ | --------------------------------------------- |
+| Finder          | Budi Santoso    | anggota.penemu@demo.simpanugm.my.id  | Photo assistance, draft and finder hint       |
+| Owner           | Siti Rahma      | anggota.pemilik@demo.simpanugm.my.id | Candidates, explanations and claim            |
+| Library officer | Agus Prasetyo   | petugas.pos1@demo.simpanugm.my.id    | Queue, board, verification and handover       |
+| Science officer | Dewi Lestari    | petugas.pos2@demo.simpanugm.my.id    | Secondary post and custody                    |
+| Admin           | Admin SimpanUGM | admin@demo.simpanugm.my.id           | Monitoring, clusters, maps, trends and fusion |
 
 ## Schedule
 
-| Time | Scene | Suggested presenter |
-|---|---|---|
-| 00:00 to 01:00 | Public introduction and privacy | Pison |
-| 01:00 to 03:30 | Finder and photo assistance | Pison or the team |
-| 03:30 to 06:00 | Owner evidence and claim | Axelle or the team |
-| 06:00 to 08:30 | Officer review and handover | Irfan or the team |
-| 08:30 to 11:00 | Admin AI operations | Pison or the team |
-| 11:00 to 12:00 | Open exploration and questions | Team |
+| Time           | Scene                           | Suggested presenter |
+| -------------- | ------------------------------- | ------------------- |
+| 00:00 to 01:00 | Public introduction and privacy | Pison               |
+| 01:00 to 03:30 | Finder and photo assistance     | Pison or the team   |
+| 03:30 to 06:00 | Owner evidence and claim        | Axelle or the team  |
+| 06:00 to 08:30 | Officer review and handover     | Irfan or the team   |
+| 08:30 to 11:00 | Admin AI operations             | Pison or the team   |
+| 11:00 to 12:00 | Open exploration and questions  | Team                |
 
 ## Scene 0, public introduction
 
@@ -72,6 +98,9 @@ three-step explanation and privacy note. Registration and sign-in stay available
 > sedangkan kepemilikan tetap diperiksa petugas.
 
 ## Scene 1, finder
+
+Use `data/demo/images/hero-wallet-found.jpg` for the form exercise. The complete
+recipe is in the Indonesian guide. Stop at Review for a reusable rehearsal.
 
 1. Sign in as Budi, open `/lapor/temuan`, and choose a local photo from the demo pack
    or a permitted team-owned object. The photo is required for a found report.
@@ -103,6 +132,10 @@ For identity examples, use only mock cards marked CONTOH. Masking and blurred pu
 variants must remain intact; never upload a real student's identification document.
 
 ## Scene 2, owner
+
+The main flow uses the seeded earbuds report. The wallet form exercise, earbuds
+claim, keys checklist and approved umbrella handover are separate cases. Explain
+each switch; a newly submitted report does not automatically reach approval.
 
 1. Sign in as Siti. `/beranda` opens the owner dashboard with the six feature names
    from slide 4. Use "Laporan yang ditinjau" to select a seeded lost report with
@@ -136,11 +169,11 @@ an officer decision. Full route and feature mapping: [owner dashboard](../ux/own
 `make demo` prepares these states, and `make demo-check` verifies all three through
 authenticated API requests. No rehearsal or manual approval is needed:
 
-| Story | Owner account | Officer account | Steps |
-|---|---|---|---|
-| Approved umbrella at library | Siti, `anggota.pemilik@demo.simpanugm.my.id` | Agus, `petugas.pos1@demo.simpanugm.my.id` | Siti opens `/klaim`, selects the approved umbrella and shows its current six-digit code. Agus opens that claim in `/petugas/klaim`, checks the mock identity, enters only the last four characters `3107`, confirms the name and submits the code. |
-| Keys still with finder | Anggota Demo, `anggota@demo.simpanugm.my.id` | Agus | Open the key report from `/laporan` as its finder and copy its FND code. Agus enters that code at `/petugas/terima`, selects the library post and storage slot, then confirms receipt. The finder chose the library despite finding it near BioGeo. |
-| Calculator needs information | Siti | Dewi, `petugas.pos2@demo.simpanugm.my.id` | Siti opens the calculator claim, reads the officer's question and answers with the sticker and handwritten-name details. The claim returns to review. |
+| Story                        | Owner account                                | Officer account                           | Steps                                                                                                                                                                                                                                               |
+| ---------------------------- | -------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Approved umbrella at library | Siti, `anggota.pemilik@demo.simpanugm.my.id` | Agus, `petugas.pos1@demo.simpanugm.my.id` | Siti opens `/klaim`, selects the approved umbrella and shows its current six-digit code. Agus opens that claim in `/petugas/klaim`, checks the mock identity, enters only the last four characters `3107`, confirms the name and submits the code.  |
+| Keys still with finder       | Anggota Demo, `anggota@demo.simpanugm.my.id` | Agus                                      | Open the key report from `/laporan` as its finder and copy its FND code. Agus enters that code at `/petugas/terima`, selects the library post and storage slot, then confirms receipt. The finder chose the library despite finding it near BioGeo. |
+| Calculator needs information | Siti                                         | Dewi, `petugas.pos2@demo.simpanugm.my.id` | Siti opens the calculator claim, reads the officer's question and answers with the sticker and handwritten-name details. The claim returns to review.                                                                                               |
 
 The keys claim remains under review for checklist demonstrations after receipt. Completed jacket
 and rejected tumbler claims show the terminal states. Codes are generated by the real

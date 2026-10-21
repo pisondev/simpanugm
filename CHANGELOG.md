@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Add an Indonesian 20-page demo guide with current dashboard screenshots, complete form recipes, local asset credits and safe rehearsal stopping points.
 - Refresh sign-in with the dashboard visual language, four local demo character choices and responsive manual account entry.
 - Add a slide-aligned administrator dashboard with live monitoring and operational summaries, explicit drift and fusion destinations, local character artwork and direct access to administrative menus.
 - Add a slide-aligned officer dashboard with six explicit feature names, a local officer illustration, real scoped queue data, case selection and direct verification and handover shortcuts.
