@@ -95,6 +95,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 
 ### Security
 
+- The API toolchain moves to Go 1.26.10, which fixes the `crypto/x509` advisory GO-2026-6809 that `govulncheck` reports as reachable.
 - Pre release dependency vulnerability audit: zero known vulnerabilities across production dependencies verified via `pnpm audit --prod`, `pip-audit`, and `govulncheck`.
 - Toolchain pinned to Go 1.26.9, closing HTTP/2 race GO-2026-6617, and `golang.org/x/image` lifted to v0.47.0.
 - Strict-Transport-Security (HSTS), Content-Security-Policy, and CORS headers enforced in reverse proxy and HTTP middleware.
