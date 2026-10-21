@@ -35,7 +35,7 @@ fi
 
 # Step 4: Run database migrations
 echo "[3/6] Applying database migrations..."
-if ! docker compose -f compose.yaml -f compose.prod.yaml run --rm api simpan migrate up; then
+if ! docker compose -f compose.yaml -f compose.prod.yaml run --rm migrate; then
   echo "Error: Database migration failed! Aborting deployment." >&2
   exit 1
 fi

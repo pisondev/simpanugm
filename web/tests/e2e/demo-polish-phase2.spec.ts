@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises"
 
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
-import { expectAccessible, latestLink, pathOf, registerMember, signIn, uniqueEmail } from "./helpers"
+import { allFoundReports, expectAccessible, latestLink, pathOf, registerMember, signIn, uniqueEmail } from "./helpers"
 
 const routes = [
   { path: "/bantuan", slug: "bantuan", title: "Bantuan" },
@@ -964,9 +964,7 @@ test.describe("B09 officer custody workspaces", () => {
     await page.setViewportSize({ width: 360, height: 800 })
     await captureB09(page, "terima", "360x800")
 
-    const foundResponse = await page.request.get(new URL("/api/v1/found-reports?limit=100", page.url()).toString())
-    expect(foundResponse.ok()).toBe(true)
-    const foundItems = (await foundResponse.json()).items as { code: string; item_name: string; custody_status: string }[]
+    const foundItems = await allFoundReports(page)
     const awaitingReceipt = foundItems.find((item) => item.custody_status === "with_finder")
     if (awaitingReceipt) {
       await page.goto(`/petugas/terima?code=${encodeURIComponent(awaitingReceipt.code)}`)
@@ -1021,6 +1019,24 @@ async function captureB10(page: Page, route: string, width: string) {
   await expectAccessible(page)
   await mkdir("test-results/screenshots", { recursive: true })
   await page.screenshot({ path: `test-results/screenshots/phase2-B10-${route}-${width}.png`, fullPage: true, animations: "disabled" })
+  const overflowing = await page.evaluate(() => {
+    const viewport = window.innerWidth
+    return Array.from(document.querySelectorAll("body *"))
+      .map((element) => {
+        const rect = element.getBoundingClientRect()
+        return {
+          tag: element.tagName,
+          className: (element as HTMLElement).className,
+          text: element.textContent?.trim().slice(0, 100),
+          left: rect.left,
+          right: rect.right,
+        }
+      })
+      .filter((element) => element.right > viewport || element.left < 0)
+      .slice(0, 12)
+  })
+  if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth))
+    console.log(`B10 overflow ${route} ${width}: ${JSON.stringify(overflowing)}`)
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth))
 }
 

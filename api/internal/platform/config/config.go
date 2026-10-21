@@ -27,7 +27,9 @@ type Config struct {
 	HandoverPepper string `env:"HANDOVER_PEPPER"`
 
 	// registrations per hour from one address, the end to end suite registers more accounts than the default allows
-	RegisterPerHour int `env:"AUTH_REGISTER_PER_HOUR" envDefault:"5"`
+	RegisterPerHour       int `env:"AUTH_REGISTER_PER_HOUR" envDefault:"5"`
+	LoginIPPer15Minutes   int `env:"AUTH_LOGIN_IP_PER_15_MINUTES" envDefault:"20"`
+	LoginPairPer15Minutes int `env:"AUTH_LOGIN_PAIR_PER_15_MINUTES" envDefault:"5"`
 
 	MLBaseURL       string `env:"ML_BASE_URL"`
 	MLInternalToken string `env:"ML_INTERNAL_TOKEN"`
@@ -59,6 +61,12 @@ func Load() (Config, error) {
 
 func (c Config) validate() error {
 	var errs []error
+	if c.LoginIPPer15Minutes < 1 {
+		errs = append(errs, errors.New("AUTH_LOGIN_IP_PER_15_MINUTES must be positive"))
+	}
+	if c.LoginPairPer15Minutes < 1 {
+		errs = append(errs, errors.New("AUTH_LOGIN_PAIR_PER_15_MINUTES must be positive"))
+	}
 	if !validEnvs[c.AppEnv] {
 		errs = append(errs, fmt.Errorf("APP_ENV %q is not one of development, test, e2e, staging, production", c.AppEnv))
 	}

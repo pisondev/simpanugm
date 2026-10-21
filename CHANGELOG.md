@@ -10,6 +10,8 @@ All notable changes to this project are recorded here. The format follows
 
 - Align data seed model identities with `ml/models.lock.json`.
 - Run complete demo seed validation in the data CI workflow with the reviewed demo bbox.
+- Add an Hestia production profile with opt-in local ML, memory caps and separate live environment files for 4 GiB VPS deployments.
+- Seed ready-to-use library handover, physical receipt and owner information-response stories; verify replay safety and complete all three through the real API in integration tests.
 - Expand demo master-data vocabulary with common campus synonyms and Indonesian brand aliases.
 - Align the Axelle master-data seed with the 41 OSM landmarks and six pilot posts used by the
   demo overlay, while marking the combined bbox as reviewed for demo and production review
@@ -32,6 +34,11 @@ All notable changes to this project are recorded here. The format follows
 
 ### Changed
 
+- Separate complete normal and demo browser suites, wait for finite entrance animations before axe scans, and give the multi-page master-data audit its own test budget.
+- Fix the narrow officer claim detail layout, select a seeded owner report that actually has candidates in reference journeys, and validate the complete normal and demo suites together.
+- Prepare Hestia and Cloudflare configuration for `simpanugm.pisondev.com`, align production image paths with the release workflow and fix the migration service invocation.
+- Make IP and email/IP-pair login budgets configurable, retaining production defaults of 20 and 5 per 15 minutes and raising both to 500 only in development; retain failed-password lockout.
+- Replace the wallet, power bank and backpack heroes after testing three Commons alternatives each; the fixed 14-image hero sample improves from 11 to 14 correct Top 1 categories without changing prompts.
 - Reduce CPU OCR input to 768 px after ML telemetry identified OCR as the image-assistant latency bottleneck; real-weight text and number-masking checks and desktop/phone reference journeys pass.
 
 ## [1.0.0] - Draft
@@ -96,6 +103,7 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 
 ### Security
 
+- The API toolchain moves to Go 1.26.10, which fixes the `crypto/x509` advisory GO-2026-6809 that `govulncheck` reports as reachable.
 - Pre release dependency vulnerability audit: zero known vulnerabilities across production dependencies verified via `pnpm audit --prod`, `pip-audit`, and `govulncheck`.
 - Toolchain pinned to Go 1.26.9, closing HTTP/2 race GO-2026-6617, and `golang.org/x/image` lifted to v0.47.0.
 - Strict-Transport-Security (HSTS), Content-Security-Policy, and CORS headers enforced in reverse proxy and HTTP middleware.

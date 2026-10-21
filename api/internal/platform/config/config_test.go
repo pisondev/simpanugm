@@ -9,7 +9,39 @@ func base() Config {
 	return Config{
 		AppEnv: "development", PublicBaseURL: "http://localhost:8000", StorageDriver: "fs", SMTPTLS: "none",
 		SessionCookieSecure: true, WorkerQueues: "default=10,ml=2", TrustedProxies: []string{"10.0.0.0/8"},
-		HandoverPepper: "unit-test-pepper-0123456789",
+		HandoverPepper:      "unit-test-pepper-0123456789",
+		LoginIPPer15Minutes: 20, LoginPairPer15Minutes: 5,
+	}
+}
+
+func TestLoginIPBudgetFromEnvironment(t *testing.T) {
+	t.Setenv("APP_ENV", "test")
+	t.Setenv("PUBLIC_BASE_URL", "http://localhost:8000")
+	t.Setenv("DATABASE_URL", "postgres://localhost/simpan")
+	t.Setenv("AUTH_LOGIN_PAIR_PER_15_MINUTES", "5")
+	for _, tc := range []struct {
+		name, value string
+		want        int
+	}{
+		{name: "default", value: "", want: 20},
+		{name: "configured", value: "500", want: 500},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("AUTH_LOGIN_IP_PER_15_MINUTES", tc.value)
+			c, err := Load()
+			if err != nil || c.LoginIPPer15Minutes != tc.want {
+				t.Fatalf("login IP budget: got %d, want %d, error %v", c.LoginIPPer15Minutes, tc.want, err)
+			}
+		})
+	}
+	t.Setenv("AUTH_LOGIN_IP_PER_15_MINUTES", "0")
+	if _, err := Load(); err == nil {
+		t.Fatal("zero login budget accepted")
+	}
+	t.Setenv("AUTH_LOGIN_IP_PER_15_MINUTES", "20")
+	t.Setenv("AUTH_LOGIN_PAIR_PER_15_MINUTES", "500")
+	if c, err := Load(); err != nil || c.LoginPairPer15Minutes != 500 {
+		t.Fatalf("configured pair budget: got %d error %v", c.LoginPairPer15Minutes, err)
 	}
 }
 

@@ -13,8 +13,13 @@ export async function expectAccessible(page: Page) {
     .first()
     .waitFor({ state: "detached", timeout: 10_000 })
     .catch(() => undefined)
+  await page.evaluate(async () => {
+    await document.fonts.ready
+    const finite = document.getAnimations().filter((animation) => Number.isFinite(animation.effect?.getComputedTiming().endTime))
+    await Promise.all(finite.map((animation) => animation.finished.catch(() => undefined)))
+  })
   const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()
-  expect(result.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([])
+  expect(result.violations.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => ({ target: n.target, summary: n.failureSummary })) }))).toEqual([])
 }
 
 type Summary = { ID: string }
@@ -78,6 +83,19 @@ export async function signIn(page: Page, email: string, password: string) {
   await page.getByLabel("Email UGM").fill(email)
   await page.getByLabel("Kata sandi", { exact: true }).fill(password)
   await page.getByRole("main").getByRole("button", { name: "Masuk", exact: true }).click()
+}
+
+export async function allFoundReports(page: Page) {
+  const items: { code: string; item_name: string; custody_status: string }[] = []
+  let cursor = ""
+  do {
+    const response = await page.request.get(`/api/v1/found-reports?limit=100${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`)
+    expect(response.ok()).toBe(true)
+    const body = (await response.json()) as { items: (typeof items)[number][]; next_cursor?: string }
+    items.push(...body.items)
+    cursor = body.next_cursor ?? ""
+  } while (cursor)
+  return items
 }
 
 export async function setPassword(page: Page, link: string, password: string, submit: string) {

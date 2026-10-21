@@ -1,0 +1,7 @@
+# Hestia owns public ports 80 and 443. Caddy is reachable only from the VPS.
+services:
+  caddy:
+    ports: !override
+      - "127.0.0.1:3042:8000"
+    environment:
+      SITE_ADDRESS: ":8000"

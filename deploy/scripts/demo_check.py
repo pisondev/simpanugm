@@ -18,6 +18,7 @@ import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -209,6 +210,59 @@ class DemoChecker:
         except Exception as e:
             self.log_warn("Docker stats check", f"Skipped container resource probe: {e}")
 
+    def check_ready_stories(self):
+        print("\nChecking ready-to-use officer stories...")
+        owner = self.login_actor(DEMO_ACCOUNTS[1][0])
+        officer = self.login_actor(DEMO_ACCOUNTS[2][0])
+
+        def read(opener, path):
+            if opener is None:
+                raise RuntimeError("authentication failed")
+            with opener.open(f"{self.api_base}{path}", timeout=10) as response:
+                return json.load(response)
+
+        for name, status, action in [
+            ("Approved owner claim with code and item at library", "approved", None),
+            ("Owner can answer an information request", "info_requested", "respond"),
+        ]:
+            try:
+                summaries = read(owner, f"/claims?status={status}&limit=100")["items"]
+                valid = []
+                for summary in summaries:
+                    claim = read(owner, f"/claims/{summary['code']}")
+                    if action:
+                        if action in claim["actions"]:
+                            valid.append(claim)
+                    else:
+                        found = claim["found_report"]
+                        staff = read(officer, f"/claims/{summary['code']}")
+                        if (len(claim.get("handover_code", "")) == 6
+                                and found["custody_status"] == "in_custody"
+                                and "handover" in staff["actions"]):
+                            valid.append(claim)
+                self.log_check(name, bool(valid), f"{len(valid)} ready")
+            except Exception as exc:
+                self.log_check(name, False, str(exc))
+
+        try:
+            page = read(officer, "/found-reports?limit=100")
+            items = list(page["items"])
+            while page.get("next_cursor"):
+                cursor = urllib.parse.quote(page["next_cursor"], safe="")
+                page = read(officer, f"/found-reports?limit=100&cursor={cursor}")
+                items.extend(page["items"])
+            posts = read(officer, "/posts")["items"]
+            library = next(p["id"] for p in posts if p["slug"] == "pos-perpustakaan")
+            ready = []
+            for item in items:
+                if item["custody_status"] == "with_finder":
+                    found = read(officer, f"/found-reports/{item['code']}")
+                    if found.get("intended_post", {}).get("id") == library:
+                        ready.append(found)
+            self.log_check("Item with finder awaiting library receipt", bool(ready), f"{len(ready)} ready")
+        except Exception as exc:
+            self.log_check("Item with finder awaiting library receipt", False, str(exc))
+
     def check_offline_readiness(self):
         print("\n6. Checking Offline Readiness (Zero External Network Calls)...")
         # Verify local demo images exist
@@ -230,6 +284,7 @@ class DemoChecker:
         self.check_models_resident()
         self.check_demo_accounts()
         self.check_story_smoke()
+        self.check_ready_stories()
         self.check_memory_footprint()
         self.check_offline_readiness()
 

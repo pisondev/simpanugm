@@ -1,12 +1,45 @@
 package demo
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
 )
+
+func TestLoadPhotoFromDemoDirectory(t *testing.T) {
+	for _, override := range []bool{false, true} {
+		name := "parent search"
+		if override {
+			name = "environment override"
+		}
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			demoDir := filepath.Join(root, "data", "demo")
+			nested := filepath.Join(root, "api", "internal", "server")
+			for _, dir := range []string{filepath.Join(demoDir, "images"), nested} {
+				if err := os.MkdirAll(dir, 0755); err != nil {
+					t.Fatal(err)
+				}
+			}
+			photo := sampleJPEG(42)
+			if err := os.WriteFile(filepath.Join(demoDir, "images", "fixture.jpg"), photo, 0600); err != nil {
+				t.Fatal(err)
+			}
+			t.Setenv("SIMPAN_DEMO_DIR", "")
+			t.Chdir(nested)
+			if override {
+				t.Setenv("SIMPAN_DEMO_DIR", demoDir)
+				t.Chdir(t.TempDir())
+			}
+			if got := loadDemoPhoto("fixture.jpg", 0); !bytes.Equal(got, photo) {
+				t.Fatal("photo loader used a placeholder instead of the configured demo directory")
+			}
+		})
+	}
+}
 
 func TestDiscoverBackgroundFoundReportsFiltersAndKeysAreStable(t *testing.T) {
 	dir := t.TempDir()

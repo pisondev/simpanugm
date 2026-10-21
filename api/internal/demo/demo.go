@@ -66,15 +66,9 @@ func sampleJPEG(seed int) []byte {
 func loadDemoPhoto(filename string, fallbackSeed int) []byte {
 	if filename != "" {
 		base := filepath.Base(filename)
-		candidates := []string{
-			filepath.Join("data", "demo", "images", base),
-			filepath.Join("..", "data", "demo", "images", base),
-			filepath.Join("..", "..", "data", "demo", "images", base),
-			filepath.Join("/app", "data", "demo", "images", base),
-		}
-		for _, p := range candidates {
-			//nolint:gosec // demo fixture loading from trusted local repository directory
-			if b, err := os.ReadFile(p); err == nil && len(b) > 0 {
+		for _, manifest := range manifestCandidates() {
+			p := filepath.Join(filepath.Dir(manifest), "images", base)
+			if b, err := os.ReadFile(filepath.Clean(p)); err == nil && len(b) > 0 {
 				return b
 			}
 		}
@@ -454,7 +448,9 @@ func Run(ctx context.Context, deps Deps) (*Result, error) {
 			if slot == "" {
 				slot = "Rak A1"
 			}
-			_, _ = repSvc.Receive(ctx, pOfficer, created.Code, postID, slot, nil)
+			if _, err := repSvc.Receive(ctx, pOfficer, created.Code, postID, slot, nil); err != nil {
+				return nil, fmt.Errorf("receive demo report %s: %w", r.Key, err)
+			}
 		}
 	}
 
@@ -510,74 +506,12 @@ func Run(ctx context.Context, deps Deps) (*Result, error) {
 
 		claim, err := claimsSvc.Create(ctx, pClaimant, idemClaimKey, in)
 		if err != nil {
-			slog.Warn("create demo claim failed", "key", c.LostKey, "error", err)
-			continue
+			return nil, fmt.Errorf("create demo claim %s: %w", c.LostKey, err)
 		}
 		claimsCount++
 
-		switch c.TargetStatus {
-		case "submitted":
-			// Leave as submitted for officer to review
-		case "info_requested":
-			_, _ = claimsSvc.PickUp(ctx, pOfficer, claim.Code)
-			reqMsg := c.RequestMessage
-			if reqMsg == "" {
-				reqMsg = "Mohon berikan informasi tambahan mengenai nomor seri atau ciri khusus barang."
-			}
-			_, _ = claimsSvc.RequestInfo(ctx, pOfficer, claim.Code, reqMsg)
-		case "approved":
-			_, _ = claimsSvc.PickUp(ctx, pOfficer, claim.Code)
-			cl, _ := claimsSvc.Checks(ctx, pOfficer, claim.Code)
-			var checks []claims.CheckResult
-			for _, it := range cl.Items {
-				checks = append(checks, claims.CheckResult{ItemKey: it.ItemKey, Result: "pass"})
-			}
-			_, _ = claimsSvc.PutChecks(ctx, pOfficer, claim.Code, checks)
-			note := c.DecisionNote
-			if note == "" {
-				note = "Ciri khusus dan jawaban verifikasi sesuai."
-			}
-			_, _ = claimsSvc.Approve(ctx, pOfficer, claim.Code, "", &note)
-		case "rejected":
-			_, _ = claimsSvc.PickUp(ctx, pOfficer, claim.Code)
-			reason := c.DecisionReason
-			if reason == "" {
-				reason = "detail_mismatch"
-			}
-			note := c.DecisionNote
-			if note == "" {
-				note = "Ciri khusus tidak sesuai dengan barang temuan di pos."
-			}
-			_, _ = claimsSvc.Reject(ctx, pOfficer, claim.Code, reason, &note)
-		case "completed":
-			_, _ = claimsSvc.PickUp(ctx, pOfficer, claim.Code)
-			cl, _ := claimsSvc.Checks(ctx, pOfficer, claim.Code)
-			var checks []claims.CheckResult
-			for _, it := range cl.Items {
-				checks = append(checks, claims.CheckResult{ItemKey: it.ItemKey, Result: "pass"})
-			}
-			_, _ = claimsSvc.PutChecks(ctx, pOfficer, claim.Code, checks)
-			note := c.DecisionNote
-			if note == "" {
-				note = "Verifikasi lengkap, serah terima selesai."
-			}
-			approved, err := claimsSvc.Approve(ctx, pOfficer, claim.Code, "", &note)
-			if err == nil {
-				claimView, err := claimsSvc.Get(ctx, pClaimant, approved.Code)
-				if err == nil && claimView.HandoverCode != nil {
-					hInput := claims.HandoverInput{
-						ClaimID:       approved.Id,
-						Code:          *claimView.HandoverCode,
-						IDType:        "ktm",
-						IDLast4:       "3107",
-						NameConfirmed: true,
-					}
-					_, err = claimsSvc.Handover(ctx, pOfficer, foundRep.Code, hInput)
-					if err == nil {
-						_, _ = repSvc.ConfirmReceipt(ctx, pClaimant, lostRep.Code)
-					}
-				}
-			}
+		if err := seedClaimState(ctx, claimsSvc, repSvc, pOfficer, pClaimant, c, claim, foundRep.Code, lostRep.Code); err != nil {
+			return nil, fmt.Errorf("seed claim %s to %s: %w", c.LostKey, c.TargetStatus, err)
 		}
 	}
 

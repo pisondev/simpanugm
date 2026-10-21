@@ -1,5 +1,8 @@
 {
 	admin off
+	servers {
+		trusted_proxies static private_ranges
+	}
 }
 
 # :8000 locally, the host name on staging and production so Caddy obtains a certificate

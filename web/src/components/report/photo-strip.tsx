@@ -27,14 +27,14 @@ export function PhotoStrip({ photos, alt, only }: Props) {
   const [first, ...rest] = sorted
   return (
     <>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid min-w-0 grid-cols-4 gap-2">
         {first ? (
           <button
             type="button"
             onClick={() => setOpen(first.media_id)}
-            className={cn("col-span-4 overflow-hidden rounded-xl bg-muted sm:col-span-2 sm:row-span-2", rest.length === 0 && "sm:col-span-4")}
+            className={cn("col-span-4 min-w-0 overflow-hidden rounded-xl bg-muted sm:col-span-2 sm:row-span-2", rest.length === 0 && "sm:col-span-4")}
           >
-            <img src={mediaUrl(first.media_id, only ?? "display")} alt={alt} className="aspect-[4/3] w-full object-contain" />
+            <img src={mediaUrl(first.media_id, only ?? "display")} alt={alt} className="aspect-[4/3] w-full max-w-full object-contain" />
           </button>
         ) : null}
         {rest.map((p, i) => (

@@ -51,8 +51,9 @@ seed-demo:
 
 demo: env
 	$(COMPOSE) up -d --wait postgres ml mailpit
+	$(COMPOSE) stop api worker
 	$(COMPOSE) run --rm api demo
-	$(COMPOSE) restart api worker
+	$(COMPOSE) up -d --wait api worker web caddy
 
 demo-check:
 	python deploy/scripts/demo_check.py
@@ -78,7 +79,7 @@ gen-web:
 check: check-api check-web check-ml check-data
 
 check-api:
-	cd api && test -z "$$(gofmt -l .)" && go vet -tags nodynamic ./... && golangci-lint run ./... && go test -tags nodynamic ./...
+	cd api && test -z "$$(gofmt -l .)" && go vet -tags nodynamic ./... && golangci-lint run --build-tags nodynamic,integration ./... && go test -tags nodynamic ./...
 
 check-web:
 	cd web && pnpm exec prettier --check . && pnpm lint && pnpm typecheck && pnpm test

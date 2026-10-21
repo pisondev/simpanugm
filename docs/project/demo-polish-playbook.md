@@ -160,7 +160,7 @@ For each screen in a batch:
   labels. Scroll every field above fixed mobile controls; no horizontal page overflow.
 - [ ] Keep one obvious primary action. All prior actions must still be reachable.
 - [ ] Add a case named with the batch id to
-  `web/tests/e2e/demo-polish-phase2.spec.ts`, following `demo-polish.spec.ts`. Capture
+  `web/tests/e2e/demo-polish-phase2.spec.ts`, following `demo-01-polish.spec.ts`. Capture
   both widths into `test-results/screenshots/phase2-<batch>-<route>-<width>.png` and call
   `expectAccessible`. Assert required content; no conditional skip of the main journey.
 - [ ] Assert no external HTTP requests or page errors in the changed journeys. Keep

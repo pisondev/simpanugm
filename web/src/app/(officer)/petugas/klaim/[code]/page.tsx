@@ -24,7 +24,7 @@ export default async function OfficerClaimDetailPage({ params }: PageProps<"/pet
   const claim = await load(api.GET("/claims/{id}", { params: { path: { id: code } } }))
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <ButtonLink href="/petugas/klaim" variant="ghost" className="w-fit">
           <ArrowLeft aria-hidden />
@@ -38,14 +38,14 @@ export default async function OfficerClaimDetailPage({ params }: PageProps<"/pet
         <StatusBadge kind="claim" status={claim.status} />
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
-        <div className="flex flex-col gap-6">
+      <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="flex min-w-0 flex-col gap-6">
           <OfficerClaimActions claim={claim} />
           {claim.status === "approved" ? <HandoverForm claim={claim} /> : null}
           <ClaimChecklist claim={claim} />
           <ClaimBody claim={claim} staff={true} />
         </div>
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <InternalNote claim={claim} />
           <div className="rounded-xl border bg-card p-4">
             <ClaimThread code={claim.code} canPost={claimOpen.includes(claim.status)} />
