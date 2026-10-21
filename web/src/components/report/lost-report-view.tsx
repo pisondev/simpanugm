@@ -103,8 +103,8 @@ export function LostReportView({ report, history, actions, staff = false, now, c
             </section>
           ) : null}
         </div>
-        <section aria-labelledby="riwayat" className="surface flex flex-col gap-4 p-4">
-          <h2 id="riwayat" className="font-semibold">
+        <section id="riwayat" aria-labelledby="riwayat-judul" className="surface flex scroll-mt-24 flex-col gap-4 p-4">
+          <h2 id="riwayat-judul" className="font-semibold">
             {t("timeline")}
           </h2>
           <Timeline items={history} />

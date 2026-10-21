@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import { ClaimCard } from "@/components/claims/claim-card"
+import { OwnerFeatureLabel } from "@/components/dashboard/owner-feature-label"
 import { EmptyState } from "@/components/layout/empty-state"
 import { PageHeader } from "@/components/layout/page-header"
 import { PageTransition } from "@/components/motion/primitives"
@@ -27,6 +28,7 @@ export default async function MemberClaimsPage({ searchParams }: PageProps<"/kla
 
   return (
     <PageTransition className="mx-auto max-w-5xl">
+      <OwnerFeatureLabel feature="claim" />
       <PageHeader title={t("myTitle")} lead={t("myLead")} />
       {list.items.length === 0 ? (
         <EmptyState

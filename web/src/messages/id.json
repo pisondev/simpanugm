@@ -1,4 +1,89 @@
 {
+  "ownerDashboard": {
+    "pageTitle": "Dashboard Pemilik Barang",
+    "eyebrow": "DASHBOARD PEMILIK BARANG",
+    "headingStart": "Temukan kembali",
+    "headingAccent": "barangmu.",
+    "greeting": "Halo, {name}.",
+    "lead": "Dari laporan kehilangan hingga barang kembali, semua langkahmu ada di sini.",
+    "owner": "Pemilik barang",
+    "companion": "Panduan pemilik barang",
+    "companionTitle": "Hilang barang? Mulai dari sini.",
+    "companionLead": "Ceritakan barangmu. Periksa saran AI. Klaim dengan bukti yang hanya kamu tahu.",
+    "finderTitle": "Justru menemukan barang?",
+    "finderHint": "Akun yang sama juga bisa membantu pemilik lain.",
+    "finderAction": "Laporkan temuan",
+    "selectedReport": "Laporan yang ditinjau",
+    "allReports": "Semua laporan",
+    "noReportShort": "Belum ada laporan kehilangan aktif.",
+    "noReport": "Buat laporan kehilangan. Kandidat akan muncul setelah pencocokan selesai.",
+    "loading": "Memuat kandidat laporan ini...",
+    "unavailable": "Kandidat belum dapat dimuat. Laporanmu tetap tersimpan.",
+    "retry": "Coba lagi",
+    "noCandidates": "Belum ada kandidat. Kamu akan mendapat notifikasi jika ada kecocokan baru.",
+    "createFirst": "Buat laporan kehilangan terlebih dahulu.",
+    "needCandidate": "Tersedia setelah ada kandidat kecocokan.",
+    "reportFields": "Detail laporan kehilangan",
+    "fields": { "category": "Kategori", "place": "Lokasi", "time": "Waktu", "photo": "Foto opsional" },
+    "reportAction": "Laporkan kehilangan",
+    "assistantHint": "Unggah foto pada formulir untuk mendapat saran. Semua isian tetap bisa kamu koreksi.",
+    "assistantAction": "Mulai dari foto",
+    "candidateAction": "Lihat kandidat",
+    "signals": "Ringkasan alasan kecocokan kandidat teratas",
+    "signalsShort": { "visual": "Foto", "text": "Deskripsi", "location": "Lokasi", "time": "Waktu" },
+    "crossModal": "Deskripsi ke foto",
+    "explanationHint": "Alasan foto, deskripsi, lokasi, dan waktu muncul saat ada kandidat.",
+    "explanationAction": "Lihat alasan kecocokan",
+    "claimHint": "Siapkan ciri khusus dan bukti pendukung. Petugas akan memverifikasi klaimmu.",
+    "claimAction": "Ajukan klaim",
+    "existingClaim": "Kandidat ini sudah memiliki klaimmu: {code}.",
+    "viewClaim": "Lihat klaim ini",
+    "myClaims": "Semua klaim saya",
+    "unread": "{count} belum dibaca",
+    "viewNotifications": "Buka notifikasi",
+    "notificationAction": "Notifikasi",
+    "timelineAction": "Linimasa kasus",
+    "historyAction": "Riwayat laporan",
+    "humanDecision": "AI membantu mencari. Kamu memeriksa, petugas memverifikasi.",
+    "browse": "Jelajahi barang temuan",
+    "nextActions": "Tindak lanjut klaim",
+    "handoverReady": "Disetujui, lihat kode serah terima",
+    "replyNeeded": "Petugas meminta informasi tambahan",
+    "recentClaims": "Perkembangan klaim kamu",
+    "matchScore": "Skor kecocokan untuk pemeringkatan, bukan probabilitas kepemilikan",
+    "features": {
+      "reporting": {
+        "title": "Lost Item Reporting",
+        "subtitle": "Laporkan barang hilang",
+        "description": "Catat kategori, ciri khusus, lokasi terakhir, dan waktu kehilangan."
+      },
+      "assistant": {
+        "title": "Smart Report Assistant",
+        "subtitle": "Bantuan isian dari foto",
+        "description": "AI menyarankan kategori, warna, merek, dan draf deskripsi awal."
+      },
+      "candidates": {
+        "title": "Match Candidates",
+        "subtitle": "Temukan kandidat yang relevan",
+        "description": "Lihat barang temuan yang paling cocok dengan laporan pilihanmu."
+      },
+      "explanation": {
+        "title": "Explainable Match",
+        "subtitle": "Pahami alasan kecocokan",
+        "description": "Periksa alasan visual, deskripsi, lokasi, dan waktu sebelum memilih."
+      },
+      "claim": {
+        "title": "Claim Submission",
+        "subtitle": "Buktikan bahwa itu milikmu",
+        "description": "Ajukan klaim pada kandidat dan sertakan bukti untuk petugas."
+      },
+      "history": {
+        "title": "Case History & Notifications",
+        "subtitle": "Ikuti proses pengembalian",
+        "description": "Pantau status, riwayat kasus, kandidat baru, dan perkembangan klaim."
+      }
+    }
+  },
   "meta": {
     "title": "SimpanUGM",
     "description": "Lapor barang hilang dan barang temuan di kampus UGM, lalu temukan pemiliknya dengan bantuan petugas pos."

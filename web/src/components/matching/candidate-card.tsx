@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl"
 import type { CSSProperties } from "react"
 
 import { EmptyState } from "@/components/layout/empty-state"
+import { OwnerFeatureLabel } from "@/components/dashboard/owner-feature-label"
 import { CountUp } from "@/components/motion/primitives"
 
 import { mediaUrl } from "@/lib/api/client"
@@ -61,6 +62,7 @@ export function CandidateList({ items, hrefFor }: { items: MatchCandidate[]; hre
   const t = useTranslations("matching")
   return (
     <section id="kandidat" aria-labelledby="kandidat-judul" className="flex scroll-mt-20 flex-col gap-3">
+      <OwnerFeatureLabel feature="candidates" />
       <h2 id="kandidat-judul" className="font-semibold">
         {t("sectionTitle")}
       </h2>

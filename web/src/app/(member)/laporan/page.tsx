@@ -4,6 +4,7 @@ import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 
 import { EmptyState } from "@/components/layout/empty-state"
+import { OwnerFeatureLabel } from "@/components/dashboard/owner-feature-label"
 import { PageHeader } from "@/components/layout/page-header"
 import { Pager } from "@/components/layout/pager"
 import { PageTransition } from "@/components/motion/primitives"
@@ -36,6 +37,7 @@ export default async function MyReportsPage({ searchParams }: PageProps<"/lapora
   ]
   return (
     <PageTransition className="flex flex-col gap-5">
+      <OwnerFeatureLabel feature="history" />
       <PageHeader title={t("reportsTitle")} lead={me.role === "member" ? undefined : t("staffNote", { role: ts(me.role) })} />
       <nav aria-label={t("reportsTitle")} className="inline-flex max-w-full flex-wrap rounded-lg bg-muted p-1">
         {tabs.map((x) => (

@@ -64,6 +64,12 @@ workflow when `ml` is down.
 
 ## Finder
 
+The member lost-report creation form also enables the existing description template
+after photo analysis, with an explicit redraft button. It fills only an empty
+description and leaves corrections to the owner. Editing an existing report does
+not run this assistant automatically. This reuses AI-04's template and privacy
+rules; it does not introduce an LLM.
+
 ### AI-04 AI Assisted Item Description
 
 | | |

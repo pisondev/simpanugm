@@ -2,6 +2,7 @@
 
 import { Bell, FolderOpen, House, PackageSearch, UserRound } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 
@@ -18,6 +19,7 @@ import { Wordmark } from "./wordmark"
 
 export function MemberShell({ me, children }: { me: Pick<Me, "full_name" | "email" | "role">; children: ReactNode }) {
   const t = useTranslations("nav")
+  const dashboard = usePathname() === "/beranda"
   const items: NavItem[] = [
     { href: "/beranda", label: t("home"), icon: House },
     { href: "/laporan", label: t("myReports"), icon: FolderOpen },
@@ -30,12 +32,13 @@ export function MemberShell({ me, children }: { me: Pick<Me, "full_name" | "emai
       <DemoBanner />
       <OfflineBanner />
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4 md:px-6">
+        <div className={`mx-auto flex h-16 items-center justify-between gap-4 px-4 md:px-6 ${dashboard ? "max-w-[1480px]" : "max-w-5xl"}`}>
           <Wordmark href="/beranda" />
           <nav aria-label={t("main")} className="hidden items-center gap-1 md:flex">
             <TopLink item={home} />
             <TopLink item={reports} />
             <TopLink item={found} />
+            <TopLink item={{ href: "/klaim", label: t("claims"), icon: FolderOpen }} />
             <ReportMenu trigger={<Button className="ml-2" />} />
           </nav>
           <div className="flex items-center gap-1">
@@ -46,7 +49,7 @@ export function MemberShell({ me, children }: { me: Pick<Me, "full_name" | "emai
           </div>
         </div>
       </header>
-      <main id="konten" className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-28 md:px-6 md:pb-12">
+      <main id="konten" className={`mx-auto w-full flex-1 px-4 pt-6 pb-28 md:px-6 md:pb-12 ${dashboard ? "max-w-[1480px]" : "max-w-5xl"}`}>
         {children}
       </main>
       <nav aria-label={t("main")} className="fixed inset-x-0 bottom-0 z-40 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden">

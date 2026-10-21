@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
 import { ClaimForm, type LostOption, type Question } from "@/components/claims/claim-form"
+import { OwnerFeatureLabel } from "@/components/dashboard/owner-feature-label"
 import { PageHeader } from "@/components/layout/page-header"
 import { PageTransition } from "@/components/motion/primitives"
 import { load, serverApi } from "@/lib/api/server"
@@ -85,6 +86,7 @@ export default async function NewClaimPage({ searchParams }: PageProps<"/klaim/b
 
   return (
     <PageTransition className="mx-auto max-w-2xl">
+      <OwnerFeatureLabel feature="claim" />
       <PageHeader title={t("newTitle")} />
       <section className="surface p-4 sm:p-5">
         <ClaimForm

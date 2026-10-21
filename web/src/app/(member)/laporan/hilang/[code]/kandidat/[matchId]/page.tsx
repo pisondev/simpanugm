@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
 import { DismissDialog } from "@/components/matching/dismiss-dialog"
+import { OwnerFeatureLabel } from "@/components/dashboard/owner-feature-label"
 import { MaybeMineButton } from "@/components/matching/match-actions"
 import { ScoreBars } from "@/components/matching/score-bars"
 import { TierBadge } from "@/components/matching/tier-badge"
@@ -80,8 +81,9 @@ export default async function CandidatePage({ params }: PageProps<"/laporan/hila
             </section>
           </div>
           <div className="flex flex-col gap-6">
-            <section aria-labelledby="alasan" className="ai-panel flex flex-col gap-5 p-5">
-              <h2 id="alasan" className="flex items-center gap-2 font-semibold">
+            <section id="alasan" aria-labelledby="alasan-judul" className="ai-panel flex scroll-mt-24 flex-col gap-5 p-5">
+              <OwnerFeatureLabel feature="explanation" />
+              <h2 id="alasan-judul" className="flex items-center gap-2 font-semibold">
                 <Sparkles className="size-4 text-primary" aria-hidden />
                 {t("whyTitle")}
               </h2>

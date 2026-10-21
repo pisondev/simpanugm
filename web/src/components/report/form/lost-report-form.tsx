@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { OwnerFeatureLabel } from "@/components/dashboard/owner-feature-label"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -22,7 +23,7 @@ import { formatRange } from "@/lib/format"
 import { isoToWib, lostWindow, todayInWib, windowProblem } from "@/lib/time"
 
 import { Detail, DetailList } from "../detail-list"
-import { AssistNote, CategoryAlternatives, SuggestedTag } from "./assist-ui"
+import { AssistNote, CategoryAlternatives, RedraftButton, SuggestedTag } from "./assist-ui"
 import { CategoryPicker, leaves } from "./category-picker"
 import { ColourPicker } from "./colour-picker"
 import { Field } from "./field"
@@ -216,7 +217,7 @@ export function LostReportForm({ mode, categories, colours, initial }: Props) {
     (patch: Partial<AssistFields>) => (Object.keys(patch) as (keyof AssistFields)[]).forEach((k) => form.setValue(k, patch[k] as never, { shouldDirty: true })),
     [form],
   )
-  const assist = useAssist({ enabled: mode !== "edit", reportType: "lost", mediaId: readyIds(photos)[0], read, write })
+  const assist = useAssist({ enabled: mode !== "edit", reportType: "lost", mediaId: readyIds(photos)[0], read, write, drafts: true })
 
   const draft = useReportDraft({
     enabled: mode !== "edit",
@@ -400,15 +401,19 @@ export function LostReportForm({ mode, categories, colours, initial }: Props) {
       ) : null}
 
       {current === "photos" ? (
-        <Field id="photos" label={t("photos.label")} hint={t("photos.hint")} optionalLabel={tc("optional")} error={photoError}>
-          {(aria) => (
-            <PhotoPicker purpose="lost_report" items={photos} setItems={setPhotos} describedBy={aria["aria-describedby"]} invalid={aria["aria-invalid"]} />
-          )}
-        </Field>
+        <section id="smart-report-assistant" className="scroll-mt-24">
+          <OwnerFeatureLabel feature="assistant" />
+          <Field id="photos" label={t("photos.label")} hint={t("photos.hint")} optionalLabel={tc("optional")} error={photoError}>
+            {(aria) => (
+              <PhotoPicker purpose="lost_report" items={photos} setItems={setPhotos} describedBy={aria["aria-describedby"]} invalid={aria["aria-invalid"]} />
+            )}
+          </Field>
+        </section>
       ) : null}
 
       {current === "detail" ? (
         <div className="flex flex-col gap-5">
+          {mode !== "edit" ? <OwnerFeatureLabel feature="assistant" /> : null}
           <AssistNote assist={assist} />
           <Controller
             control={control}
@@ -445,7 +450,12 @@ export function LostReportForm({ mode, categories, colours, initial }: Props) {
             hint={tc("chars", { count: values.description?.length ?? 0, max: 1000 })}
             error={errors.description?.message}
           >
-            {(aria) => <Textarea {...aria} rows={5} placeholder={t("description.lostPlaceholder")} maxLength={1000} {...register("description")} />}
+            {(aria) => (
+              <>
+                <Textarea {...aria} rows={5} placeholder={t("description.lostPlaceholder")} maxLength={1000} {...register("description")} />
+                {mode !== "edit" ? <RedraftButton assist={assist} /> : null}
+              </>
+            )}
           </Field>
           <Controller
             control={control}

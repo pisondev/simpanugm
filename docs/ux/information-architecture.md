@@ -42,7 +42,7 @@ Next.js App Router with route groups. Codes appear in URLs (api section 1).
 
 | Route | Screen | Stories |
 |---|---|---|
-| `/beranda` | Home: active reports with status, newest candidates, claims needing action, shortcut buttons to report | US-09, US-35 |
+| `/beranda` | [Owner dashboard](owner-dashboard.md): six presentation features, report-specific candidates, claim follow-up and active reports | US-09, US-35, AI-01, AI-02, AI-03 |
 | `/lapor/hilang` | Lost report form, four steps and review | US-08, US-23 |
 | `/lapor/temuan` | Found report form, four steps and review | US-13, US-23, US-24, US-15 |
 | `/laporan` | Laporan Saya with tabs Kehilangan, Temuan, Klaim | US-09 |

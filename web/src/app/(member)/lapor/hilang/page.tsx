@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import { PageHeader } from "@/components/layout/page-header"
+import { OwnerFeatureLabel } from "@/components/dashboard/owner-feature-label"
 import { PageTransition } from "@/components/motion/primitives"
 import { LostReportForm } from "@/components/report/form/lost-report-form"
 import { formData } from "@/lib/masterdata"
@@ -16,7 +17,10 @@ export default async function ReportLostPage() {
   const [me, data, t] = await Promise.all([requireMe(), formData(), getTranslations("form.lost")])
   return (
     <PageTransition className="mx-auto flex w-full max-w-2xl flex-col gap-5">
-      <PageHeader title={t("title")} />
+      <div>
+        <OwnerFeatureLabel feature="reporting" />
+        <PageHeader title={t("title")} />
+      </div>
       {me.email_verified ? <LostReportForm mode="create" categories={data.categories} colours={data.colours} /> : null}
     </PageTransition>
   )

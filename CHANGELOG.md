@@ -8,6 +8,9 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Add an owner dashboard aligned with the presentation's six feature names, local campus and student illustrations, report-specific candidate previews, explainable signals and claim follow-up links.
+- Enable the existing editable description template and explicit redraft action for photo-assisted lost reports, matching the owner's presentation flow without an additional model.
+- Keep matching and claim actions visible with clear prerequisites when reports or candidates are absent, and repeat the feature names at their destination screens.
 - Align data seed model identities with `ml/models.lock.json`.
 - Run complete demo seed validation in the data CI workflow with the reviewed demo bbox.
 - Add an Hestia production profile with opt-in local ML, memory caps and separate live environment files for 4 GiB VPS deployments.

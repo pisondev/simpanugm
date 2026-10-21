@@ -101,9 +101,11 @@ variants must remain intact; never upload a real student's identification docume
 
 ## Scene 2, owner
 
-1. Sign in as Siti and open `/laporan`. Choose a seeded lost report with candidates.
-   For a cross-modal example, select a lost report without an owner photo.
-2. Open the candidate list, show its tier, actual overall percentage, location and
+1. Sign in as Siti. `/beranda` opens the owner dashboard with the six feature names
+   from slide 4. Use "Laporan yang ditinjau" to select a seeded lost report with
+   candidates. Choose the earbuds report for the photo comparison or the wallet
+   report for a cross-modal example without an owner photo.
+2. Open "Match Candidates" through "Lihat kandidat", show its tier, actual overall percentage, location and
    storage post, then open the candidate detail.
 3. Show the entire found-item photo, four labelled evidence meters and their reasons.
    Explain missing levels honestly. Member bars summarize bands; they are not exact
@@ -113,6 +115,14 @@ variants must remain intact; never upload a real student's identification docume
    presentation's hero candidate during a rehearsal that must be reused.
 5. Follow "Ini milik saya" to `/klaim/baru?pasangan=...`, answer the real category
    questions, add allowed evidence, submit and show the claim's next action.
+
+The dashboard also links directly to "Explainable Match", "Claim Submission" and
+"Case History & Notifications" for the selected report. "Lost Item Reporting" and
+"Smart Report Assistant" open the existing lost-report form. In an optional photo
+example, the assistant now fills an editable description from the same template used
+by found reports. A prepared approved claim and information request have direct
+follow-up links when present among the latest claims; the new claim still requires
+an officer decision. Full route and feature mapping: [owner dashboard](../ux/owner-dashboard.md).
 
 > Kandidat ini muncul karena beberapa cirinya mirip. Persentasenya bukan kepastian
 > bahwa barang ini milik saya. Alasan tiap sinyal bisa diperiksa, lalu saya membuktikan
