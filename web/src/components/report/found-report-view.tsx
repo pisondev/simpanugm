@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 
 import type { FoundReport, HistoryEntry, Post } from "@/lib/api/types"
+import { FinderFeatureLabel } from "@/components/dashboard/finder-feature-label"
 import { formatDate, formatDateTime } from "@/lib/format"
 import { formatRanges, rangesFor, weekdays } from "@/lib/hours"
 
@@ -82,34 +83,39 @@ export function FoundReportView({ report, history, post, actions, staff = false,
         </div>
       </header>
 
-      {!staff && withFinder && !report.custody_keep ? (
-        <section className="rounded-xl border border-warning/30 bg-warning/5 p-4">
-          <h2 className="flex items-center gap-2 font-semibold">
-            <Hand className="size-5 text-warning" aria-hidden />
-            {t("handInTitle")}
-          </h2>
-          <p className="mt-1">{t("handInBody", { code: report.code, post: report.intended_post?.name ?? "" })}</p>
-          {post ? <PostCard post={post} /> : null}
-        </section>
-      ) : null}
-      {!staff && withFinder && report.custody_keep ? (
-        <section className="rounded-xl border border-warning/30 bg-warning/5 p-4">
-          <h2 className="flex items-center gap-2 font-semibold">
-            <Hand className="size-5 text-warning" aria-hidden />
-            {t("keepTitle")}
-          </h2>
-          <p className="mt-1">{t("keepBody")}</p>
-        </section>
-      ) : null}
-      {!staff && report.custody_status === "in_custody" ? (
-        <section className="rounded-xl border border-primary/30 bg-primary-soft/50 p-4">
-          <h2 className="flex items-center gap-2 font-semibold">
-            <Warehouse className="size-5 text-primary" aria-hidden />
-            {t("inCustodyTitle")}
-          </h2>
-          <p className="mt-1">{t("inCustodyBody", { post: report.holding_post?.name ?? "" })}</p>
-        </section>
-      ) : null}
+      <div id="penyerahan" className="scroll-mt-24">
+        {!staff ? <FinderFeatureLabel feature="handover" /> : null}
+        {!staff && withFinder && !report.custody_keep ? (
+          <section className="rounded-xl border border-warning/30 bg-warning/5 p-4">
+            <h2 className="flex items-center gap-2 font-semibold">
+              <Hand className="size-5 text-warning" aria-hidden />
+              {t("handInTitle")}
+            </h2>
+            <p className="mt-1">{t("handInBody", { code: report.code, post: report.intended_post?.name ?? "" })}</p>
+            {post ? <PostCard post={post} /> : null}
+          </section>
+        ) : null}
+        {!staff && withFinder && report.custody_keep ? (
+          <section className="rounded-xl border border-warning/30 bg-warning/5 p-4">
+            <h2 className="flex items-center gap-2 font-semibold">
+              <Hand className="size-5 text-warning" aria-hidden />
+              {t("keepTitle")}
+            </h2>
+            <p className="mt-1">{t("keepBody")}</p>
+          </section>
+        ) : null}
+        {!staff && report.custody_status === "in_custody" ? (
+          <section className="rounded-xl border border-primary/30 bg-primary-soft/50 p-4">
+            <h2 className="flex items-center gap-2 font-semibold">
+              <Warehouse className="size-5 text-primary" aria-hidden />
+              {t("inCustodyTitle")}
+            </h2>
+            <p className="mt-1">{t("inCustodyBody", { post: report.holding_post?.name ?? "" })}</p>
+          </section>
+        ) : null}
+
+        {!staff && !withFinder && report.custody_status !== "in_custody" ? <StatusBadge kind="custody" status={report.custody_status} /> : null}
+      </div>
 
       {matching}
 
@@ -165,8 +171,9 @@ export function FoundReportView({ report, history, post, actions, staff = false,
             </section>
           ) : null}
         </div>
-        <section aria-labelledby="riwayat" className="surface flex flex-col gap-4 p-4">
-          <h2 id="riwayat" className="font-semibold">
+        <section id="riwayat" aria-labelledby="riwayat-judul" className="surface flex scroll-mt-24 flex-col gap-4 p-4">
+          {!staff ? <FinderFeatureLabel feature="history" /> : null}
+          <h2 id="riwayat-judul" className="font-semibold">
             {t("timeline")}
           </h2>
           <Timeline items={history} />

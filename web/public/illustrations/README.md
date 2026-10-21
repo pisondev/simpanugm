@@ -8,6 +8,7 @@ illustrations, not photographs of team members or an official university endorse
 | ---------------------- | -------------------------------------- |
 | `owner-student.webp`   | `Cheerful Student with Smartphone.png` |
 | `campus-entrance.webp` | `Serene UGM Campus Entrance.png`       |
+| `finder-student.webp`  | `Cheerful Girl Tapping Smartphone.png` |
 
 The WebP copies preserve the original proportions and character transparency, with
 reduced resolution and file size for the dashboard. No third-party license is asserted

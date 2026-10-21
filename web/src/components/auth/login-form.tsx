@@ -24,6 +24,7 @@ const DEMO_ACTORS = [
     roleLabel: "Penemu (Mahasiswa)",
     name: "Budi Santoso",
     email: "anggota.penemu@demo.simpanugm.my.id",
+    dashboardMode: "penemu",
   },
   {
     roleLabel: "Pemilik (Mahasiswa)",
@@ -60,9 +61,11 @@ export function LoginForm({ next }: { next?: string }) {
   )
   const form = useForm<z.input<typeof schema>>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "" } })
   const login = useMutation({
-    mutationFn: (v: z.output<typeof schema>) => call(api.POST("/auth/login", { body: v })),
-    onSuccess: (me) => {
-      router.replace(safeNext(next, homeFor(me.role)))
+    mutationFn: (v: z.output<typeof schema> & { dashboardMode?: "penemu" }) =>
+      call(api.POST("/auth/login", { body: { email: v.email, password: v.password } })),
+    onSuccess: (me, values) => {
+      const home = me.role === "member" && values.dashboardMode === "penemu" ? "/beranda?mode=penemu" : homeFor(me.role)
+      router.replace(safeNext(next, home))
       router.refresh()
     },
   })
@@ -85,7 +88,7 @@ export function LoginForm({ next }: { next?: string }) {
                 onClick={() => {
                   form.setValue("email", act.email)
                   form.setValue("password", "kata sandi panjang 2026")
-                  login.mutate({ email: act.email, password: "kata sandi panjang 2026" })
+                  login.mutate({ email: act.email, password: "kata sandi panjang 2026", dashboardMode: "dashboardMode" in act ? act.dashboardMode : undefined })
                 }}
                 className="flex flex-col items-start rounded-lg border bg-card p-2 text-left text-xs transition-colors hover:border-primary hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               >

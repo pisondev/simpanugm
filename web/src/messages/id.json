@@ -1,4 +1,81 @@
 {
+  "dashboardMode": {
+    "label": "Tampilan dashboard",
+    "pemilik": "Pemilik barang",
+    "penemu": "Penemu barang"
+  },
+  "finderDashboard": {
+    "pageTitle": "Dashboard Penemu Barang",
+    "eyebrow": "DASHBOARD PENEMU BARANG",
+    "headingStart": "Temukan barang?",
+    "headingAccent": "Bantu kembalikan.",
+    "greeting": "Halo, {name}.",
+    "lead": "Laporkan temuanmu, periksa bantuan AI, lalu serahkan ke pos dengan aman.",
+    "finder": "Penemu barang",
+    "companion": "Panduan penemu barang",
+    "companionTitle": "Satu temuan, berarti bagi pemiliknya.",
+    "companionLead": "Mulai dari foto. Periksa detailnya. Bantu barang ini kembali ke tangan yang tepat.",
+    "ownerTitle": "Sedang kehilangan barang?",
+    "ownerHint": "Pakai akun yang sama untuk mencari barangmu sendiri.",
+    "ownerAction": "Buka dashboard pemilik",
+    "selectedReport": "Temuan yang ditinjau",
+    "allReports": "Semua temuan saya",
+    "noReportShort": "Belum ada laporan temuan aktif.",
+    "noReport": "Laporkan barang temuan terlebih dahulu untuk melihat perkembangan kasusnya.",
+    "loading": "Memuat saran laporan ini...",
+    "unavailable": "Saran belum dapat dimuat. Laporan dan petunjuk penyerahan tetap tersedia.",
+    "retry": "Coba lagi",
+    "noHints": "Belum ada laporan kehilangan yang disarankan. Pantau notifikasi untuk perkembangan baru.",
+    "createFirst": "Buat laporan temuan terlebih dahulu.",
+    "fields": { "photo": "Foto barang", "place": "Lokasi temuan", "time": "Waktu temuan" },
+    "reportAction": "Laporkan barang temuan",
+    "descriptionHint": "Unggah foto, lanjut ke Detail, lalu periksa dan koreksi saran serta draf deskripsinya.",
+    "descriptionAction": "Mulai dari foto",
+    "suggestionAction": "Lihat saran kecocokan",
+    "duplicateHint": "Aktif pada tahap Tinjau sebelum laporan baru dikirim. Lengkapi foto dan detail barang terlebih dahulu.",
+    "duplicateAction": "Mulai pemeriksaan duplikat",
+    "handoverAction": "Lihat petunjuk penyerahan",
+    "withFinder": "Barang masih di penemu. Bawa barang dan kode laporan ke petugas pos.",
+    "inCustody": "Barang sudah diterima pos. Ikuti perkembangan kasus melalui riwayat.",
+    "custodyRecorded": "Status penyerahan tercatat. Buka detail untuk melihat riwayatnya.",
+    "notifications": "Buka notifikasi",
+    "timeline": "Linimasa kasus",
+    "historyAction": "Riwayat temuan saya",
+    "privacy": "Saran kecocokan menjaga privasi pemilik. Petugas memverifikasi dan mencatat penyerahan.",
+    "postsAction": "Lokasi dan jam buka pos",
+    "features": {
+      "reporting": {
+        "title": "Found Item Reporting",
+        "subtitle": "Laporkan barang yang ditemukan",
+        "description": "Catat foto, lokasi, waktu temuan, dan detail awal barang."
+      },
+      "description": {
+        "title": "AI-Assisted Item Description",
+        "subtitle": "Bantuan deskripsi dari foto",
+        "description": "AI menyarankan kategori, warna, merek, dan teks untuk draf deskripsi yang bisa diedit."
+      },
+      "suggestions": {
+        "title": "Instant Match Suggestions",
+        "subtitle": "Lihat petunjuk calon kecocokan",
+        "description": "Setelah laporan dikirim, lihat nama barang dan kategori laporan kehilangan yang mirip."
+      },
+      "duplicates": {
+        "title": "Duplicate / Related Report Detection",
+        "subtitle": "Hindari laporan barang yang sama",
+        "description": "Periksa kemungkinan laporan temuan serupa sebelum mengirim laporan baru."
+      },
+      "handover": {
+        "title": "Handover to Officer",
+        "subtitle": "Serahkan barang ke petugas",
+        "description": "Lihat kode laporan, status penitipan, dan petunjuk pos untuk penyerahan fisik."
+      },
+      "history": {
+        "title": "Case History & Notifications",
+        "subtitle": "Ikuti perkembangan temuanmu",
+        "description": "Pantau status laporan, riwayat proses, dan notifikasi tindak lanjut."
+      }
+    }
+  },
   "ownerDashboard": {
     "pageTitle": "Dashboard Pemilik Barang",
     "eyebrow": "DASHBOARD PEMILIK BARANG",

@@ -119,7 +119,7 @@ test.describe("B02 sign-in and verification views", () => {
       await expect(page.getByRole("button", { name: "Penemu (Mahasiswa)" })).toBeVisible()
       if (viewport.width === 1366) {
         await page.getByRole("button", { name: "Penemu (Mahasiswa)" }).click()
-        await expect(page).toHaveURL(/\/beranda$/)
+        await expect(page).toHaveURL(/\/beranda\?mode=penemu$/)
         await expect(page.getByRole("heading", { name: /Halo, Budi/ })).toBeVisible()
         await page.context().clearCookies()
       }

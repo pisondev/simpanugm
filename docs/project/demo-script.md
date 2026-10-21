@@ -75,6 +75,9 @@ three-step explanation and privacy note. Registration and sign-in stay available
 
 1. Sign in as Budi, open `/lapor/temuan`, and choose a local photo from the demo pack
    or a permitted team-owned object. The photo is required for a found report.
+   The finder quick-login button opens `/beranda?mode=penemu`, showing the six
+   feature names from slide 5. Use its photo assistant shortcut to start the form,
+   or select an existing found report to show matching hints and custody guidance.
 2. Show "Mulai dari satu foto" and the real "Menyiapkan saran dari foto..." status.
    Continue to Detail while analysis is pending. Inputs remain editable.
 3. When "Saran dari fotomu sudah siap" appears, inspect the fields labelled

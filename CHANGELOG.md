@@ -8,6 +8,8 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Add a slide-aligned finder dashboard with private-safe match hints, actual custody status, duplicate-check prerequisites and the supplied local character illustration.
+- Add a member dashboard mode switch and choose the finder view for accounts with only active found reports, preserving the shared member role and existing permissions.
 - Add an owner dashboard aligned with the presentation's six feature names, local campus and student illustrations, report-specific candidate previews, explainable signals and claim follow-up links.
 - Enable the existing editable description template and explicit redraft action for photo-assisted lost reports, matching the owner's presentation flow without an additional model.
 - Keep matching and claim actions visible with clear prerequisites when reports or candidates are absent, and repeat the feature names at their destination screens.

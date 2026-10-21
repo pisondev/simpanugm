@@ -22,7 +22,9 @@ kandidat adalah skor pemeringkatan, bukan probabilitas kepemilikan.
 
 ## Perilaku dashboard
 
-Anggota masuk ke `/beranda` melalui alur login yang sudah ada. Pemilik dan penemu
+Anggota masuk ke `/beranda` melalui alur login yang sudah ada. Tampilan dapat
+dipilih melalui pemilih dashboard. Akun dengan hanya laporan temuan aktif memakai
+[dashboard penemu](finder-dashboard.md) secara otomatis. Pemilik dan penemu
 tetap satu peran teknis `member`; dashboard menyediakan alur pemilik dan akses
 laporan temuan dari akun yang sama. Hak akses petugas dan administrator tidak diubah.
 

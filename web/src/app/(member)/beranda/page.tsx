@@ -2,7 +2,10 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
+import { cache } from "react"
 
+import { DashboardSwitcher } from "@/components/dashboard/dashboard-switcher"
+import { FinderDashboard } from "@/components/dashboard/finder-dashboard"
 import { OwnerDashboard } from "@/components/dashboard/owner-dashboard"
 import { EmptyState } from "@/components/layout/empty-state"
 import { PageTransition } from "@/components/motion/primitives"
@@ -12,21 +15,37 @@ import { load, serverApi } from "@/lib/api/server"
 import { requireMe } from "@/lib/session"
 import { foundOpen, lostOpen } from "@/lib/status"
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("ownerDashboard")
-  return { title: t("pageTitle") }
-}
-
-export default async function HomePage() {
+const dashboardData = cache(async () => {
   const [me, api, t] = await Promise.all([requireMe(), serverApi(), getTranslations("member")])
   const [lost, found, claims] = await Promise.all([
     load(api.GET("/lost-reports", { params: { query: { mine: true, status: [...lostOpen], limit: 100 } } })),
-    load(api.GET("/found-reports", { params: { query: { mine: true, status: [...foundOpen], limit: 5 } } })),
+    load(api.GET("/found-reports", { params: { query: { mine: true, status: [...foundOpen], limit: 100 } } })),
     load(api.GET("/claims", { params: { query: { limit: 5 } } })),
   ])
+  return { me, t, lost, found, claims }
+})
+
+async function dashboardMode(params: PageProps<"/beranda">["searchParams"]) {
+  const [query, data] = await Promise.all([params, dashboardData()])
+  return query.mode === "penemu" || (query.mode !== "pemilik" && data.lost.items.length === 0 && data.found.items.length > 0) ? "penemu" : "pemilik"
+}
+
+export async function generateMetadata({ searchParams }: PageProps<"/beranda">): Promise<Metadata> {
+  const mode = await dashboardMode(searchParams)
+  const t = await getTranslations(mode === "penemu" ? "finderDashboard" : "ownerDashboard")
+  return { title: t("pageTitle") }
+}
+
+export default async function HomePage({ searchParams }: PageProps<"/beranda">) {
+  const [{ me, t, lost, found, claims }, mode] = await Promise.all([dashboardData(), dashboardMode(searchParams)])
   return (
     <PageTransition className="flex flex-col gap-8">
-      <OwnerDashboard name={me.full_name} reports={lost.items} hasMoreReports={Boolean(lost.next_cursor)} claims={claims.items} />
+      <DashboardSwitcher mode={mode} />
+      {mode === "penemu" ? (
+        <FinderDashboard name={me.full_name} reports={found.items} />
+      ) : (
+        <OwnerDashboard name={me.full_name} reports={lost.items} hasMoreReports={Boolean(lost.next_cursor)} claims={claims.items} />
+      )}
       <div className="grid min-w-0 gap-6 border-t pt-7 lg:grid-cols-2">
         <section aria-labelledby="aktif-hilang" className="flex min-w-0 flex-col gap-3">
           <div className="flex items-center justify-between gap-3">

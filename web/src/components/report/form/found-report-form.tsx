@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { FinderFeatureLabel } from "@/components/dashboard/finder-feature-label"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -443,8 +444,9 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
       ) : null}
 
       {current === "photos" ? (
-        <div className="flex flex-col gap-5">
+        <div id="ai-assisted-description" className="flex scroll-mt-24 flex-col gap-5">
           <div className="ai-panel flex flex-col gap-1 p-4">
+            <FinderFeatureLabel feature="description" />
             <p className="text-sm font-semibold text-primary">{t("assist.photoTitle")}</p>
             <p className="text-sm leading-relaxed text-muted-foreground">{t("assist.photoHint")}</p>
           </div>
@@ -465,6 +467,7 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
 
       {current === "detail" ? (
         <div className="flex flex-col gap-5">
+          {mode !== "edit" ? <FinderFeatureLabel feature="description" /> : null}
           <AssistNote assist={assist} />
           <Controller
             control={control}
@@ -638,6 +641,7 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
 
       {current === "custody" && !proxy ? (
         <div className="flex flex-col gap-5">
+          <FinderFeatureLabel feature="handover" />
           {custodyEditable ? (
             <>
               <Controller
@@ -732,6 +736,7 @@ export function FoundReportForm({ mode, categories, colours, initial, staffPosts
 
       {onReview ? (
         <section aria-labelledby="review-title" className="flex flex-col gap-4">
+          {mode !== "edit" ? <FinderFeatureLabel feature="duplicates" /> : null}
           <div>
             <h2 id="review-title" className="text-lg font-semibold">
               {t("review")}
