@@ -23,6 +23,7 @@ import {
   Warehouse,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { usePathname } from "next/navigation"
 import type { ReactNode } from "react"
 
 import { NotificationBell } from "@/components/notifications/notification-bell"
@@ -30,7 +31,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import type { Me } from "@/lib/api/types"
 
-import { BottomLink, type NavItem, SideLink } from "./nav-link"
+import { BottomLink, type NavItem, SideLink, TopLink } from "./nav-link"
 import { DemoBanner } from "./demo-banner"
 import { OfflineBanner } from "./offline-banner"
 import { UserMenu } from "./user-menu"
@@ -49,6 +50,7 @@ function Section({ title, items }: { title: string; items: NavItem[] }) {
 
 export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email" | "role">; children: ReactNode }) {
   const t = useTranslations("nav")
+  const dashboard = usePathname() === "/petugas"
   const home: NavItem = { href: "/petugas", label: t("officerHome"), icon: House, exact: true }
   const receive: NavItem = { href: "/petugas/terima", label: t("receive"), icon: PackageOpen }
   const inventory: NavItem = { href: "/petugas/inventaris", label: t("inventory"), icon: Warehouse }
@@ -88,9 +90,23 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
       <Section title={t("account")} items={account} />
     </>
   )
+  const moreMenu = (
+    <Sheet>
+      <SheetTrigger render={<Button variant="ghost" className="h-auto min-h-11 flex-col gap-0.5 text-xs font-medium text-muted-foreground" />}>
+        <Ellipsis className="size-5" aria-hidden />
+        {t("more")}
+      </SheetTrigger>
+      <SheetContent side="right" className="overflow-y-auto px-3 pb-6">
+        <SheetHeader className="px-3">
+          <SheetTitle>{t("workspace")}</SheetTitle>
+        </SheetHeader>
+        <nav aria-label={t("more")}>{sections}</nav>
+      </SheetContent>
+    </Sheet>
+  )
   return (
-    <div className="flex min-h-dvh flex-col lg:flex-row">
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r bg-card px-3 py-4 lg:flex">
+    <div className={`flex min-h-dvh flex-col ${dashboard ? "" : "lg:flex-row"}`}>
+      <aside className={`sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r bg-card px-3 py-4 ${dashboard ? "" : "lg:flex"}`}>
         <Wordmark href={me.role === "admin" ? "/admin" : "/petugas"} className="px-3" />
         <nav aria-label={t("main")} className="mt-2 flex-1 overflow-y-auto">
           {sections}
@@ -100,15 +116,24 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
         <DemoBanner />
         <OfflineBanner />
         <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
-          <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6">
-            <Wordmark href={me.role === "admin" ? "/admin" : "/petugas"} className="lg:invisible" />
+          <div className={`flex h-16 items-center justify-between gap-4 px-4 md:px-6 ${dashboard ? "mx-auto max-w-[1480px]" : ""}`}>
+            <Wordmark href={me.role === "admin" ? "/admin" : "/petugas"} className={dashboard ? undefined : "lg:invisible"} />
+            {dashboard ? (
+              <nav aria-label={t("workspace")} className="hidden items-center gap-1 lg:flex">
+                <TopLink item={home} />
+                <TopLink item={receive} />
+                <TopLink item={inventory} />
+                <TopLink item={{ href: "/petugas/klaim", label: t("officerClaims"), icon: ShieldQuestion }} />
+                {moreMenu}
+              </nav>
+            ) : null}
             <div className="flex items-center gap-1">
               <NotificationBell />
               <UserMenu me={me} />
             </div>
           </div>
         </header>
-        <main id="konten" className="w-full max-w-7xl flex-1 px-4 pt-6 pb-28 md:px-6 lg:pb-12">
+        <main id="konten" className={`w-full flex-1 px-4 pt-6 pb-28 md:px-6 lg:pb-12 ${dashboard ? "mx-auto max-w-[1480px]" : "max-w-7xl"}`}>
           {children}
         </main>
       </div>

@@ -1,9 +1,11 @@
-import { CalendarClock, ClipboardCheck, CopyCheck, Hand, PackageOpen, Sparkles, Warehouse } from "lucide-react"
+import { CalendarClock, ClipboardCheck, Hand, Sparkles, Warehouse } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 
 import { EmptyState } from "@/components/layout/empty-state"
+import { OfficerDashboard } from "@/components/dashboard/officer-dashboard"
+import { OfficerFeatureLabel } from "@/components/dashboard/officer-feature-label"
 import { PageHeader } from "@/components/layout/page-header"
 import { StatusBadge } from "@/components/report/status-badge"
 import { Badge } from "@/components/ui/badge"
@@ -16,12 +18,12 @@ import { requireStaff } from "@/lib/session"
 import { staffPosts } from "@/lib/staff"
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("officer")
-  return { title: t("homeTitle") }
+  const t = await getTranslations("officerDashboard")
+  return { title: t("pageTitle") }
 }
 
 interface PageProps {
-  searchParams?: Promise<{ scope?: string; type?: string }>
+  searchParams?: Promise<{ scope?: string; type?: string; kasus?: string }>
 }
 
 export default async function OfficerHomePage({ searchParams }: PageProps) {
@@ -42,9 +44,10 @@ export default async function OfficerHomePage({ searchParams }: PageProps) {
     )
   }
 
-  const [summary, queueList] = await Promise.all([
+  const [summary, queueList, approved] = await Promise.all([
     load(api.GET("/officer/summary", { params: { query: { scope } } })),
     load(api.GET("/officer/queue", { params: { query: { scope, type: typeFilter, limit: 30 } } })),
+    load(api.GET("/claims", { params: { query: { status: ["approved"], limit: 5 } } })),
   ])
 
   const counters = [
@@ -60,47 +63,18 @@ export default async function OfficerHomePage({ searchParams }: PageProps) {
     },
   ]
 
-  const leadText = scope === "campus" ? "Tampilan seluruh pos kampus UGM." : t("homeLead", { posts: posts.map((p) => p.name).join(", ") })
-
   return (
     <>
-      <PageHeader
-        title={t("homeTitle")}
-        lead={leadText}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-lg border bg-muted p-1 text-sm">
-              <Link
-                href="/petugas"
-                className={`rounded-md px-3 py-1 font-medium transition-colors ${
-                  scope === "posts" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {t("scopePosts")}
-              </Link>
-              <Link
-                href="/petugas?scope=campus"
-                className={`rounded-md px-3 py-1 font-medium transition-colors ${
-                  scope === "campus" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {t("scopeCampus")}
-              </Link>
-            </div>
-            <ButtonLink href="/petugas/papan" variant="outline">
-              <Sparkles aria-hidden />
-              {t("boardTitle")}
-            </ButtonLink>
-            <ButtonLink href="/petugas/duplikat" variant="outline">
-              <CopyCheck aria-hidden />
-              {t("duplicatesLink")}
-            </ButtonLink>
-            <ButtonLink href="/petugas/terima">
-              <PackageOpen aria-hidden />
-              {t("receiveTitle")}
-            </ButtonLink>
-          </div>
-        }
+      <OfficerDashboard
+        name={me.full_name}
+        posts={posts}
+        scope={scope}
+        queue={queueList.items}
+        total={queueList.total}
+        summary={summary}
+        approved={approved.items}
+        selectedCode={params.kasus}
+        typeFilter={typeFilter}
       />
 
       <nav aria-label={t("homeTitle")} className="mb-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
@@ -121,7 +95,8 @@ export default async function OfficerHomePage({ searchParams }: PageProps) {
         ))}
       </nav>
 
-      <section id="antrean" aria-labelledby="antrean-judul" className="flex flex-col gap-4">
+      <section id="antrean" aria-labelledby="antrean-judul" className="flex scroll-mt-24 flex-col gap-4">
+        <OfficerFeatureLabel feature="priority" />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 id="antrean-judul" className="text-xl font-semibold">

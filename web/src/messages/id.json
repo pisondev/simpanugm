@@ -1,4 +1,74 @@
 {
+  "officerDashboard": {
+    "pageTitle": "Dashboard Petugas",
+    "eyebrow": "DASHBOARD PETUGAS",
+    "headingStart": "Tinjau dengan teliti.",
+    "headingAccent": "Kembalikan dengan aman.",
+    "greeting": "Halo, {name}.",
+    "lead": "Prioritaskan kasus, periksa kecocokan, dan catat setiap pengembalian barang.",
+    "role": "Petugas Lost & Found",
+    "companion": "Panduan ruang kerja petugas",
+    "companionTitle": "Bantu setiap barang pulang.",
+    "companionLead": "AI membantu meninjau. Kamu memeriksa bukti, menentukan keputusan, dan menjaga serah terima.",
+    "receiptTitle": "Barang belum masuk pos?",
+    "receiptHint": "{count} barang masih tercatat di penemu pada cakupan ini. Cocokkan barang fisik sebelum mencatat penerimaan.",
+    "receiveAction": "Terima barang",
+    "scopeLabel": "Cakupan ruang petugas",
+    "campusOverview": "Ringkasan seluruh kampus. Tindakan tetap mengikuti kewenangan pos.",
+    "selectedCase": "Kasus yang ditinjau",
+    "selectAction": "Tinjau kasus",
+    "noCases": "Tidak ada kasus dalam antrean pada cakupan dan filter ini.",
+    "queueCount": "{count} kasus dalam antrean",
+    "priorityAction": "Buka antrean prioritas",
+    "boardHint": "Buka papan dan cari laporan berdasarkan kode untuk memulai tinjauan.",
+    "boardAction": "Buka papan tinjauan",
+    "claimSelected": "Periksa bukti dan checklist untuk klaim {code}.",
+    "checklistHint": "Pilih kasus yang memiliki klaim untuk membuka checklist verifikasi.",
+    "checklistAction": "Buka checklist verifikasi",
+    "claimsAction": "Semua klaim pos",
+    "searchLabel": "Cari berdasarkan makna",
+    "searchPlaceholder": "Contoh: tas hitam dengan tali merah",
+    "searchAction": "Cari laporan",
+    "duplicatesHint": "Saran duplikat perlu diperiksa. Penggabungan tetap melalui konfirmasi petugas.",
+    "duplicatesAction": "Tinjau kemungkinan duplikat",
+    "noApproved": "Belum ada klaim siap serah terima pada daftar klaim disetujui yang dimuat.",
+    "handoverAction": "Buka serah terima",
+    "approvedAction": "Periksa klaim disetujui",
+    "humanDecision": "Skor membantu menentukan urutan. Bukti, identitas, dan keputusan tetap diperiksa petugas.",
+    "resetFilter": "Hapus filter",
+    "features": {
+      "priority": {
+        "title": "AI-Assisted Priority Queue",
+        "subtitle": "Dahulukan kasus yang perlu tindakan",
+        "description": "Urutkan pekerjaan berdasarkan urgensi, skor kecocokan, dan kebutuhan tindak lanjut."
+      },
+      "board": {
+        "title": "AI Match Review Board",
+        "subtitle": "Bandingkan laporan dan kandidat",
+        "description": "Lihat laporan kehilangan dan temuan berdampingan, beserta alasan kecocokannya."
+      },
+      "checklist": {
+        "title": "Semantic Verification Checklist",
+        "subtitle": "Periksa bukti secara konsisten",
+        "description": "Tinjau ciri khusus, jawaban pemilik, dan saran pemeriksaan sebelum mengambil keputusan."
+      },
+      "search": {
+        "title": "Semantic Search",
+        "subtitle": "Cari dengan bahasa alami",
+        "description": "Temukan laporan dari makna deskripsi, seperti warna, merek, lokasi, atau ciri barang."
+      },
+      "duplicates": {
+        "title": "Duplicate Review",
+        "subtitle": "Tinjau laporan yang saling terkait",
+        "description": "Periksa kemungkinan laporan ganda sebelum menandai atau menggabungkan kasus."
+      },
+      "handover": {
+        "title": "Handover to Owner",
+        "subtitle": "Catat pengembalian yang terverifikasi",
+        "description": "Cocokkan kode penyerahan dan identitas pemilik, lalu catat serah terima barang."
+      }
+    }
+  },
   "dashboardMode": {
     "label": "Tampilan dashboard",
     "pemilik": "Pemilik barang",

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import { PageHeader } from "@/components/layout/page-header"
+import { OfficerFeatureLabel } from "@/components/dashboard/officer-feature-label"
 import { ReviewBoardSearch, ReviewBoardView } from "@/components/officer/review-board"
 import { Card, CardContent } from "@/components/ui/card"
 import { load, serverApi } from "@/lib/api/server"
@@ -66,6 +67,7 @@ export default async function OfficerReviewBoardPage({ searchParams }: PageProps
   if (board && reportId) {
     return (
       <div className="max-w-7xl space-y-6">
+        <OfficerFeatureLabel feature="board" />
         <PageHeader title={t("boardTitle")} lead={t("boardLead")} />
         <ReviewBoardView board={board} currentType={reportType} currentId={reportId} />
       </div>
@@ -75,6 +77,7 @@ export default async function OfficerReviewBoardPage({ searchParams }: PageProps
   if (notFound) {
     return (
       <div className="max-w-6xl space-y-6">
+        <OfficerFeatureLabel feature="board" />
         <PageHeader title={t("boardTitle")} lead={t("boardLead")} />
         <Card className="border-destructive/30">
           <CardContent className="space-y-4 pt-6">
@@ -89,6 +92,7 @@ export default async function OfficerReviewBoardPage({ searchParams }: PageProps
 
   return (
     <div className="max-w-6xl space-y-6">
+      <OfficerFeatureLabel feature="board" />
       <PageHeader title={t("boardTitle")} lead={t("boardLead")} />
       <Card>
         <CardContent className="space-y-4 pt-6">

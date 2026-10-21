@@ -8,6 +8,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { OfficerFeatureLabel } from "@/components/dashboard/officer-feature-label"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -193,7 +194,8 @@ export function ClaimChecklist({ claim }: { claim: Claim }) {
     return <p className="text-sm text-muted-foreground">{t("loading")}</p>
   }
   return (
-    <section aria-labelledby="c-checks" className="flex flex-col gap-3 rounded-xl border bg-card p-4">
+    <section id="verification-checklist" aria-labelledby="c-checks" className="flex scroll-mt-24 flex-col gap-3 rounded-xl border bg-card p-4">
+      <OfficerFeatureLabel feature="checklist" />
       <div className="flex items-center gap-2">
         <ClipboardCheck className="size-5 text-primary" aria-hidden />
         <h2 id="c-checks" className="font-semibold">
@@ -285,7 +287,12 @@ export function HandoverForm({ claim }: { claim: Claim }) {
     },
   })
   return (
-    <section aria-labelledby="c-serah" className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary-soft/50 p-4">
+    <section
+      id="handover-to-owner"
+      aria-labelledby="c-serah"
+      className="flex scroll-mt-24 flex-col gap-3 rounded-xl border border-primary/30 bg-primary-soft/50 p-4"
+    >
+      <OfficerFeatureLabel feature="handover" />
       <div className="flex items-center gap-2">
         <Handshake className="size-5 text-primary" aria-hidden />
         <h2 id="c-serah" className="font-semibold">

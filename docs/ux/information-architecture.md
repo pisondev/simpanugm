@@ -10,7 +10,7 @@
 | Role | Mobile | Desktop |
 |---|---|---|
 | Member | Bottom bar: Beranda, Laporan Saya, **Lapor** (centre button opening "Saya kehilangan" or "Saya menemukan"), Notifikasi, Profil | Top bar with the same items |
-| Officer | Bottom bar: Beranda, Antrean, Terima, Cari, Lainnya | Left sidebar: Beranda, Antrean, Papan Tinjauan, Terima Barang, Inventaris, Klaim, Duplikat, Cari, Lapor atas Nama, Analitik |
+| Officer | Bottom bar: Beranda, Terima, Cari, Inventaris, Lainnya | Dashboard: top navigation and Lainnya; other work pages retain the sidebar |
 | Admin | Same as officer, Lainnya holds the admin section | Officer sidebar plus a section Admin: Pengguna, Master Data, Moderasi, Audit, Analitik, AI, Pengaturan |
 
 An officer or admin who also has personal reports reaches them from Profil, Laporan
@@ -59,7 +59,7 @@ Next.js App Router with route groups. Codes appear in URLs (api section 1).
 
 | Route | Screen | Stories |
 |---|---|---|
-| `/petugas` | Officer home: counters and the priority queue | US-38 |
+| `/petugas` | Officer dashboard: six slide 6 feature names, scoped counters, priority queue and case selection; see [officer dashboard](officer-dashboard.md) | US-38 |
 | `/petugas/antrean` | Full queue with filters by type and post | US-38 |
 | `/petugas/tinjau` | Review board, `?lost=` or `?found=` | US-39 |
 | `/petugas/terima` | Receive an item: scan or type a code, confirm, slot | US-30 |

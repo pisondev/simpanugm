@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
 import { EmptyState } from "@/components/layout/empty-state"
+import { OfficerFeatureLabel } from "@/components/dashboard/officer-feature-label"
 import { PageHeader } from "@/components/layout/page-header"
 import { Pager } from "@/components/layout/pager"
 import { StatusBadge } from "@/components/report/status-badge"
@@ -76,6 +77,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/petugas/c
     : null
   return (
     <>
+      <OfficerFeatureLabel feature="search" />
       <PageHeader title={t("searchTitle")} lead={t("searchLead")} />
       <form method="get" role="search" className="mb-6 flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-xs">
         <div className="flex flex-col gap-2">
