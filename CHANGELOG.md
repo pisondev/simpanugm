@@ -8,6 +8,8 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Align data seed model identities with `ml/models.lock.json`.
+- Run complete demo seed validation in the data CI workflow with the reviewed demo bbox.
 - Expand demo master-data vocabulary with common campus synonyms and Indonesian brand aliases.
 - Align the Axelle master-data seed with the 41 OSM landmarks and six pilot posts used by the
   demo overlay, while marking the combined bbox as reviewed for demo and production review

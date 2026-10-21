@@ -25,8 +25,8 @@ reviewed for demo, production review pending:
 - `posts.yaml` contains the central K5L office and the six demo pilot posts. The K5L office
   keeps the emergency number published on [UGM's contact page](https://ugm.ac.id/id/kontak/);
   demo pilot phone values remain empty until official contacts are reviewed.
-- `model_versions.yaml` records the public model revisions and package versions used by the
-  current AI documentation. It is an MVP baseline, not a replacement for
+- `model_versions.yaml` records the locked model identities used by the current AI
+  documentation. The locked entries match `ml/models.lock.json`. It is an MVP baseline, not a replacement for
   `ml/models.lock.json`.
 
 The bbox covers the combined public-source and demo-overlay rows. The selected rows and the

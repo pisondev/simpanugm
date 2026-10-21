@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Aligned locked model identities in the data seed with `ml/models.lock.json`.
+- Kept data CI on complete seed validation with the reviewed demo campus bbox after the
+  latest main rebase.
 - Documented the public demo photo pack, its provenance/credits validators, and the boundary
   between open-license demo material and the private participant evaluation dataset.
 - Aligned the master-data seed with the 41 landmark and six pilot-post slugs from the demo

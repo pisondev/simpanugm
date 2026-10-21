@@ -36,11 +36,11 @@ emergency number from [UGM's official contact page](https://ugm.ac.id/id/kontak/
 demo pilot posts keep the overlay's empty phone values until official contacts are reviewed.
 
 The location candidates came from the [OpenStreetMap Overpass API](https://overpass-api.de/).
-The model seed records exact public revisions for [CLIP](https://huggingface.co/sentence-transformers/clip-ViT-B-32/commit/327ab6726d33c0e22f920c83f2ff9e4bd38ca37f),
+The model seed records locked identities for [CLIP](https://huggingface.co/sentence-transformers/clip-ViT-B-32/commit/327ab6726d33c0e22f920c83f2ff9e4bd38ca37f),
 [multilingual CLIP](https://huggingface.co/sentence-transformers/clip-ViT-B-32-multilingual-v1/commit/58edf8cada9e398793dca955574a48cbb7f18be2),
 and [multilingual E5](https://huggingface.co/intfloat/multilingual-e5-small/commit/614241f622f53c4eeff9890bdc4f31cfecc418b3),
-plus the documented [EasyOCR](https://pypi.org/project/easyocr/1.7.2/) and
-[RapidFuzz](https://pypi.org/project/RapidFuzz/) package versions. This is an MVP baseline;
+the EasyOCR revision and hashes from `ml/models.lock.json`, plus the documented
+[RapidFuzz](https://pypi.org/project/RapidFuzz/) package version. This is an MVP baseline;
 it does not replace a production `ml/models.lock.json`.
 
 ```text

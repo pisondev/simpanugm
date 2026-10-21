@@ -3,9 +3,7 @@
   identity:
     model_id: sentence-transformers/clip-ViT-B-32
     revision: 327ab6726d33c0e22f920c83f2ff9e4bd38ca37f
-    output_dimension: 512
-    normalised: true
-    source: https://huggingface.co/sentence-transformers/clip-ViT-B-32/commit/327ab6726d33c0e22f920c83f2ff9e4bd38ca37f
+    dimension: 512
   status: active
 
 - component: xmodal_text_encoder
@@ -13,9 +11,7 @@
   identity:
     model_id: sentence-transformers/clip-ViT-B-32-multilingual-v1
     revision: 58edf8cada9e398793dca955574a48cbb7f18be2
-    output_dimension: 512
-    normalised: true
-    source: https://huggingface.co/sentence-transformers/clip-ViT-B-32-multilingual-v1/commit/58edf8cada9e398793dca955574a48cbb7f18be2
+    dimension: 512
   status: active
 
 - component: text_encoder
@@ -23,19 +19,17 @@
   identity:
     model_id: intfloat/multilingual-e5-small
     revision: 614241f622f53c4eeff9890bdc4f31cfecc418b3
-    output_dimension: 384
-    normalised: true
-    source: https://huggingface.co/intfloat/multilingual-e5-small/commit/614241f622f53c4eeff9890bdc4f31cfecc418b3
+    dimension: 384
   status: active
 
 - component: ocr
   name: ocr-easyocr-id-en-2026.11.0
   identity:
-    library: easyocr
-    version: 1.7.2
-    languages: [id, en]
-    input_size_px: 1024
-    source: https://pypi.org/project/easyocr/1.7.2/
+    model_id: JaidedAI/EasyOCR
+    revision: craft_mlt_25k+latin_g2
+    sha256:
+      craft_mlt_25k.pth: 4a5efbfb48b4081100544e75e1e2b57f8de3d84f213004b14b85fd4b3748db17
+      latin_g2.pth: aaa95be1c4a9cb3496879bed7c520886ce1164f89e026f0c54488394e74e8c55
   status: active
 
 - component: category_classifier
