@@ -21,7 +21,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
     <div className="flex min-h-dvh flex-col">
       <DemoBanner />
       <header className="border-b bg-background/95">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4 md:px-6">
+        <div className="mx-auto flex h-16 w-full items-center justify-between gap-4 px-6 md:px-10">
           <Wordmark />
           <nav aria-label={t("main")} className="flex items-center gap-2">
             {me ? (
@@ -41,11 +41,11 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
           </nav>
         </div>
       </header>
-      <main id="konten" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 md:px-6 md:py-12">
+      <main id="konten" className="mx-auto w-full flex-1 px-0 py-8 md:py-12">
         {children}
       </main>
       <footer className="border-t bg-card">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-6 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-6">
+        <div className="mx-auto flex w-full flex-col gap-3 px-6 py-6 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-10">
           <p>{tl("footer")}</p>
           <nav aria-label={t("help")} className="flex flex-wrap gap-x-4 gap-y-2">
             <Link href="/bantuan" className="hover:text-foreground">

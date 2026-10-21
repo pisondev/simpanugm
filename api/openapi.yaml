@@ -190,6 +190,7 @@ paths:
     get:
       tags: [masterdata]
       operationId: listCategories
+      security: []
       responses:
         '200':
           description: Parent categories with their leaves
@@ -202,6 +203,7 @@ paths:
     get:
       tags: [masterdata]
       operationId: listZones
+      security: []
       responses:
         '200':
           description: Zones
@@ -496,6 +498,7 @@ paths:
     get:
       tags: [found]
       operationId: listPublicFoundReports
+      security: []
       parameters:
         - name: category_id
           in: query
@@ -4374,4 +4377,3 @@ components:
           items: { $ref: '#/components/schemas/HourWeekdayCell' }
         return_rate: { type: number, format: float }
         median_return_hours: { type: number, format: float, nullable: true }
-

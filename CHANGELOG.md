@@ -9,6 +9,7 @@ All notable changes to this project are recorded here. The format follows
 ### Added
 
 - Align data seed model identities with `ml/models.lock.json`.
+- Render the admin hotspot view as an interactive Mapbox Streets map using the reviewed campus coordinates.
 - Run complete demo seed validation in the data CI workflow with the reviewed demo bbox.
 - Add an Hestia production profile with opt-in local ML, memory caps and separate live environment files for 4 GiB VPS deployments.
 - Seed ready-to-use library handover, physical receipt and owner information-response stories; verify replay safety and complete all three through the real API in integration tests.
@@ -34,6 +35,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Changed
 
+- Keep hotspot marker labels above WCAG AA contrast and use identical marker appearance for all counts masked below three reports.
 - Separate complete normal and demo browser suites, wait for finite entrance animations before axe scans, and give the multi-page master-data audit its own test budget.
 - Fix the narrow officer claim detail layout, select a seeded owner report that actually has candidates in reference journeys, and validate the complete normal and demo suites together.
 - Prepare Hestia and Cloudflare configuration for `simpanugm.pisondev.com`, align production image paths with the release workflow and fix the migration service invocation.

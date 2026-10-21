@@ -126,7 +126,7 @@ export default async function CampusHotspotsPage({ searchParams }: { searchParam
       ) : null}
 
       {/* Map Component */}
-      <CampusHotspotMap locations={sortedLocations} selectedType={type} />
+      <CampusHotspotMap locations={sortedLocations} mapboxToken={process.env.MAPBOX_ACCESS_TOKEN} selectedType={type} />
 
       {/* Ranked Locations Table */}
       <Card>

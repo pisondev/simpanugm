@@ -37,7 +37,7 @@ export default async function PublicFoundPage({ searchParams }: PageProps<"/bara
     <PageTransition className="flex flex-col gap-5">
       <PageHeader title={t("title")} lead={t("lead")} />
       <form method="get" className="surface grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
-        <div className="flex flex-col gap-2">
+        <div className="flex min-w-0 flex-col gap-2">
           <label htmlFor="f-category" className="text-sm font-medium">
             {t("category")}
           </label>
@@ -55,7 +55,7 @@ export default async function PublicFoundPage({ searchParams }: PageProps<"/bara
             ))}
           </NativeSelect>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex min-w-0 flex-col gap-2">
           <label htmlFor="f-zone" className="text-sm font-medium">
             {t("zone")}
           </label>
@@ -68,19 +68,19 @@ export default async function PublicFoundPage({ searchParams }: PageProps<"/bara
             ))}
           </NativeSelect>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex min-w-0 flex-col gap-2">
           <label htmlFor="f-from" className="text-sm font-medium">
             {t("from")}
           </label>
           <Input id="f-from" type="date" name="from" defaultValue={filter.from} />
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex min-w-0 flex-col gap-2">
           <label htmlFor="f-to" className="text-sm font-medium">
             {t("to")}
           </label>
           <Input id="f-to" type="date" name="to" defaultValue={filter.to} />
         </div>
-        <div className="flex gap-2">
+        <div className="flex min-w-0 flex-wrap gap-2">
           <Button type="submit" className="flex-1">
             {t("filter")}
           </Button>

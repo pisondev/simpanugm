@@ -66,7 +66,7 @@ Tools: `golangci-lint` v2, `govulncheck`, `air` for live reload in development.
 | `Intl.DateTimeFormat`, `Intl.RelativeTimeFormat` | WIB formatting and relative times | built into every supported browser and Node, the formats of ui-guidelines 6.3 need no library |
 | `browser-image-compression` 2 | client resize before upload | FR-MEDIA-03 |
 | `heic-to` | HEIC to JPEG in the browser | iPhone photos (FR-MEDIA-01) |
-| `react-leaflet` 5, `leaflet` 1.9, `leaflet.heat` | campus map and heat layer | OpenStreetMap without an API key |
+| `mapbox-gl` 3 | campus map, controls and hotspot markers | Mapbox Streets style with a public, URL-restricted token |
 | `recharts` 3 | charts | declarative, works with server rendered pages |
 | `@zxing/browser` | QR scanning on the receive screen | camera scanning without native code. Arrives with the handover QR in Sprint 3, until then the code is typed or pasted |
 | `sonner` | toasts | shadcn default |

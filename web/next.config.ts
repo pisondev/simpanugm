@@ -4,6 +4,8 @@ import createNextIntlPlugin from "next-intl/plugin"
 const apiInternal = process.env.API_INTERNAL_URL ?? "http://localhost:8090"
 
 const nextConfig: NextConfig = {
+  agentRules: false,
+  devIndicators: false,
   output: "standalone",
   poweredByHeader: false,
   turbopack: {
