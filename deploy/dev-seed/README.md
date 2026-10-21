@@ -7,7 +7,7 @@ the staging demo, until the reviewed files exist in [`data/seed/`](../../data/se
 |---|---|
 | `zones.csv` | the five campus zones, centroids computed from the locations below |
 | `locations.csv` | 41 campus landmarks with coordinates from OpenStreetMap, extracted 17 October 2026 |
-| `posts.yaml` | six pilot posts, one per zone plus the central library, with placeholder hours and no phone numbers |
+| `posts.yaml` | six pilot posts, one per zone plus the central library, with placeholder hours and no phone numbers; the merged reviewed seed also includes the K5L office |
 
 These rows have not been through the location review of
 [`data/protocol/seed-review-checklist.md`](../../data/protocol/seed-review-checklist.md).

@@ -227,7 +227,10 @@ func TestFoundReportCustodyFlow(t *testing.T) {
 		t.Fatalf("found report: %+v description %v", f, full["description"])
 	}
 
-	pub := finder.Client.JSON(http.MethodGet, "/api/v1/found-reports/public?limit=100", nil)
+	pub := e.Client().JSON(http.MethodGet, "/api/v1/found-reports/public?limit=100", nil)
+	if pub.Status != http.StatusOK {
+		t.Fatalf("anonymous public listing: %d %s", pub.Status, pub.Body)
+	}
 	var listing struct {
 		Items []map[string]any `json:"items"`
 	}

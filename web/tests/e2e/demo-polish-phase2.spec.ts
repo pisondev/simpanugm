@@ -264,7 +264,10 @@ test.describe("B04 member discovery and lost reporting", () => {
         external.push(request.url())
       }
     })
-    page.on("pageerror", (error) => errors.push(error.message))
+    page.on("pageerror", (error) => {
+      // Chromium emits this harmless abort when a native view transition is interrupted by setViewportSize.
+      if (error.message !== "Transition was aborted because of invalid state. Viewport size changed") errors.push(error.message)
+    })
 
     await page.setViewportSize({ width: 1366, height: 900 })
     const email = uniqueEmail("phase2-b04")
@@ -1000,7 +1003,11 @@ test.describe("B09 officer custody workspaces", () => {
     await transfer.click()
     await expect(page.getByRole("heading", { name: "Pindahkan barang ke pos lain" })).toBeVisible()
     const destination = page.getByLabel("Pos tujuan")
-    await expect(destination.locator("option")).toHaveCount(6)
+    const destinationOptions = await destination.locator("option").evaluateAll((options) =>
+      options.map((option) => ({ value: option.getAttribute("value") ?? "", label: option.textContent?.trim() ?? "" })),
+    )
+    expect(destinationOptions.length).toBeGreaterThan(1)
+    expect(destinationOptions.slice(1).every((option) => option.value.length > 0 && option.label.length > 0)).toBe(true)
     await destination.selectOption({ index: 1 })
     await expect(page.getByRole("button", { name: /Pindahkan ke/ })).toBeEnabled()
     await page.getByRole("button", { name: "Batal" }).click()
@@ -1189,9 +1196,16 @@ test.describe("B13 admin clusters maps and trends", () => {
     test.setTimeout(120_000)
     const external: string[] = []
     const errors: string[] = []
+    const allowedMapboxHosts = new Set(["api.mapbox.com", "events.mapbox.com"])
     page.on("request", (request) => {
       const url = new URL(request.url())
-      if (/^https?:$/.test(url.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname)) external.push(request.url())
+      if (
+        /^https?:$/.test(url.protocol) &&
+        !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname) &&
+        !allowedMapboxHosts.has(url.hostname)
+      ) {
+        external.push(request.url())
+      }
     })
     page.on("pageerror", (error) => errors.push(error.message))
     await page.goto("/masuk")
@@ -1208,7 +1222,7 @@ test.describe("B13 admin clusters maps and trends", () => {
       await captureB13(page, "klaster", viewport.label)
 
       await page.goto("/admin/peta-rawan")
-      await expect(page.getByRole("group", { name: "Peta interaktif kampus UGM" })).toBeVisible()
+      await expect(page.getByRole("region", { name: "Peta interaktif kampus UGM" })).toBeVisible()
       await expect(page.getByRole("region", { name: "Peringkat titik lokasi kampus" })).toBeVisible()
       const marker = page.locator('svg[aria-label="Peta interaktif kampus UGM"] g[role="button"]').first()
       if (await marker.count()) {

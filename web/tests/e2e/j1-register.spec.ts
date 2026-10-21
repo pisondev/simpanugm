@@ -2,6 +2,20 @@ import { expect, test } from "@playwright/test"
 
 import { expectAccessible, registerMember, signIn, uniqueEmail } from "./helpers"
 
+test("a visitor can browse the public found listing", async ({ page }) => {
+  for (const viewport of [
+    { width: 1280, height: 720 },
+    { width: 360, height: 800 },
+  ]) {
+    await page.setViewportSize(viewport)
+    await page.goto("/barang-temuan")
+    await expect(page).toHaveURL(/\/barang-temuan$/)
+    await expect(page.getByRole("heading", { name: "Barang Temuan" })).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width)
+    await expectAccessible(page)
+  }
+})
+
 // J1: register, verify through Mailpit, sign in (US-01, US-02)
 test("a student registers, verifies the email and signs in", async ({ page }) => {
   const email = uniqueEmail("j1")
