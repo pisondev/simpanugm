@@ -27,7 +27,7 @@ flowchart TB
     sys[SimpanUGM]
     smtp[(SMTP provider)]
     hf[(Hugging Face Hub<br/>weights, first start only)]
-    osm[(OpenStreetMap tiles)]
+    mapbox[(Mapbox Streets tiles)]
 
     owner -->|reports loss, reviews candidates, claims| sys
     finder -->|reports found item| sys
@@ -35,8 +35,8 @@ flowchart TB
     admin -->|manages, analyses, monitors| sys
     sys -->|notification email| smtp
     sys -->|downloads pinned weights| hf
-    owner -. map tiles in the browser .-> osm
-    admin -. map tiles in the browser .-> osm
+    owner -. map tiles in the browser .-> mapbox
+    admin -. map tiles in the browser .-> mapbox
 ```
 
 No other system holds or receives SimpanUGM data. Map tiles are fetched by the browser

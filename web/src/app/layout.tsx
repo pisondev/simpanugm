@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server"
 
 import { Providers } from "./providers"
 import "./globals.css"
-import "leaflet/dist/leaflet.css"
+import "mapbox-gl/dist/mapbox-gl.css"
 
 const inter = localFont({ src: "./fonts/inter-latin-variable.woff2", weight: "100 900", variable: "--font-inter", display: "swap" })
 

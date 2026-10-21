@@ -1,23 +1,23 @@
 "use client"
 
-import { Fragment, useState } from "react"
-import { Circle, CircleMarker, MapContainer, Popup, TileLayer, Tooltip, ZoomControl } from "react-leaflet"
-import type { LatLngBoundsExpression } from "leaflet"
+import { useEffect, useRef } from "react"
+import mapboxgl from "mapbox-gl"
 
 import type { HotspotLocation } from "@/lib/api/types"
 
 interface CampusHotspotMapClientProps {
   locations: HotspotLocation[]
   selectedType: "lost" | "found" | "all"
+  mapboxToken?: string
   onSelectLocation?: (locationId: string) => void
 }
 
-const CAMPUS_BOUNDS: LatLngBoundsExpression = [
-  [-7.776005, 110.3716393],
-  [-7.764283, 110.3863],
+const CAMPUS_BOUNDS: mapboxgl.LngLatBoundsLike = [
+  [110.3716393, -7.776005],
+  [110.3863, -7.764283],
 ]
-const CAMPUS_CENTER: [number, number] = [-7.7693293, 110.3782801]
-const TILE_URL = process.env.NEXT_PUBLIC_MAP_TILE_URL ?? "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+const CAMPUS_CENTER: [number, number] = [110.3782801, -7.7693293]
+const MAP_STYLE = "mapbox://styles/mapbox/streets-v12"
 
 function countFor(location: HotspotLocation, selectedType: CampusHotspotMapClientProps["selectedType"]): number {
   if (selectedType === "lost") return location.lost_count
@@ -32,88 +32,109 @@ function markerColour(count: number): string {
   return "#059669"
 }
 
-export function CampusHotspotMapClient({ locations, selectedType, onSelectLocation }: CampusHotspotMapClientProps) {
-  const [activeLocationId, setActiveLocationId] = useState<string | null>(null)
-  const maxCount = Math.max(...locations.map((location) => countFor(location, selectedType)), 1)
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character] ?? character)
+}
 
-  return (
-    <MapContainer
-      bounds={CAMPUS_BOUNDS}
-      boundsOptions={{ padding: [16, 16] }}
-      center={CAMPUS_CENTER}
-      className="size-full min-h-[360px]"
-      maxZoom={19}
-      minZoom={14}
-      scrollWheelZoom
-      zoomControl={false}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url={TILE_URL}
-      />
-      <ZoomControl position="topright" />
-      {locations.map((location) => {
+function popupHtml(location: HotspotLocation): string {
+  return `
+    <strong>${escapeHtml(location.location_name)}</strong>
+    <div>${escapeHtml(location.zone_name)}</div>
+    <hr />
+    <div>Hilang: ${escapeHtml(location.display_lost)}</div>
+    <div>Temuan: ${escapeHtml(location.display_found)}</div>
+    <div>Total: ${escapeHtml(location.display_total)}</div>
+    <div>Tingkat kembali: ${(location.return_rate * 100).toFixed(0)}%</div>
+    <hr />
+    <small>Koordinat: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}</small>
+  `
+}
+
+function markerElement(location: HotspotLocation, count: number, maxCount: number): HTMLButtonElement {
+  const element = document.createElement("button")
+  const size = count === 0 ? 28 : Math.min(52, 28 + (count / maxCount) * 24)
+
+  element.type = "button"
+  element.title = location.location_name
+  element.setAttribute("aria-label", `${location.location_name}, ${count < 3 ? "kurang dari 3" : `${count}`} laporan`)
+  element.textContent = count < 3 ? "<3" : `${count}`
+  element.style.width = `${size}px`
+  element.style.height = `${size}px`
+  element.style.border = "2px solid white"
+  element.style.borderRadius = "9999px"
+  element.style.background = markerColour(count)
+  element.style.boxShadow = "0 2px 8px rgb(15 23 42 / 0.35)"
+  element.style.color = "white"
+  element.style.cursor = "pointer"
+  element.style.fontSize = "11px"
+  element.style.fontWeight = "700"
+  element.style.padding = "0"
+
+  return element
+}
+
+export function CampusHotspotMapClient({ locations, selectedType, mapboxToken, onSelectLocation }: CampusHotspotMapClientProps) {
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!mapContainerRef.current || !mapboxToken) return
+
+    mapboxgl.accessToken = mapboxToken
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: MAP_STYLE,
+      center: CAMPUS_CENTER,
+      maxBounds: CAMPUS_BOUNDS,
+      minZoom: 14,
+      maxZoom: 19,
+      attributionControl: true,
+    })
+    const maxCount = Math.max(...locations.map((location) => countFor(location, selectedType)), 1)
+    const markerElements: HTMLButtonElement[] = []
+
+    map.addControl(new mapboxgl.NavigationControl(), "top-right")
+    map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left")
+    map.on("load", () => {
+      map.fitBounds(CAMPUS_BOUNDS, { padding: 24, maxZoom: 16 })
+
+      locations.forEach((location) => {
         const count = countFor(location, selectedType)
-        const colour = markerColour(count)
-        const radius = count === 0 ? 6 : Math.min(26, 8 + (count / maxCount) * 18)
-        const active = activeLocationId === location.location_id
+        const element = markerElement(location, count, maxCount)
+        const marker = new mapboxgl.Marker({ element, anchor: "center" })
+          .setLngLat([location.lng, location.lat])
+          .setPopup(new mapboxgl.Popup({ offset: 18 }).setHTML(popupHtml(location)))
+          .addTo(map)
 
-        return (
-          <Fragment key={location.location_id}>
-            {count >= 3 ? (
-              <Circle
-                center={[location.lat, location.lng]}
-                pathOptions={{ color: colour, fillColor: colour, fillOpacity: 0.12, weight: 1 }}
-                radius={Math.min(160, 45 + count * 12)}
-              />
-            ) : null}
-            <CircleMarker
-              center={[location.lat, location.lng]}
-              eventHandlers={{
-                click: () => {
-                  setActiveLocationId(location.location_id)
-                  onSelectLocation?.(location.location_id)
-                },
-              }}
-              pathOptions={{ color: active ? "#0f172a" : colour, fillColor: colour, fillOpacity: 0.86, weight: active ? 3 : 2 }}
-              radius={radius}
-            >
-              <Tooltip
-                permanent
-                direction="center"
-                className="!border-0 !bg-transparent !font-bold !text-white !shadow-none"
-                offset={[0, 0]}
-              >
-                {count < 3 ? "<3" : count}
-              </Tooltip>
-              <Tooltip direction="top" offset={[0, -8]}>
-                {location.location_name}
-              </Tooltip>
-              <Popup>
-                <div className="min-w-52 space-y-2 text-sm">
-                  <div>
-                    <p className="font-semibold">{location.location_name}</p>
-                    <p className="text-xs text-slate-500">{location.zone_name}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 border-t pt-2 text-xs">
-                    <span>Hilang</span>
-                    <strong>{location.display_lost}</strong>
-                    <span>Temuan</span>
-                    <strong>{location.display_found}</strong>
-                    <span>Total</span>
-                    <strong>{location.display_total}</strong>
-                    <span>Tingkat kembali</span>
-                    <strong>{(location.return_rate * 100).toFixed(0)}%</strong>
-                  </div>
-                  <p className="border-t pt-2 text-[11px] text-slate-500">
-                    Koordinat: {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
-                  </p>
-                </div>
-              </Popup>
-            </CircleMarker>
-          </Fragment>
-        )
-      })}
-    </MapContainer>
-  )
+        const selectLocation = () => {
+          markerElements.forEach((markerElement) => {
+            markerElement.style.borderColor = "white"
+          })
+          element.style.borderColor = "#0f172a"
+          onSelectLocation?.(location.location_id)
+        }
+
+        element.addEventListener("click", selectLocation)
+        element.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            selectLocation()
+            marker.togglePopup()
+          }
+        })
+        markerElements.push(element)
+      })
+    })
+
+    return () => map.remove()
+  }, [locations, mapboxToken, onSelectLocation, selectedType])
+
+  if (!mapboxToken) {
+    return (
+      <div className="flex size-full min-h-[360px] items-center justify-center bg-muted p-6 text-center text-sm text-muted-foreground" role="status">
+        Token Mapbox belum dikonfigurasi untuk lingkungan ini.
+      </div>
+    )
+  }
+
+  return <div ref={mapContainerRef} className="size-full min-h-[360px]" aria-label="Peta interaktif kampus UGM" />
 }

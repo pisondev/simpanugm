@@ -137,7 +137,7 @@ The single source for labels, icons and colours, implemented as one map in
 | Tables | TanStack Table on shadcn `Table` | sticky header, keyboard navigation, column for status badges |
 | Feedback | `sonner` toasts for success, inline alerts for errors | never a toast for an error the user must act on. Neutral toasts, the icon carries the type, the rich colours fail AA |
 | Confirmations | `AlertDialog` for destructive or irreversible actions: close report, withdraw, reject, approve, handover, dispose | the confirm button repeats the verb, for example "Ya, setujui klaim" |
-| Map | `react-leaflet` with OpenStreetMap tiles and `leaflet.heat` | attribution visible; hotspot markers use reviewed campus coordinates and stay within the demo bbox |
+| Map | Mapbox GL JS with the Mapbox Streets style | attribution visible; hotspot markers use reviewed campus coordinates and stay within the demo bbox |
 | Charts | Recharts | palette from the tokens, every chart has a table alternative |
 | Scanner | `@zxing/browser` for QR on the receive screen | falls back to typing the code |
 

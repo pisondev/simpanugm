@@ -129,7 +129,7 @@ a message naming it. Templates live in `deploy/env/*.env.example`.
 |---|---|---|---|
 | `API_INTERNAL_URL` | yes | `http://api:8090` | server side calls |
 | `NEXT_PUBLIC_BASE_URL` | yes | `http://localhost:8000` | canonical links |
-| `NEXT_PUBLIC_MAP_TILE_URL` | no | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | map tiles |
+| `MAPBOX_ACCESS_TOKEN` | no | public URL-restricted token | Mapbox Streets map token; keep the value in the local env file and out of Git |
 | `LOG_LEVEL` | no | `info` | |
 
 ### 6.3 `ml`

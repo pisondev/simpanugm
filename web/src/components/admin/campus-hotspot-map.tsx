@@ -7,6 +7,7 @@ import type { HotspotLocation } from "@/lib/api/types"
 
 interface CampusHotspotMapProps {
   locations: HotspotLocation[]
+  mapboxToken?: string
   selectedType: "lost" | "found" | "all"
   onSelectLocation?: (locationId: string) => void
 }
@@ -25,7 +26,7 @@ const CampusHotspotMapClient = dynamic(() => import("./campus-hotspot-map-client
   ),
 })
 
-export function CampusHotspotMap({ locations, selectedType, onSelectLocation }: CampusHotspotMapProps) {
+export function CampusHotspotMap({ locations, mapboxToken, selectedType, onSelectLocation }: CampusHotspotMapProps) {
   return (
     <div className="relative flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
       <div className="flex items-center justify-between border-b bg-muted/40 px-4 py-2.5 text-xs">
@@ -50,7 +51,7 @@ export function CampusHotspotMap({ locations, selectedType, onSelectLocation }: 
       </div>
 
       <div className="relative aspect-[5/3] min-h-[360px] w-full overflow-hidden" role="region" aria-label="Peta interaktif kampus UGM">
-        <CampusHotspotMapClient locations={locations} selectedType={selectedType} onSelectLocation={onSelectLocation} />
+        <CampusHotspotMapClient locations={locations} mapboxToken={mapboxToken} selectedType={selectedType} onSelectLocation={onSelectLocation} />
       </div>
       <div className="sr-only" aria-label="Ringkasan laporan per lokasi">
         {locations.map((location) => (

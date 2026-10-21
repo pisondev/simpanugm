@@ -9,7 +9,7 @@ All notable changes to this project are recorded here. The format follows
 ### Added
 
 - Align data seed model identities with `ml/models.lock.json`.
-- Render the admin hotspot view as an interactive OpenStreetMap map using the reviewed campus coordinates.
+- Render the admin hotspot view as an interactive Mapbox Streets map using the reviewed campus coordinates.
 - Run complete demo seed validation in the data CI workflow with the reviewed demo bbox.
 - Add an Hestia production profile with opt-in local ML, memory caps and separate live environment files for 4 GiB VPS deployments.
 - Seed ready-to-use library handover, physical receipt and owner information-response stories; verify replay safety and complete all three through the real API in integration tests.
