@@ -57,6 +57,7 @@ func TestCheck(t *testing.T) {
 		code string
 	}{
 		{"public needs nobody", nil, "login", ""},
+		{"public found listing needs nobody", nil, "listPublicFoundReports", ""},
 		{"private needs a session", nil, "getMe", "unauthenticated"},
 		{"unverified cannot report", member, "createLostReport", "account_unverified"},
 		{"verified member reports", verified, "createLostReport", ""},

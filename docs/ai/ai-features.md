@@ -173,7 +173,7 @@ Reason chips, for example: "Skor kecocokan 86%", "Kartu identitas", "Klaim menun
 | | |
 |---|---|
 | Where | Admin analytics, "Peta Rawan" tab. Officers have a read only view for their zones |
-| Map | Campus map on OpenStreetMap tiles with Leaflet. A heat layer weighted by report count per location and markers sized by count. Toggle lost, found, both |
+| Map | Campus map on Mapbox Streets with Mapbox GL JS. Hotspot markers are sized and coloured by report count. Toggle lost, found, both |
 | Filters | Period (7, 30, 90 days, semester, custom), category parent, zone |
 | Table | Locations ranked by lost count with found count, return rate, median time to return |
 | Time patterns | Hour of day by weekday heat grid, weekly trend lines |

@@ -282,7 +282,7 @@ SRS.
 | A domain with DNS control | HTTPS and email links | Caddy internal certificates on a LAN demo |
 | An SMTP account | email notifications | in app notifications only, email queued |
 | Pretrained model weights from Hugging Face | matching, assistant | weights cached in a volume after first download, mirrored in the team drive |
-| OpenStreetMap tiles and building footprints | campus map, coordinates | static map image of campus with point markers |
+| Mapbox Streets tiles and reviewed building coordinates | campus map, coordinates | static map image of campus with point markers |
 
 ## 12. Related pages
 

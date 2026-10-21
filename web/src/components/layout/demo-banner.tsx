@@ -1,6 +1,6 @@
 "use client"
 
-import { ExternalLink, Sparkles } from "lucide-react"
+import { ExternalLink, Megaphone } from "lucide-react"
 
 export function DemoBanner() {
   // Shown in development and when demo mode is enabled
@@ -15,7 +15,7 @@ export function DemoBanner() {
     <aside aria-label="Informasi Mode Demo" className="border-b bg-primary px-4 py-1.5 text-xs text-white">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 font-medium">
-          <Sparkles className="size-3.5 shrink-0 text-amber-300" aria-hidden />
+          <Megaphone className="size-3.5 shrink-0 text-amber-300" aria-hidden />
           <span>Mode Demo: Sistem berjalan dengan model AI nyata di laptop.</span>
         </div>
         <div className="flex items-center gap-3">
