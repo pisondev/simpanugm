@@ -117,6 +117,8 @@ class CompleteSeedTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             seed = Path(directory) / "seed"
             shutil.copytree(SEED_DIR, seed)
+            for filename in ("zones.csv", "locations.csv", "posts.yaml", "model_versions.yaml"):
+                (seed / filename).unlink()
             (seed / "zones.csv").write_text("partial\n", encoding="utf-8")
 
             errors = validate_seed_dir(seed)
@@ -160,16 +162,16 @@ class CompleteSeedTests(unittest.TestCase):
             errors = validate_complete_seed_dir(seed, self.CAMPUS_BBOX)
             self.assertTrue(any("duplicate aliases after normalization" in error for error in errors))
 
-    def test_complete_seed_rejects_blank_phone_and_overlapping_hours(self) -> None:
+    def test_complete_seed_rejects_non_string_phone_and_overlapping_hours(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             seed = self.write_complete_seed(directory)
             posts = json.loads((seed / "posts.yaml").read_text(encoding="utf-8"))
-            posts[0]["phone"] = " "
+            posts[0]["phone"] = []
             (seed / "posts.yaml").write_text(json.dumps(posts), encoding="utf-8")
 
             errors = validate_complete_seed_dir(seed, self.CAMPUS_BBOX)
 
-            self.assertTrue(any("phone must be a non-empty string" in error for error in errors))
+            self.assertTrue(any("phone must be a string" in error for error in errors))
 
             posts[0]["phone"] = "+62274123456"
             posts[0]["opening_hours"]["mon"] = [["07:00", "10:00"], ["09:00", "11:00"]]

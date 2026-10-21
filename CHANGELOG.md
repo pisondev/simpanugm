@@ -8,9 +8,14 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Align data seed model identities with `ml/models.lock.json`.
+- Run complete demo seed validation in the data CI workflow with the reviewed demo bbox.
 - Add an Hestia production profile with opt-in local ML, memory caps and separate live environment files for 4 GiB VPS deployments.
 - Seed ready-to-use library handover, physical receipt and owner information-response stories; verify replay safety and complete all three through the real API in integration tests.
 - Expand demo master-data vocabulary with common campus synonyms and Indonesian brand aliases.
+- Align the Axelle master-data seed with the 41 OSM landmarks and six pilot posts used by the
+  demo overlay, while marking the combined bbox as reviewed for demo and production review
+  pending.
 - Add an explicit phase 2 screen and data playbook, and align the live demo script with actual routes, editable model suggestions and recording commands.
 - Cover desktop and 360 px reference screenshots with axe checks, real model suggestions, retry and reduced-motion failure handling.
 - Polish the public landing, owner candidates and photo-assisted found report flow with honest AI status, editable suggestions and animated evidence.
@@ -42,6 +47,9 @@ First release candidate of SimpanUGM (Sistem Informasi Manajemen Penemuan dan Pe
 
 ### Added
 
+- Added a public-source Axelle data MVP baseline for the assignment: five project zones,
+  25 OSM-derived campus locations, the official K5L emergency contact, and exact public
+  model/package revisions, with private participant data kept outside Git.
 - Core Lost and Found reporting: four step lost and found reporting forms with optional or required photo uploads, HEIC conversion, client side draft persistence, idempotent report creation, status history timeline, and public found item browsing without private details (US-08 to US-14, US-17).
 - Multimodal AI Matching Engine: fusion scoring across visual embeddings (CLIP ViT-B/32), semantic text embeddings (multilingual e5 small), spatial distance, temporal proximity, and category compatibility; cross modal text to photo matching; top ten candidate ranking; explainable candidate view with percentage scores, tier badges, and Indonesian explanation bars; candidate dismissals and feedback logging (US-18 to US-22, AI-01, AI-02).
 - AI Report Assistant: automatic suggestion of category, colour, and brand from uploaded photos within 4 s; auto drafted public descriptions; automatic masking of 16 digit identity numbers (NIK and KTM) in visible text (US-23, US-24, AI-03, AI-04).

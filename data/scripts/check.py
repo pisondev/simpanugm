@@ -431,8 +431,8 @@ def validate_posts(path: Path, location_slugs: set[str]) -> None:
             raise ValidationError(f"{path}: post {slug} location_slug must be a string")
         if location_slug not in location_slugs:
             raise ValidationError(f"{path}: post {slug} references unknown location")
-        if not isinstance(post["phone"], str) or not post["phone"].strip():
-            raise ValidationError(f"{path}: post {slug} phone must be a non-empty string")
+        if not isinstance(post["phone"], str):
+            raise ValidationError(f"{path}: post {slug} phone must be a string")
         hours = post["opening_hours"]
         if not isinstance(hours, dict) or set(hours) != set(WEEKDAYS):
             raise ValidationError(f"{path}: post {slug} opening_hours must contain all weekdays")

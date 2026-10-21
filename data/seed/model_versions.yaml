@@ -1,0 +1,110 @@
+- component: image_encoder
+  name: image_encoder-clipb32-2026.11.0
+  identity:
+    model_id: sentence-transformers/clip-ViT-B-32
+    revision: 327ab6726d33c0e22f920c83f2ff9e4bd38ca37f
+    dimension: 512
+  status: active
+
+- component: xmodal_text_encoder
+  name: xmodal_text_encoder-clipb32-multilingual-2026.11.0
+  identity:
+    model_id: sentence-transformers/clip-ViT-B-32-multilingual-v1
+    revision: 58edf8cada9e398793dca955574a48cbb7f18be2
+    dimension: 512
+  status: active
+
+- component: text_encoder
+  name: text_encoder-multilingual-e5-small-2026.11.0
+  identity:
+    model_id: intfloat/multilingual-e5-small
+    revision: 614241f622f53c4eeff9890bdc4f31cfecc418b3
+    dimension: 384
+  status: active
+
+- component: ocr
+  name: ocr-easyocr-id-en-2026.11.0
+  identity:
+    model_id: JaidedAI/EasyOCR
+    revision: craft_mlt_25k+latin_g2
+    sha256:
+      craft_mlt_25k.pth: 4a5efbfb48b4081100544e75e1e2b57f8de3d84f213004b14b85fd4b3748db17
+      latin_g2.pth: aaa95be1c4a9cb3496879bed7c520886ce1164f89e026f0c54488394e74e8c55
+  status: active
+
+- component: category_classifier
+  name: category_classifier-clip-zero-shot-2026.11.0
+  identity:
+    strategy: zero_shot
+    encoder: image_encoder-clipb32-2026.11.0
+    prompt_language: en
+    prompt_source: data/seed/categories.yaml
+    prompt_sha256: 97646d0195efae49747f4cd9d0748039a3e0b5cd5d4e40ab021fc2eefcd78f2e
+  status: active
+
+- component: colour_extractor
+  name: colour_extractor-cielab-kmeans-2026.11.0
+  identity:
+    algorithm: kmeans
+    colour_space: CIELAB
+    palette_source: data/seed/colours.csv
+    palette_sha256: aebc5a690c38145143aa42c8b016391183801afd4db6cb89bf6259ac8f5ece8a
+    implementation_commit: e8fe44fdd81f9e94d19a4ec0a61604872af79c60
+  status: active
+
+- component: brand_matcher
+  name: brand_matcher-rapidfuzz-2026.11.0
+  identity:
+    library: rapidfuzz
+    version: 3.14.6
+    algorithm: fuzz.ratio
+    threshold: 90
+    brand_source: data/seed/brands.csv
+    brand_sha256: 5b2ba07c7869637298ea5ba014f7eda681afd8850ba30eca68e68954db84cc24
+    source: https://pypi.org/project/RapidFuzz/3.14.6/
+  status: active
+
+- component: fusion
+  name: fusion-linear-2026.11.0
+  identity:
+    document_id: fusion-linear-2026.11.0
+    document_source: docs/ai/matching-engine.md
+    config_sha256: 0667fbe31b3d12b5c28db8a1927bb9bccd8e670aee18f7663f63c79d1ff8f610
+  status: active
+  config:
+    id: fusion-linear-2026.11.0
+    kind: weighted_mean
+    weights:
+      visual_image: 0.35
+      visual_cross_modal: 0.25
+      text: 0.35
+      location: 0.15
+      time: 0.15
+    bands:
+      image: [0.60, 0.95]
+      cross_modal: [0.18, 0.33]
+      e5: [0.78, 0.93]
+    text_mix:
+      semantic: 0.75
+      attributes: 0.25
+    colour_partial: 0.5
+    location:
+      scale_m: 400
+      zone_cap: 0.6
+    time:
+      tolerance_before_h: 2
+      half_life_h: 72
+      pool_before_h: 24
+      pool_after_d: 60
+    category:
+      same_parent: 0.85
+      other: 0.35
+    identity_name_hit:
+      min_ratio: 85
+      text_floor: 0.95
+    tiers:
+      high: 0.72
+      medium: 0.55
+      floor: 0.40
+    top_k: 10
+    ann_k: 50

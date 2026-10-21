@@ -1,0 +1,90 @@
+- slug: kantor-k5l-ugm
+  name: Kantor Keamanan, Keselamatan Kerja, Kedaruratan, dan Lingkungan (K5L)
+  location_slug: kantor-satuan-keamanan-kampus
+  phone: "0274 649 1234"
+  opening_hours:
+    mon: []
+    tue: []
+    wed: []
+    thu: []
+    fri: []
+    sat: []
+    sun: []
+
+- slug: pos-pusat
+  name: Pos Lost and Found Gedung Pusat
+  location_slug: balairung
+  phone: ""
+  opening_hours:
+    mon: [["07:00", "16:00"]]
+    tue: [["07:00", "16:00"]]
+    wed: [["07:00", "16:00"]]
+    thu: [["07:00", "16:00"]]
+    fri: [["07:00", "16:00"]]
+    sat: []
+    sun: []
+
+- slug: pos-perpustakaan
+  name: Pos Lost and Found Perpustakaan Pusat
+  location_slug: perpustakaan-pusat
+  phone: ""
+  opening_hours:
+    mon: [["07:30", "20:00"]]
+    tue: [["07:30", "20:00"]]
+    wed: [["07:30", "20:00"]]
+    thu: [["07:30", "20:00"]]
+    fri: [["07:30", "20:00"]]
+    sat: [["08:00", "14:00"]]
+    sun: []
+
+- slug: pos-saintek
+  name: Pos Lost and Found Klaster Saintek
+  location_slug: fakultas-teknik
+  phone: ""
+  opening_hours:
+    mon: [["07:00", "16:00"]]
+    tue: [["07:00", "16:00"]]
+    wed: [["07:00", "16:00"]]
+    thu: [["07:00", "16:00"]]
+    fri: [["07:00", "16:00"]]
+    sat: [["08:00", "12:00"]]
+    sun: []
+
+- slug: pos-soshum
+  name: Pos Lost and Found Klaster Soshum
+  location_slug: feb
+  phone: ""
+  opening_hours:
+    mon: [["07:00", "16:00"]]
+    tue: [["07:00", "16:00"]]
+    wed: [["07:00", "16:00"]]
+    thu: [["07:00", "16:00"]]
+    fri: [["07:00", "16:00"]]
+    sat: [["08:00", "12:00"]]
+    sun: []
+
+- slug: pos-agro
+  name: Pos Lost and Found Klaster Agro
+  location_slug: fakultas-kehutanan
+  phone: ""
+  opening_hours:
+    mon: [["07:00", "16:00"]]
+    tue: [["07:00", "16:00"]]
+    wed: [["07:00", "16:00"]]
+    thu: [["07:00", "16:00"]]
+    fri: [["07:00", "16:00"]]
+    sat: [["08:00", "12:00"]]
+    sun: []
+
+- slug: pos-medika
+  name: Pos Lost and Found Klaster Kesehatan
+  location_slug: fkkmk
+  phone: ""
+  opening_hours:
+    mon: [["07:00", "16:00"]]
+    tue: [["07:00", "16:00"]]
+    wed: [["07:00", "16:00"]]
+    thu: [["07:00", "16:00"]]
+    fri: [["07:00", "16:00"]]
+    sat: [["08:00", "12:00"]]
+    sun: []

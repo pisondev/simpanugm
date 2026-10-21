@@ -31,8 +31,8 @@ jobs:
       - name: Install data dependencies
         run: python -m pip install --requirement data/scripts/requirements.txt
 
-      - name: Validate seed foundation
-        run: python data/scripts/check.py
+      - name: Validate complete MVP seed
+        run: python data/scripts/check.py --require-complete --bbox=-7.776005,110.3716393,-7.764283,110.3863
 
       - name: Validate shared fixtures
         run: python data/scripts/check_fixtures.py
