@@ -175,6 +175,15 @@ claim service on each reset, never hardcoded. Reset again after consuming these 
 
 ## Scene 4, admin
 
+The administrator quick-login button opens `/admin`, aligned with slide 7. Use the
+six visible feature panels: "AI & Matching Monitoring", "Drift Detection", "Fusion
+Control & Rollback", "HDBSCAN Case Clustering", "Lost & Found Hotspot Analytics"
+and "Trend Analytics". Drift and fusion shortcuts scroll to their named sections
+on the monitoring page. User management, master data and settings are in the header;
+audit and officer workflows remain in Lainnya. Full mapping and local Mapbox setup:
+[administrator dashboard](../ux/admin-dashboard.md). A missing Mapbox token leaves
+the location table available with a configuration message in the map area.
+
 1. Sign in as Admin. Open `/admin/ai/monitoring`, inspect current model/version,
    assist outcomes, score distributions, dismiss rates and drift indicators.
 2. Show existing fusion activation and rollback controls on that page. Confirm a

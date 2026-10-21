@@ -2,6 +2,7 @@ import { AlertTriangle, Filter, MapPin } from "lucide-react"
 import type { Metadata } from "next"
 
 import { CampusHotspotMap } from "@/components/admin/campus-hotspot-map"
+import { AdminFeatureLabel } from "@/components/dashboard/admin-feature-label"
 import { PageHeader } from "@/components/layout/page-header"
 import { ButtonLink } from "@/components/ui/button-link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -54,6 +55,7 @@ export default async function CampusHotspotsPage({ searchParams }: { searchParam
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
+      <AdminFeatureLabel feature="hotspots" />
       <PageHeader
         title="Peta Rawan Kehilangan & Temuan (AI-10)"
         lead="Visualisasi titik rawan kehilangan dan temuan barang di lingkungan kampus UGM untuk evaluasi keamanan (US-46, AI-10)."

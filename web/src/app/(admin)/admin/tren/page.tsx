@@ -2,6 +2,7 @@ import { BarChart3, CheckCircle2, Clock, FileText, Layers, ShieldAlert, Trending
 import type { Metadata } from "next"
 
 import { ExportCsvForm } from "@/components/admin/export-csv-form"
+import { AdminFeatureLabel } from "@/components/dashboard/admin-feature-label"
 import { PageHeader } from "@/components/layout/page-header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -40,6 +41,7 @@ export default async function AnalyticsTrendsPage({ searchParams }: { searchPara
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
+      <AdminFeatureLabel feature="trends" />
       <PageHeader
         title="Tren Operasional & Analitik"
         lead="Statistik perkembangan laporan kehilangan dan temuan, pola waktu kejadian, dan ekspor laporan bulanan (US-47)."

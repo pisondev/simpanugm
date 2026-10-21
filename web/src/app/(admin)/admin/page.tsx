@@ -2,14 +2,14 @@ import { ShieldCheck, TriangleAlert, Users, Warehouse } from "lucide-react"
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
-import { PageHeader } from "@/components/layout/page-header"
-import { ButtonLink } from "@/components/ui/button-link"
+import { AdminDashboard } from "@/components/dashboard/admin-dashboard"
 import { load, serverApi } from "@/lib/api/server"
 import type { AdminUser } from "@/lib/api/types"
+import { requireAdmin } from "@/lib/session"
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("admin")
-  return { title: t("homeTitle") }
+  const t = await getTranslations("adminDashboard")
+  return { title: t("pageTitle") }
 }
 
 async function everyone(api: Awaited<ReturnType<typeof serverApi>>, role: "officer" | "admin"): Promise<AdminUser[]> {
@@ -29,8 +29,18 @@ async function everyone(api: Awaited<ReturnType<typeof serverApi>>, role: "offic
 
 // US-04: every post needs accountable staff, so posts without an active officer are surfaced first
 export default async function AdminHomePage() {
+  const me = await requireAdmin()
   const api = await serverApi()
-  const [officers, admins, posts, t] = await Promise.all([everyone(api, "officer"), everyone(api, "admin"), load(api.GET("/posts")), getTranslations("admin")])
+  const [officers, admins, posts, t, td, monitoring, clusters, analytics] = await Promise.all([
+    everyone(api, "officer"),
+    everyone(api, "admin"),
+    load(api.GET("/posts")),
+    getTranslations("admin"),
+    getTranslations("adminDashboard"),
+    load(api.GET("/admin/ai/monitoring")).catch(() => null),
+    load(api.GET("/admin/ai/clusters")).catch(() => null),
+    load(api.GET("/analytics/summary")).catch(() => null),
+  ])
   const active = officers.filter((o) => o.status === "active")
   const covered = new Set(active.flatMap((o) => o.post_ids))
   const uncovered = posts.items.filter((p) => !covered.has(p.id))
@@ -41,7 +51,8 @@ export default async function AdminHomePage() {
   ]
   return (
     <>
-      <PageHeader title={t("homeTitle")} lead={t("homeLead")} actions={<ButtonLink href="/admin/pengguna">{t("usersTitle")}</ButtonLink>} />
+      <AdminDashboard name={me.full_name} uncovered={uncovered.length} monitoring={monitoring} clusters={clusters} analytics={analytics} />
+      <h2 className="mb-3 text-xl font-semibold">{td("operationsTitle")}</h2>
       <div className="mb-8 grid gap-3 sm:grid-cols-3">
         {cards.map((c) => (
           <div key={c.label} className="flex items-center gap-4 rounded-xl border bg-card p-4 shadow-sm">
@@ -55,7 +66,7 @@ export default async function AdminHomePage() {
           </div>
         ))}
       </div>
-      <section aria-labelledby="tanpa-petugas" className="flex flex-col gap-3">
+      <section id="cakupan-pos" aria-labelledby="tanpa-petugas" className="flex scroll-mt-24 flex-col gap-3">
         <h2 id="tanpa-petugas" className="text-lg font-semibold">
           {t("uncoveredTitle")}
         </h2>

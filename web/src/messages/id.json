@@ -1,4 +1,75 @@
 {
+  "adminDashboard": {
+    "pageTitle": "Dashboard Administrator",
+    "eyebrow": "DASHBOARD ADMINISTRATOR",
+    "headingStart": "Pantau sistem.",
+    "headingAccent": "Jaga kualitas layanan.",
+    "greeting": "Halo, {name}.",
+    "lead": "Baca kinerja pencocokan, pahami pola laporan, dan kelola operasional kampus.",
+    "role": "Administrator",
+    "companion": "Panduan ruang administrator",
+    "companionTitle": "Satu ruang untuk melihat keseluruhan.",
+    "companionLead": "Dari kualitas AI hingga kesiapan pos. Periksa data sebelum menentukan langkah berikutnya.",
+    "coverageTitle": "Kesiapan pos kampus",
+    "coverageHint": "{count} pos belum memiliki petugas aktif. Periksa cakupan penugasan di bawah.",
+    "coverageAction": "Periksa cakupan pos",
+    "operationsTitle": "Operasional & cakupan pos",
+    "confirmedCount": "{count} klaim terkonfirmasi",
+    "recall": "Recall@1 pada kasus terkonfirmasi: {value}%",
+    "noConfirmed": "Belum ada kasus terkonfirmasi untuk membaca Recall@1.",
+    "psi": "PSI distribusi skor: {value}",
+    "driftWarning": "Sistem melaporkan peringatan pergeseran distribusi skor.",
+    "noDriftWarning": "Sistem belum melaporkan peringatan drift. Periksa jumlah dan periode datanya.",
+    "activeFusion": "Konfigurasi fusi aktif: {name}",
+    "noFusion": "Belum ada versi fusi terdaftar sebagai aktif. Periksa daftar versi yang tersedia.",
+    "clusterRun": "Proses terakhir: {status}. Jumlah klaster tercatat: {count}.",
+    "clusterStatus": { "running": "berjalan", "done": "selesai", "failed": "gagal" },
+    "noClusters": "Belum ada proses pengelompokan. Jalankan secara terpisah di halaman klaster.",
+    "hotspotsHint": "Buka peta dengan filter lokasi, waktu, dan jenis laporan. Angka kecil tetap mengikuti penyamaran privasi.",
+    "reportCounts": "{lost} kehilangan | {found} temuan",
+    "returnedCount": "{count} barang tercatat sudah dikembalikan",
+    "unavailable": "Ringkasan belum dapat dimuat. Buka halaman fitur untuk memeriksa atau mencoba kembali.",
+    "monitoringAction": "Buka monitoring AI",
+    "driftAction": "Periksa indikator drift",
+    "fusionAction": "Tinjau versi & rollback",
+    "clustersAction": "Buka pengelompokan kasus",
+    "hotspotsAction": "Buka peta hotspot",
+    "trendsAction": "Buka analitik tren",
+    "auditAction": "Buka audit log",
+    "metricsNote": "Metrik mengikuti data dan periode yang tersedia. Data demo bukan ukuran akurasi umum model.",
+    "features": {
+      "monitoring": {
+        "title": "AI & Matching Monitoring",
+        "subtitle": "Baca kinerja pencocokan",
+        "description": "Pantau distribusi skor, umpan balik kandidat, dan peringkat pada kasus terkonfirmasi."
+      },
+      "drift": {
+        "title": "Drift Detection",
+        "subtitle": "Periksa perubahan distribusi",
+        "description": "Tinjau indikator pergeseran skor sebagai bahan evaluasi kualitas pencocokan."
+      },
+      "fusion": {
+        "title": "Fusion Control & Rollback",
+        "subtitle": "Kelola versi konfigurasi fusi",
+        "description": "Tinjau versi yang tersedia, aktifkan konfigurasi, atau kembalikan versi sebelumnya."
+      },
+      "clusters": {
+        "title": "HDBSCAN Case Clustering",
+        "subtitle": "Baca kelompok laporan serupa",
+        "description": "Kelompokkan kemiripan visual dan semantik untuk meninjau pola serta kemungkinan duplikat."
+      },
+      "hotspots": {
+        "title": "Lost & Found Hotspot Analytics",
+        "subtitle": "Tinjau sebaran lokasi kampus",
+        "description": "Periksa konsentrasi dan lonjakan laporan sebagai bahan evaluasi keamanan kampus."
+      },
+      "trends": {
+        "title": "Trend Analytics",
+        "subtitle": "Baca perkembangan operasional",
+        "description": "Tinjau kategori, volume laporan, dan pola waktu kejadian serta ekspor laporan bulanan."
+      }
+    }
+  },
   "officerDashboard": {
     "pageTitle": "Dashboard Petugas",
     "eyebrow": "DASHBOARD PETUGAS",

@@ -2,6 +2,7 @@ import { AlertTriangle, CheckCircle2, Cpu, HelpCircle, Layers, Sparkles, Trendin
 import type { Metadata } from "next"
 
 import { ModelVersionActivator } from "@/components/admin/model-version-activator"
+import { AdminFeatureLabel } from "@/components/dashboard/admin-feature-label"
 import { PageHeader } from "@/components/layout/page-header"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -39,10 +40,10 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
+      <AdminFeatureLabel feature="monitoring" />
       <PageHeader
         title="Monitoring AI & Mesin Pencocokan"
         lead="Pantau akurasi, distribusi skor, drift populasi, dan aktifkan atau rollback versi model (US-49, AI-12)."
-        actions={<ModelVersionActivator allVersions={allVersions} />}
       />
 
       {mon.psi_warning ? (
@@ -101,8 +102,9 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="drift-detection" className="scroll-mt-24">
           <CardHeader className="pb-2">
+            <AdminFeatureLabel feature="drift" />
             <CardDescription className="flex items-center justify-between">
               Score PSI (Drift 4 Minggu)
               <TrendingUp className="size-4 text-amber-600" aria-hidden />
@@ -114,7 +116,7 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
               {mon.psi_warning ? (
                 <span className="font-semibold text-destructive">Drift terdeteksi (&gt; 0.2)</span>
               ) : (
-                <span className="font-medium text-success-text">Distribusi stabil</span>
+                <span className="font-medium text-success-text">Tidak ada peringatan drift</span>
               )}
             </p>
           </CardContent>
@@ -122,13 +124,17 @@ export default async function AiMonitoringPage({ searchParams }: { searchParams:
       </div>
 
       {/* Active Model Versions */}
-      <Card>
+      <Card id="fusion-control" className="scroll-mt-24">
         <CardHeader>
+          <AdminFeatureLabel feature="fusion" />
           <CardTitle className="flex items-center gap-2">
             <Cpu className="size-5 text-primary" aria-hidden />
             Versi Model Aktif
           </CardTitle>
           <CardDescription>Model yang sedang aktif melayani inferensi embedding dan pencocokan kandidat laporan.</CardDescription>
+          <div className="pt-2">
+            <ModelVersionActivator allVersions={allVersions} />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">

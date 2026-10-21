@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import Image from "next/image"
 
 import { ClusterRunTrigger } from "@/components/admin/cluster-run-trigger"
+import { AdminFeatureLabel } from "@/components/dashboard/admin-feature-label"
 import { EmptyState } from "@/components/layout/empty-state"
 import { PageHeader } from "@/components/layout/page-header"
 import { Badge } from "@/components/ui/badge"
@@ -37,6 +38,7 @@ export default async function AiClustersPage({ searchParams }: { searchParams: P
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
+      <AdminFeatureLabel feature="clusters" />
       <PageHeader
         title="Pengelompokan Kasus & Deteksi Duplikat"
         lead="Kelompokkan laporan terbuka 30 hari terakhir berdasarkan kemiripan visual dan semantik menggunakan HDBSCAN (US-48, AI-11)."

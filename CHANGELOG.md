@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows
 
 ### Added
 
+- Add a slide-aligned administrator dashboard with live monitoring and operational summaries, explicit drift and fusion destinations, local character artwork and direct access to administrative menus.
 - Add a slide-aligned officer dashboard with six explicit feature names, a local officer illustration, real scoped queue data, case selection and direct verification and handover shortcuts.
 - Add a slide-aligned finder dashboard with private-safe match hints, actual custody status, duplicate-check prerequisites and the supplied local character illustration.
 - Add a member dashboard mode switch and choose the finder view for accounts with only active found reports, preserving the shared member role and existing permissions.

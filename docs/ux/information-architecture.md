@@ -77,7 +77,7 @@ Next.js App Router with route groups. Codes appear in URLs (api section 1).
 
 | Route | Screen | Stories |
 |---|---|---|
-| `/admin` | Admin home: KPIs, alerts from AI-12 | US-47 |
+| `/admin` | [Administrator dashboard](admin-dashboard.md): six slide 7 features, live summaries, staff and post coverage | US-04, US-47, AI-10, AI-11, AI-12 |
 | `/admin/pengguna`, `/admin/pengguna/[id]` | Users, invitations, roles, posts, suspension | US-04, US-42 |
 | `/admin/master/kategori`, `/lokasi`, `/zona`, `/pos` | Master data | US-07 |
 | `/admin/moderasi` | Hidden reports, flagged members | US-42 |

@@ -50,7 +50,9 @@ function Section({ title, items }: { title: string; items: NavItem[] }) {
 
 export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email" | "role">; children: ReactNode }) {
   const t = useTranslations("nav")
-  const dashboard = usePathname() === "/petugas"
+  const pathname = usePathname()
+  const adminDashboard = pathname === "/admin" && me.role === "admin"
+  const dashboard = pathname === "/petugas" || adminDashboard
   const home: NavItem = { href: "/petugas", label: t("officerHome"), icon: House, exact: true }
   const receive: NavItem = { href: "/petugas/terima", label: t("receive"), icon: PackageOpen }
   const inventory: NavItem = { href: "/petugas/inventaris", label: t("inventory"), icon: Warehouse }
@@ -83,6 +85,9 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
     { href: "/laporan", label: t("personal"), icon: FolderOpen },
     { href: "/profil", label: t("profile"), icon: UserRound },
   ]
+  const dashboardNav = adminDashboard
+    ? admin.slice(0, 4)
+    : [home, receive, inventory, { href: "/petugas/klaim", label: t("officerClaims"), icon: ShieldQuestion }]
   const sections = (
     <>
       <Section title={t("workspace")} items={work} />
@@ -98,7 +103,7 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
       </SheetTrigger>
       <SheetContent side="right" className="overflow-y-auto px-3 pb-6">
         <SheetHeader className="px-3">
-          <SheetTitle>{t("workspace")}</SheetTitle>
+          <SheetTitle>{t(adminDashboard ? "adminSection" : "workspace")}</SheetTitle>
         </SheetHeader>
         <nav aria-label={t("more")}>{sections}</nav>
       </SheetContent>
@@ -119,11 +124,10 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
           <div className={`flex h-16 items-center justify-between gap-4 px-4 md:px-6 ${dashboard ? "mx-auto max-w-[1480px]" : ""}`}>
             <Wordmark href={me.role === "admin" ? "/admin" : "/petugas"} className={dashboard ? undefined : "lg:invisible"} />
             {dashboard ? (
-              <nav aria-label={t("workspace")} className="hidden items-center gap-1 lg:flex">
-                <TopLink item={home} />
-                <TopLink item={receive} />
-                <TopLink item={inventory} />
-                <TopLink item={{ href: "/petugas/klaim", label: t("officerClaims"), icon: ShieldQuestion }} />
+              <nav aria-label={t(adminDashboard ? "adminSection" : "workspace")} className="hidden items-center gap-1 lg:flex">
+                {dashboardNav.map((item) => (
+                  <TopLink key={item.href} item={item} />
+                ))}
                 {moreMenu}
               </nav>
             ) : null}
@@ -139,10 +143,16 @@ export function StaffShell({ me, children }: { me: Pick<Me, "full_name" | "email
       </div>
       <nav aria-label={t("main")} className="fixed inset-x-0 bottom-0 z-40 border-t bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
         <div className="flex items-stretch">
-          <BottomLink item={home} />
-          <BottomLink item={{ ...receive, label: t("receiveShort") }} />
-          <BottomLink item={search} />
-          <BottomLink item={inventory} />
+          {adminDashboard ? (
+            dashboardNav.map((item) => <BottomLink key={item.href} item={item} />)
+          ) : (
+            <>
+              <BottomLink item={home} />
+              <BottomLink item={{ ...receive, label: t("receiveShort") }} />
+              <BottomLink item={search} />
+              <BottomLink item={inventory} />
+            </>
+          )}
           <Sheet>
             <SheetTrigger
               render={<Button variant="ghost" className="h-auto min-h-14 flex-1 flex-col gap-0.5 rounded-none text-xs font-medium text-muted-foreground" />}
