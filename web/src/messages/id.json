@@ -220,7 +220,18 @@
     "eyebrow": "Barang hilang dan temuan di UGM",
     "foundAction": "Saya menemukan barang",
     "community": "Satu kampus, saling menjaga.",
-    "howLead": "Dari laporan sampai kembali ke tanganmu."
+    "howLead": "Dari laporan sampai kembali ke tanganmu.",
+    "motionMatch": "AI membantu mencocokkan",
+    "motionVerify": "Petugas memeriksa",
+    "storyHint": "Scroll untuk melihat barang kembali ke pemiliknya",
+    "roleOwnerTitle": "Pemilik",
+    "roleOwnerBody": "Melaporkan barang yang hilang",
+    "roleFinderTitle": "Penemu",
+    "roleFinderBody": "Menemukan dan menyerahkan barang",
+    "roleOfficerTitle": "Petugas",
+    "roleOfficerBody": "Memeriksa dan mencocokkan data",
+    "roleAdminTitle": "Admin",
+    "roleAdminBody": "Mengelola sistem dan data"
   },
   "auth": {
     "email": "Email UGM",
