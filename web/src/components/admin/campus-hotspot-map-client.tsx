@@ -5,6 +5,8 @@ import mapboxgl from "mapbox-gl"
 
 import type { HotspotLocation } from "@/lib/api/types"
 
+import { hotspotMarkerStyle } from "./hotspot-marker-style"
+
 interface CampusHotspotMapClientProps {
   locations: HotspotLocation[]
   selectedType: "lost" | "found" | "all"
@@ -23,13 +25,6 @@ function countFor(location: HotspotLocation, selectedType: CampusHotspotMapClien
   if (selectedType === "lost") return location.lost_count
   if (selectedType === "found") return location.found_count
   return location.total_count
-}
-
-function markerColour(count: number): string {
-  if (count >= 10) return "#e11d48"
-  if (count >= 4) return "#d97706"
-  if (count === 0) return "#64748b"
-  return "#059669"
 }
 
 function escapeHtml(value: string): string {
@@ -52,17 +47,17 @@ function popupHtml(location: HotspotLocation): string {
 
 function markerElement(location: HotspotLocation, count: number, maxCount: number): HTMLButtonElement {
   const element = document.createElement("button")
-  const size = count === 0 ? 28 : Math.min(52, 28 + (count / maxCount) * 24)
+  const style = hotspotMarkerStyle(count, maxCount)
 
   element.type = "button"
   element.title = location.location_name
   element.setAttribute("aria-label", `${location.location_name}, ${count < 3 ? "kurang dari 3" : `${count}`} laporan`)
   element.textContent = count < 3 ? "<3" : `${count}`
-  element.style.width = `${size}px`
-  element.style.height = `${size}px`
+  element.style.width = `${style.diameter}px`
+  element.style.height = `${style.diameter}px`
   element.style.border = "2px solid white"
   element.style.borderRadius = "9999px"
-  element.style.background = markerColour(count)
+  element.style.background = style.background
   element.style.boxShadow = "0 2px 8px rgb(15 23 42 / 0.35)"
   element.style.color = "white"
   element.style.cursor = "pointer"

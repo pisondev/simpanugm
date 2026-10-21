@@ -1,6 +1,7 @@
 "use client"
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { PackageCheck } from "lucide-react"
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react"
 import * as THREE from "three"
 
@@ -46,7 +47,9 @@ function WebglFallback() {
     <div className="orbit-fallback" aria-hidden="true">
       <div className="orbit-fallback__ring orbit-fallback__ring--outer" />
       <div className="orbit-fallback__ring orbit-fallback__ring--inner" />
-      <span className="orbit-fallback__parcel">✓</span>
+      <span className="orbit-fallback__parcel">
+        <PackageCheck aria-hidden />
+      </span>
     </div>
   )
 }
