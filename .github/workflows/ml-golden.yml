@@ -30,7 +30,7 @@ jobs:
           cache-dependency-glob: ml/uv.lock
 
       - name: Cache model weights
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/huggingface
           key: ml-weights-${{ hashFiles('ml/models.lock.json') }}
